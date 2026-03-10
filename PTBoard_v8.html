@@ -975,8 +975,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
             <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd}/>
             <FF label="Nome *" name="nome" value={form.nome} onChange={upd}/>
-            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={upd} placeholder="GG/MM/AAAA"/>
-            <FF label="Anno nascita" name="annoNascita" type="number" value={form.annoNascita} onChange={upd}/>
+            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA"/>
             <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
             <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
           </div>
@@ -1099,6 +1098,7 @@ function App(){
   };
 
   const [showValutazione,setShowValutazione]=useState(false);
+  const [showTutorial,setShowTutorial]=useState(false);
 
   const navItems=[
     {id:'dash',icon:'⊞',l:'Dashboard'},
@@ -1140,6 +1140,9 @@ function App(){
           ))}
           <button style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
             <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione 20 min</span>
+          </button>
+          <button style={{...S.navi(false),background:'#a78bfa10',border:'1px solid #a78bfa30',marginTop:4}} onClick={()=>{setShowTutorial(true);setSidebarOpen(false);}}>
+            <span style={{fontSize:14}}>📖</span><span style={{color:'#a78bfa',fontWeight:700}}>Tutorial</span>
           </button>
           <div style={S.navlbl}>Recenti</div>
           {patients.slice(-5).reverse().map(p=>(
@@ -1204,6 +1207,7 @@ function App(){
         }}
         onClose={()=>setShowValutazione(false)}
       />}
+      {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
     </div>
   );
 }
@@ -1261,7 +1265,7 @@ function WizIn({lbl,name,type='text',val,onChange,opts,ph}){
 function WizardValutazione({onSave,onClose}){
   const TOTAL=6;
   const [step,setStep]=useState(1);
-  const [d,setD]=useState({nome:'',cognome:'',ddn:'',annoNascita:'',sesso:'F',altezza:'',peso:'',vita:'',pa:'',fc:'',patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',attivita:'Sedentaria',obiettivo:'',mwtDist:'',mwtRpe:'',mwtSintomi:'NO',stsRip:'',stsNote:'',rpeRiposo:'',noteVal:''});
+  const [d,setD]=useState({nome:'',cognome:'',ddn:'',sesso:'F',altezza:'',peso:'',vita:'',pa:'',fc:'',patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',attivita:'Sedentaria',obiettivo:'',mwtDist:'',mwtRpe:'',mwtSintomi:'NO',stsRip:'',stsNote:'',rpeRiposo:'',noteVal:''});
   const upd=k=>e=>setD(x=>({...x,[k]:e.target.value}));
   const set=(k,v)=>setD(x=>({...x,[k]:v}));
 
@@ -1269,7 +1273,8 @@ function WizardValutazione({onSave,onClose}){
   const {l:bmiLbl,c:bmiClr}=bmiVal?bmiCat(bmiVal):{l:'—',c:C.muted};
   const pr=profilo(+d.mwtDist,+d.stsRip);
   const prog=pr?PROGRAMMI[pr.code]:null;
-  const fcMax=d.annoNascita?220-(new Date().getFullYear()-+d.annoNascita):null;
+  const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
+  const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
   const exportPDF=()=>{
@@ -1407,7 +1412,6 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
               <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
               <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
-              <WizIn lbl="Anno nascita" name="annoNascita" type="number" val={d.annoNascita} onChange={upd('annoNascita')}/>
               <WizIn lbl="Sesso" name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
               <WizIn lbl="Altezza (cm)" name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
               <WizIn lbl="Peso (kg)" name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
@@ -1589,13 +1593,191 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             }} style={S.btn()}>Avanti →</button>}
             {step===TOTAL&&<button onClick={()=>{
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
-              const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:d.annoNascita,sesso:d.sesso,altezza:d.altezza,peso:d.peso,vita:d.vita,pa:d.pa,fc:d.fc,patologie:d.patologie,farmaci:d.farmaci,sintomiSforzo:d.sintomiSforzo,allergie:'',attivita:d.attivita,obiettivo:d.obiettivo,preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),
+              const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,pa:d.pa,fc:d.fc,patologie:d.patologie,farmaci:d.farmaci,sintomiSforzo:d.sintomiSforzo,allergie:'',attivita:d.attivita,obiettivo:d.obiettivo,preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),
                 test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal},
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note}:{},
                 nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
               };
               onSave(p);
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>✓ Salva &amp; apri scheda</button>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TUTORIAL MODAL ────────────────────────────────────────────────────────────
+const TSTEPS=[
+  {label:'Panoramica',time:'1 min',bc:'#3b82f630',bct:'#60a5fa',badge:'Introduzione',title:'Benvenuto in PT Board',desc:"PT Board è il tuo spazio di lavoro digitale. Pazienti, test funzionali, programmi, nutrizione e report PDF — tutto in un solo file.",
+  html:`<div style="display:flex;flex-direction:column;gap:14px">
+    <div style="background:#0a1020;border-radius:12px;padding:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${[['👥','Pazienti','Lista con profili A/B/C'],['🎯','Valutazione 20 min','Wizard + export PDF/Excel'],['📅','Calendario','Appuntamenti'],['⊞','Dashboard','Panoramica']].map(([ic,t,d])=>`<div style="flex:1;min-width:120px;background:#1e293b;border-radius:8px;padding:10px;border:1px solid #334155"><div style="font-size:18px;margin-bottom:4px">${ic}</div><div style="font-size:11px;font-weight:700;color:#fff">${t}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${d}</div></div>`).join('')}
+      </div>
+    </div>
+    ${[['☰','Menu laterale','Tocca ☰ in alto a sinistra per aprire la navigazione. Su mobile si chiude toccando una voce o la ✕.'],['🎯','Valutazione 20 min','Il pulsante evidenziato in blu nel menu. È il flusso principale — inizia sempre da qui con un nuovo paziente.'],['🌙','Tema chiaro / scuro','Menu → Parametri in fondo → toggle per cambiare tema.']].map(([ic,t,d])=>`<div style="display:flex;gap:12px"><div style="width:30px;height:30px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px">${ic}</div><div><div style="font-size:13px;font-weight:700;color:#f8fafc;margin-bottom:3px">${t}</div><div style="font-size:12px;color:#94a3b8;line-height:1.6">${d}</div></div></div>`).join('')}
+  </div>`},
+  {label:'🎯 Wizard — panoramica',time:'Flusso principale',bc:'#fb923c30',bct:'#fb923c',badge:'Funzione principale',title:'Il Wizard Valutazione — 20 min',desc:'Un flusso guidato in 6 passi: dall\'anagrafica al programma pronto, con classificazione automatica A/B/C e doppio export.',
+  html:`<div style="display:flex;flex-direction:column;gap:8px">
+    ${[['1','#3b82f6','Anagrafica & Clinica','Nome, peso, altezza, PA, FC — BMI e FC max live','~5 min'],['2','#3b82f6','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — distanza e RPE','~8 min'],['3','#3b82f6','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~5 min'],['4','#3b82f6','😮‍💨 RPE & Note','Stato percepito post-test + note cliniche','~2 min'],['5','#3b82f6','📊 Classificazione','Il sistema assegna profilo A, B o C automaticamente','istantaneo'],['6','#10b981','🏆 Programma 4 settimane','Cardio, forza, nutrizione + export PDF/Excel','subito']].map(([n,c,t,d,tm])=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px">
+      <div style="width:24px;height:24px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${n}</div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b;margin-top:2px">${d}</div></div>
+      <div style="font-size:10px;color:#475569;white-space:nowrap">${tm}</div>
+    </div>`).join('')}
+  </div>`},
+  {label:'Passo 1 — Anagrafica',time:'~5 min',bc:'#10b98130',bct:'#2dd4bf',badge:'Passo 1 / 6',title:'Anagrafica & parametri clinici',desc:'Il primo passo raccoglie i dati essenziali. BMI, peso target, FC max e zone cardiache si calcolano in tempo reale mentre scrivi.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="background:#0a1020;border-radius:10px;padding:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        ${[['Cognome *','Rossi'],['Nome *','Maria'],['Data nascita','15/03/2000'],['Sesso','F — Femmina'],['Altezza (cm)','165'],['Peso (kg)','78'],['PA','120/80'],['FC riposo','72 bpm']].map(([l,v])=>`<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:3px">${l}</div><div style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:6px 9px;font-size:11px;color:#fff">${v}</div></div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="background:#1e3a5f;border-radius:8px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:900;color:#3b82f6">28.7</div><div style="font-size:9px;color:#64748b;margin-top:2px">BMI</div></div>
+        <div style="background:#1e293b;border-radius:8px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:900;color:#10b981">71.4 kg</div><div style="font-size:9px;color:#64748b;margin-top:2px">Peso target</div></div>
+        <div style="background:#1e293b;border-radius:8px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:900;color:#a78bfa">220</div><div style="font-size:9px;color:#64748b;margin-top:2px">FC max</div></div>
+      </div>
+    </div>
+    ${[['⚡','Calcoli automatici live','Peso + altezza → BMI. Data nascita → FC max, 60%, 75%. Altezza → peso target. Tutto aggiornato mentre scrivi.'],['★','Solo Nome e Cognome obbligatori','Gli altri campi puoi completarli subito o tornare dopo dalla scheda paziente.'],['🩺','Sezione clinica','Inserisci sempre patologie, farmaci e sintomi da sforzo prima dei test fisici.']].map(([ic,t,d])=>`<div style="display:flex;gap:10px"><div style="width:28px;height:28px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px">${ic}</div><div><div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:3px">${t}</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">${d}</div></div></div>`).join('')}
+  </div>`},
+  {label:'Passi 2-3 — Test funzionali',time:'~13 min',bc:'#10b98130',bct:'#2dd4bf',badge:'Passi 2-3 / 6',title:'I due test funzionali',desc:'6MWT e Sit-to-Stand determinano il profilo del paziente. Il protocollo completo è integrato in ogni passo del wizard.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
+        <div style="font-size:20px;margin-bottom:8px">🚶</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px">6MWT</div>
+        ${['Corridoio piano ≥ 20m','Cammina al max per 6 min','Misura distanza in metri','RPE subito alla fine'].map((t,i)=>`<div style="display:flex;gap:6px;margin-bottom:5px"><div style="width:14px;height:14px;border-radius:50%;background:#3b82f625;color:#3b82f6;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:11px;color:#e2e8f0">${t}</div></div>`).join('')}
+        <div style="margin-top:8px;background:#3b82f612;border:1px solid #3b82f625;border-radius:6px;padding:5px 8px;font-size:10px;color:#60a5fa">Stima: 8 min</div>
+      </div>
+      <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
+        <div style="font-size:20px;margin-bottom:8px">🪑</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px">Sit-to-Stand 30s</div>
+        ${['Sedia standard h ~43cm','Braccia incrociate al petto','Alzarsi completamente','Contare ogni alzata = 1 rip.'].map((t,i)=>`<div style="display:flex;gap:6px;margin-bottom:5px"><div style="width:14px;height:14px;border-radius:50%;background:#10b98125;color:#10b981;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:11px;color:#e2e8f0">${t}</div></div>`).join('')}
+        <div style="margin-top:8px;background:#10b98112;border:1px solid #10b98125;border-radius:6px;padding:5px 8px;font-size:10px;color:#10b981">Stima: 5 min</div>
+      </div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:10px">Feedback live</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">Mentre inserisci la distanza del 6MWT e le ripetizioni dello STS, l'app mostra subito il <strong style="color:#f8fafc">profilo tendenziale (A/B/C)</strong> — il risultato è visibile già al passo 3.</div>
+    </div>
+  </div>`},
+  {label:'Passi 4-5 — Classificazione',time:'Istantaneo',bc:'#10b98130',bct:'#2dd4bf',badge:'Passi 4-5 / 6',title:'Classificazione automatica A/B/C',desc:'Il sistema elabora i due test e assegna il profilo automaticamente. Nessun calcolo manuale.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="background:#fee2e210;border:1px solid #ef444430;border-radius:10px;padding:14px;text-align:center"><div style="font-size:36px;font-weight:900;color:#ef4444;line-height:1">A</div><div style="font-size:10px;font-weight:700;color:#ef4444;margin:4px 0">Molto bassa</div><div style="font-size:10px;color:#64748b">6MWT &lt;300m<br>STS &lt;10 rip.</div></div>
+      <div style="background:#fef3c710;border:1px solid #f59e0b30;border-radius:10px;padding:14px;text-align:center"><div style="font-size:36px;font-weight:900;color:#f59e0b;line-height:1">B</div><div style="font-size:10px;font-weight:700;color:#f59e0b;margin:4px 0">Moderata</div><div style="font-size:10px;color:#64748b">6MWT 300-450m<br>STS 10-15 rip.</div></div>
+      <div style="background:#d1fae510;border:1px solid #10b98130;border-radius:10px;padding:14px;text-align:center"><div style="font-size:36px;font-weight:900;color:#10b981;line-height:1">C</div><div style="font-size:10px;font-weight:700;color:#10b981;margin:4px 0">Discreta</div><div style="font-size:10px;color:#64748b">6MWT &gt;450m<br>STS &gt;15 rip.</div></div>
+    </div>
+    <div style="background:#10b98112;border:2px solid #10b98140;border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:52px;font-weight:900;color:#10b981;line-height:1">C</div>
+      <div style="font-size:14px;font-weight:700;color:#f8fafc;margin-top:6px">Profilo C — Capacità discreta</div>
+      <div style="font-size:11px;color:#64748b;margin-top:4px">Progressione più intensa — focus composizione corporea</div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:8px">Passo 4 — RPE &amp; Note (2 min)</div>
+      <div style="display:flex;gap:5px">
+        ${[[0,'#10b981','Nulla'],[2,'#22d3ee','Lieve'],[4,'#f59e0b','Media'],[6,'#fb923c','Alta'],[8,'#ef4444','Max']].map(([v,c,l])=>`<div style="flex:1;background:${c}20;border:1px solid ${c}40;border-radius:6px;padding:6px 3px;text-align:center"><div style="font-size:14px;font-weight:800;color:${c}">${v}</div><div style="font-size:8px;color:#64748b;margin-top:2px">${l}</div></div>`).join('')}
+      </div>
+    </div>
+  </div>`},
+  {label:'Passo 6 — Programma + Export',time:'Export immediato',bc:'#10b98130',bct:'#2dd4bf',badge:'Passo 6 / 6',title:'Programma 4 settimane & Export',desc:'L\'ultimo passo genera il programma completo. Export PDF o Excel in un click — poi salvi e tutto è già nella scheda.',
+  html:`<div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="background:#1e293b;border:1px solid #3b82f630;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#3b82f6">5</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;margin-top:3px">Sedute/sett.</div></div>
+      <div style="background:#1e293b;border:1px solid #10b98130;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#10b981">150'</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;margin-top:3px">Min cardio</div></div>
+      <div style="background:#1e293b;border:1px solid #fb923c30;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#fb923c">100'</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;margin-top:3px">Min forza</div></div>
+    </div>
+    ${[[1,'30 min LISS + 10 min HIIT 30/30','4 eserc × 4 giri × 10-12 rip.','Settimana baseline — registra i carichi'],[2,'35 min cardio + 15 min HIIT 40/20','Aumentare carico +5-10%','Progressione lineare del carico']].map(([n,c,f,note])=>`
+    <div style="background:#1e293b;border-left:3px solid #3b82f6;border-radius:0 8px 8px 0;padding:12px">
+      <div style="font-size:9px;font-weight:700;color:#3b82f6;text-transform:uppercase;margin-bottom:8px">Settimana ${n}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+        <div><div style="font-size:8px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:2px">Cardio</div><div style="font-size:10px;color:#e2e8f0;line-height:1.5">${c}</div></div>
+        <div><div style="font-size:8px;color:#a78bfa;font-weight:700;text-transform:uppercase;margin-bottom:2px">Forza</div><div style="font-size:10px;color:#e2e8f0;line-height:1.5">${f}</div></div>
+      </div>
+      <div style="background:#f59e0b12;border:1px solid #f59e0b25;border-radius:5px;padding:5px 8px;font-size:10px;color:#f59e0b">💡 ${note}</div>
+    </div>`).join('')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:#10b98114;border:1px solid #10b98130;border-radius:10px;padding:12px;text-align:center"><div style="font-size:13px;font-weight:700;color:#10b981;margin-bottom:4px">📄 Esporta PDF</div><div style="font-size:11px;color:#64748b">Report professionale pronto da stampare o inviare</div></div>
+      <div style="background:#a78bfa14;border:1px solid #a78bfa30;border-radius:10px;padding:12px;text-align:center"><div style="font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:4px">📊 Esporta Excel</div><div style="font-size:11px;color:#64748b">File CSV con tutti i dati + programma</div></div>
+    </div>
+  </div>`},
+  {label:'Scheda paziente',time:'Sempre disponibile',bc:'#10b98130',bct:'#2dd4bf',badge:'Extra',title:'La scheda paziente — 8 tab',desc:'Dopo la valutazione puoi aprire la scheda per registrare sedute, pesate, modificare il programma e generare nuovi report.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:4px;overflow-x:auto">
+      ${['Dashboard','Anagrafica','Test','Programma','Allenamento','Nutrizione','Log','Statistiche'].map((t,i)=>`<div style="padding:5px 10px;border-radius:5px;font-size:10px;font-weight:${i===6?700:500};color:${i===6?'#fff':'#64748b'};background:${i===6?'#3b82f6':'transparent'};white-space:nowrap">${t}</div>`).join('')}
+    </div>
+    ${[['📋','#3b82f6','Tab Log — registra ogni seduta','Dopo ogni allenamento: tipo, durata, RPE. Bastano 30 secondi. Il log alimenta le statistiche.'],['⚖️','#fb923c','Tab Progressi — storico peso','Aggiungi pesate periodiche. Il grafico mostra la curva di dimagrimento da mostrare al paziente.'],['📄','#a78bfa','Report PDF dalla scheda','Il pulsante 📄 verde in cima genera un report aggiornato in qualsiasi momento.']].map(([ic,c,t,d])=>`
+    <div style="display:flex;gap:10px">
+      <div style="width:28px;height:28px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px">${ic}</div>
+      <div><div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:3px">${t}</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">${d}</div></div>
+    </div>`).join('')}
+    <div style="background:#1e293b;border-radius:10px;padding:12px">
+      ${[['Camminata progressiva','11/03','30 min','RPE 5','#10b981'],['Circuito corpo libero','13/03','40 min','RPE 6','#f59e0b'],['HIIT + stretching','15/03','35 min','RPE 7','#3b82f6']].map(([t,d,dur,rpe,c])=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #334155">
+        <div style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0"></div>
+        <div style="flex:1;font-size:11px;font-weight:600;color:#fff">${t} <span style="color:#64748b;font-weight:400">${d} · ${dur}</span></div>
+        <div style="background:${c}20;color:${c};border:1px solid ${c}35;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700">${rpe}</div>
+      </div>`).join('')}
+    </div>
+  </div>`},
+  {label:'Fatto! 🎉',time:'',bc:'#a78bfa30',bct:'#a78bfa',badge:'Completato',title:'Sei pronto!',desc:'Hai imparato tutto quello che ti serve per usare PT Board in modo professionale.',
+  html:`<div style="text-align:center;padding:8px 0 16px">
+    <div style="font-size:52px;margin-bottom:16px">🎉</div>
+    <div style="display:flex;flex-direction:column;gap:7px;max-width:420px;margin:0 auto 24px">
+      ${['Navigazione e menu principale','Wizard Valutazione 20 min — tutti i 6 passi','Test 6MWT e Sit-to-Stand con protocollo','Classificazione automatica profili A / B / C','Programma 4 settimane pronto per profilo','Export PDF professionale e Excel/CSV','Scheda paziente — log sedute e progressi peso'].map(t=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#10b98112;border:1px solid #10b98128;border-radius:8px;font-size:12px;color:#e2e8f0"><span style="color:#10b981;font-weight:700">✓</span>${t}</div>`).join('')}
+    </div>
+  </div>`},
+];
+
+function TutorialModal({onClose,isLight}){
+  const [cur,setCur]=useState(0);
+  const total=TSTEPS.length;
+  const s=TSTEPS[cur];
+  const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:300,display:'flex',alignItems:'stretch',justifyContent:'center'};
+  const BOX={background:C.card,width:'min(900px,100vw)',maxHeight:'100vh',display:'flex',flexDirection:'column'};
+  return(
+    <div style={OL} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={BOX}>
+        {/* Header */}
+        <div style={{padding:'14px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
+          <div style={{width:34,height:34,borderRadius:9,background:C.blue+'20',border:`1px solid ${C.blue}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>📖</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:800,color:C.strong}}>Tutorial PT Board</div>
+            <div style={{fontSize:11,color:C.muted,marginTop:1}}>Passo {cur+1} di {total} · {s.label}</div>
+          </div>
+          <button onClick={onClose} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
+        </div>
+        {/* Progress */}
+        <div style={{height:3,background:C.border,flexShrink:0}}>
+          <div style={{height:'100%',width:((cur+1)/total*100)+'%',background:`linear-gradient(90deg,${C.blue},${C.green})`,transition:'width .4s ease'}}/>
+        </div>
+        {/* Step pills */}
+        <div style={{display:'flex',padding:'10px 20px',gap:3,flexShrink:0,overflowX:'auto',borderBottom:`1px solid ${C.border}`}}>
+          {TSTEPS.map((x,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+              <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
+              {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
+            </div>
+          ))}
+        </div>
+        {/* Body */}
+        <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
+          <div style={{display:'inline-flex',alignItems:'center',padding:'3px 12px',borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:'uppercase',background:s.bc,color:s.bct,marginBottom:14}}>{s.badge}</div>
+          <div style={{fontSize:20,fontWeight:800,color:C.strong,letterSpacing:-0.5,marginBottom:8}}>{s.title}</div>
+          <div style={{fontSize:13,color:C.muted,lineHeight:1.7,marginBottom:20,fontWeight:300}}>{s.desc}</div>
+          <div dangerouslySetInnerHTML={{__html:s.html}}/>
+        </div>
+        {/* Footer */}
+        <div style={{padding:'12px 20px',borderTop:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',flexShrink:0,gap:8}}>
+          <button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:`1px solid ${C.border2}`,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Chiudi</button>
+          <div style={{display:'flex',gap:8}}>
+            {cur>0&&<button onClick={()=>setCur(c=>c-1)} style={{padding:'8px 18px',borderRadius:8,border:`1px solid ${C.border2}`,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>← Indietro</button>}
+            {cur<total-1
+              ?<button onClick={()=>setCur(c=>c+1)} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.blue,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Avanti →</button>
+              :<button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.green,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>✓ Inizia ad usare PT Board</button>
+            }
           </div>
         </div>
       </div>
