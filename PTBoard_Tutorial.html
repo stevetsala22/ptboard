@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PT Board — Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--card:#0f1623;--card2:#111827;--border:#1e2d47;--border2:#334155;
+  --blue:#3b82f6;--blue2:#60a5fa;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;
+  --purple:#a78bfa;--orange:#fb923c;--teal:#2dd4bf;
+  --text:#e2e8f0;--muted:#64748b;--dim:#475569;--strong:#f8fafc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+header{background:var(--card);border-bottom:1px solid var(--border);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff}
+.logo span{color:var(--blue)}
+.logo-sub{font-size:10px;color:var(--muted);margin-top:2px;letter-spacing:1.5px;text-transform:uppercase}
+.hdr-counter{font-size:13px;font-weight:700;color:var(--blue)}
+
+.progress-bar{height:3px;background:var(--border)}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .4s ease}
+
+.layout{display:flex;min-height:calc(100vh - 73px)}
+
+.sidebar{width:255px;background:var(--card);border-right:1px solid var(--border);padding:22px 14px;position:sticky;top:73px;height:calc(100vh - 73px);overflow-y:auto;flex-shrink:0}
+.sidebar-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;padding:0 6px}
+.step-item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:all .2s;margin-bottom:3px;border:1px solid transparent}
+.step-item:hover{background:#ffffff06;border-color:var(--border)}
+.step-item.active{background:#3b82f614;border-color:#3b82f630}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;transition:all .2s}
+.step-num.done{background:var(--green);color:#fff}
+.step-num.act{background:var(--blue);color:#fff}
+.step-num.todo{background:#1e2d47;color:var(--muted)}
+.step-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.4}
+.step-label.done{color:var(--muted)}
+.step-time{font-size:10px;color:var(--dim);margin-top:2px}
+
+.main{flex:1;padding:48px 56px;max-width:840px}
+
+.step-badge{display:inline-flex;align-items:center;padding:4px 13px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:18px}
+.b-intro{background:#3b82f614;border:1px solid #3b82f630;color:var(--blue2)}
+.b-step{background:#10b98114;border:1px solid #10b98130;color:var(--teal)}
+.b-wiz{background:#fb923c14;border:1px solid #fb923c30;color:var(--orange)}
+.b-end{background:#a78bfa14;border:1px solid #a78bfa30;color:var(--purple)}
+
+h1{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--strong);letter-spacing:-1px;line-height:1.1;margin-bottom:10px}
+.desc{font-size:15px;color:var(--muted);line-height:1.7;font-weight:300;margin-bottom:32px}
+
+.mockup{background:#080d1a;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:0 20px 60px #00000060}
+.mbar{background:#060a12;padding:9px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)}
+.dot{width:8px;height:8px;border-radius:50%}
+.murl{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+
+.card{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:14px}
+.card-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+
+.vsteps{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.vstep{display:flex;gap:12px;align-items:flex-start}
+.vn{width:28px;height:28px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;margin-top:2px}
+.vn-blue{background:var(--blue)}
+.vn-green{background:var(--green)}
+.vn-orange{background:var(--orange)}
+.vn-purple{background:var(--purple)}
+.vt{font-size:14px;font-weight:700;color:var(--strong);margin-bottom:4px}
+.vd{font-size:13px;color:var(--muted);line-height:1.6}
+.tip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:7px;font-size:11px;font-weight:500;margin-top:8px}
+.tip-y{background:#f59e0b12;border:1px solid #f59e0b25;color:var(--yellow)}
+.tip-b{background:#3b82f612;border:1px solid #3b82f625;color:var(--blue2)}
+.tip-g{background:#10b98112;border:1px solid #10b98125;color:var(--green)}
+
+.profili{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.pc{border-radius:12px;padding:16px;text-align:center}
+.pA{background:#fee2e210;border:1px solid #ef444430}
+.pB{background:#fef3c710;border:1px solid #f59e0b30}
+.pC{background:#d1fae510;border:1px solid #10b98130}
+.pl{font-size:40px;font-weight:900;line-height:1;margin-bottom:6px}
+.pn{font-size:11px;font-weight:700;margin-bottom:6px}
+.pv{font-size:10px;color:var(--muted);line-height:1.7}
+
+.tab-row{display:flex;gap:3px;background:#0f172a;border-radius:9px;padding:4px;margin-bottom:16px;overflow-x:auto}
+.tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
+.tab.on{background:var(--blue);color:#fff;font-weight:700}
+
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.kpi{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:11px;text-align:center}
+.kv{font-size:20px;font-weight:900}
+.kl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+
+.ui-btn{padding:10px 18px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:default;font-family:inherit;display:inline-flex;align-items:center;gap:7px;width:100%;justify-content:center;margin-bottom:10px}
+.btn-green{background:#10b98120;color:var(--green);border:1px solid #10b98140}
+.btn-purple{background:#a78bfa20;color:var(--purple);border:1px solid #a78bfa40}
+
+.checklist{display:flex;flex-direction:column;gap:8px;max-width:480px;margin:0 auto 32px}
+.check-item{display:flex;align-items:center;gap:12px;padding:11px 16px;background:#10b98112;border:1px solid #10b98128;border-radius:9px;font-size:13px;color:var(--text)}
+.check-item::before{content:'✓';color:var(--green);font-weight:700;font-size:15px;flex-shrink:0}
+
+.nav-btns{display:flex;gap:10px;margin-top:44px;padding-top:26px;border-top:1px solid var(--border)}
+.nav-btn{padding:11px 26px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:7px}
+.nb-prev{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.nb-prev:hover{color:#fff;border-color:var(--text)}
+.nb-next{background:var(--blue);color:#fff}
+.nb-next:hover{background:var(--blue2);transform:translateY(-1px)}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+
+@media(max-width:900px){.sidebar{display:none}.main{padding:28px 20px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div><div class="logo">PT<span>Board</span></div><div class="logo-sub">Tutorial interattivo</div></div>
+  <div class="hdr-counter" id="ctr">Passo 1 di 8</div>
+</header>
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:12.5%"></div></div>
+
+<div class="layout">
+  <div class="sidebar"><div class="sidebar-title">Indice</div><div id="sb"></div></div>
+  <div class="main" id="main"></div>
+</div>
+
+<script>
+const S=[
+  {
+    label:"Panoramica",time:"1 min",bc:"b-intro",badge:"Introduzione",
+    title:"Benvenuto in PT Board",
+    desc:"PT Board è il tuo spazio di lavoro digitale come personal trainer. Pazienti, test funzionali, programmi, nutrizione e report PDF — tutto in un solo file, sempre con te.",
+    html:`
+<div class="mockup">
+  <div class="mbar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="murl">PT Board</div></div>
+  <div style="display:flex;height:280px">
+    <div style="width:165px;background:#080d1a;border-right:1px solid var(--border);padding:14px;flex-shrink:0">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#3b82f6;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">PT Board</div>
+      <div style="font-size:9px;color:#1e3a5f;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Menu</div>
+      <div style="font-size:11px;color:var(--muted);padding:5px 0">⊞ Dashboard</div>
+      <div style="font-size:11px;color:#3b82f6;padding:5px 8px;background:#1e293b;border-radius:5px;font-weight:600">👥 Pazienti</div>
+      <div style="font-size:11px;color:var(--muted);padding:5px 0">📅 Calendario</div>
+      <div style="font-size:11px;color:var(--muted);padding:5px 0">🏋 Esercizi</div>
+      <div style="margin-top:10px;padding:8px;background:linear-gradient(135deg,#3b82f620,#10b98115);border:1px solid #3b82f640;border-radius:7px;font-size:11px;color:#3b82f6;font-weight:700">🎯 Valutazione 20 min</div>
+    </div>
+    <div style="flex:1;padding:18px;background:#0f172a">
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:12px">Sezioni principali</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[['👥','Pazienti','Lista con profili A/B/C'],['🎯','Valutazione 20 min','Wizard + export PDF/Excel'],['📅','Calendario','Appuntamenti e sedute'],['⊞','Dashboard','Panoramica rapida']].map(([ic,t,d])=>`
+        <div style="background:#1e293b;border-radius:8px;padding:10px;border:1px solid #334155">
+          <div style="font-size:16px;margin-bottom:3px">${ic}</div>
+          <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:2px">${t}</div>
+          <div style="font-size:10px;color:var(--muted)">${d}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="vsteps">
+  <div class="vstep"><div class="vn vn-blue">☰</div><div><div class="vt">Menu laterale</div><div class="vd">Tocca ☰ in alto a sinistra. Su mobile si chiude cliccando una voce o la ✕.</div></div></div>
+  <div class="vstep"><div class="vn vn-green">🎯</div><div><div class="vt">Valutazione 20 min — la funzione principale</div><div class="vd">Wizard guidato in 6 passi: anamnesi → test funzionali → classificazione A/B/C → programma 4 settimane → export PDF/Excel. Il modo più rapido per inserire un nuovo paziente.</div><div class="tip tip-b">💡 Parte sempre da qui per i nuovi pazienti</div></div></div>
+  <div class="vstep"><div class="vn vn-blue">🌙</div><div><div class="vt">Tema chiaro / scuro</div><div class="vd">Menu → "Parametri" in fondo → toggle.</div></div></div>
+</div>`
+  },
+  {
+    label:"🎯 Wizard — panoramica",time:"Il flusso principale",bc:"b-wiz",badge:"Funzione principale",
+    title:"Il Wizard Valutazione — 20 minuti",
+    desc:"Un flusso guidato in 6 passi che porta dall'anagrafica al programma pronto, con classificazione automatica A/B/C e doppio export. Inizia sempre da qui con un nuovo paziente.",
+    html:`
+<div class="card">
+  <div class="card-title">Come aprire il wizard</div>
+  <div class="vsteps" style="margin-bottom:0">
+    <div class="vstep"><div class="vn vn-blue">1</div><div><div class="vt">Apri il menu ☰</div><div class="vd">Tocca l'hamburger in alto a sinistra.</div></div></div>
+    <div class="vstep"><div class="vn vn-blue">2</div><div><div class="vt">Clicca "🎯 Valutazione 20 min"</div><div class="vd">Il pulsante evidenziato in blu nel menu — si apre il modal wizard a schermo intero.</div></div></div>
+  </div>
+</div>
+<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">I 6 passi del wizard</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+  ${[
+    ['1','var(--blue)','Anagrafica & Clinica','Nome, peso, altezza, PA, FC, patologie — BMI e FC max calcolati live','~5 min'],
+    ['2','var(--blue)','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — inserisci distanza e RPE','~8 min'],
+    ['3','var(--blue)','🪑 Sit-to-Stand 30s','Quante alzate in 30 secondi — valuta forza arti inferiori','~5 min'],
+    ['4','var(--blue)','😮‍💨 RPE & Note','Stato percepito post-test + note cliniche libere','~2 min'],
+    ['5','var(--blue)','📊 Classificazione automatica','Il sistema assegna profilo A, B o C in base ai test','istantaneo'],
+    ['6','#10b981','🏆 Programma 4 settimane','Pronto per profilo — cardio, forza, nutrizione + export PDF/Excel','subito'],
+  ].map(([n,c,t,d,tm])=>`
+  <div style="display:flex;gap:12px;align-items:flex-start;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:13px">
+    <div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${n}</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--strong)">${t}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${d}</div></div>
+    <div style="font-size:10px;color:var(--dim);white-space:nowrap">${tm}</div>
+  </div>`).join('')}
+</div>
+<div class="tip tip-b" style="display:flex">💡 Puoi navigare tra i passi cliccando i cerchi in cima al wizard e tornare indietro in qualsiasi momento</div>`
+  },
+  {
+    label:"Passo 1 — Anagrafica",time:"~5 min",bc:"b-step",badge:"Passo 1 / 6",
+    title:"Anagrafica & parametri clinici",
+    desc:"Il primo passo raccoglie i dati essenziali. I calcoli partono subito: BMI, peso target, FC max e zone cardiache — tutto in tempo reale mentre scrivi.",
+    html:`
+<div class="mockup">
+  <div class="mbar"><div class="dot" style="background:#ff5f57"></div><div class="dot" style="background:#febc2e"></div><div class="dot" style="background:#28c840"></div><div class="murl">Valutazione — Passo 1 · Anagrafica</div></div>
+  <div style="padding:20px;background:#0f172a">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      ${[['Cognome *','Rossi'],['Nome *','Maria'],['Anno nascita','2000'],['Sesso','F — Femmina'],['Altezza (cm)','165'],['Peso (kg)','78'],['PA','120/80'],['FC riposo','72 bpm']].map(([l,v])=>`
+      <div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:3px">${l}</div>
+        <div style="background:#1e293b;border:1px solid #334155;border-radius:6px;padding:7px 10px;font-size:12px;color:#fff">${v}</div>
+      </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="kpi" style="background:#1e3a5f;border-color:#3b82f640"><div class="kv" style="color:#3b82f6;font-size:18px">28.7</div><div class="kl">BMI · Sovrappeso</div></div>
+      <div class="kpi"><div class="kv" style="color:#10b981;font-size:18px">71.4 kg</div><div class="kl">Peso target</div></div>
+      <div class="kpi"><div class="kv" style="color:#a78bfa;font-size:18px">220</div><div class="kl">FC max est.</div></div>
+    </div>
+  </div>
+</div>
+<div class="vsteps">
+  <div class="vstep"><div class="vn vn-blue">★</div><div><div class="vt">Solo Cognome e Nome sono obbligatori</div><div class="vd">Gli altri campi puoi completarli subito o tornare dopo dalla scheda paziente normale.</div></div></div>
+  <div class="vstep"><div class="vn vn-green">⚡</div><div><div class="vt">Calcoli automatici in tempo reale</div><div class="vd">Peso + altezza → BMI con categoria. Anno di nascita → FC max, FC 60% e FC 75%. Altezza → peso target (BMI 24.9). Tutto aggiornato mentre scrivi — senza cliccare nulla.</div><div class="tip tip-y">💡 Fai pesare il paziente prima di sedersi, a digiuno e senza scarpe</div></div></div>
+  <div class="vstep"><div class="vn vn-blue">🩺</div><div><div class="vt">Sezione clinica essenziale</div><div class="vd">Patologie, farmaci e sintomi da sforzo — informazioni critiche prima di qualsiasi test fisico. Compilale sempre prima di procedere ai test.</div></div></div>
+</div>`
+  },
+  {
+    label:"Passi 2-3 — Test funzionali",time:"~13 min",bc:"b-step",badge:"Passi 2-3 / 6",
+    title:"I due test funzionali",
+    desc:"6MWT e Sit-to-Stand: i due test che determinano il profilo del paziente. Ogni passo include il protocollo completo — niente fogli esterni.",
+    html:`
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+  <div class="card">
+    <div style="font-size:22px;margin-bottom:8px">🚶</div>
+    <div style="font-size:14px;font-weight:700;color:var(--strong);margin-bottom:6px">6 Minute Walk Test</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">Il paziente cammina il più veloce possibile per 6 minuti esatti.</div>
+    ${['Corridoio piano ≥ 20m','Cammina al massimo possibile','Può fermarsi se necessario','Distanza totale in metri','RPE (0-10) subito alla fine'].map((t,i)=>`
+    <div style="display:flex;gap:7px;margin-bottom:6px">
+      <div style="width:16px;height:16px;border-radius:50%;background:#3b82f625;color:#3b82f6;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div>
+      <div style="font-size:11px;color:var(--text)">${t}</div>
+    </div>`).join('')}
+    <div class="tip tip-b" style="margin-top:8px">Stima: 8 min</div>
+  </div>
+  <div class="card">
+    <div style="font-size:22px;margin-bottom:8px">🪑</div>
+    <div style="font-size:14px;font-weight:700;color:var(--strong);margin-bottom:6px">Sit-to-Stand 30s</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">Quante alzate complete in 30 secondi.</div>
+    ${['Sedia standard, h ~43cm','Braccia incrociate al petto','Al via: alzarsi completamente','Ogni alzata = 1 ripetizione','No mani — annotarlo se usate'].map((t,i)=>`
+    <div style="display:flex;gap:7px;margin-bottom:6px">
+      <div style="width:16px;height:16px;border-radius:50%;background:#10b98125;color:#10b981;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div>
+      <div style="font-size:11px;color:var(--text)">${t}</div>
+    </div>`).join('')}
+    <div class="tip tip-g" style="margin-top:8px">Stima: 5 min</div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Feedback live durante l'inserimento</div>
+  <div class="vsteps" style="margin-bottom:0">
+    <div class="vstep"><div class="vn vn-green">⚡</div><div><div class="vt">Indicatore profilo tendenziale in tempo reale</div><div class="vd">Mentre inserisci la distanza del 6MWT, appare subito se tende a profilo A/B/C. Stessa cosa per le ripetizioni dello STS — il profilo è già visibile al passo 3 ancor prima di arrivare al 5.</div></div></div>
+    <div class="vstep"><div class="vn vn-blue">📋</div><div><div class="vt">Protocollo integrato in ogni passo</div><div class="vd">Non hai bisogno di fogli separati — il protocollo è scritto direttamente nel passo del wizard. Leggi, esegui, inserisci il valore.</div></div></div>
+  </div>
+</div>`
+  },
+  {
+    label:"Passo 4-5 — Classificazione A/B/C",time:"Istantaneo",bc:"b-step",badge:"Passi 4-5 / 6",
+    title:"Classificazione automatica A/B/C",
+    desc:"Il sistema elabora i due test e assegna il profilo in automatico. Nessun calcolo manuale — guardi il risultato e passi al programma.",
+    html:`
+<div class="profili">
+  <div class="pc pA"><div class="pl" style="color:var(--red)">A</div><div class="pn" style="color:var(--red)">Molto bassa</div><div class="pv">6MWT &lt; 300m<br>STS &lt; 10 rip.<br><br>Avvio molto<br>graduale</div></div>
+  <div class="pc pB"><div class="pl" style="color:var(--yellow)">B</div><div class="pn" style="color:var(--yellow)">Moderata</div><div class="pv">6MWT 300–450m<br>STS 10–15 rip.<br><br>Progressione<br>controllata</div></div>
+  <div class="pc pC"><div class="pl" style="color:var(--green)">C</div><div class="pn" style="color:var(--green)">Discreta</div><div class="pv">6MWT &gt; 450m<br>STS &gt; 15 rip.<br><br>Progressione<br>più intensa</div></div>
+</div>
+<div class="card" style="margin-bottom:14px">
+  <div class="card-title">Passo 4 — RPE & Note (2 min)</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Scala Borg cliccabile per lo stato percepito dopo i test. Campo libero per osservazioni cliniche.</div>
+  <div style="display:flex;gap:6px">
+    ${[[0,'#10b981','Nulla'],[2,'#22d3ee','Molto lieve'],[4,'#f59e0b','Lieve'],[6,'#fb923c','Moderata'],[8,'#ef4444','Intensa']].map(([v,c,l])=>`
+    <div style="flex:1;background:${c}20;border:1px solid ${c}40;border-radius:7px;padding:8px 4px;text-align:center">
+      <div style="font-size:16px;font-weight:800;color:${c}">${v}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px">${l}</div>
+    </div>`).join('')}
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Passo 5 — Schermata di classificazione</div>
+  <div style="background:#10b98112;border:2px solid #10b98140;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px">
+    <div style="font-size:64px;font-weight:900;color:var(--green);line-height:1">C</div>
+    <div style="font-size:16px;font-weight:700;color:var(--strong);margin-top:8px">Profilo C — Capacità discreta</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">Progressione più intensa — focus composizione corporea</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    ${[['6MWT: 460 m','var(--green)'],['STS: 16 rip.','var(--green)'],['BMI: 24.2 — Normopeso','#22d3ee'],['Peso target: 67.6 kg','var(--blue)']].map(([l,c])=>`
+    <div style="background:var(--bg);border:1px solid ${c}30;border-radius:9px;padding:9px 12px;font-size:12px;font-weight:700;color:${c}">${l}</div>`).join('')}
+  </div>
+</div>`
+  },
+  {
+    label:"Passo 6 — Programma + Export",time:"Export immediato",bc:"b-step",badge:"Passo 6 / 6",
+    title:"Programma 4 settimane & Export",
+    desc:"L'ultimo passo genera il programma completo basato sul profilo assegnato. Export PDF o Excel in un click — poi salvi il paziente e tutto è già compilato nella scheda.",
+    html:`
+<div class="kpi-row">
+  <div class="kpi" style="border-color:#3b82f630"><div class="kv" style="color:var(--blue)">5</div><div class="kl">Sedute/sett.</div></div>
+  <div class="kpi" style="border-color:#10b98130"><div class="kv" style="color:var(--green)">150'</div><div class="kl">Min cardio</div></div>
+  <div class="kpi" style="border-color:#fb923c30"><div class="kv" style="color:var(--orange)">100'</div><div class="kl">Min forza</div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+  ${[[1,'30 min LISS 60-70% FC + 10 min HIIT 30/30','4 eserc × 4 giri × 10-12 rip. Recupero 45s','Settimana baseline — registra i carichi'],[2,'35 min cardio + 15 min HIIT 40/20','Aumentare carico +5-10%. Aggiungere esercizio accessorio','Progressione lineare del carico']].map(([n,c,f,note])=>`
+  <div style="background:var(--card2);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;padding:14px">
+    <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:9px">Settimana ${n}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+      <div><div style="font-size:9px;color:var(--green);font-weight:700;text-transform:uppercase;margin-bottom:3px">Cardio</div><div style="font-size:11px;color:var(--text);line-height:1.5">${c}</div></div>
+      <div><div style="font-size:9px;color:var(--purple);font-weight:700;text-transform:uppercase;margin-bottom:3px">Forza</div><div style="font-size:11px;color:var(--text);line-height:1.5">${f}</div></div>
+    </div>
+    <div style="background:#f59e0b12;border:1px solid #f59e0b25;border-radius:6px;padding:6px 10px;font-size:11px;color:var(--yellow)">💡 ${note}</div>
+  </div>`).join('')}
+  <div style="text-align:center;font-size:11px;color:var(--dim);padding:4px">… + Settimana 3 e Settimana 4</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+  <div style="background:#10b98114;border:1px solid #10b98130;border-radius:12px;padding:16px">
+    <div class="ui-btn btn-green">📄 Esporta PDF</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6">Si apre una nuova scheda con il report professionale. La stampa parte in automatico — scegli <strong style="color:var(--text)">Salva come PDF</strong>.</div>
+    <div class="tip tip-g" style="margin-top:8px">iPhone: condividi via WhatsApp o AirDrop</div>
+  </div>
+  <div style="background:#a78bfa14;border:1px solid #a78bfa30;border-radius:12px;padding:16px">
+    <div class="ui-btn btn-purple">📊 Esporta Excel/CSV</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6">File .csv con tutti i dati + programma 4 settimane + nutrizione. Apribile con Excel, Numbers o Google Sheets.</div>
+    <div class="tip tip-y" style="margin-top:8px">Encoding UTF-8 per caratteri italiani</div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">Pulsante finale</div>
+  <div class="vsteps" style="margin-bottom:0">
+    <div class="vstep"><div class="vn vn-green">✓</div><div><div class="vt">"Salva & apri scheda"</div><div class="vd">Clicca il pulsante verde in basso a destra nel wizard. Il paziente viene creato con anamnesi, test, programma e nutrizione già compilati. Si apre direttamente la sua scheda completa.</div></div></div>
+  </div>
+</div>`
+  },
+  {
+    label:"Scheda paziente",time:"Sempre disponibile",bc:"b-step",badge:"Extra",
+    title:"La scheda paziente — 8 tab",
+    desc:"Dopo la valutazione (o in qualsiasi momento), puoi aprire la scheda per registrare sedute, aggiungere pesate, modificare il programma e generare nuovi report.",
+    html:`
+<div class="tab-row">
+  ${['Dashboard','Anagrafica','Test','Programma','Allenamento','Nutrizione','Log','Statistiche'].map((t,i)=>`<div class="tab ${i===6?'on':''}">${t}</div>`).join('')}
+</div>
+<div class="vsteps">
+  <div class="vstep"><div class="vn vn-blue">📋</div><div><div class="vt">Tab Log — registra ogni seduta</div><div class="vd">Dopo ogni allenamento: tipo, durata, RPE, note. Bastano 30 secondi. Il log cresce nel tempo e alimenta le statistiche.</div><div class="tip tip-y">💡 Registra subito a fine seduta — non rimandare</div></div></div>
+  <div class="vstep"><div class="vn vn-orange">⚖️</div><div><div class="vt">Tab Progressi — storico peso</div><div class="vd">Aggiungi le pesate periodiche. Il grafico mostra la curva di dimagrimento — ottimo da mostrare al paziente per motivarlo.</div></div></div>
+  <div class="vstep"><div class="vn vn-purple">📄</div><div><div class="vt">Report PDF dalla scheda</div><div class="vd">Il pulsante 📄 verde in cima alla scheda paziente genera un report aggiornato in qualsiasi momento, non solo durante la valutazione iniziale.</div></div></div>
+</div>
+<div class="card">
+  <div class="card-title">Esempio log sedute</div>
+  ${[['Camminata progressiva','11/03','30 min','RPE 5','#10b981'],['Circuito corpo libero','13/03','40 min','RPE 6','#f59e0b'],['HIIT + stretching','15/03','35 min','RPE 7','#3b82f6']].map(([t,d,dur,rpe,c])=>`
+  <div style="background:var(--bg);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;border:1px solid var(--border2);margin-bottom:6px">
+    <div style="width:7px;height:7px;border-radius:50%;background:${c};flex-shrink:0"></div>
+    <div style="flex:1"><span style="font-size:12px;font-weight:600;color:#fff">${t}</span> <span style="font-size:10px;color:var(--muted)">${d} · ${dur}</span></div>
+    <div style="background:${c}20;color:${c};border:1px solid ${c}35;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700">${rpe}</div>
+  </div>`).join('')}
+</div>`
+  },
+  {
+    label:"Fatto! 🎉",time:"",bc:"b-end",badge:"Completato",
+    title:"Sei pronto!",
+    desc:"Hai imparato tutto quello che ti serve per usare PT Board in modo professionale.",
+    html:`
+<div style="text-align:center;padding:16px 0 32px">
+  <div style="font-size:56px;margin-bottom:16px">🎉</div>
+  <div class="checklist">
+    <div class="check-item">Navigazione e menu principale</div>
+    <div class="check-item">Wizard Valutazione 20 min — tutti i 6 passi</div>
+    <div class="check-item">Test 6MWT e Sit-to-Stand con protocollo</div>
+    <div class="check-item">Classificazione automatica profili A / B / C</div>
+    <div class="check-item">Programma 4 settimane pronto per profilo</div>
+    <div class="check-item">Export PDF professionale e Excel/CSV</div>
+    <div class="check-item">Scheda paziente — log sedute e progressi peso</div>
+  </div>
+  <a href="PTBoard_v8.html" style="display:inline-flex;align-items:center;gap:10px;background:var(--blue);color:#fff;padding:15px 36px;border-radius:11px;font-size:16px;font-weight:700;text-decoration:none;font-family:'DM Sans',sans-serif">🚀 Apri PT Board →</a>
+  <div style="margin-top:14px;font-size:11px;color:var(--dim)">Carica PTBoard_v8.html e PTBoard_Tutorial.html nella stessa cartella su Netlify</div>
+</div>`
+  },
+];
+
+let cur=0;
+const total=S.length;
+
+function render(){
+  const s=S[cur];
+  document.getElementById('prog').style.width=((cur+1)/total*100)+'%';
+  document.getElementById('ctr').textContent=`Passo ${cur+1} di ${total}`;
+
+  document.getElementById('sb').innerHTML=S.map((x,i)=>`
+    <div class="step-item ${i===cur?'active':''}" onclick="go(${i})">
+      <div class="step-num ${i<cur?'done':i===cur?'act':'todo'}">${i<cur?'✓':i+1}</div>
+      <div>
+        <div class="step-label ${i<cur?'done':''}">${x.label}</div>
+        ${x.time?`<div class="step-time">${x.time}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('main').innerHTML=`
+    <div class="step-badge ${s.bc}">${s.badge}</div>
+    <h1>${s.title}</h1>
+    <p class="desc">${s.desc}</p>
+    ${s.html}
+    <div class="nav-btns">
+      <button class="nav-btn nb-prev" onclick="go(${cur-1})" ${cur===0?'disabled':''}>← Precedente</button>
+      ${cur<total-1?`<button class="nav-btn nb-next" onclick="go(${cur+1})">Avanti →</button>`:''}
+    </div>`;
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function go(i){if(i>=0&&i<total){cur=i;render();}}
+render();
+</script>
+</body>
+</html>
