@@ -4,7 +4,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#060f1e"/>
-<title>PT Board </title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="PT Board"/>
+<meta name="description" content="Gestione pazienti per Personal Trainer"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon192.png"/>
+<title>PT Board</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -13,6 +19,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+// ── PWA SERVICE WORKER ────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
@@ -60,6 +75,67 @@ const fbSave=async(uid,data)=>{
 };
 const fbLoad=async(uid)=>{
   try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}catch(e){return null;}
+};
+
+// ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
+// 1. Vai su emailjs.com → crea account gratuito
+// 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
+// 3. Crea template con variabili: {{to_email}}, {{to_name}}, {{subject}}, {{message}}
+// 4. Sostituisci i valori qui sotto
+const EMAILJS_SERVICE='YOUR_SERVICE_ID';   // ← da EmailJS dashboard
+const EMAILJS_TEMPLATE='YOUR_TEMPLATE_ID'; // ← da EmailJS dashboard
+const EMAILJS_KEY='YOUR_PUBLIC_KEY';       // ← da EmailJS dashboard
+
+const sendEmail=async({toEmail,toName,subject,message})=>{
+  try{
+    if(EMAILJS_KEY==='YOUR_PUBLIC_KEY') return {ok:false,err:'EmailJS non configurato'};
+    emailjs.init(EMAILJS_KEY);
+    await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
+      to_email:toEmail,
+      to_name:toName,
+      subject,
+      message,
+      from_name:'PT Board',
+      reply_to:'ptboard@gmail.com',
+    });
+    return {ok:true};
+  }catch(e){return {ok:false,err:String(e)};}
+};
+
+// ── AI COACH ─────────────────────────────────────────────────────────────────
+const aiCoach=async(paziente)=>{
+  const prompt=`Sei un esperto personal trainer. Analizza questo profilo paziente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
+
+PROFILO:
+- Nome: ${paziente.nome} ${paziente.cognome}
+- Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
+- Sesso: ${paziente.sesso}
+- Peso: ${paziente.peso} kg | Altezza: ${paziente.altezza} cm
+- BMI: ${paziente.altezza&&paziente.peso?(paziente.peso/(paziente.altezza/100)**2).toFixed(1):'-'}
+- Attività attuale: ${paziente.attivita}
+- Obiettivo: ${paziente.obiettivo||'non specificato'}
+- Patologie: ${paziente.patologie||'nessuna'}
+- Test MWT: ${paziente.test?.mwtDist||'-'} m | STS: ${paziente.test?.stsRip||'-'} ripetizioni
+- Stress percepito: ${paziente.stressPercepito} | Sonno: ${paziente.sonno||'-'} ore
+
+Fornisci:
+1. 🎯 Obiettivo prioritario (2 righe)
+2. 📅 Schema settimanale (giorni e tipo di allenamento)
+3. 💪 3 esercizi chiave con serie/reps
+4. 🥗 Consiglio nutrizionale rapido
+5. ⚠️ Precauzioni specifiche per questo paziente`;
+
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const data=await res.json();
+  return data.content?.[0]?.text||'Errore nel generare il programma.';
 };
 </script>
 <style>
@@ -389,6 +465,9 @@ function PatientDetail({patient,exercises,onBack,onEdit,onDelete,onUpdate}){
   const [showLogModal,setShowLogModal]=useState(false);
   const [showPesoModal,setShowPesoModal]=useState(false);
   const [showSchedaModal,setShowSchedaModal]=useState(false);
+  const [showAI,setShowAI]=useState(false);
+  const [aiResult,setAiResult]=useState('');
+  const [aiLoading,setAiLoading]=useState(false);
   const [newLog,setNewLog]=useState({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
   const [newPeso,setNewPeso]=useState({data:fmtDate(),peso:'',nota:''});
 
@@ -559,6 +638,7 @@ ${(p.progressi||[]).length>1?`
           <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
         </div>
         <button style={{...S.btn('success',true),display:'flex',alignItems:'center',gap:5}} onClick={generaPDF}>📄 Report PDF</button>
+        <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}}>🤖 AI Coach</button>
         <button style={S.btn('ghost',true)} onClick={onEdit}>✏ Modifica</button>
         <button style={S.btn('danger',true)} onClick={onDelete}>🗑</button>
       </div>
@@ -770,6 +850,41 @@ ${(p.progressi||[]).length>1?`
         </div>
       )}
 
+      {/* AI Coach Modal */}
+      {showAI&&(
+        <div style={{position:'fixed',inset:0,background:'#000000c0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'#0f1623',border:'1px solid #7c3aed50',borderRadius:16,width:'min(680px,95vw)',maxHeight:'88vh',overflowY:'auto',display:'flex',flexDirection:'column'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1px solid #1e2d47'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{fontSize:20}}>🤖</span>
+                <div>
+                  <div style={{fontSize:15,fontWeight:800,color:'#f8fafc'}}>AI Coach</div>
+                  <div style={{fontSize:11,color:'#64748b'}}>{p.nome} {p.cognome}</div>
+                </div>
+              </div>
+              <button onClick={()=>setShowAI(false)} style={{background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
+            </div>
+            <div style={{padding:22,flex:1}}>
+              {aiLoading?(
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:16,padding:'40px 0'}}>
+                  <div style={{width:40,height:40,border:'3px solid #334155',borderTop:'3px solid #7c3aed',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+                  <div style={{color:'#64748b',fontSize:13}}>Analizzando il profilo con AI...</div>
+                  <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                </div>
+              ):(
+                <div style={{fontSize:13,color:'#cbd5e1',lineHeight:1.8,whiteSpace:'pre-wrap'}}>{aiResult}</div>
+              )}
+            </div>
+            {aiResult&&!aiLoading&&(
+              <div style={{padding:'14px 22px',borderTop:'1px solid #1e2d47',display:'flex',gap:10'}}>
+                <button onClick={()=>{const el=document.createElement('textarea');el.value=aiResult;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);alert('Copiato!');}} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>📋 Copia</button>
+                <button onClick={async()=>{setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #7c3aed40',background:'#7c3aed15',color:'#a78bfa',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>🔄 Rigenera</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showLogModal&&<Modal title="Aggiungi seduta" onClose={()=>setShowLogModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <FF label="Data" name="data" value={newLog.data} onChange={e=>setNewLog(f=>({...f,data:e.target.value}))}/>
@@ -907,7 +1022,21 @@ function CalendarView({patients,bookings,setBookings}){
                       const pat=patients.find(x=>x.id===b.patientId);
                       return(
                         <div key={b.id} style={{background:C.blue+'25',border:`1px solid ${C.blue}50`,borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
-                          onClick={()=>{if(window.confirm(`Eliminare prenotazione di ${pat?.nome}?`))setBookings(prev=>prev.filter(x=>x.id!==b.id))}}>
+                          onClick={async()=>{
+                            const pat=patients.find(x=>x.id===b.patientId);
+                            const actions=['📧 Invia promemoria email','🗑 Elimina prenotazione','Annulla'];
+                            const choice=window.confirm(`📧 Inviare promemoria email a ${pat?.nome} per l'appuntamento del ${b.data} alle ${b.ora}?\n\nClicca OK per inviare, Annulla per eliminare la prenotazione.`);
+                            if(choice){
+                              if(pat?.email){
+                                const r=await sendEmail({toEmail:pat.email,toName:`${pat.nome} ${pat.cognome}`,subject:`Promemoria appuntamento PT Board — ${b.data}`,message:`Ciao ${pat.nome},\n\nTi ricordiamo il tuo appuntamento:\n📅 Data: ${b.data}\n⏰ Ora: ${b.ora}\n🏋 Tipo: ${b.tipo}\n⏱ Durata: ${b.durata} minuti\n\n${b.note?`Note: ${b.note}\n\n`:''}A presto!\nIl tuo Personal Trainer`});
+                                alert(r.ok?'✅ Email inviata!':'⚠️ '+r.err);
+                              } else {
+                                alert('⚠️ Nessuna email nel profilo del paziente. Aggiungila in Modifica paziente.');
+                              }
+                            } else {
+                              if(window.confirm(`Eliminare prenotazione di ${pat?.nome}?`)) setBookings(prev=>prev.filter(x=>x.id!==b.id));
+                            }
+                          }}>
                           <div style={{fontSize:11,fontWeight:700,color:C.blue,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
                           <div style={{fontSize:10,color:C.muted}}>{b.durata}' · {b.tipo}</div>
                         </div>
@@ -1027,6 +1156,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
             <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd}/>
             <FF label="Nome *" name="nome" value={form.nome} onChange={upd}/>
+            <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici"/>
             <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA"/>
             <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
             <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
