@@ -1137,7 +1137,6 @@ function App(){
   );
 
   if(!user) return <AuthScreen onProfileReady={p=>setProfile(p)}/>;
-  if(user.email===ADMIN_EMAIL) return <AdminPanel user={user}/>;
   if(profile?.plan==='blocked') return <PaywallScreen user={user} profile={profile} blocked/>;
   if(isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
   return <AppInner user={user} profile={profile} trialLeft={trialDaysLeft(profile)}/>;
@@ -1160,6 +1159,7 @@ function AppInner({user,profile,trialLeft}){
   const [dataReady,setDataReady]=useState(true);
   const [showValutazione,setShowValutazione]=useState(false);
   const [showTutorial,setShowTutorial]=useState(false);
+  const [showAdmin,setShowAdmin]=useState(false);
   const firstLoad=useRef(true);
 
   // Carica dati da Firebase in background (non blocca l'app)
@@ -1277,6 +1277,11 @@ function AppInner({user,profile,trialLeft}){
               </div>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Account</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
+              {user?.email===ADMIN_EMAIL&&(
+                <button onClick={()=>setShowAdmin(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
+                  👑 Pannello Admin
+                </button>
+              )}
               <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
                 Esci dall'account
               </button>
@@ -1322,6 +1327,7 @@ function AppInner({user,profile,trialLeft}){
         onClose={()=>setShowValutazione(false)}
       />}
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
+      {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
     </div>
   );
 }
@@ -1760,8 +1766,8 @@ function PaywallScreen({user,profile,blocked}){
   );
 }
 
-// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
-function AdminPanel({user}){
+// ── ADMIN MODAL ───────────────────────────────────────────────────────────────
+function AdminModal({onClose}){
   const [users,setUsers]=useState([]);
   const [loading,setLoading]=useState(true);
   const [msg,setMsg]=useState('');
@@ -1773,78 +1779,73 @@ function AdminPanel({user}){
   const setPlan=async(uid,plan)=>{
     await fbSaveUserProfile(uid,{plan});
     setUsers(us=>us.map(u=>u.id===uid?{...u,plan}:u));
-    setMsg('✓ Piano aggiornato');
+    setMsg('✓ Aggiornato');
     setTimeout(()=>setMsg(''),2000);
   };
 
-  const planColor={trial:'#f59e0b',pro:'#10b981',blocked:'#ef4444',admin:'#3b82f6'};
-  const inp={padding:'5px 8px',borderRadius:6,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:12,fontFamily:'inherit',cursor:'pointer'};
+  const planColor={trial:'#f59e0b',pro:'#10b981',blocked:'#ef4444'};
+  const sel={padding:'5px 8px',borderRadius:6,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:12,fontFamily:'inherit',cursor:'pointer'};
 
   return(
-    <div style={{minHeight:'100vh',background:'#07090f',padding:20,fontFamily:'DM Sans,sans-serif'}}>
-      <div style={{maxWidth:900,margin:'0 auto'}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
-          <div>
-            <div style={{fontSize:24,fontWeight:900,color:'#3b82f6'}}>PT Board</div>
-            <div style={{fontSize:13,color:'#64748b'}}>Pannello Admin</div>
-          </div>
-          <button onClick={()=>fbAuth.signOut()} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Esci</button>
+    <div style={{position:'fixed',inset:0,background:'#000000b0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+      <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:16,width:'min(860px,95vw)',maxHeight:'90vh',overflowY:'auto'}}>
+        {/* Header */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1px solid #1e2d47'}}>
+          <div style={{fontSize:16,fontWeight:800,color:'#f8fafc'}}>👑 Pannello Admin</div>
+          <button onClick={onClose} style={{background:'none',border:'none',color:'#64748b',fontSize:18,cursor:'pointer',padding:'0 4px'}}>✕</button>
         </div>
 
-        {/* Stats */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12,marginBottom:24}}>
-          {[
-            ['Totale utenti',users.length,'#3b82f6'],
-            ['Trial attivi',users.filter(u=>u.plan==='trial'&&!isTrialExpired(u)).length,'#f59e0b'],
-            ['Pro',users.filter(u=>u.plan==='pro').length,'#10b981'],
-            ['Scaduti',users.filter(u=>isTrialExpired(u)).length,'#ef4444'],
-          ].map(([l,v,c])=>(
-            <div key={l} style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:12,padding:'14px 16px'}}>
-              <div style={{fontSize:11,color:'#64748b',marginBottom:4}}>{l}</div>
-              <div style={{fontSize:28,fontWeight:900,color:c}}>{v}</div>
-            </div>
-          ))}
-        </div>
-
-        {msg&&<div style={{background:'#10b98120',border:'1px solid #10b98140',borderRadius:8,padding:'10px 14px',color:'#10b981',fontSize:13,marginBottom:16}}>{msg}</div>}
-
-        {/* Users table */}
-        <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:12,overflow:'hidden'}}>
-          <div style={{padding:'14px 16px',borderBottom:'1px solid #1e2d47',fontSize:13,fontWeight:700,color:'#94a3b8'}}>
-            Utenti registrati ({users.length})
+        <div style={{padding:22}}>
+          {/* Stats */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
+            {[
+              ['Totale',users.length,'#3b82f6'],
+              ['Trial attivi',users.filter(u=>u.plan==='trial'&&!isTrialExpired(u)).length,'#f59e0b'],
+              ['Pro',users.filter(u=>u.plan==='pro').length,'#10b981'],
+              ['Scaduti',users.filter(u=>isTrialExpired(u)&&u.plan!=='pro').length,'#ef4444'],
+            ].map(([l,v,c])=>(
+              <div key={l} style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:10,padding:'12px 14px',textAlign:'center'}}>
+                <div style={{fontSize:10,color:'#64748b',marginBottom:4,textTransform:'uppercase',letterSpacing:.5}}>{l}</div>
+                <div style={{fontSize:26,fontWeight:900,color:c}}>{v}</div>
+              </div>
+            ))}
           </div>
+
+          {msg&&<div style={{background:'#10b98120',border:'1px solid #10b98140',borderRadius:8,padding:'9px 14px',color:'#10b981',fontSize:13,marginBottom:14}}>{msg}</div>}
+
+          {/* Table */}
           {loading?<div style={{padding:40,textAlign:'center',color:'#475569'}}>Caricamento...</div>:
-          users.length===0?<div style={{padding:40,textAlign:'center',color:'#475569'}}>Nessun utente</div>:
+          users.length===0?<div style={{padding:40,textAlign:'center',color:'#475569'}}>Nessun utente ancora</div>:
           <div style={{overflowX:'auto'}}>
-            <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
               <thead>
                 <tr style={{borderBottom:'1px solid #1e2d47'}}>
-                  {['Email','Nome','Piano','Giorni rimasti','Registrato','Azioni'].map(h=>(
-                    <th key={h} style={{padding:'10px 14px',textAlign:'left',fontSize:11,color:'#475569',fontWeight:600,textTransform:'uppercase',letterSpacing:.5}}>{h}</th>
+                  {['Email','Nome','Piano','Giorni rimasti','Iscritto','Cambia piano'].map(h=>(
+                    <th key={h} style={{padding:'9px 12px',textAlign:'left',fontSize:10,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:.5,whiteSpace:'nowrap'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {users.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(u=>(
                   <tr key={u.id} style={{borderBottom:'1px solid #0f172a'}}>
-                    <td style={{padding:'10px 14px',fontSize:12,color:'#e2e8f0'}}>{u.email}</td>
-                    <td style={{padding:'10px 14px',fontSize:12,color:'#94a3b8'}}>{u.displayName||'—'}</td>
-                    <td style={{padding:'10px 14px'}}>
-                      <span style={{padding:'3px 8px',borderRadius:20,fontSize:11,fontWeight:700,background:(planColor[u.plan]||'#475569')+'20',color:planColor[u.plan]||'#475569'}}>
+                    <td style={{padding:'10px 12px',color:'#e2e8f0'}}>{u.email}</td>
+                    <td style={{padding:'10px 12px',color:'#94a3b8'}}>{u.displayName||'—'}</td>
+                    <td style={{padding:'10px 12px'}}>
+                      <span style={{padding:'3px 9px',borderRadius:20,fontSize:11,fontWeight:700,background:(planColor[u.plan]||'#475569')+'25',color:planColor[u.plan]||'#94a3b8'}}>
                         {u.plan||'trial'}
                       </span>
                     </td>
-                    <td style={{padding:'10px 14px',fontSize:12,color:isTrialExpired(u)?'#ef4444':'#10b981'}}>
+                    <td style={{padding:'10px 12px',color:isTrialExpired(u)&&u.plan!=='pro'?'#ef4444':'#10b981',fontWeight:600}}>
                       {u.plan==='pro'?'∞':isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
                     </td>
-                    <td style={{padding:'10px 14px',fontSize:11,color:'#475569'}}>
+                    <td style={{padding:'10px 12px',color:'#475569',whiteSpace:'nowrap'}}>
                       {u.createdAt?new Date(u.createdAt).toLocaleDateString('it-IT'):'—'}
                     </td>
-                    <td style={{padding:'10px 14px'}}>
-                      <select style={inp} value={u.plan||'trial'} onChange={e=>setPlan(u.id,e.target.value)}>
+                    <td style={{padding:'10px 12px'}}>
+                      <select style={sel} value={u.plan||'trial'} onChange={e=>setPlan(u.id,e.target.value)}>
                         <option value="trial">Trial</option>
-                        <option value="pro">Pro ✓</option>
-                        <option value="blocked">Bloccato</option>
+                        <option value="pro">✅ Pro</option>
+                        <option value="blocked">🚫 Bloccato</option>
                       </select>
                     </td>
                   </tr>
@@ -1857,8 +1858,6 @@ function AdminPanel({user}){
     </div>
   );
 }
-
-// ── PAYWALL & ADMIN END ───────────────────────────────────────────────────────
 
 // ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen({onProfileReady}){
