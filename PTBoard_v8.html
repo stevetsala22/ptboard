@@ -24,8 +24,6 @@ firebase.initializeApp({
 });
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
-// Cache offline per mobile
-fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 const fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}catch(e){console.warn('fbSave',e);}
 };
@@ -1133,7 +1131,7 @@ function AppInner({user}){
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
       }
     }).catch(()=>{});
-    if(Notification.permission==='default') Notification.requestPermission();
+    if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
   },[]);
 
   // Applica tema
