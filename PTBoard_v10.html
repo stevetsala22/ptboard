@@ -1914,14 +1914,15 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
           {/* STEP 4 — Test Fisici Aggiuntivi */}
           {step===4&&<div>
-            <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali per una valutazione più completa. Salta quelli non applicabili.</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali. Salta quelli non applicabili.</p>
             
             {/* Push-up */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.blue}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:8}}>💪 Push-up Test — resistenza arti superiori</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:6}}>💪 Push-up — resistenza arti superiori</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Mani larghezza spalle · corpo dritto · scendi fino a 90° · quante riesci senza pause</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Ripetizioni complete" name="pushupRip" type="number" val={d.pushupRip} ph="es. 15" onChange={upd('pushupRip')}/>
-                <WizIn lbl="Note tecnica" name="pushupNote" val={d.pushupNote} ph="es. uso ginocchia..." onChange={upd('pushupNote')}/>
+                <WizIn lbl="Ripetizioni" name="pushupRip" type="number" val={d.pushupRip} ph="es. 15" onChange={upd('pushupRip')}/>
+                <WizIn lbl="Note" name="pushupNote" val={d.pushupNote} ph="es. uso ginocchia..." onChange={upd('pushupNote')}/>
               </div>
               {d.pushupRip&&(()=>{const i=interpPushup(d.pushupRip,d.sesso);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
@@ -1931,7 +1932,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {/* Plank */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.purple}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>🧱 Plank Test — resistenza core</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧱 Plank — resistenza core</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Avambracci a terra · corpo dritto · non cedere i fianchi · cronometra fino al cedimento</div>
               <WizIn lbl="Secondi mantenuti" name="plankSec" type="number" val={d.plankSec} ph="es. 45" onChange={upd('plankSec')}/>
               {d.plankSec&&(()=>{const i=interpPlank(d.plankSec);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
@@ -1941,10 +1943,11 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {/* Squat */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.orange}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.orange,marginBottom:8}}>🦵 Squat Test — forza arti inferiori</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.orange,marginBottom:6}}>🦵 Squat — forza arti inferiori</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Piedi larghezza spalle · scendi a 90° · schiena dritta · quante riesci senza pause</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Ripetizioni complete" name="squatRip" type="number" val={d.squatRip} ph="es. 20" onChange={upd('squatRip')}/>
-                <WizIn lbl="Note tecnica" name="squatNote" val={d.squatNote} ph="es. ginocchia valghe..." onChange={upd('squatNote')}/>
+                <WizIn lbl="Ripetizioni" name="squatRip" type="number" val={d.squatRip} ph="es. 20" onChange={upd('squatRip')}/>
+                <WizIn lbl="Note" name="squatNote" val={d.squatNote} ph="es. ginocchia valghe..." onChange={upd('squatNote')}/>
               </div>
               {d.squatRip&&(()=>{const i=interpSquat(d.squatRip);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
@@ -1954,10 +1957,11 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {/* Single Leg Balance */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.teal}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.teal,marginBottom:8}}>🦶 Single Leg Balance — equilibrio monopodalico</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.teal,marginBottom:6}}>🦶 Single Leg Balance — equilibrio</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>In piedi su una gamba · occhi aperti · cronometra fino a max 30s · ripeti per l'altra</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Secondi gamba dx (occhi aperti)" name="slbDx" type="number" val={d.slbDx} ph="max 30s" onChange={upd('slbDx')}/>
-                <WizIn lbl="Secondi gamba sx (occhi aperti)" name="slbSx" type="number" val={d.slbSx} ph="max 30s" onChange={upd('slbSx')}/>
+                <WizIn lbl="Secondi gamba dx" name="slbDx" type="number" val={d.slbDx} ph="max 30s" onChange={upd('slbDx')}/>
+                <WizIn lbl="Secondi gamba sx" name="slbSx" type="number" val={d.slbSx} ph="max 30s" onChange={upd('slbSx')}/>
               </div>
               {(d.slbDx||d.slbSx)&&(()=>{const avg=((+d.slbDx||0)+(+d.slbSx||0))/((d.slbDx?1:0)+(d.slbSx?1:0));const i=interpSLB(avg);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
@@ -1967,8 +1971,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {/* TUG */}
             <div style={{...S.card,borderLeft:`3px solid ${C.yellow}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.yellow,marginBottom:8}}>⏱ Timed Up & Go (TUG) — rischio cadute</div>
-              <div style={{background:C.bg,borderRadius:8,padding:10,marginBottom:10,fontSize:12,color:C.muted,lineHeight:1.6}}>Alzarsi dalla sedia → camminare 3m → tornare → sedersi. Cronometrare in secondi.</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.yellow,marginBottom:6}}>⏱ TUG — rischio cadute</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Sedia → alzati → cammina 3m → torna → siediti. Cronometra in secondi. Serve: sedia + cronometro + metro.</div>
               <WizIn lbl="Tempo (secondi)" name="tugSec" type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
               {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
@@ -2011,8 +2015,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {/* Recupero FC */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.red}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:8}}>❤️ Recupero FC — fitness cardiovascolare</div>
-              <div style={{background:C.bg,borderRadius:8,padding:10,marginBottom:10,fontSize:12,color:C.muted,lineHeight:1.6}}>Misura la FC subito dopo il 6MWT, poi di nuovo dopo 1 minuto. Il delta indica la velocità di recupero.</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>❤️ Recupero FC — fitness cardiaca</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Subito dopo il 6MWT: misura FC → aspetta 1 min → misura di nuovo. Serve: cardiofrequenzimetro o polso × 15s × 4.</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="FC subito post-esercizio (bpm)" name="fcPost" type="number" val={d.fcPost} ph="es. 145" onChange={upd('fcPost')}/>
                 <WizIn lbl="FC dopo 1 minuto (bpm)" name="fcRecup" type="number" val={d.fcRecup} ph="es. 120" onChange={upd('fcRecup')}/>
@@ -2025,8 +2029,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {/* GAD-7 */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.purple}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>🧠 GAD-7 — scala ansia (0-21)</div>
-              <div style={{background:C.bg,borderRadius:8,padding:10,marginBottom:10,fontSize:12,color:C.muted,lineHeight:1.6}}>Somma punteggi delle 7 domande (0=mai, 1=alcuni giorni, 2=più della metà, 3=quasi ogni giorno). Max 21.</div>
+              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧠 GAD-7 — ansia (0-21)</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>7 domande: 0=mai · 1=alcuni giorni · 2=più della metà · 3=quasi sempre. Somma i punteggi. Nessun attrezzo.</div>
               <WizIn lbl="Punteggio totale GAD-7 (0-21)" name="gad7" type="number" val={d.gad7} ph="es. 5" onChange={upd('gad7')}/>
               {d.gad7!==''&&d.gad7!==undefined&&(()=>{const i=interpGAD7(d.gad7);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
