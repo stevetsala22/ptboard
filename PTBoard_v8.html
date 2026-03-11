@@ -1118,12 +1118,12 @@ function AppInner({user}){
   const [showParametri,setShowParametri]=useState(false);
   const [sidebarOpen,setSidebarOpen]=useState(true);
   const [isLight,setIsLight]=useState(stored?.isLight||false);
-  const [dataReady,setDataReady]=useState(false);
+  const [dataReady,setDataReady]=useState(true);
   const [showValutazione,setShowValutazione]=useState(false);
   const [showTutorial,setShowTutorial]=useState(false);
   const firstLoad=useRef(true);
 
-  // Carica dati da Firebase al primo accesso
+  // Carica dati da Firebase in background (non blocca l'app)
   useEffect(()=>{
     fbLoad(user.uid).then(remote=>{
       if(remote){
@@ -1132,8 +1132,7 @@ function AppInner({user}){
         if(remote.exercises) setExercises(remote.exercises);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
       }
-      setDataReady(true);
-    }).catch(()=>setDataReady(true));
+    }).catch(()=>{});
     if(Notification.permission==='default') Notification.requestPermission();
   },[]);
 
@@ -1145,7 +1144,6 @@ function AppInner({user}){
 
   // Salva su localStorage + Firebase
   useEffect(()=>{
-    if(!dataReady) return;
     if(firstLoad.current){firstLoad.current=false;return;}
     const data={patients,bookings,exercises,isLight};
     save(data);
@@ -1153,18 +1151,7 @@ function AppInner({user}){
     setSaveMsg('✓ Salvato');
     const t=setTimeout(()=>setSaveMsg(''),1500);
     return()=>clearTimeout(t);
-  },[patients,bookings,exercises,isLight,dataReady]);
-
-  if(!dataReady) return(
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)',gap:16}}>
-      <div style={{fontSize:32,fontWeight:900,color:'#3b82f6'}}>PT Board</div>
-      <div style={{width:36,height:36,border:'3px solid #334155',borderTop:'3px solid #3b82f6',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
-      <div style={{fontSize:13,color:'#64748b'}}>Caricamento...</div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-
-  // Funzione notifiche appuntamenti
+  },[patients,bookings,exercises,isLight]);
 
   const selected=patients.find(p=>p.id===selectedId);
 
