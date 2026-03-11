@@ -1681,6 +1681,22 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   );
 }
 
+// ── ERROR BOUNDARY ────────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component{
+  constructor(p){super(p);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  render(){
+    if(this.state.err) return(
+      <div style={{padding:24,background:'#07090f',minHeight:'100vh',color:'#e2e8f0',fontFamily:'monospace'}}>
+        <div style={{fontSize:20,fontWeight:700,color:'#ef4444',marginBottom:12}}>⚠ Errore app</div>
+        <div style={{fontSize:12,color:'#94a3b8',wordBreak:'break-all',whiteSpace:'pre-wrap'}}>{String(this.state.err)}</div>
+        <button onClick={()=>window.location.reload()} style={{marginTop:20,padding:'10px 20px',background:'#3b82f6',color:'#fff',border:'none',borderRadius:8,fontSize:14,cursor:'pointer'}}>Ricarica</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
 // ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen(){
   const [mode,setMode]=useState('login');
@@ -1923,7 +1939,7 @@ function TutorialModal({onClose,isLight}){
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
 </script>
 </body>
 </html>
