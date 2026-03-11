@@ -214,9 +214,9 @@ const bmiCat=(b)=>{
 const profilo=(mwt,sts)=>{
   if(!mwt||!sts)return null;
   const a=((mwt<300?1:mwt<=450?2:3)+(sts<10?1:sts<=15?2:3))/2;
-  if(a<1.5)return{code:'A',l:'A – Molto bassa',c:C.red,bg:'#fee2e2'};
-  if(a<2.5)return{code:'B',l:'B – Moderata',c:C.yellow,bg:'#fef3c7'};
-  return{code:'C',l:'C – Discreta',c:C.green,bg:'#d1fae5'};
+  if(a<1.5)return{code:'A',l:'🔴 Forma Bassa',c:C.red,bg:'#fee2e2'};
+  if(a<2.5)return{code:'B',l:'🟡 Forma Media',c:C.yellow,bg:'#fef3c7'};
+  return{code:'C',l:'🟢 Buona Forma',c:C.green,bg:'#d1fae5'};
 };
 const rpeC=(r)=>r<=3?C.green:r<=6?C.yellow:r<=8?C.orange:C.red;
 const rpeL=(r)=>r<=3?'Leggero':r<=6?'Moderato':r<=8?'Intenso':'Massimale';
@@ -408,7 +408,7 @@ function PatientList({patients,onSelect,onAdd,search}){
         <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onAdd}>＋ Nuovo</button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
-        {[{l:'Totali',v:filtered.length,c:C.blue},{l:'Profilo A',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:'Profilo B',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:'Profilo C',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
+        {[{l:'Totali',v:filtered.length,c:C.blue},{l:'Forma Bassa',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:'Forma Media',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:'Buona Forma',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
           <StatCard key={x.l} label={x.l} value={x.v} color={x.c}/>
         ))}
       </div>
@@ -1581,7 +1581,7 @@ function AppInner({user,profile,trialLeft}){
 // ── DATI PROGRAMMI PER PROFILO ────────────────────────────────────────────────
 const PROGRAMMI={
   A:{
-    nome:'Programma Profilo A — Avvio Graduale',
+    nome:'Programma Forma Bassa — Avvio Graduale',
     desc:'Capacità molto bassa. Focus su adattamento, sicurezza e costruzione abitudine.',
     settimane:[
       {num:1,cardio:'Camminata lenta 10-15 min, RPE 2-3. Pausa ogni 5 min se necessario.',forza:'Esercizi da seduto: sollevamento gambe, push-up da muro (2×8). Recupero 90s.',note:'Monitorare PA e FC. Fermarsi se RPE > 5.'},
@@ -1592,7 +1592,7 @@ const PROGRAMMI={
     sedute:3,minCardio:75,minForza:45,kcal:1600,prot:128,carbo:160,grassi:53,
   },
   B:{
-    nome:'Programma Profilo B — Progressione Moderata',
+    nome:'Programma Forma Media — Progressione Moderata',
     desc:'Capacità moderata. Progressione controllata su cardio e forza funzionale.',
     settimane:[
       {num:1,cardio:'Camminata veloce 20 min + 2 brevi salite, RPE 4-5.',forza:'Squat + affondi + push-up (3×10). Recupero 60s.',note:'Stabilire il ritmo di base della settimana.'},
@@ -1603,7 +1603,7 @@ const PROGRAMMI={
     sedute:4,minCardio:110,minForza:70,kcal:1800,prot:144,carbo:180,grassi:60,
   },
   C:{
-    nome:'Programma Profilo C — Sviluppo Intensivo',
+    nome:'Programma Buona Forma — Sviluppo Intensivo',
     desc:'Buona capacità di base. Obiettivo: composizione corporea e performance.',
     settimane:[
       {num:1,cardio:'30 min LISS (60-70% FC max) + 10 min HIIT 30/30, RPE 5-7.',forza:'Upper/Lower split: 4 esercizi × 4 giri × 10-12 rip. Recupero 45s.',note:'Settimana baseline — registrare i carichi.'},
@@ -1824,7 +1824,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             {d.mwtDist&&<div style={{background:C.bg,border:`1px solid ${+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green}40`,borderRadius:10,padding:'10px 14px',marginTop:4}}>
               <div style={{fontSize:10,color:C.muted}}>Indicatore 6MWT</div>
               <div style={{fontSize:15,fontWeight:700,color:+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green,marginTop:3}}>
-                {+d.mwtDist<300?'< 300m — Capacità molto bassa → Profilo A tendenziale':+d.mwtDist<=450?'300–450m — Capacità moderata → Profilo B tendenziale':'> 450m — Buona capacità → Profilo C tendenziale'}
+                {+d.mwtDist<300?'< 300m — Capacità molto bassa → Forma Bassa tendenziale':+d.mwtDist<=450?'300–450m — Capacità moderata → Forma Media tendenziale':'> 450m — Buona capacità → Buona Forma tendenziale'}
               </div>
             </div>}
           </div>}
@@ -1847,7 +1847,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             {d.stsRip&&<div style={{background:C.bg,border:`1px solid ${+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green}40`,borderRadius:10,padding:'10px 14px',marginTop:4}}>
               <div style={{fontSize:10,color:C.muted}}>Indicatore STS</div>
               <div style={{fontSize:15,fontWeight:700,color:+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green,marginTop:3}}>
-                {+d.stsRip<10?'< 10 rip. — Forza molto ridotta → Profilo A tendenziale':+d.stsRip<=15?'10–15 rip. — Forza moderata → Profilo B tendenziale':'> 15 rip. — Buona forza → Profilo C tendenziale'}
+                {+d.stsRip<10?'< 10 rip. — Forza molto ridotta → Forma Bassa tendenziale':+d.stsRip<=15?'10–15 rip. — Forza moderata → Forma Media tendenziale':'> 15 rip. — Buona forza → Buona Forma tendenziale'}
               </div>
             </div>}
             {d.mwtDist&&d.stsRip&&pr&&<div style={{background:`${pr.c}12`,border:`1px solid ${pr.c}40`,borderRadius:10,padding:'10px 14px',marginTop:10,display:'flex',alignItems:'center',gap:10}}>
@@ -1895,10 +1895,10 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               </div>
               <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14}}>
                 <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>Criteri di classificazione automatica</div>
-                {[['A',C.red,'6MWT < 300m  e/o  STS < 10 rip.','Avvio molto graduale — priorità sicurezza'],['B',C.yellow,'6MWT 300-450m  e  STS 10-15 rip.','Progressione moderata e controllata'],['C',C.green,'6MWT > 450m  e  STS > 15 rip.','Progressione più intensa — focus composizione']].map(([p,c,v,desc])=>(
+                {[['A',C.red,'6MWT < 300m  e/o  STS < 10 rip.','Avvio molto graduale — priorità sicurezza','🔴 Forma Bassa'],['B',C.yellow,'6MWT 300-450m  e  STS 10-15 rip.','Progressione moderata e controllata','🟡 Forma Media'],['C',C.green,'6MWT > 450m  e  STS > 15 rip.','Progressione più intensa — focus composizione','🟢 Buona Forma']].map(([p,c,v,desc,label])=>(
                   <div key={p} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:`1px solid ${C.border}`}}>
                     <div style={{width:28,height:28,borderRadius:8,background:c+'20',border:`1px solid ${c}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c,flexShrink:0}}>{p}</div>
-                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
+                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{label} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
                   </div>
                 ))}
               </div>
@@ -2320,7 +2320,7 @@ const TSTEPS=[
 
   {label:'🎯 Valutazione 20 min',time:'Funzione principale',bc:'#fb923c30',bct:'#fb923c',badge:'⭐ Più importante',title:'Inizia sempre da qui',desc:'La Valutazione 20 min è il flusso principale. In 6 passi guidati crei il profilo completo del paziente con programma pronto.',
   html:`<div style="display:flex;flex-direction:column;gap:8px">
-    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Profilo A / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
+    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Forma Bassa / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
     <div style="display:flex;gap:10px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:11px 14px">
       <div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${n}</div>
       <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b;margin-top:1px">${d}</div></div>
