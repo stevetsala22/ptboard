@@ -28,7 +28,8 @@ const fbDb=firebase.firestore();
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=30;
-const STRIPE_LINK='https://buy.stripe.com/XXXXXXXXXXXXXXXX'; // ← aggiungi link Stripe
+const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
+const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
 const fbSaveUserProfile=async(uid,data)=>{
@@ -1760,8 +1761,8 @@ function PaywallScreen({user,profile,blocked}){
           <div style={{fontSize:13,color:'#3b82f6',fontWeight:700,marginBottom:6}}>PT Board Pro</div>
           <div style={{fontSize:36,fontWeight:900,color:'#f8fafc',marginBottom:4}}>€19<span style={{fontSize:16,color:'#64748b'}}>/mese</span></div>
           <div style={{fontSize:12,color:'#64748b',marginBottom:20}}>Pazienti illimitati · Sync cloud · Aggiornamenti inclusi</div>
-          <a href={STRIPE_LINK} target="_blank" style={{display:'block',padding:'14px',borderRadius:10,background:'#3b82f6',color:'#fff',fontSize:15,fontWeight:700,textDecoration:'none',marginBottom:10}}>
-            💳 Attiva ora con carta
+          <a href={PAYPAL_PRO} target="_blank" style={{display:'block',padding:'14px',borderRadius:10,background:'#3b82f6',color:'#fff',fontSize:15,fontWeight:700,textDecoration:'none',marginBottom:10}}>
+            💳 Paga con PayPal · Apple Pay · Google Pay
           </a>
           <div style={{fontSize:11,color:'#475569'}}>Dopo il pagamento contatta <strong style={{color:'#94a3b8'}}>stevetsala22@gmail.com</strong><br/>per attivare il tuo account</div>
         </div>
@@ -1812,7 +1813,7 @@ function PianiModal({onClose,profile}){
         '✅ Supporto prioritario',
       ],
       cta:isPro?'✅ Attivo':'Attiva Pro',
-      link:STRIPE_LINK,
+      link:PAYPAL_PRO,
     },
     {
       id:'studio',
@@ -1831,7 +1832,7 @@ function PianiModal({onClose,profile}){
         '✅ Account manager',
       ],
       cta:'Contattaci',
-      link:'mailto:stevetsala22@gmail.com?subject=PT Board Studio',
+      link:PAYPAL_STUDIO,
     },
   ];
 
