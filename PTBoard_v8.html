@@ -1110,6 +1110,9 @@ function AppInner({user}){
   const [sidebarOpen,setSidebarOpen]=useState(true);
   const [isLight,setIsLight]=useState(stored?.isLight||false);
   const [dataReady,setDataReady]=useState(false);
+  const [showValutazione,setShowValutazione]=useState(false);
+  const [showTutorial,setShowTutorial]=useState(false);
+  const firstLoad=useRef(true);
 
   // Carica dati da Firebase al primo accesso
   useEffect(()=>{
@@ -1134,6 +1137,7 @@ function AppInner({user}){
   // Salva su localStorage + Firebase
   useEffect(()=>{
     if(!dataReady) return;
+    if(firstLoad.current){firstLoad.current=false;return;}
     const data={patients,bookings,exercises,isLight};
     save(data);
     fbSave(user.uid,data);
@@ -1168,9 +1172,6 @@ function AppInner({user}){
       setPatients(ps=>ps.map(p=>p.id===form.id?form:p));setSelectedId(form.id);setPage('detail');
     }
   };
-
-  const [showValutazione,setShowValutazione]=useState(false);
-  const [showTutorial,setShowTutorial]=useState(false);
 
   const navItems=[
     {id:'dash',icon:'⊞',l:'Dashboard'},
