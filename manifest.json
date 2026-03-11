@@ -2,7 +2,7 @@
   "name": "PT Board",
   "short_name": "PT Board",
   "description": "Gestione pazienti per Personal Trainer",
-  "start_url": "/ptboard/PTBoard_v8.html",
+  "start_url": "/PTBoard_v10.html",
   "display": "standalone",
   "background_color": "#07090f",
   "theme_color": "#3b82f6",

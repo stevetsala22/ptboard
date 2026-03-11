@@ -1,7 +1,9 @@
-const CACHE='ptboard-v2';
+const CACHE='ptboard-v3';
 const ASSETS=[
-  '/ptboard/PTBoard_v8.html',
-  '/ptboard/manifest.json'
+  '/PTBoard_v10.html',
+  '/manifest.json',
+  '/icon192.png',
+  '/icon512.png'
 ];
 
 self.addEventListener('install',e=>{
