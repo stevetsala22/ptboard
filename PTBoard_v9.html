@@ -155,6 +155,28 @@ body{font-family:'DM Sans',system-ui,sans-serif;color:var(--text);transition:col
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 input,select,textarea,button{font-family:inherit;color:var(--text)}
 input,select,textarea{background:var(--input-bg);color:var(--text)}
+
+/* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  /* Grid forms: 1 colonna su mobile */
+  [style*="grid-template-columns: repeat(3"],[style*="grid-template-columns:repeat(3"]{
+    grid-template-columns:1fr !important;
+  }
+  [style*="grid-template-columns: repeat(4"],[style*="grid-template-columns:repeat(4"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+  [style*="grid-template-columns: repeat(2"],[style*="grid-template-columns:repeat(2"]{
+    grid-template-columns:1fr !important;
+  }
+  /* Font sizes */
+  h1{font-size:16px !important;}
+  h2{font-size:14px !important;}
+  /* Padding cards */
+  [style*="padding:24px"]{padding:14px !important;}
+  [style*="padding:20px"]{padding:12px !important;}
+  /* Bottoni header: testo piccolo */
+  button{font-size:12px !important;}
+}
 </style>
 </head>
 <body>
@@ -271,9 +293,10 @@ const INIT_BOOKINGS=[
   {id:'B003',patientId:'P003',data:'2026-03-12',ora:'11:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
 ];
 
+const isMobile=window.innerWidth<=768;
 const S={
   app:{display:'flex',height:'100vh',background:C.bg,overflow:'hidden'},
-  sb:{width:220,background:C.sidebar,borderRight:`1px solid ${C.border}`,display:'flex',flexDirection:'column',flexShrink:0},
+  sb:{width:isMobile?'100%':220,background:C.sidebar,borderRight:`1px solid ${C.border}`,display:'flex',flexDirection:'column',flexShrink:0},
   sbh:{padding:'20px 16px 12px',borderBottom:`1px solid ${C.border}`},
   logo:{fontSize:16,fontWeight:800,color:C.strong,letterSpacing:-0.5},
   logosub:{fontSize:10,color:C.muted,marginTop:2,letterSpacing:1,textTransform:'uppercase'},
@@ -281,17 +304,17 @@ const S={
   navlbl:{fontSize:10,color:'#1e3a5f',letterSpacing:1.5,textTransform:'uppercase',padding:'10px 6px 4px',fontWeight:700},
   navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:500,background:a?'#1e293b':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s'}),
   main:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'},
-  topbar:{height:52,background:C.sidebar,borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 20px',gap:12,flexShrink:0},
-  content:{flex:1,overflowY:'auto',padding:20},
-  btn:(v='primary',sm=false)=>({padding:sm?'5px 12px':'8px 16px',borderRadius:7,border:'none',cursor:'pointer',fontSize:sm?12:13,fontWeight:600,transition:'all .15s',
+  topbar:{height:52,background:C.sidebar,borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 12px',gap:8,flexShrink:0},
+  content:{flex:1,overflowY:'auto',padding:isMobile?12:20,paddingBottom:isMobile?80:20},
+  btn:(v='primary',sm=false)=>({padding:sm?'5px 10px':'7px 13px',borderRadius:7,border:'none',cursor:'pointer',fontSize:sm?11:12,fontWeight:600,transition:'all .15s',whiteSpace:'nowrap',
     ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:`1px solid #ef444440`}:v==='success'?{background:'#10b98120',color:C.green,border:`1px solid #10b98140`}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:`1px solid #f59e0b40`}:{background:'transparent',color:C.dim,border:`1px solid ${C.border2}`})}),
-  card:{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,padding:18},
+  card:{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,padding:isMobile?12:18},
   label:{fontSize:11,color:C.muted,textTransform:'uppercase',letterSpacing:.8,fontWeight:600,marginBottom:3,display:'block'},
   inp:{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:7,padding:'8px 11px',color:C.text,fontSize:13,outline:'none',boxSizing:'border-box'},
   sel:{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:7,padding:'8px 11px',color:C.text,fontSize:13,outline:'none',boxSizing:'border-box'},
   ta:{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:7,padding:'8px 11px',color:C.text,fontSize:13,outline:'none',boxSizing:'border-box',resize:'vertical',minHeight:68,fontFamily:'inherit'},
   tag:(c,bg)=>({display:'inline-flex',alignItems:'center',gap:4,padding:'2px 9px',borderRadius:20,fontSize:11,fontWeight:600,background:bg||c+'20',color:c,border:`1px solid ${c}40`}),
-  grid:(n)=>({display:'grid',gridTemplateColumns:`repeat(${n},1fr)`,gap:14}),
+  grid:(n)=>({display:'grid',gridTemplateColumns:isMobile?'1fr':`repeat(${n},1fr)`,gap:isMobile?10:14}),
   st:{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:10},
   kpi:(c)=>({background:C.card,border:`1px solid ${c}30`,borderRadius:11,padding:'14px 16px',position:'relative',overflow:'hidden'}),
   row:{display:'flex',alignItems:'center',gap:12,padding:'8px 12px',background:C.bg,borderRadius:8,marginBottom:5},
@@ -697,7 +720,7 @@ ${(p.progressi||[]).length>1?`
           ].map(({title,fields})=>(
             <div key={title} style={S.card}>
               <div style={S.st}>{title}</div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'10px 20px'}}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:'10px 20px'}}>
                 {fields.map(([k,v])=><div key={k}><div style={S.label}>{k}</div><div style={{fontSize:13,color:C.text,padding:'4px 0'}}>{v||'—'}</div></div>)}
               </div>
             </div>
@@ -922,7 +945,7 @@ function SchedaModal({exercises,onSave,onClose}){
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   return(
     <Modal title="Nuova scheda allenamento" onClose={onClose} width="660px">
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,marginBottom:16}}>
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 1fr',gap:12,marginBottom:16}}>
         <FF label="Nome scheda" name="nome" value={form.nome} onChange={upd}/>
         <FF label="Tipo" name="tipo" value={form.tipo} onChange={upd} options={['Forza','Cardio','Funzionale','Mobilità','Full Body','Upper','Lower','HIIT']}/>
         <FF label="Data" name="data" value={form.data} onChange={upd}/>
@@ -1153,7 +1176,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
       <div style={{display:'flex',flexDirection:'column',gap:14}}>
         <div style={S.card}>
           <div style={S.st}>Dati anagrafici</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
             <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd}/>
             <FF label="Nome *" name="nome" value={form.nome} onChange={upd}/>
             <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici"/>
@@ -1164,7 +1187,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
         </div>
         <div style={S.card}>
           <div style={S.st}>Parametri antropometrici</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
             <FF label="Altezza (cm)" name="altezza" type="number" value={form.altezza} onChange={upd}/>
             <FF label="Peso (kg)" name="peso" type="number" value={form.peso} onChange={upd}/>
             <div><label style={S.label}>BMI (auto)</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${C.border2}`,fontSize:13}}>{b?<span style={{color:bmiCat(b).c,fontWeight:700}}>{b} — {bmiCat(b).l}</span>:<span style={{color:C.muted}}>—</span>}</div></div>
@@ -1176,7 +1199,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
         </div>
         <div style={S.card}>
           <div style={S.st}>Clinica</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:12}}>
             <FF label="Patologie" name="patologie" type="textarea" value={form.patologie} onChange={upd}/>
             <FF label="Farmaci" name="farmaci" type="textarea" value={form.farmaci} onChange={upd}/>
             <FF label="Sintomi da sforzo" name="sintomiSforzo" value={form.sintomiSforzo} onChange={upd} options={['NO','SI']}/>
@@ -1185,7 +1208,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
         </div>
         <div style={S.card}>
           <div style={S.st}>Stile di vita</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
             <FF label="Attività attuale" name="attivita" value={form.attivita} onChange={upd} options={['Sedentaria','Poco attiva','Moderatamente attiva','Attiva']}/>
             <FF label="Obiettivo" name="obiettivo" value={form.obiettivo} onChange={upd}/>
             <FF label="Stress" name="stressPercepito" value={form.stressPercepito} onChange={upd} options={['Basso','Medio','Alto']}/>
@@ -1195,7 +1218,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
         </div>
         <div style={S.card}>
           <div style={S.st}>Test funzionali</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
             <FF label="6MWT (m)" name="mwtDist" type="number" value={form.test?.mwtDist} onChange={updT}/>
             <FF label="6MWT RPE" name="mwtRpe" type="number" value={form.test?.mwtRpe} onChange={updT}/>
             <FF label="6MWT Sintomi" name="mwtSintomi" value={form.test?.mwtSintomi} onChange={updT}/>
@@ -1207,7 +1230,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
         </div>
         <div style={S.card}>
           <div style={S.st}>Programma</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
             <FF label="Data inizio" name="dataInizio" value={form.programma?.dataInizio} onChange={updP}/>
             <FF label="Sedute/sett." name="sedute" type="number" value={form.programma?.sedute} onChange={updP}/>
             <div/>
@@ -1221,7 +1244,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){
         </div>
         <div style={S.card}>
           <div style={S.st}>Nutrizione</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:12}}>
             <FF label="Kcal/giorno" name="kcal" type="number" value={form.nutrizione?.kcal} onChange={updN}/>
             <FF label="Proteine (g)" name="proteine" type="number" value={form.nutrizione?.proteine} onChange={updN}/>
             <FF label="Carboidrati (g)" name="carboidrati" type="number" value={form.nutrizione?.carboidrati} onChange={updN}/>
@@ -1350,7 +1373,7 @@ function AppInner({user,profile,trialLeft}){
   return(
     <div style={S.app}>
       {/* Overlay per chiudere sidebar su mobile */}
-      {sidebarOpen&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000050',zIndex:50,display:'none'}} id="sb-overlay"/>}
+      {sidebarOpen&&isMobile&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000070',zIndex:50}}/>}
 
       {/* Sidebar */}
       <div style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
@@ -1464,6 +1487,27 @@ function AppInner({user,profile,trialLeft}){
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
       {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile}/>}
+
+      {/* Bottom nav bar mobile */}
+      {isMobile&&(
+        <div style={{position:'fixed',bottom:0,left:0,right:0,height:60,background:C.sidebar,borderTop:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'space-around',zIndex:200,paddingBottom:'env(safe-area-inset-bottom)'}}>
+          {[
+            {id:'dash',icon:'⊞',l:'Home'},
+            {id:'patients',icon:'👥',l:'Pazienti'},
+            {id:'calendar',icon:'📅',l:'Agenda'},
+            {id:'exercises',icon:'🏋',l:'Esercizi'},
+          ].map(n=>(
+            <button key={n.id} onClick={()=>setPage(n.id)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:page===n.id?'#3b82f6':C.dim}}>
+              <span style={{fontSize:20}}>{n.icon}</span>
+              <span style={{fontSize:10,fontWeight:600}}>{n.l}</span>
+            </button>
+          ))}
+          <button onClick={()=>setSidebarOpen(v=>!v)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:C.dim}}>
+            <span style={{fontSize:20}}>☰</span>
+            <span style={{fontSize:10,fontWeight:600}}>Menu</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1664,7 +1708,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
           {/* STEP 1 — Anagrafica */}
           {step===1&&<div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
               <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
               <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
               <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
@@ -1680,7 +1724,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Attività attuale" name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderatamente attiva','Attiva']} onChange={upd('attivita')}/>
             </div>
             <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} ph="es. Dimagrimento, migliorare salute..." onChange={upd('obiettivo')}/>
-            {bmiVal&&<div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginTop:10}}>
+            {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
               {[[bmiVal,`BMI — ${bmiLbl}`,bmiClr],[`${d.peso} kg`,'Peso attuale',C.text],[`${pesoTarget||'—'} kg`,'Peso target (BMI 24.9)',C.blue]].map(([v,l,c])=>(
                 <div key={l} style={{background:C.bg,border:`1px solid ${c}30`,borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
                   <div style={{fontSize:20,fontWeight:900,color:c}}>{v}</div>
@@ -1706,7 +1750,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 </div>
               ))}
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
               <WizIn lbl="Distanza percorsa (m) *" name="mwtDist" type="number" val={d.mwtDist} ph="es. 320" onChange={upd('mwtDist')}/>
               <WizIn lbl="RPE al termine (0-10)" name="mwtRpe" type="number" val={d.mwtRpe} ph="0 = nessuno sforzo" onChange={upd('mwtRpe')}/>
             </div>
@@ -1730,7 +1774,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 </div>
               ))}
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
               <WizIn lbl="Ripetizioni completate *" name="stsRip" type="number" val={d.stsRip} ph="es. 12" onChange={upd('stsRip')}/>
               <WizIn lbl="Note tecnica" name="stsNote" val={d.stsNote} ph="es. Uso mani, ginocchia valghe..." onChange={upd('stsNote')}/>
             </div>
@@ -1776,7 +1820,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 <div style={{fontSize:18,fontWeight:700,color:C.strong,marginTop:8}}>{pr.l}</div>
                 <div style={{fontSize:13,color:C.muted,marginTop:6,maxWidth:400,margin:'8px auto 0'}}>{prog?.desc}</div>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:8,marginBottom:16}}>
                 {[[`6MWT: ${d.mwtDist||'—'} m`,+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],[`STS: ${d.stsRip||'—'} rip.`,+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],[`BMI: ${bmiVal||'—'} — ${bmiLbl}`,bmiClr],[`Peso target: ${pesoTarget||'—'} kg`,C.blue]].map(([l,c])=>(
                   <div key={l} style={{background:C.bg,border:`1px solid ${c}30`,borderRadius:10,padding:'10px 14px'}}>
                     <div style={{fontSize:13,fontWeight:700,color:c}}>{l}</div>
@@ -1801,7 +1845,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Completa i test funzionali per ricevere il programma automatico.</div>
             </div>:<>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:8,marginBottom:16}}>
                 {[[prog.sedute,'Sedute/sett.',C.blue],[prog.minCardio+"'",'Min cardio/sett.',C.green],[prog.minForza+"'",'Min forza/sett.',C.orange]].map(([v,l,c])=>(
                   <div key={l} style={{background:C.bg,border:`1px solid ${c}30`,borderRadius:12,padding:'12px 8px',textAlign:'center'}}>
                     <div style={{fontSize:24,fontWeight:900,color:c}}>{v}</div>
@@ -1812,7 +1856,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               {prog.settimane.map(w=>(
                 <div key={w.num} style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.blue}`}}>
                   <div style={{fontSize:10,fontWeight:700,color:C.blue,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Settimana {w.num}</div>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10}}>
                     <div><div style={{fontSize:9,color:C.green,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Cardio</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.cardio}</div></div>
                     <div><div style={{fontSize:9,color:C.purple,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Forza</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.forza}</div></div>
                   </div>
@@ -1821,7 +1865,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               ))}
               <div style={{...S.card,marginBottom:14}}>
                 <div style={S.st}>🥗 Linee guida nutrizionali</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:8}}>
                   {[[prog.kcal,'kcal/gg',C.orange],[prog.prot+'g','Proteine',C.blue],[prog.carbo+'g','Carboidrati',C.yellow],[prog.grassi+'g','Grassi',C.green]].map(([v,l,c])=>(
                     <div key={l} style={{background:C.bg,borderRadius:9,padding:'10px 6px',textAlign:'center',border:`1px solid ${c}30`}}>
                       <div style={{fontSize:16,fontWeight:800,color:c}}>{v}</div>
@@ -2071,7 +2115,7 @@ function AdminModal({onClose}){
 
         <div style={{padding:22}}>
           {/* Stats */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10,marginBottom:20}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:10,marginBottom:20}}>
             {[
               ['Totale',users.length,'#3b82f6'],
               ['Trial attivi',users.filter(u=>u.plan==='trial'&&!isTrialExpired(u)).length,'#f59e0b'],
