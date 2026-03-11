@@ -876,7 +876,7 @@ ${(p.progressi||[]).length>1?`
               )}
             </div>
             {aiResult&&!aiLoading&&(
-              <div style={{padding:'14px 22px',borderTop:'1px solid #1e2d47',display:'flex',gap:10'}}>
+              <div style={{padding:'14px 22px',borderTop:'1px solid #1e2d47',display:'flex',gap:10}}>
                 <button onClick={()=>{const el=document.createElement('textarea');el.value=aiResult;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);alert('Copiato!');}} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>📋 Copia</button>
                 <button onClick={async()=>{setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #7c3aed40',background:'#7c3aed15',color:'#a78bfa',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>🔄 Rigenera</button>
               </div>
