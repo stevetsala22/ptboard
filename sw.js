@@ -1,4 +1,4 @@
-const CACHE='ptboard-v1';
+const CACHE='ptboard-v2';
 const ASSETS=[
   '/ptboard/PTBoard_v8.html',
   '/ptboard/manifest.json'
