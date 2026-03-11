@@ -10,6 +10,27 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
+  authDomain:"ptboard-1.firebaseapp.com",
+  projectId:"ptboard-1",
+  storageBucket:"ptboard-1.firebasestorage.app",
+  messagingSenderId:"223801010947",
+  appId:"1:223801010947:web:9c3f887243609bcdad9736"
+});
+const fbAuth=firebase.auth();
+const fbDb=firebase.firestore();
+const fbSave=async(uid,data)=>{
+  try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}catch(e){console.warn('fbSave',e);}
+};
+const fbLoad=async(uid)=>{
+  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}catch(e){return null;}
+};
+</script>
 <style>
 :root{
   --bg:#0f172a;--sidebar:#080d1a;--card:#1e293b;--border:#1e293b;--border2:#334155;
@@ -1055,6 +1076,8 @@ function PatientForm({initial,onSave,onCancel,isNew}){
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 function App(){
+  const [user,setUser]=useState(undefined); // undefined=loading, null=not logged in
+  const [fbLoading,setFbLoading]=useState(true);
   const stored=load();
   const [patients,setPatients]=useState(stored?.patients||INIT_PATIENTS);
   const [bookings,setBookings]=useState(stored?.bookings||INIT_BOOKINGS);
@@ -1069,20 +1092,85 @@ function App(){
   const [sidebarOpen,setSidebarOpen]=useState(true);
   const [isLight,setIsLight]=useState(stored?.isLight||false);
 
+  // Auth listener
+  useEffect(()=>{
+    const unsub=fbAuth.onAuthStateChanged(async u=>{
+      setUser(u);
+      if(u){
+        setFbLoading(true);
+        const remote=await fbLoad(u.uid);
+        if(remote){
+          if(remote.patients) setPatients(remote.patients);
+          if(remote.bookings) setBookings(remote.bookings);
+          if(remote.exercises) setExercises(remote.exercises);
+          if(remote.isLight!==undefined) setIsLight(remote.isLight);
+        }
+        setFbLoading(false);
+        // Chiedi permesso notifiche
+        if(Notification.permission==='default') Notification.requestPermission();
+        // Schedula notifiche appuntamenti
+        scheduleNotifications();
+      } else {
+        setFbLoading(false);
+      }
+    });
+    return unsub;
+  },[]);
+
+  // Funzione notifiche appuntamenti
+  const scheduleNotifications=()=>{
+    if(Notification.permission!=='granted') return;
+    const stored2=load();
+    const bks=stored2?.bookings||[];
+    const now=new Date();
+    bks.forEach(b=>{
+      if(!b.date||!b.time) return;
+      const [h,m]=b.time.split(':').map(Number);
+      const [d2,mo,y]=b.date.split('/').map(Number);
+      const apptDate=new Date(y,mo-1,d2,h,m);
+      const diff=apptDate-now-15*60*1000; // 15 min prima
+      if(diff>0&&diff<24*60*60*1000){
+        setTimeout(()=>{
+          new Notification('PT Board — Appuntamento tra 15 minuti',{
+            body:`${b.patientName||'Paziente'} alle ${b.time}`,
+            icon:'https://stevetsala22.github.io/ptboard/icon.png'
+          });
+        },diff);
+      }
+    });
+  };
+
   // Applica tema al documento
   useEffect(()=>{
     if(isLight) document.documentElement.classList.add('light');
     else document.documentElement.classList.remove('light');
   },[isLight]);
 
+  // Salva su localStorage + Firebase
   useEffect(()=>{
-    save({patients,bookings,exercises,isLight});
+    if(fbLoading) return;
+    const data={patients,bookings,exercises,isLight};
+    save(data); // localStorage backup
+    if(user) fbSave(user.uid,data); // cloud sync
     setSaveMsg('✓ Salvato');
     const t=setTimeout(()=>setSaveMsg(''),1500);
     return()=>clearTimeout(t);
   },[patients,bookings,exercises,isLight]);
 
   const selected=patients.find(p=>p.id===selectedId);
+
+  // Loading screen
+  if(user===undefined||fbLoading) return(
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)',gap:16}}>
+      <div style={{fontSize:32,fontWeight:900,color:'#3b82f6'}}>PT Board</div>
+      <div style={{width:40,height:40,border:'3px solid #334155',borderTop:'3px solid #3b82f6',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  // Login screen
+  if(!user) return <AuthScreen/>;
+
   const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
 
   const handleSave=(form)=>{
@@ -1160,13 +1248,18 @@ function App(){
           {showParametri&&(
             <div style={{padding:'12px 16px 16px',background:C.sidebar,borderTop:`1px solid ${C.border}`}}>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Tema</div>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12}}>
                 <span style={{fontSize:12,color:C.dim}}>🌙 Scuro</span>
                 <div onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
                   <div style={{position:'absolute',top:3,left:isLight?22:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left .25s',boxShadow:'0 1px 4px #0004'}}/>
                 </div>
                 <span style={{fontSize:12,color:C.dim}}>☀️ Chiaro</span>
               </div>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Account</div>
+              <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
+              <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                Esci dall'account
+              </button>
             </div>
           )}
           <div style={{padding:'6px 16px 10px',fontSize:10,color:C.muted}}>PT Board · {fmtDate()}</div>
@@ -1602,6 +1695,70 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>✓ Salva &amp; apri scheda</button>}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
+function AuthScreen(){
+  const [mode,setMode]=useState('login');
+  const [email,setEmail]=useState('');
+  const [pw,setPw]=useState('');
+  const [pw2,setPw2]=useState('');
+  const [nome,setNome]=useState('');
+  const [err,setErr]=useState('');
+  const [msg,setMsg]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const errMap=(code)=>{
+    if(code==='auth/user-not-found'||code==='auth/wrong-password'||code==='auth/invalid-credential') return 'Email o password errati';
+    if(code==='auth/email-already-in-use') return 'Email già registrata';
+    if(code==='auth/weak-password') return 'Password troppo corta (minimo 6 caratteri)';
+    if(code==='auth/invalid-email') return 'Email non valida';
+    return 'Errore. Riprova.';
+  };
+
+  const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()){setErr('Inserisci il tuo nome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome});}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
+
+  const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
+  const btn={width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1};
+
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
+      <div style={{width:'100%',maxWidth:400}}>
+        <div style={{textAlign:'center',marginBottom:32}}>
+          <div style={{fontSize:32,fontWeight:900,color:'#3b82f6',marginBottom:6}}>PT Board</div>
+          <div style={{fontSize:13,color:'#64748b'}}>Gestione pazienti per Personal Trainer</div>
+        </div>
+        <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:28}}>
+          {mode!=='reset'&&(
+            <div style={{display:'flex',gap:4,background:'#080d1a',borderRadius:9,padding:4,marginBottom:22}}>
+              {[['login','Accedi'],['register','Registrati']].map(([m,l])=>(
+                <button key={m} onClick={()=>{setMode(m);setErr('');setMsg('');}} style={{flex:1,padding:'8px',borderRadius:7,border:'none',background:mode===m?'#3b82f6':'transparent',color:mode===m?'#fff':'#64748b',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',transition:'all .2s'}}>{l}</button>
+              ))}
+            </div>
+          )}
+          {mode==='reset'&&(
+            <div style={{marginBottom:16}}>
+              <button onClick={()=>{setMode('login');setErr('');setMsg('');}} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:13,fontFamily:'inherit',padding:0}}>← Torna al login</button>
+              <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
+            </div>
+          )}
+          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>}
+          <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
+          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
+          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
+          {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
+          {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
+          {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?'Accesso...':'Accedi'}</button>}
+          {mode==='register'&&<button style={btn} onClick={doRegister} disabled={loading}>{loading?'Registrazione...':'Crea account'}</button>}
+          {mode==='reset'&&<button style={btn} onClick={doReset} disabled={loading}>{loading?'Invio...':'Invia email di recupero'}</button>}
+          {mode==='login'&&<button onClick={()=>{setMode('reset');setErr('');setMsg('');}} style={{width:'100%',background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:12,fontFamily:'inherit',textAlign:'center',padding:'4px 0'}}>Password dimenticata?</button>}
+        </div>
+        <div style={{textAlign:'center',marginTop:20,fontSize:11,color:'#334155'}}>Dati salvati in modo sicuro su Google Firebase 🔒</div>
       </div>
     </div>
   );
