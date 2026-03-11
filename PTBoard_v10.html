@@ -246,52 +246,9 @@ const INIT_EXERCISES=[
   {id:'E15',nome:'Lat Machine',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata alla lat machine'},
 ];
 
-const INIT_PATIENTS=[
-  {
-    id:'P001',cognome:'Rossi',nome:'Maria',ddn:'15/03/2004',altezza:165,peso:78,vita:88,fianchi:105,pa:'120/80',fc:75,
-    sesso:'F',annoNascita:2004,patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',
-    allergie:'—',attivita:'Sedentaria',obiettivo:'Dimagrimento',preferenze:'No corsa',stressPercepito:'Alto',sonno:'6',
-    dataValutazione:'10/03/2026',
-    test:{mwtDist:280,mwtRpe:8,mwtSintomi:'Fiato corto',stsRip:8,stsNote:'Ginocchia valghe',noteVal:'Molto sedentaria'},
-    programma:{dataInizio:'11/03/2026',sedute:3,minCardio:30,minForza:40,cardio:'Camminata 10-15 min RPE 3-4',forza:'Circuito base 2-3 giri',note:'Progressione graduale'},
-    nutrizione:{kcal:1600,proteine:128,carboidrati:160,grassi:53,note:'Deficit calorico moderato. Colazione proteica, evitare zuccheri semplici.',pianoPasti:'Colazione: yogurt greco + frutta + noci\nSpuntino: frutta\nPranzo: proteine + verdure + carboidrati complessi\nCena: proteine + verdure'},
-    progressi:[{data:'10/03/2026',peso:78,nota:'Primo accesso'}],
-    schede:[],
-    log:[
-      {id:1,data:'11/03/2026',tipo:'Camminata lenta',durata:10,rpe:4,note:'Prima seduta ok'},
-      {id:2,data:'13/03/2026',tipo:'Forza base',durata:25,rpe:5,note:'Fatica nei giri finali'},
-    ],
-    createdAt:'10/03/2026',
-  },
-  {
-    id:'P002',cognome:'Bianchi',nome:'Giulia',ddn:'22/07/2003',altezza:160,peso:85,vita:95,fianchi:112,pa:'135/85',fc:82,
-    sesso:'F',annoNascita:2003,patologie:'Ipertensione lieve',farmaci:'ACE inibitore',sintomiSforzo:'NO',
-    allergie:'—',attivita:'Sedentaria',obiettivo:'Salute + dimagrimento',preferenze:'No pesi pesanti',stressPercepito:'Medio',sonno:'7',
-    dataValutazione:'10/03/2026',
-    test:{mwtDist:320,mwtRpe:7,mwtSintomi:'NO',stsRip:11,stsNote:'Tecnica ok',noteVal:'Monitorare PA'},
-    programma:{dataInizio:'11/03/2026',sedute:4,minCardio:80,minForza:60,cardio:'Camminata 20-25 min RPE 4-5',forza:'Circuito 3 giri',note:'Introdurre varietà'},
-    nutrizione:{kcal:1500,proteine:120,carboidrati:150,grassi:50,note:'Dieta iposodica per ipertensione. Evitare sale in eccesso.',pianoPasti:'Colazione: fiocchi avena + latte scremato\nPranzo: pesce/pollo + verdure + riso\nCena: legumi + verdure'},
-    progressi:[{data:'10/03/2026',peso:85,nota:'Primo accesso'}],
-    schede:[],log:[],createdAt:'10/03/2026',
-  },
-  {
-    id:'P003',cognome:'Verdi',nome:'Sara',ddn:'10/11/2005',altezza:170,peso:72,vita:82,fianchi:98,pa:'115/75',fc:70,
-    sesso:'F',annoNascita:2005,patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',
-    allergie:'—',attivita:'Poco attiva',obiettivo:'Tonificazione',preferenze:'Va bene tutto',stressPercepito:'Basso',sonno:'8',
-    dataValutazione:'10/03/2026',
-    test:{mwtDist:460,mwtRpe:5,mwtSintomi:'NO',stsRip:16,stsNote:'Tecnica buona',noteVal:'Buona base'},
-    programma:{dataInizio:'11/03/2026',sedute:5,minCardio:135,minForza:80,cardio:'Cardio 30min RPE 5-7',forza:'Upper/Lower split',note:'Progressione carico'},
-    nutrizione:{kcal:1900,proteine:152,carboidrati:200,grassi:63,note:'Mantenimento con leggero surplus. Proteine elevate per tonificazione.',pianoPasti:'Colazione: uova + toast integrale\nSpuntino: banana + mandorle\nPranzo: carne/pesce + pasta integrale + verdure\nCena: proteine + insalata'},
-    progressi:[{data:'10/03/2026',peso:72,nota:'Primo accesso'},{data:'17/03/2026',peso:71.5,nota:'Prima settimana'}],
-    schede:[],log:[],createdAt:'10/03/2026',
-  },
-];
+const INIT_PATIENTS=[];
+const INIT_BOOKINGS=[];
 
-const INIT_BOOKINGS=[
-  {id:'B001',patientId:'P001',data:'2026-03-11',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
-  {id:'B002',patientId:'P002',data:'2026-03-11',ora:'10:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
-  {id:'B003',patientId:'P003',data:'2026-03-12',ora:'11:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
-];
 
 const isMobile=window.innerWidth<=768;
 const S={
@@ -456,7 +413,22 @@ function PatientList({patients,onSelect,onAdd,search}){
         ))}
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:isMobile?10:8}}>
-        {filtered.length===0&&<div style={{textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>🔍</div>Nessun paziente trovato</div>}
+        {filtered.length===0&&search===''&&(
+          <div style={{textAlign:'center',padding:'40px 20px'}}>
+            <div style={{fontSize:56,marginBottom:16}}>👋</div>
+            <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,marginBottom:8}}>Benvenuto in PT Board!</div>
+            <div style={{fontSize:13,color:C.muted,marginBottom:28,lineHeight:1.7}}>Non hai ancora nessun paziente.<br/>Inizia con la Valutazione 20 min per creare il tuo primo profilo.</div>
+            <div style={{display:'flex',flexDirection:'column',gap:10,maxWidth:340,margin:'0 auto'}}>
+              <button style={{padding:'14px 20px',borderRadius:12,border:'none',background:C.blue,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={()=>document.querySelector('[data-wizard]')?.click()}>
+                🎯 Inizia Valutazione 20 min
+              </button>
+              <button style={{padding:'14px 20px',borderRadius:12,border:`1px solid ${C.border2}`,background:'transparent',color:C.dim,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={onAdd}>
+                ＋ Aggiungi paziente manualmente
+              </button>
+            </div>
+          </div>
+        )}
+        {filtered.length===0&&search!==''&&<div style={{textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>🔍</div>Nessun paziente trovato</div>}
         {filtered.map(p=>{
           const b=bmi(p.peso,p.altezza);
           const {l:bl,c:bc}=bmiCat(b);
@@ -1442,7 +1414,7 @@ function AppInner({user,profile,trialLeft}){
               <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
             </button>
           ))}
-          <button style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
+          <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
             <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione 20 min</span>
           </button>
           <button style={{...S.navi(false),background:'#a78bfa10',border:'1px solid #a78bfa30',marginTop:4}} onClick={()=>{setShowTutorial(true);setSidebarOpen(false);}}>
@@ -1455,8 +1427,42 @@ function AppInner({user,profile,trialLeft}){
               <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12}}>{p.nome} {p.cognome}</span>
             </button>
           ))}
+          {/* Parametri dentro il nav su mobile così è sempre visibile */}
+          {isMobile&&(
+            <div style={{marginTop:16,borderTop:`1px solid ${C.border2}`,paddingTop:12,paddingBottom:80}}>
+              <button onClick={()=>setShowParametri(p=>!p)} style={{display:'flex',alignItems:'center',gap:9,width:'100%',padding:'12px 10px',background:'transparent',border:'none',cursor:'pointer',color:showParametri?C.blue:C.dim,fontSize:13,fontWeight:600}}>
+                <span style={{fontSize:14}}>⚙</span><span>Parametri</span>
+                <span style={{marginLeft:'auto',fontSize:10,color:C.muted}}>{showParametri?'▲':'▼'}</span>
+              </button>
+              {showParametri&&(
+                <div style={{padding:'8px 10px 12px',background:C.bg,borderRadius:10,border:`1px solid ${C.border2}`}}>
+                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Tema</div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12}}>
+                    <span style={{fontSize:12,color:C.dim}}>🌙 Scuro</span>
+                    <div onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
+                      <div style={{position:'absolute',top:3,left:isLight?22:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left .25s',boxShadow:'0 1px 4px #0004'}}/>
+                    </div>
+                    <span style={{fontSize:12,color:C.dim}}>☀️ Chiaro</span>
+                  </div>
+                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Account</div>
+                  <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
+                  <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'9px',borderRadius:8,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
+                    {profile?.plan==='pro'?'✅ Piano Pro attivo':'💎 Vedi piani'}
+                  </button>
+                  {user?.email===ADMIN_EMAIL&&(
+                    <button onClick={()=>setShowAdmin(true)} style={{width:'100%',padding:'9px',borderRadius:8,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
+                      👑 Pannello Admin
+                    </button>
+                  )}
+                  <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'9px',borderRadius:8,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                    🚪 Esci dall'account
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        <div style={{borderTop:`1px solid ${C.border2}`,flexShrink:0}}>
+        <div style={{borderTop:`1px solid ${C.border2}`,flexShrink:0,paddingBottom:isMobile?'env(safe-area-inset-bottom, 80px)':0}}>
           <button onClick={()=>setShowParametri(p=>!p)} style={{display:'flex',alignItems:'center',gap:9,width:'100%',padding:'12px 16px',background:'transparent',border:'none',cursor:'pointer',color:showParametri?C.blue:C.dim,fontSize:13,fontWeight:600,transition:'all .15s'}}>
             <span style={{fontSize:14}}>⚙</span><span>Parametri</span>
             <span style={{marginLeft:'auto',fontSize:10,color:C.muted}}>{showParametri?'▲':'▼'}</span>
