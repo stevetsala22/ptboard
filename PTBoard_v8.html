@@ -24,6 +24,8 @@ firebase.initializeApp({
 });
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
+// Cache offline per mobile
+fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 const fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}catch(e){console.warn('fbSave',e);}
 };
@@ -1079,8 +1081,15 @@ function App(){
   const [user,setUser]=useState(undefined);
 
   useEffect(()=>{
-    const unsub=fbAuth.onAuthStateChanged(u=>setUser(u));
-    return unsub;
+    // Timeout: se Firebase non risponde in 4s, mostra login
+    const timeout=setTimeout(()=>{
+      setUser(prev=>prev===undefined?null:prev);
+    },4000);
+    const unsub=fbAuth.onAuthStateChanged(u=>{
+      clearTimeout(timeout);
+      setUser(u);
+    });
+    return()=>{clearTimeout(timeout);unsub();};
   },[]);
 
   if(user===undefined) return(
