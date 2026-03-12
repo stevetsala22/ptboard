@@ -534,8 +534,11 @@ function PatientDetail({patient,exercises,onBack,onEdit,onDelete,onUpdate,onUpgr
   .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
   .note-box{background:#f8fafc;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:#475569;line-height:1.6;white-space:pre-wrap}
   .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body><div class="page">
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}
+  .no-print{text-align:center;padding:16px;}
+</style></head><body>
+<div class="no-print"><button onclick="window.close()" style="background:#3b82f6;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">← Torna all'app</button>&nbsp;&nbsp;<button onclick="window.print()" style="background:#10b981;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🖨️ Stampa / Salva PDF</button></div>
+<div class="page">
 
 <div class="header">
   <div>
@@ -630,7 +633,11 @@ ${(p.progressi||[]).length>1?`
     const w=window.open('','_blank');
     w.document.write(html);
     w.document.close();
-    setTimeout(()=>w.print(),600);
+    setTimeout(()=>{
+      w.print();
+      // Su mobile chiude la finestra dopo la stampa e torna all'app
+      if(isMobile){setTimeout(()=>{try{w.close();}catch{}},500);}
+    },600);
   };
 
   return(
@@ -1777,7 +1784,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 </div></div>
 <footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
 </div></body></html>`;
-    const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),600);
+    const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>{w.print();if(isMobile){setTimeout(()=>{try{w.close();}catch{}},500);}},600);
   };
 
   const exportCSV=()=>{
