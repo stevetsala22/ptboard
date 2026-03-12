@@ -283,6 +283,7 @@ const LANGS={
 };
 const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
 const setLangStore=(l)=>localStorage.setItem('ptboard_lang',l);
+const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
 
 
 const C={
@@ -501,7 +502,7 @@ function Dashboard({patients,bookings}){
 }
 
 // ── PATIENT LIST ──────────────────────────────────────────────────────────────
-function PatientList({patients,onSelect,onAdd,search}){
+function PatientList({patients,onSelect,onAdd,search,T}){
   const filtered=useMemo(()=>{
     const q=search.toLowerCase();
     return patients.filter(p=>`${p.nome} ${p.cognome} ${p.id}`.toLowerCase().includes(q));
@@ -509,8 +510,8 @@ function PatientList({patients,onSelect,onAdd,search}){
   return(
     <div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
-        <div><h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>Pazienti</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>{filtered.length} pazienti</p></div>
-        <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onAdd}>＋ Nuovo</button>
+        <div><h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{T.patients}</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>{filtered.length} {T.patients.toLowerCase()}</p></div>
+        <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onAdd}>{T.addPatient}</button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
         {[{l:'Totali',v:filtered.length,c:C.blue},{l:'Forma Bassa',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:'Forma Media',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:'Buona Forma',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
@@ -521,19 +522,19 @@ function PatientList({patients,onSelect,onAdd,search}){
         {filtered.length===0&&search===''&&(
           <div style={{textAlign:'center',padding:'40px 20px'}}>
             <div style={{fontSize:56,marginBottom:16}}>👋</div>
-            <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,marginBottom:8}}>Benvenuto in PT Board!</div>
-            <div style={{fontSize:13,color:C.muted,marginBottom:28,lineHeight:1.7}}>Non hai ancora nessun paziente.<br/>Inizia con la Valutazione 20 min per creare il tuo primo profilo.</div>
+            <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,marginBottom:8}}>{T.welcome}</div>
+            <div style={{fontSize:13,color:C.muted,marginBottom:28,lineHeight:1.7}}>{T.noPatients}</div>
             <div style={{display:'flex',flexDirection:'column',gap:10,maxWidth:340,margin:'0 auto'}}>
               <button style={{padding:'14px 20px',borderRadius:12,border:'none',background:C.blue,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={()=>document.querySelector('[data-wizard]')?.click()}>
-                🎯 Inizia Valutazione 20 min
+                {T.startVal}
               </button>
               <button style={{padding:'14px 20px',borderRadius:12,border:`1px solid ${C.border2}`,background:'transparent',color:C.dim,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={onAdd}>
-                ＋ Aggiungi paziente manualmente
+                {T.addManual}
               </button>
             </div>
           </div>
         )}
-        {filtered.length===0&&search!==''&&<div style={{textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>🔍</div>Nessun paziente trovato</div>}
+        {filtered.length===0&&search!==''&&<div style={{textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>🔍</div>{T.noResult}</div>}
         {filtered.map(p=>{
           const b=bmi(p.peso,p.altezza);
           const {l:bl,c:bc}=bmiCat(b);
@@ -565,7 +566,7 @@ function PatientList({patients,onSelect,onAdd,search}){
 }
 
 // ── PATIENT DETAIL ────────────────────────────────────────────────────────────
-function PatientDetail({patient,exercises,onBack,onEdit,onDelete,onUpdate,onUpgrade}){
+function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade}){
   const [tab,setTab]=useState('dash');
   const [showLogModal,setShowLogModal]=useState(false);
   const [showPesoModal,setShowPesoModal]=useState(false);
@@ -768,7 +769,7 @@ ${(p.progressi||[]).length>1?`
         </div>
       ):(
         <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-          <button style={{...S.btn('ghost',true),display:'flex',alignItems:'center',gap:4}} onClick={onBack}>← Pazienti</button>
+          <button style={{...S.btn('ghost',true),display:'flex',alignItems:'center',gap:4}} onClick={onBack}{T.back}</button>
           <Avatar nome={p.nome} cognome={p.cognome} size={44}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
@@ -779,7 +780,7 @@ ${(p.progressi||[]).length>1?`
           </div>
           <button style={{...S.btn('success',true),display:'flex',alignItems:'center',gap:5}} onClick={generaPDF}>📄 Report PDF</button>
           <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}}>🤖 AI Coach</button>
-          <button style={S.btn('ghost',true)} onClick={onEdit}>✏ Modifica</button>
+            <button onClick={onEdit} style={S.btn('ghost',true)}>✏ {T.edit}</button>
           <button style={S.btn('danger',true)} onClick={onDelete}>🗑</button>
         </div>
       )}
@@ -1484,6 +1485,7 @@ function AppInner({user,profile,trialLeft}){
   const [showTutorial,setShowTutorial]=useState(false);
   const [showAdmin,setShowAdmin]=useState(false);
   const [showPiani,setShowPiani]=useState(false);
+  const [showLingua,setShowLingua]=useState(false);
   const [lang,setLang]=useState(getLang());
   const T=LANGS[lang]?.t||LANGS.it.t;
   const firstLoad=useRef(true);
@@ -1552,10 +1554,10 @@ function AppInner({user,profile,trialLeft}){
   };
 
   const navItems=[
-    {id:'dash',icon:'⊞',l:'Dashboard'},
-    {id:'patients',icon:'👥',l:'Pazienti'},
-    {id:'calendar',icon:'📅',l:'Calendario'},
-    {id:'exercises',icon:'🏋',l:'Esercizi'},
+    {id:'dash',icon:'⊞',l:T.dashboard},
+    {id:'patients',icon:'👥',l:T.patients},
+    {id:'calendar',icon:'📅',l:T.calendar},
+    {id:'exercises',icon:'🏋',l:T.exercises},
   ];
 
   return(
@@ -1620,13 +1622,9 @@ function AppInner({user,profile,trialLeft}){
                     <span style={{fontSize:12,color:C.dim}}>☀️ {T.light}</span>
                   </div>
                   <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>{T.language}</div>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:4,marginBottom:12}}>
-                    {Object.entries(LANGS).map(([k,v])=>(
-                      <button key={k} onClick={()=>{setLang(k);setLangStore(k);}} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${lang===k?C.blue:C.border2}`,background:lang===k?C.blue+'20':'transparent',color:lang===k?C.blue:C.dim,fontSize:11,fontWeight:lang===k?700:400,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:3,justifyContent:'center'}}>
-                        <span style={{fontSize:14}}>{v.flag}</span><span>{v.name.split(' ')[0]}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <button onClick={()=>{setShowParametri(false);setShowLingua(true);}} style={{width:'100%',padding:'11px',borderRadius:9,border:`1px solid ${C.border2}`,background:C.bg,color:C.text,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                    <span style={{fontSize:20}}>{LANGS[lang].flag}</span><span>{LANGS[lang].name}</span><span style={{marginLeft:'auto',color:C.muted,fontSize:11}}>▶</span>
+                  </button>
                   <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
                   <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
                   <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'9px',borderRadius:8,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
@@ -1661,13 +1659,9 @@ function AppInner({user,profile,trialLeft}){
                 <span style={{fontSize:12,color:C.dim}}>☀️ {T.light}</span>
               </div>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>{T.language}</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,marginBottom:12}}>
-                {Object.entries(LANGS).map(([k,v])=>(
-                  <button key={k} onClick={()=>{setLang(k);setLangStore(k);}} style={{padding:'6px 4px',borderRadius:7,border:`1px solid ${lang===k?C.blue:C.border2}`,background:lang===k?C.blue+'20':'transparent',color:lang===k?C.blue:C.dim,fontSize:11,fontWeight:lang===k?700:400,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:4,justifyContent:'center'}}>
-                    <span>{v.flag}</span><span>{v.name}</span>
-                  </button>
-                ))}
-              </div>
+              <button onClick={()=>{setShowParametri(false);setShowLingua(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.border2}`,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,display:'flex',alignItems:'center',gap:8,justifyContent:'center'}}>
+                <span style={{fontSize:16}}>{LANGS[lang].flag}</span><span>{LANGS[lang].name}</span><span style={{marginLeft:'auto',color:C.muted,fontSize:11}}>▶</span>
+              </button>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
               <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
@@ -1683,7 +1677,7 @@ function AppInner({user,profile,trialLeft}){
               </button>
             </div>
           )}
-          {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ Trial: {trialLeft} giorni rimasti</div>}
+          {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ Trial: {trialLeft} ${T.trialDays}</div>}
           <div style={{padding:'6px 16px 10px',fontSize:10,color:C.muted}}>PT Board · {fmtDate()}</div>
         </div>
       </div>
@@ -1703,7 +1697,7 @@ function AppInner({user,profile,trialLeft}){
             <>
               <div style={{position:'relative',flex:1,maxWidth:300}}>
                 <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
-                <input style={{...S.inp,paddingLeft:32}} placeholder="Cerca paziente..." value={search} onChange={e=>setSearch(e.target.value)}/>
+                <input style={{...S.inp,paddingLeft:32}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
               <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',pointerEvents:'none',textAlign:'center',lineHeight:1.2}}>
                 <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
@@ -1718,14 +1712,14 @@ function AppInner({user,profile,trialLeft}){
           <div style={{padding:'8px 12px',background:C.sidebar,borderBottom:`1px solid ${C.border}`}}>
             <div style={{position:'relative'}}>
               <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
-              <input style={{...S.inp,paddingLeft:32,fontSize:14,padding:'10px 12px 10px 34px'}} placeholder="Cerca paziente..." value={search} onChange={e=>setSearch(e.target.value)}/>
+              <input style={{...S.inp,paddingLeft:32,fontSize:14,padding:'10px 12px 10px 34px'}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
             </div>
           </div>
         )}
         <div style={S.content}>
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings}/>}
-          {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} search={search}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`Eliminare ${selected.nome}?`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)}/>}
+          {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} search={search} T={T}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`Eliminare ${selected.nome}?`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises}/>}
@@ -1744,14 +1738,15 @@ function AppInner({user,profile,trialLeft}){
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
       {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile}/>}
+      {showLingua&&<LinguaModal onClose={()=>setShowLingua(false)} lang={lang} setLang={setLang}/>}
 
       {/* Bottom nav bar mobile */}
       {isMobile&&(
         <div style={{position:'fixed',bottom:0,left:0,right:0,height:60,background:C.sidebar,borderTop:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'space-around',zIndex:200,paddingBottom:'env(safe-area-inset-bottom)'}}>
           {[
-            {id:'dash',icon:'⊞',l:'Home'},
-            {id:'patients',icon:'👥',l:'Pazienti'},
-            {id:'calendar',icon:'📅',l:'Agenda'},
+            {id:'dash',icon:'⊞',l:T.dashboard},
+            {id:'patients',icon:'👥',l:T.patients},
+            {id:'calendar',icon:'📅',l:T.calendar},
             {id:'exercises',icon:'🏋',l:'Esercizi'},
           ].map(n=>(
             <button key={n.id} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:page===n.id?'#3b82f6':C.dim}}>
@@ -2277,8 +2272,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 </div>
               </div>
               <div style={{display:'flex',gap:10}}>
-                <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>📄 Esporta PDF</button>
-                <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>📊 Esporta Excel / CSV</button>
+                <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}{T.exportPdf}</button>
+                <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}{T.exportCsv}</button>
               </div>
             </>}
           </div>}
@@ -2353,6 +2348,43 @@ function PaywallScreen({user,profile,blocked}){
 }
 
 // ── PIANI MODAL ───────────────────────────────────────────────────────────────
+function LinguaModal({onClose,lang,setLang}){
+  const lingue=[
+    {k:'it',flag:'🇮🇹',nome:'Italiano',desc:'Lingua predefinita'},
+    {k:'en',flag:'🇬🇧',nome:'English',desc:'Default language'},
+    {k:'fr',flag:'🇫🇷',nome:'Français',desc:'Langue par défaut'},
+    {k:'es',flag:'🇪🇸',nome:'Español',desc:'Idioma predeterminado'},
+    {k:'de',flag:'🇩🇪',nome:'Deutsch',desc:'Standardsprache'},
+    {k:'pt',flag:'🇵🇹',nome:'Português',desc:'Idioma padrão'},
+  ];
+  return(
+    <div style={{position:'fixed',inset:0,background:'#000000c0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16,overflowY:'auto'}}>
+      <div style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:20,width:'min(640px,95vw)',maxHeight:'95vh',overflowY:'auto'}}>
+        <div style={{padding:'24px 28px 0',textAlign:'center',position:'relative'}}>
+          <button onClick={onClose} style={{position:'absolute',right:20,top:20,background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
+          <div style={{fontSize:28,marginBottom:8}}>🌍</div>
+          <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>Scegli la lingua</div>
+          <div style={{fontSize:13,color:'#64748b',marginBottom:20}}>La lingua cambia subito in tutta l'app</div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:14,padding:'0 24px 28px'}}>
+          {lingue.map(l=>{
+            const sel=lang===l.k;
+            return(
+              <div key={l.k} onClick={()=>{setLang(l.k);setLangStore(l.k);onClose();}}
+                style={{background:'#0f1623',border:`2px solid ${sel?'#3b82f6':'#1e2d47'}`,borderRadius:16,padding:'20px 16px',cursor:'pointer',textAlign:'center',position:'relative',transition:'border-color .15s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                {sel&&<div style={{position:'absolute',top:10,right:12,background:'#3b82f6',color:'#fff',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20}}>✓ Attiva</div>}
+                <div style={{fontSize:36}}>{l.flag}</div>
+                <div style={{fontSize:15,fontWeight:700,color:sel?'#f8fafc':'#94a3b8'}}>{l.nome}</div>
+                <div style={{fontSize:11,color:'#475569'}}>{l.desc}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PianiModal({onClose,profile}){
   const isPro=profile?.plan==='pro';
   const daysLeft=trialDaysLeft(profile);
