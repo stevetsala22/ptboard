@@ -2186,6 +2186,7 @@ function WizardValutazione({onSave,onClose}){
   const prog=pr?PROGRAMMI[pr.code]:null;
   const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
   const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
+  const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
   const exportPDF=()=>{
@@ -2331,11 +2332,14 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 1 — Anagrafica */}
-          {step===1&&<div>
+          {mode&&step===1&&<div>
             <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
               <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
               <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
               <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
+              {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
+                🎂 Età calcolata: <b>{eta} anni</b>
+              </div>}
               <WizIn lbl="Sesso" name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
               <WizIn lbl="Altezza (cm)" name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
               <WizIn lbl="Peso (kg)" name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
@@ -2402,7 +2406,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 2 — 6MWT */}
-          {step===2&&<div>
+          {mode&&step===2&&<div>
             <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:8}}>📋 Protocollo rapido</div>
               {['Corridoio piano ≥ 20m (o circuito all\'aperto)','Il paziente cammina il più veloce possibile per 6 minuti esatti','Può fermarsi se necessario — registrare le soste','Misurare la distanza totale in metri','Rilevare RPE (0-10) subito al termine'].map((t,i)=>(
@@ -2426,7 +2430,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 3 — STS */}
-          {step===3&&<div>
+          {mode&&step===3&&<div>
             <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:8}}>📋 Protocollo rapido</div>
               {['Sedia standard senza braccioli, altezza ~43 cm','Partenza seduto, braccia incrociate al petto','Al via: alzarsi completamente e risedersi per 30 secondi esatti','Contare ogni alzata completa come 1 ripetizione','Non usare le mani — annotarlo se indispensabile'].map((t,i)=>(
@@ -2453,7 +2457,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 4 — Test Fisici Aggiuntivi */}
-          {step===4&&<div>
+          {mode&&step===4&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali. Salta quelli non applicabili.</p>
             
             {/* Push-up */}
@@ -2523,7 +2527,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 5 — Composizione & Benessere */}
-          {step===5&&<div>
+          {mode&&step===5&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Misurazioni corporee aggiuntive e valutazione del benessere psicofisico.</p>
 
             {/* Circonferenze */}
@@ -2680,7 +2684,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 6 — RPE & Note (era step 4) */}
-          {step===6&&<div>
+          {mode&&step===6&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:16,lineHeight:1.6}}>Valuta lo stato percepito <strong style={{color:C.text}}>dopo i test</strong>, a riposo. Registra osservazioni cliniche utili per il futuro.</p>
             <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>Scala RPE — clicca per selezionare</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6,marginBottom:14}}>
@@ -2699,7 +2703,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 7 — Classificazione */}
-          {step===7&&<div>
+          {mode&&step===7&&<div>
             {!pr?<div style={{background:C.bg,border:`1px dashed ${C.border2}`,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Inserisci i valori del 6MWT (passo 2) e STS (passo 3) per ottenere la classificazione automatica.</div>
@@ -2729,7 +2733,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 8 — Programma + Export */}
-          {step===8&&<div>
+          {mode&&step===8&&<div>
             {!prog?<div style={{background:C.bg,border:`1px dashed ${C.border2}`,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Completa i test funzionali per ricevere il programma automatico.</div>
@@ -2775,12 +2779,13 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         <div style={{padding:'14px 22px',borderTop:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap'}}>
           <button onClick={onClose} style={S.btn('ghost',true)}>{gT().cancel}</button>
           <div style={{display:'flex',gap:8}}>
-            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().prev}</button>}
-            {step<TOTAL&&<button onClick={()=>{
+            {!mode&&<div style={{fontSize:12,color:C.muted}}>Seleziona modalità per iniziare</div>}
+            {mode&&step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().prev}</button>}
+            {mode&&step<TOTAL&&<button onClick={()=>{
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
               setStep(s=>s+1);
             }} style={S.btn()}>{gT().next}</button>}
-            {step===TOTAL&&<button onClick={()=>{
+            {mode&&step===TOTAL&&<button onClick={()=>{
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
               const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
