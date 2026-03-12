@@ -2636,9 +2636,6 @@ function WizardValutazione({onSave,onClose}){
             </div>
             <div style={{marginBottom:10}}>
               <label style={S.label}>Tipi di esercizio praticati</label>
-              <Chips opts={['Camminata','Corsa','Ciclismo','Nuoto','Pesi / palestra','Yoga / pilates','Sport di squadra','Arti marziali','Altro']}
-                value={d.attivitaTipi} field="attivitaTipi" multi onChange={()=>{}} tog={tog}/>
-              {/* Multi-chip using tog */}
               <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}}>
                 {['Camminata','Corsa','Ciclismo','Nuoto','Pesi / palestra','Yoga / pilates','Sport di squadra','Arti marziali','Altro'].map(v=>{
                   const sel=(d.attivitaTipi||[]).includes(v);
