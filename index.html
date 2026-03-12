@@ -272,8 +272,8 @@ const LANGS={
     wStep1:'👤 Anagrafica & Clinica',wStep2:'📏 Composizione & BIA',wStep3:'🚶 6MWT',
     wStep4:'🪑 Sit-to-Stand',wStep5:'💪 Test Fisici',
     wStep6:'😮‍💨 RPE & Note',wStep7:'📊 Classificazione',wStep8:'🏆 Programma 4 Settimane',
-    wSubStep1:'~5 min',wSubStep2:'~8 min',wSubStep3:'~5 min',
-    wSubStep4:'~8 min',wSubStep5:'~5 min',wSubStep6:'~2 min',
+    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~8 min',
+    wSubStep4:'~5 min',wSubStep5:'~8 min',wSubStep6:'~2 min',
     w6mwtDist:'Distanza percorsa (metri)',w6mwtRpe:'RPE durante il test (0-10)',
     w6mwtSymp:'Sintomi durante il test',w6mwtTitle:'6 Minute Walk Test',
     w6mwtProto:'Cammina più veloce possibile per 6 minuti · Corridoio 20m andata e ritorno · Segna i giri',
@@ -409,11 +409,11 @@ const LANGS={
     pdfCardio:'Cardio',pdfForza:'Strength',pdfNutKcal:'kcal/day',
     pdfNutProt:'Protein',pdfNutCarb:'Carbs',pdfLastSessions:'Last sessions',
     pdfWeightHistory:'Weight history',pdfNutSection:'Nutrition plan',pdfProgSection:'Training program',
-    wStep1:'👤 Profile & Clinical',wStep2:'🚶 6MWT',wStep3:'🪑 Sit-to-Stand',
-    wStep4:'💪 Physical Tests',wStep5:'📏 Composition & Wellbeing',
+    wStep1:'👤 Profile & Clinical',wStep2:'📏 Composition & BIA',wStep3:'🚶 6MWT',
+    wStep4:'🪑 Sit-to-Stand',wStep5:'💪 Physical Tests',
     wStep6:'😮‍💨 RPE & Notes',wStep7:'📊 Classification',wStep8:'🏆 4-Week Program',
-    wSubStep1:'~5 min',wSubStep2:'~8 min',wSubStep3:'~5 min',
-    wSubStep4:'~8 min',wSubStep5:'~5 min',wSubStep6:'~2 min',
+    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~8 min',
+    wSubStep4:'~5 min',wSubStep5:'~8 min',wSubStep6:'~2 min',
     w6mwtDist:'Distance covered (meters)',w6mwtRpe:'RPE during test (0-10)',
     w6mwtSymp:'Symptoms during test',w6mwtTitle:'6 Minute Walk Test',
     w6mwtProto:'Walk as fast as possible for 6 minutes · 20m corridor back and forth · Count laps',
@@ -549,11 +549,11 @@ const LANGS={
     pdfCardio:'Cardio',pdfForza:'Force',pdfNutKcal:'kcal/jour',
     pdfNutProt:'Protéines',pdfNutCarb:'Glucides',pdfLastSessions:'Dernières séances',
     pdfWeightHistory:'Historique poids',pdfNutSection:'Plan nutritionnel',pdfProgSection:"Programme d'entraînement",
-    wStep1:'👤 Profil & Clinique',wStep2:'🚶 6MWT',wStep3:'🪑 Assis-Debout',
-    wStep4:'💪 Tests physiques',wStep5:'📏 Composition & Bien-être',
+    wStep1:'👤 Profil & Clinique',wStep2:'📏 Composition & BIA',wStep3:'🚶 6MWT',
+    wStep4:'🪑 Assis-Debout',wStep5:'💪 Tests physiques',
     wStep6:'😮‍💨 RPE & Notes',wStep7:'📊 Classification',wStep8:'🏆 Programme 4 semaines',
-    wSubStep1:'~5 min',wSubStep2:'~8 min',wSubStep3:'~5 min',
-    wSubStep4:'~8 min',wSubStep5:'~5 min',wSubStep6:'~2 min',
+    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~8 min',
+    wSubStep4:'~5 min',wSubStep5:'~8 min',wSubStep6:'~2 min',
     w6mwtDist:'Distance parcourue (mètres)',w6mwtRpe:'RPE pendant le test (0-10)',
     w6mwtSymp:'Symptômes pendant le test',w6mwtTitle:'Test de marche de 6 minutes',
     w6mwtProto:'Marchez aussi vite que possible pendant 6 minutes · Couloir 20m aller-retour · Comptez les tours',
@@ -2359,7 +2359,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>}
           </div>}
 
-          {/* STEP 2 — Composizione & Benessere */}
+          {/* STEP 2 — Composizione & BIA */}
           {mode&&step===2&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Misurazioni corporee aggiuntive e valutazione del benessere psicofisico.</p>
 
@@ -2389,20 +2389,6 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               {d.massaGrassa&&<div style={{marginTop:8,background:C.bg,borderRadius:8,padding:'8px 12px'}}>
                 {(()=>{const mg=+d.massaGrassa,m=d.sesso==='M';let l,c;if(m){l=mg<6?'Essenziale':mg<14?'Atletica':mg<18?'Fitness':mg<25?'Accettabile':'Obesa';c=mg<25?C.green:C.red;}else{l=mg<14?'Essenziale':mg<21?'Atletica':mg<25?'Fitness':mg<32?'Accettabile':'Obesa';c=mg<32?C.green:C.red;}return<div style={{fontSize:12,fontWeight:700,color:c}}>% Massa grassa: {mg}% — Categoria: {l}</div>})()}
               </div>}
-            </div>
-
-            {/* Recupero FC */}
-            <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.red}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>❤️ Recupero FC — fitness cardiaca</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Subito dopo il 6MWT: misura FC → aspetta 1 min → misura di nuovo. Serve: cardiofrequenzimetro o polso × 15s × 4.</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="FC subito post-esercizio (bpm)" name="fcPost" type="number" val={d.fcPost} ph="es. 145" onChange={upd('fcPost')}/>
-                <WizIn lbl="FC dopo 1 minuto (bpm)" name="fcRecup" type="number" val={d.fcRecup} ph="es. 120" onChange={upd('fcRecup')}/>
-              </div>
-              {d.fcPost&&d.fcRecup&&(()=>{const delta=+d.fcPost-+d.fcRecup;const i=interpRecupFC(delta);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6}}>
-                <div style={{fontSize:12,fontWeight:700,color:i.c}}>Delta FC: -{delta} bpm — {i.l}</div>
-                <div style={{fontSize:11,color:C.muted,marginTop:3}}>💡 {i.cons}</div>
-              </div>})()}
             </div>
 
             {/* GAD-7 */}
@@ -2522,9 +2508,22 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 {+d.mwtDist<300?'< 300m — Capacità molto bassa → Forma Bassa tendenziale':+d.mwtDist<=450?'300–450m — Capacità moderata → Forma Media tendenziale':'> 450m — Buona capacità → Buona Forma tendenziale'}
               </div>
             </div>}
+            {/* Recupero FC — subito dopo 6MWT */}
+            <div style={{...S.card,marginTop:12,borderLeft:`3px solid ${C.red}`}}>
+              <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>❤️ Recupero FC — fitness cardiaca</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Subito dopo il 6MWT: misura FC → aspetta 1 min → misura di nuovo. Serve: cardiofrequenzimetro o polso × 15s × 4.</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="FC subito post-esercizio (bpm)" name="fcPost" type="number" val={d.fcPost} ph="es. 145" onChange={upd('fcPost')}/>
+                <WizIn lbl="FC dopo 1 minuto (bpm)" name="fcRecup" type="number" val={d.fcRecup} ph="es. 120" onChange={upd('fcRecup')}/>
+              </div>
+              {d.fcPost&&d.fcRecup&&(()=>{const delta=+d.fcPost-+d.fcRecup;const i=interpRecupFC(delta);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6}}>
+                <div style={{fontSize:12,fontWeight:700,color:i.c}}>Delta FC: -{delta} bpm — {i.l}</div>
+                <div style={{fontSize:11,color:C.muted,marginTop:3}}>💡 {i.cons}</div>
+              </div>})()}
+            </div>
           </div>}
 
-          {/* STEP 4 — STS */}
+          {/* STEP 4 — Sit-to-Stand */}
           {mode&&step===4&&<div>
             <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:8}}>📋 Protocollo rapido</div>
@@ -2551,7 +2550,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>}
           </div>}
 
-          {/* STEP 5 — Test Fisici Aggiuntivi */}
+          {/* STEP 5 — Test Fisici */}
           {mode&&step===5&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali. Salta quelli non applicabili.</p>
             
@@ -2621,7 +2620,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>
           </div>}
 
-          {/* STEP 6 — RPE & Note (era step 4) */}
+          {/* STEP 6 — RPE & Note */}
           {mode&&step===6&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:16,lineHeight:1.6}}>Valuta lo stato percepito <strong style={{color:C.text}}>dopo i test</strong>, a riposo. Registra osservazioni cliniche utili per il futuro.</p>
             <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>Scala RPE — clicca per selezionare</div>
