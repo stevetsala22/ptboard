@@ -1416,6 +1416,23 @@ function AppInner({user,profile,trialLeft}){
     return()=>clearTimeout(t);
   },[patients,bookings,exercises,isLight]);
 
+  // Salva IMMEDIATAMENTE quando l'app viene chiusa/minimizzata
+  useEffect(()=>{
+    const handleHide=()=>{
+      const data={patients,bookings,exercises,isLight};
+      save(data);
+      try{fbSave(user.uid,data);}catch{}
+    };
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)handleHide();});
+    window.addEventListener('pagehide',handleHide);
+    window.addEventListener('beforeunload',handleHide);
+    return()=>{
+      document.removeEventListener('visibilitychange',handleHide);
+      window.removeEventListener('pagehide',handleHide);
+      window.removeEventListener('beforeunload',handleHide);
+    };
+  },[patients,bookings,exercises,isLight]);
+
   const selected=patients.find(p=>p.id===selectedId);
 
   const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
