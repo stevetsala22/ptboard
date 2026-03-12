@@ -2234,7 +2234,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   const pct=Math.round(step/TOTAL*100);
   const clr=pr?pr.c:C.blue;
 
-  const stepTitles=['Anagrafica & Clinica','🚶 6 Minute Walk Test','🪑 Sit-to-Stand 30s','💪 Test Fisici Aggiuntivi','📏 Composizione & Benessere','😮‍💨 RPE & Note finali','📊 Classificazione','🏆 Programma 4 Settimane'];
+  const stepTitles=['👤 Anagrafica & Clinica','📏 Composizione & BIA','🚶 6MWT','🪑 Sit-to-Stand 30s','💪 Test Fisici','😮‍💨 RPE & Note','📊 Classificazione','🏆 Programma 4 Settimane'];
   const stepSub=['Anagrafica & clinica','Composizione & BIA','6MWT + Recupero FC','Sit-to-Stand 30s','Test fisici','RPE & note finali','Classificazione automatica','Programma 4 settimane'];
 
   return(
@@ -2347,7 +2347,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
           {/* STEP 2 — Composizione & BIA */}
           {step===2&&<div>
-            <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Misurazioni corporee aggiuntive e valutazione del benessere psicofisico.</p>
+            <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Circonferenze, plicometria e BIA — dati opzionali, salta i campi non disponibili.</p>
 
             {/* Circonferenze */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.blue}`}}>
@@ -2459,17 +2459,6 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 </div>}
               </div>
             </div>
-            <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.purple}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧠 GAD-7 — ansia (0-21)</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>7 domande: 0=mai · 1=alcuni giorni · 2=più della metà · 3=quasi sempre. Somma i punteggi. Nessun attrezzo.</div>
-              <WizIn lbl="Punteggio totale GAD-7 (0-21)" name="gad7" type="number" val={d.gad7} ph="es. 5" onChange={upd('gad7')}/>
-              {d.gad7!==''&&d.gad7!==undefined&&(()=>{const i=interpGAD7(d.gad7);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
-            </div>
-
-
           </div>}
 
           {/* STEP 3 — 6MWT */}
@@ -2619,6 +2608,15 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               ))}
             </div>
             <WizIn lbl="RPE a riposo (0-10)" name="rpeRiposo" type="number" val={d.rpeRiposo} ph="0-10" onChange={upd('rpeRiposo')}/>
+            <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.purple}`}}>
+              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧠 GAD-7 — ansia (0-21)</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>7 domande: 0=mai · 1=alcuni giorni · 2=più della metà · 3=quasi sempre. Somma i punteggi. Nessun attrezzo.</div>
+              <WizIn lbl="Punteggio totale GAD-7 (0-21)" name="gad7" type="number" val={d.gad7} ph="es. 5" onChange={upd('gad7')}/>
+              {d.gad7!==''&&d.gad7!==undefined&&(()=>{const i=interpGAD7(d.gad7);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
+                <div style={{fontSize:18}}>📊</div>
+                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
+              </div>})()}
+            </div>
             <div style={{marginBottom:10}}>
               <label style={S.label}>Note generali valutazione</label>
               <textarea value={d.noteVal||''} onChange={upd('noteVal')} placeholder="Osservazioni cliniche, comportamento durante i test, motivazione, note utili per il programma..." style={{...S.ta,minHeight:90}}/>
