@@ -188,6 +188,103 @@ const SK='fitmanager_v3';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
 const save=(d)=>{try{localStorage.setItem(SK,JSON.stringify(d))}catch{}};
 
+// ─── TRADUZIONI ───────────────────────────────────────────────────────────
+const LANGS={
+  it:{flag:'🇮🇹',name:'Italiano',t:{
+    dashboard:'Dashboard',patients:'Pazienti',calendar:'Calendario',exercises:'Esercizi',
+    settings:'Parametri',theme:'Tema',dark:'Scuro',light:'Chiaro',account:'Account',
+    logout:'Esci dall\'account',language:'Lingua',
+    addPatient:'+ Nuovo paziente',search:'Cerca paziente...',
+    noPatients:'Nessun paziente ancora.',startVal:'🎯 Inizia Valutazione 20 min',addManual:'+ Aggiungi manualmente',
+    save:'Salva',cancel:'Annulla',edit:'Modifica',delete:'Elimina',back:'Indietro',
+    exportPdf:'📄 Esporta PDF',exportCsv:'📊 Esporta Excel',
+    aiCoach:'🤖 AI Coach',proFeature:'Funzionalità Pro',
+    trialDays:'giorni rimasti',seePlans:'💎 Vedi piani',proPlan:'✅ Piano Pro attivo',
+    valutazione:'Valutazione 20 min',tutorial:'Tutorial',recent:'Recenti',
+    today:'Oggi',week:'Settimana',month:'Mese',
+    saved:'✓ Salvato',welcome:'Benvenuto in PT Board!',
+    noResult:'Nessun paziente trovato',admin:'👑 Pannello Admin',
+  }},
+  en:{flag:'🇬🇧',name:'English',t:{
+    dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
+    settings:'Settings',theme:'Theme',dark:'Dark',light:'Light',account:'Account',
+    logout:'Sign out',language:'Language',
+    addPatient:'+ New patient',search:'Search patient...',
+    noPatients:'No patients yet.',startVal:'🎯 Start 20 min Assessment',addManual:'+ Add manually',
+    save:'Save',cancel:'Cancel',edit:'Edit',delete:'Delete',back:'Back',
+    exportPdf:'📄 Export PDF',exportCsv:'📊 Export Excel',
+    aiCoach:'🤖 AI Coach',proFeature:'Pro Feature',
+    trialDays:'days left',seePlans:'💎 See plans',proPlan:'✅ Pro Plan active',
+    valutazione:'20 min Assessment',tutorial:'Tutorial',recent:'Recent',
+    today:'Today',week:'Week',month:'Month',
+    saved:'✓ Saved',welcome:'Welcome to PT Board!',
+    noResult:'No patients found',admin:'👑 Admin Panel',
+  }},
+  fr:{flag:'🇫🇷',name:'Français',t:{
+    dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
+    settings:'Paramètres',theme:'Thème',dark:'Sombre',light:'Clair',account:'Compte',
+    logout:'Se déconnecter',language:'Langue',
+    addPatient:'+ Nouveau patient',search:'Rechercher...',
+    noPatients:'Aucun patient pour l\'instant.',startVal:'🎯 Démarrer l\'évaluation 20 min',addManual:'+ Ajouter manuellement',
+    save:'Enregistrer',cancel:'Annuler',edit:'Modifier',delete:'Supprimer',back:'Retour',
+    exportPdf:'📄 Exporter PDF',exportCsv:'📊 Exporter Excel',
+    aiCoach:'🤖 AI Coach',proFeature:'Fonctionnalité Pro',
+    trialDays:'jours restants',seePlans:'💎 Voir les plans',proPlan:'✅ Plan Pro actif',
+    valutazione:'Évaluation 20 min',tutorial:'Tutoriel',recent:'Récents',
+    today:'Aujourd\'hui',week:'Semaine',month:'Mois',
+    saved:'✓ Enregistré',welcome:'Bienvenue sur PT Board!',
+    noResult:'Aucun patient trouvé',admin:'👑 Panneau Admin',
+  }},
+  es:{flag:'🇪🇸',name:'Español',t:{
+    dashboard:'Panel',patients:'Pacientes',calendar:'Calendario',exercises:'Ejercicios',
+    settings:'Ajustes',theme:'Tema',dark:'Oscuro',light:'Claro',account:'Cuenta',
+    logout:'Cerrar sesión',language:'Idioma',
+    addPatient:'+ Nuevo paciente',search:'Buscar paciente...',
+    noPatients:'Sin pacientes todavía.',startVal:'🎯 Iniciar Evaluación 20 min',addManual:'+ Añadir manualmente',
+    save:'Guardar',cancel:'Cancelar',edit:'Editar',delete:'Eliminar',back:'Volver',
+    exportPdf:'📄 Exportar PDF',exportCsv:'📊 Exportar Excel',
+    aiCoach:'🤖 AI Coach',proFeature:'Función Pro',
+    trialDays:'días restantes',seePlans:'💎 Ver planes',proPlan:'✅ Plan Pro activo',
+    valutazione:'Evaluación 20 min',tutorial:'Tutorial',recent:'Recientes',
+    today:'Hoy',week:'Semana',month:'Mes',
+    saved:'✓ Guardado',welcome:'¡Bienvenido a PT Board!',
+    noResult:'No se encontraron pacientes',admin:'👑 Panel Admin',
+  }},
+  de:{flag:'🇩🇪',name:'Deutsch',t:{
+    dashboard:'Dashboard',patients:'Patienten',calendar:'Kalender',exercises:'Übungen',
+    settings:'Einstellungen',theme:'Thema',dark:'Dunkel',light:'Hell',account:'Konto',
+    logout:'Abmelden',language:'Sprache',
+    addPatient:'+ Neuer Patient',search:'Patient suchen...',
+    noPatients:'Noch keine Patienten.',startVal:'🎯 Bewertung 20 min starten',addManual:'+ Manuell hinzufügen',
+    save:'Speichern',cancel:'Abbrechen',edit:'Bearbeiten',delete:'Löschen',back:'Zurück',
+    exportPdf:'📄 PDF exportieren',exportCsv:'📊 Excel exportieren',
+    aiCoach:'🤖 AI Coach',proFeature:'Pro-Funktion',
+    trialDays:'Tage verbleibend',seePlans:'💎 Pläne ansehen',proPlan:'✅ Pro-Plan aktiv',
+    valutazione:'Bewertung 20 min',tutorial:'Tutorial',recent:'Zuletzt',
+    today:'Heute',week:'Woche',month:'Monat',
+    saved:'✓ Gespeichert',welcome:'Willkommen bei PT Board!',
+    noResult:'Keine Patienten gefunden',admin:'👑 Admin-Panel',
+  }},
+  pt:{flag:'🇵🇹',name:'Português',t:{
+    dashboard:'Painel',patients:'Pacientes',calendar:'Calendário',exercises:'Exercícios',
+    settings:'Configurações',theme:'Tema',dark:'Escuro',light:'Claro',account:'Conta',
+    logout:'Sair',language:'Idioma',
+    addPatient:'+ Novo paciente',search:'Pesquisar paciente...',
+    noPatients:'Nenhum paciente ainda.',startVal:'🎯 Iniciar Avaliação 20 min',addManual:'+ Adicionar manualmente',
+    save:'Guardar',cancel:'Cancelar',edit:'Editar',delete:'Eliminar',back:'Voltar',
+    exportPdf:'📄 Exportar PDF',exportCsv:'📊 Exportar Excel',
+    aiCoach:'🤖 AI Coach',proFeature:'Funcionalidade Pro',
+    trialDays:'dias restantes',seePlans:'💎 Ver planos',proPlan:'✅ Plano Pro ativo',
+    valutazione:'Avaliação 20 min',tutorial:'Tutorial',recent:'Recentes',
+    today:'Hoje',week:'Semana',month:'Mês',
+    saved:'✓ Guardado',welcome:'Bem-vindo ao PT Board!',
+    noResult:'Nenhum paciente encontrado',admin:'👑 Painel Admin',
+  }},
+};
+const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
+const setLangStore=(l)=>localStorage.setItem('ptboard_lang',l);
+
+
 const C={
   get bg(){return'var(--bg)'},
   get sidebar(){return'var(--sidebar)'},
@@ -537,7 +634,7 @@ function PatientDetail({patient,exercises,onBack,onEdit,onDelete,onUpdate,onUpgr
   @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}
   .no-print{text-align:center;padding:16px;}
 </style></head><body>
-<div class="no-print"><button onclick="window.close()" style="background:#3b82f6;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">← Torna all'app</button>&nbsp;&nbsp;<button onclick="window.print()" style="background:#10b981;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">🖨️ Stampa / Salva PDF</button></div>
+<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div>
 <div class="page">
 
 <div class="header">
@@ -633,11 +730,7 @@ ${(p.progressi||[]).length>1?`
     const w=window.open('','_blank');
     w.document.write(html);
     w.document.close();
-    setTimeout(()=>{
-      w.print();
-      // Su mobile chiude la finestra dopo la stampa e torna all'app
-      if(isMobile){setTimeout(()=>{try{w.close();}catch{}},500);}
-    },600);
+    // Non auto-stampa — l'utente clicca il bottone manualmente (evita il blocco su iPhone)
   };
 
   return(
@@ -1391,6 +1484,8 @@ function AppInner({user,profile,trialLeft}){
   const [showTutorial,setShowTutorial]=useState(false);
   const [showAdmin,setShowAdmin]=useState(false);
   const [showPiani,setShowPiani]=useState(false);
+  const [lang,setLang]=useState(getLang());
+  const T=LANGS[lang]?.t||LANGS.it.t;
   const firstLoad=useRef(true);
 
   // Carica dati da Firebase in background (non blocca l'app)
@@ -1516,26 +1611,34 @@ function AppInner({user,profile,trialLeft}){
               </button>
               {showParametri&&(
                 <div style={{padding:'8px 10px 12px',background:C.bg,borderRadius:10,border:`1px solid ${C.border2}`}}>
-                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Tema</div>
+                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>{T.theme}</div>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12}}>
-                    <span style={{fontSize:12,color:C.dim}}>🌙 Scuro</span>
+                    <span style={{fontSize:12,color:C.dim}}>🌙 {T.dark}</span>
                     <div onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
                       <div style={{position:'absolute',top:3,left:isLight?22:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left .25s',boxShadow:'0 1px 4px #0004'}}/>
                     </div>
-                    <span style={{fontSize:12,color:C.dim}}>☀️ Chiaro</span>
+                    <span style={{fontSize:12,color:C.dim}}>☀️ {T.light}</span>
                   </div>
-                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Account</div>
+                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>{T.language}</div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:4,marginBottom:12}}>
+                    {Object.entries(LANGS).map(([k,v])=>(
+                      <button key={k} onClick={()=>{setLang(k);setLangStore(k);}} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${lang===k?C.blue:C.border2}`,background:lang===k?C.blue+'20':'transparent',color:lang===k?C.blue:C.dim,fontSize:11,fontWeight:lang===k?700:400,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:3,justifyContent:'center'}}>
+                        <span style={{fontSize:14}}>{v.flag}</span><span>{v.name.split(' ')[0]}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
                   <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
                   <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'9px',borderRadius:8,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
-                    {profile?.plan==='pro'?'✅ Piano Pro attivo':'💎 Vedi piani'}
+                    {profile?.plan==='pro'?T.proPlan:T.seePlans}
                   </button>
                   {user?.email===ADMIN_EMAIL&&(
                     <button onClick={()=>setShowAdmin(true)} style={{width:'100%',padding:'9px',borderRadius:8,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
-                      👑 Pannello Admin
+                      {T.admin}
                     </button>
                   )}
                   <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'9px',borderRadius:8,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                    🚪 Esci dall'account
+                    🚪 {T.logout}
                   </button>
                 </div>
               )}
@@ -1549,26 +1652,34 @@ function AppInner({user,profile,trialLeft}){
           </button>
           {showParametri&&(
             <div style={{padding:'12px 16px 16px',background:C.sidebar,borderTop:`1px solid ${C.border}`}}>
-              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Tema</div>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>{T.theme}</div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12}}>
-                <span style={{fontSize:12,color:C.dim}}>🌙 Scuro</span>
+                <span style={{fontSize:12,color:C.dim}}>🌙 {T.dark}</span>
                 <div onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
                   <div style={{position:'absolute',top:3,left:isLight?22:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left .25s',boxShadow:'0 1px 4px #0004'}}/>
                 </div>
-                <span style={{fontSize:12,color:C.dim}}>☀️ Chiaro</span>
+                <span style={{fontSize:12,color:C.dim}}>☀️ {T.light}</span>
               </div>
-              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Account</div>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:8}}>{T.language}</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,marginBottom:12}}>
+                {Object.entries(LANGS).map(([k,v])=>(
+                  <button key={k} onClick={()=>{setLang(k);setLangStore(k);}} style={{padding:'6px 4px',borderRadius:7,border:`1px solid ${lang===k?C.blue:C.border2}`,background:lang===k?C.blue+'20':'transparent',color:lang===k?C.blue:C.dim,fontSize:11,fontWeight:lang===k?700:400,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:4,justifyContent:'center'}}>
+                    <span>{v.flag}</span><span>{v.name}</span>
+                  </button>
+                ))}
+              </div>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
               <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
-                {profile?.plan==='pro'?'✅ Piano Pro attivo':'💎 Vedi piani'}
+                {profile?.plan==='pro'?T.proPlan:T.seePlans}
               </button>
               {user?.email===ADMIN_EMAIL&&(
                 <button onClick={()=>setShowAdmin(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
-                  👑 Pannello Admin
+                  {T.admin}
                 </button>
               )}
               <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                Esci dall'account
+                🚪 {T.logout}
               </button>
             </div>
           )}
@@ -1784,7 +1895,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 </div></div>
 <footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
 </div></body></html>`;
-    const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>{w.print();if(isMobile){setTimeout(()=>{try{w.close();}catch{}},500);}},600);
+    const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
 
   const exportCSV=()=>{
