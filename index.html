@@ -272,8 +272,8 @@ const LANGS={
     wStep1:'👤 Anagrafica & Clinica',wStep2:'📏 Composizione & BIA',wStep3:'🚶 6MWT',
     wStep4:'🪑 Sit-to-Stand',wStep5:'💪 Test Fisici',
     wStep6:'😮‍💨 RPE & Note',wStep7:'📊 Classificazione',wStep8:'🏆 Programma 4 Settimane',
-    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~8 min',
-    wSubStep4:'~5 min',wSubStep5:'~8 min',wSubStep6:'~2 min',
+    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~6 min',
+    wSubStep4:'~4 min',wSubStep5:'~6 min',wSubStep6:'~2 min',
     w6mwtDist:'Distanza percorsa (metri)',w6mwtRpe:'RPE durante il test (0-10)',
     w6mwtSymp:'Sintomi durante il test',w6mwtTitle:'6 Minute Walk Test',
     w6mwtProto:'Cammina più veloce possibile per 6 minuti · Corridoio 20m andata e ritorno · Segna i giri',
@@ -412,8 +412,8 @@ const LANGS={
     wStep1:'👤 Profile & Clinical',wStep2:'📏 Composition & BIA',wStep3:'🚶 6MWT',
     wStep4:'🪑 Sit-to-Stand',wStep5:'💪 Physical Tests',
     wStep6:'😮‍💨 RPE & Notes',wStep7:'📊 Classification',wStep8:'🏆 4-Week Program',
-    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~8 min',
-    wSubStep4:'~5 min',wSubStep5:'~8 min',wSubStep6:'~2 min',
+    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~6 min',
+    wSubStep4:'~4 min',wSubStep5:'~6 min',wSubStep6:'~2 min',
     w6mwtDist:'Distance covered (meters)',w6mwtRpe:'RPE during test (0-10)',
     w6mwtSymp:'Symptoms during test',w6mwtTitle:'6 Minute Walk Test',
     w6mwtProto:'Walk as fast as possible for 6 minutes · 20m corridor back and forth · Count laps',
@@ -552,8 +552,8 @@ const LANGS={
     wStep1:'👤 Profil & Clinique',wStep2:'📏 Composition & BIA',wStep3:'🚶 6MWT',
     wStep4:'🪑 Assis-Debout',wStep5:'💪 Tests physiques',
     wStep6:'😮‍💨 RPE & Notes',wStep7:'📊 Classification',wStep8:'🏆 Programme 4 semaines',
-    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~8 min',
-    wSubStep4:'~5 min',wSubStep5:'~8 min',wSubStep6:'~2 min',
+    wSubStep1:'~5 min',wSubStep2:'~5 min',wSubStep3:'~6 min',
+    wSubStep4:'~4 min',wSubStep5:'~6 min',wSubStep6:'~2 min',
     w6mwtDist:'Distance parcourue (mètres)',w6mwtRpe:'RPE pendant le test (0-10)',
     w6mwtSymp:'Symptômes pendant le test',w6mwtTitle:'Test de marche de 6 minutes',
     w6mwtProto:'Marchez aussi vite que possible pendant 6 minutes · Couloir 20m aller-retour · Comptez les tours',
@@ -2102,8 +2102,7 @@ function WizIn({lbl,name,type='text',val,onChange,opts,ph,desc}){
 function WizardValutazione({onSave,onClose}){
   const T=gT();
   const TOTAL=8;
-  const [mode,setMode]=useState(null); // 'base' | 'completa'
-  const [step,setStep]=useState(1);
+    const [step,setStep]=useState(1);
   const [d,setD]=useState({
     nome:'',cognome:'',ddn:'',sesso:'F',
     email:'',telefono:'',professione:'',attvLavorativa:'Sedentario',
@@ -2164,7 +2163,7 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:fle
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
 <body><div class="pg">
 <div class="hdr">
-  <div><div class="brand">PT Board<small>Valutazione Base — 20 min</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
+  <div><div class="brand">PT Board<small>Valutazione Paziente</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
   <div style="text-align:right"><div style="font-size:20px;font-weight:800">${d.nome} ${d.cognome}</div><div style="font-size:11px;color:#64748b">${d.ddn||''} · ${d.sesso}</div></div>
 </div>
 <div class="profilo ${pr.code}">
@@ -2202,7 +2201,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
   <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
 </div></div>
-<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
+<footer><span>PT Board · Valutazione Paziente · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
@@ -2210,7 +2209,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   const exportCSV=()=>{
     if(!prog||!pr)return;
     const rows=[
-      ['PT Board — Valutazione Base 20 min',''],['Data',fmtDate()],[''],
+      ['PT Board — Valutazione Paziente',''],['Data',fmtDate()],[''],
       ['PAZIENTE',''],['Cognome',d.cognome],['Nome',d.nome],['Data nascita',d.ddn],['Sesso',d.sesso],
       ['Altezza cm',d.altezza],['Peso kg',d.peso],['Vita cm',d.vita],['PA',d.pa],['FC riposo bpm',d.fc],
       ['FC max bpm',fcMax||''],['BMI',bmiVal||''],['Categoria BMI',bmiLbl],['Peso target kg',pesoTarget||''],
@@ -2236,7 +2235,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   const clr=pr?pr.c:C.blue;
 
   const stepTitles=['Anagrafica & Clinica','🚶 6 Minute Walk Test','🪑 Sit-to-Stand 30s','💪 Test Fisici Aggiuntivi','📏 Composizione & Benessere','😮‍💨 RPE & Note finali','📊 Classificazione','🏆 Programma 4 Settimane'];
-  const stepSub=['Dati base — ~5 min','Test 1 di 5 — ~8 min','Test 2 di 5 — ~5 min','Test 3 di 5 — ~8 min','Test 4 di 5 — ~5 min','Test 5 di 5 — ~2 min','Risultato automatico','Pronto per iniziare'];
+  const stepSub=['Anagrafica & clinica','Composizione & BIA','6MWT + Recupero FC','Sit-to-Stand 30s','Test fisici','RPE & note finali','Classificazione automatica','Programma 4 settimane'];
 
   return(
     <div style={OL} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
@@ -2245,7 +2244,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         <div style={{padding:'18px 22px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
           <div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:`1px solid ${C.blue}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🎯</div>
           <div style={{flex:1}}>
-            <div style={{fontSize:15,fontWeight:800,color:C.strong}}>Valutazione Base — 20 minuti</div>
+            <div style={{fontSize:15,fontWeight:800,color:C.strong}}>Valutazione Paziente</div>
             <div style={{fontSize:11,color:C.muted,marginTop:1}}>Passo {step} di {TOTAL} · {stepTitles[step-1]}</div>
           </div>
           <button onClick={onClose} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
@@ -2273,20 +2272,10 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{stepTitles[step-1]}</h2>
 
           {/* MODE SELECTOR */}
-          {!mode&&<div style={{display:'flex',flexDirection:'column',gap:16,padding:'10px 0'}}>
-            <div style={{fontSize:14,fontWeight:700,color:C.strong,marginBottom:4}}>Che tipo di valutazione vuoi fare?</div>
-            <div onClick={()=>setMode('base')} style={{background:C.bg,border:'2px solid '+C.blue,borderRadius:12,padding:'18px 20px',cursor:'pointer'}}>
-              <div style={{fontSize:16,fontWeight:800,color:C.blue}}>⚡ Valutazione Base — ~5 min</div>
-              <div style={{fontSize:12,color:C.muted,marginTop:4}}>Dati essenziali per iniziare subito. Ideale per il primo incontro.</div>
-            </div>
-            <div onClick={()=>setMode('completa')} style={{background:C.bg,border:'2px solid #8b5cf6',borderRadius:12,padding:'18px 20px',cursor:'pointer'}}>
-              <div style={{fontSize:16,fontWeight:800,color:'#8b5cf6'}}>🔬 Valutazione Completa — ~20 min</div>
-              <div style={{fontSize:12,color:C.muted,marginTop:4}}>Include BIA, postura, mobilita, test fisici approfonditi e lifestyle completo.</div>
-            </div>
-          </div>}
+          {
 
           {/* STEP 1 — Anagrafica */}
-          {mode&&step===1&&<div>
+          {step===1&&<div>
             <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
               <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
               <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
@@ -2315,33 +2304,33 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
               <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
               
-              {mode==='completa'&&<WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>}
-              {mode==='completa'&&<WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>}
-              {mode==='completa'&&<WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>}
-              {mode==='completa'&&<WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>}
-              {mode==='completa'&&<WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>}
-              {mode==='completa'&&<WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>}
-              {mode==='completa'&&<WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>}
-              {mode==='completa'&&d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
-              {mode==='completa'&&<WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>}
-              {mode==='completa'&&<WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>}
-              {mode==='completa'&&<WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>}
-              {mode==='completa'&&<WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>}
+              <WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>}
+              <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>}
+              <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>}
+              <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>}
+              <WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>}
+              <WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>}
+              <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>}
+              {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
+              <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>}
+              <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>}
+              <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>}
+              <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>}
 
 
-              {mode==='completa'&&<WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>}
-              {mode==='completa'&&<WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>}
-              {mode==='completa'&&<WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>}
-              {mode==='completa'&&<WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>}
-              {mode==='completa'&&<WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche associate a maggior rischio CV, obesita e recupero muscolare ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>}
-              {mode==='completa'&&<WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>}
-              {mode==='completa'&&<WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>}
-              {mode==='completa'&&<WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>}
-              {mode==='completa'&&<WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>}
-              {mode==='completa'&&<WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>}
-              {mode==='completa'&&<WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>}
-              {mode==='completa'&&<WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>}
-              {mode==='completa'&&<WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>}
+              <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>}
+              <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>}
+              <WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>}
+              <WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>}
+              <WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche associate a maggior rischio CV, obesita e recupero muscolare ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>}
+              <WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>}
+              <WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>}
+              <WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>}
+              <WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>}
+              <WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>}
+              <WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>}
+              <WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>}
+              <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>}
             </div>
             <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
             {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
@@ -2360,7 +2349,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 2 — Composizione & BIA */}
-          {mode&&step===2&&<div>
+          {step===2&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Misurazioni corporee aggiuntive e valutazione del benessere psicofisico.</p>
 
             {/* Circonferenze */}
@@ -2392,7 +2381,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>
 
             {/* GAD-7 */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid #06b6d4',display:mode==='completa'?'block':'none'}}>
+            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid #06b6d4',display:'block'}}>
               <div style={{fontSize:12,fontWeight:700,color:'#06b6d4',marginBottom:4}}>📡 BIA — Bioimpedenziometria</div>
               <div style={{fontSize:11,color:C.muted,marginBottom:10,background:C.bg,borderRadius:6,padding:'6px 10px',lineHeight:1.5}}>
                 Bioelectrical Impedance Analysis — stima la composizione corporea tramite corrente elettrica impercettibile. Inserisci i valori del tuo dispositivo.
@@ -2487,7 +2476,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 3 — 6MWT */}
-          {mode&&step===3&&<div>
+          {step===3&&<div>
             <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:8}}>📋 Protocollo rapido</div>
               {['Corridoio piano ≥ 20m (o circuito all\'aperto)','Il paziente cammina il più veloce possibile per 6 minuti esatti','Può fermarsi se necessario — registrare le soste','Misurare la distanza totale in metri','Rilevare RPE (0-10) subito al termine'].map((t,i)=>(
@@ -2524,7 +2513,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 4 — Sit-to-Stand */}
-          {mode&&step===4&&<div>
+          {step===4&&<div>
             <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
               <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:8}}>📋 Protocollo rapido</div>
               {['Sedia standard senza braccioli, altezza ~43 cm','Partenza seduto, braccia incrociate al petto','Al via: alzarsi completamente e risedersi per 30 secondi esatti','Contare ogni alzata completa come 1 ripetizione','Non usare le mani — annotarlo se indispensabile'].map((t,i)=>(
@@ -2551,7 +2540,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 5 — Test Fisici */}
-          {mode&&step===5&&<div>
+          {step===5&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali. Salta quelli non applicabili.</p>
             
             {/* Push-up */}
@@ -2621,7 +2610,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 6 — RPE & Note */}
-          {mode&&step===6&&<div>
+          {step===6&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:16,lineHeight:1.6}}>Valuta lo stato percepito <strong style={{color:C.text}}>dopo i test</strong>, a riposo. Registra osservazioni cliniche utili per il futuro.</p>
             <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>Scala RPE — clicca per selezionare</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6,marginBottom:14}}>
@@ -2640,7 +2629,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 7 — Classificazione */}
-          {mode&&step===7&&<div>
+          {step===7&&<div>
             {!pr?<div style={{background:C.bg,border:`1px dashed ${C.border2}`,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Inserisci i valori del 6MWT (passo 2) e STS (passo 3) per ottenere la classificazione automatica.</div>
@@ -2666,11 +2655,11 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   </div>
                 ))}
               </div>
-            </>}
+            </>
           </div>}
 
           {/* STEP 8 — Programma + Export */}
-          {mode&&step===8&&<div>
+          {step===8&&<div>
             {!prog?<div style={{background:C.bg,border:`1px dashed ${C.border2}`,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Completa i test funzionali per ricevere il programma automatico.</div>
@@ -2708,7 +2697,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportPdf}</button>
                 <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportCsv}</button>
               </div>
-            </>}
+            </>
           </div>}
         </div>
 
@@ -2716,13 +2705,13 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         <div style={{padding:'14px 22px',borderTop:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap'}}>
           <button onClick={onClose} style={S.btn('ghost',true)}>{gT().cancel}</button>
           <div style={{display:'flex',gap:8}}>
-            {!mode&&<div style={{fontSize:12,color:C.muted}}>Seleziona modalità per iniziare</div>}
-            {mode&&step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
-            {mode&&step<TOTAL&&<button onClick={()=>{
+            
+            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
+            {step<TOTAL&&<button onClick={()=>{
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
               setStep(s=>s+1);
             }} style={S.btn()}>{gT().wNext}</button>}
-            {mode&&step===TOTAL&&<button onClick={()=>{
+            {step===TOTAL&&<button onClick={()=>{
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
               const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
@@ -3094,10 +3083,10 @@ function AuthScreen({onProfileReady}){
               <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
             </div>
           )}
-          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>}
+          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>
           <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
-          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
-          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
+          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>
+          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>
           {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
           {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
           {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?'Accesso...':'Accedi'}</button>}
@@ -3235,7 +3224,7 @@ function TutorialModal({onClose,isLight}){
           {TSTEPS.map((x,i)=>(
             <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
               <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
-              {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
+              {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>
             </div>
           ))}
         </div>
