@@ -2271,9 +2271,6 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           <div style={{fontSize:10,color:C.blue,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{stepSub[step-1]}</div>
           <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{stepTitles[step-1]}</h2>
 
-          {/* MODE SELECTOR */}
-          {
-
           {/* STEP 1 — Anagrafica */}
           {step===1&&<div>
             <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
@@ -2304,33 +2301,33 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
               <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
               
-              <WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>}
-              <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>}
-              <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>}
-              <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>}
-              <WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>}
-              <WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>}
-              <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>}
+              <WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>
+              <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
+              <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
+              <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
+              <WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>
+              <WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>
+              <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
               {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
-              <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>}
-              <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>}
-              <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>}
-              <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>}
+              <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
+              <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
+              <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
+              <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
 
 
-              <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>}
-              <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>}
-              <WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>}
-              <WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>}
-              <WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche associate a maggior rischio CV, obesita e recupero muscolare ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>}
-              <WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>}
-              <WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>}
-              <WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>}
-              <WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>}
-              <WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>}
-              <WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>}
-              <WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>}
-              <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>}
+              <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>
+              <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
+              <WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
+              <WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
+              <WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche associate a maggior rischio CV, obesita e recupero muscolare ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>
+              <WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
+              <WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>
+              <WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
+              <WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>
+              <WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
+              <WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
+              <WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>
+              <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>
             </div>
             <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
             {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
@@ -2655,7 +2652,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   </div>
                 ))}
               </div>
-            </>
+            </>}
           </div>}
 
           {/* STEP 8 — Programma + Export */}
@@ -2697,7 +2694,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportPdf}</button>
                 <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportCsv}</button>
               </div>
-            </>
+            </>}
           </div>}
         </div>
 
@@ -3083,10 +3080,10 @@ function AuthScreen({onProfileReady}){
               <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
             </div>
           )}
-          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>
+          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>}
           <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
-          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>
-          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>
+          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
+          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
           {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
           {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
           {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?'Accesso...':'Accedi'}</button>}
@@ -3224,7 +3221,7 @@ function TutorialModal({onClose,isLight}){
           {TSTEPS.map((x,i)=>(
             <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
               <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
-              {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>
+              {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
             </div>
           ))}
         </div>
