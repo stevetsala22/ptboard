@@ -1887,7 +1887,7 @@ function AppInner({user,profile,trialLeft}){
     {id:'dash',icon:'⊞',l:T.dashboard},
     {id:'patients',icon:'👥',l:T.patients},
     {id:'calendar',icon:'📅',l:T.calendar},
-    {id:'exercises',icon:'🏋',l:T.exercises},{id:'settings',icon:'⚙',l:T.settings},
+    {id:'exercises',icon:'🏋',l:T.exercises},
   ];
 
   return(
@@ -2071,25 +2071,7 @@ function AppInner({user,profile,trialLeft}){
       {showLingua&&<LinguaModal onClose={()=>setShowLingua(false)} lang={lang} setLang={setLang}/>}
 
       {/* Bottom nav bar mobile */}
-      {isMobile&&(
-        <div style={{position:'fixed',bottom:0,left:0,right:0,height:60,background:C.sidebar,borderTop:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'space-around',zIndex:200,paddingBottom:'env(safe-area-inset-bottom)'}}>
-          {[
-            {id:'dash',icon:'⊞',l:T.dashboard},
-            {id:'patients',icon:'👥',l:T.patients},
-            {id:'calendar',icon:'📅',l:T.calendar},
-            {id:'exercises',icon:'🏋',l:'Esercizi'},
-          ].map(n=>(
-            <button key={n.id} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:page===n.id?'#3b82f6':C.dim}}>
-              <span style={{fontSize:20}}>{n.icon}</span>
-              <span style={{fontSize:10,fontWeight:600}}>{n.l}</span>
-            </button>
-          ))}
-          <button onClick={()=>setSidebarOpen(v=>!v)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:C.dim}}>
-            <span style={{fontSize:20}}>☰</span>
-            <span style={{fontSize:10,fontWeight:600}}>Menu</span>
-          </button>
-        </div>
-      )}
+      {
     </div>
   );
 }
