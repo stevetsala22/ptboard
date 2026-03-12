@@ -2146,6 +2146,7 @@ function WizIn({lbl,name,type='text',val,onChange,opts,ph,desc}){
 }
 
 function WizardValutazione({onSave,onClose}){
+  const T=gT();
   const TOTAL=8;
   const [mode,setMode]=useState(null); // 'base' | 'completa'
   const [step,setStep]=useState(1);
@@ -2341,6 +2342,12 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Vita (cm)" name="vita" type="number" val={d.vita} onChange={upd('vita')}/>
               <WizIn lbl="PA (es. 120/80)" name="pa" val={d.pa} onChange={upd('pa')}/>
               <WizIn lbl="FC riposo (bpm)" name="fc" type="number" val={d.fc} onChange={upd('fc')}/>
+              <WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>
+              <WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>
+              <WizIn lbl="Professione" name="professione" val={d.professione} ph="es. Insegnante" onChange={upd('professione')}/>
+              <WizIn lbl="Tipo lavoro" desc="Livello di attivita fisica nel contesto lavorativo — influenza il NEAT (dispendio energetico non da esercizio)" name="attvLavorativa" val={d.attvLavorativa} opts={['Sedentario','In piedi','Fisico leggero','Fisico pesante']} onChange={upd('attvLavorativa')}/>
+              <WizIn lbl="Contatto di emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>
+              <WizIn lbl="Medico curante (MMG)" desc="Medico di Medicina Generale — da contattare in caso di rischio clinico rilevato" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>
               <WizIn lbl="Patologie note" name="patologie" val={d.patologie} onChange={upd('patologie')}/>
               <WizIn lbl="Farmaci" name="farmaci" val={d.farmaci} onChange={upd('farmaci')}/>
               <WizIn lbl="Sintomi da sforzo" name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
@@ -2349,13 +2356,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 desc="Physical Activity Readiness Questionnaire: 7 domande per scremare controindicazioni. Risposta SI = invio medico consigliato."
                 val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
               <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
-              <WizIn lbl="Consenso informato" desc="Firma del paziente che dichiara di aver compreso i rischi e autorizza la valutazione" name="consenso" val={d.consenso} opts={['NO','SI']} onChange={upd('consenso')}/>
-              {mode==='completa'&&<WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>}
-              {mode==='completa'&&<WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>}
-              {mode==='completa'&&<WizIn lbl="Professione" name="professione" val={d.professione} ph="es. Insegnante" onChange={upd('professione')}/>}
-              {mode==='completa'&&<WizIn lbl="Tipo lavoro" desc="Livello di attivita fisica nel contesto lavorativo — influenza il NEAT (dispendio energetico non da esercizio)" name="attvLavorativa" val={d.attvLavorativa} opts={['Sedentario','In piedi','Fisico leggero','Fisico pesante']} onChange={upd('attvLavorativa')}/>}
-              {mode==='completa'&&<WizIn lbl="Contatto di emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>}
-              {mode==='completa'&&<WizIn lbl="Medico curante (MMG)" desc="Medico di Medicina Generale — da contattare in caso di rischio clinico rilevato" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>}
+              
               {mode==='completa'&&<WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>}
               {mode==='completa'&&<WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>}
               {mode==='completa'&&<WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>}
