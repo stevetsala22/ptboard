@@ -2133,10 +2133,11 @@ const PROGRAMMI={
 
 // ── WIZARD VALUTAZIONE 20 MIN ─────────────────────────────────────────────────
 // Definito FUORI dal wizard — evita re-mount ad ogni keystroke
-function WizIn({lbl,name,type='text',val,onChange,opts,ph}){
+function WizIn({lbl,name,type='text',val,onChange,opts,ph,desc}){
   return(
     <div style={{marginBottom:10}}>
       <label style={S.label}>{lbl}</label>
+      {desc&&<div style={{fontSize:10,color:C.muted,marginBottom:3,lineHeight:1.4}}>{desc}</div>}
       {opts
         ?<select value={val||''} onChange={onChange} style={S.sel}>{opts.map(o=><option key={o}>{o}</option>)}</select>
         :<input type={type} value={val||''} onChange={onChange} placeholder={ph} style={S.inp}/>}
@@ -2146,6 +2147,7 @@ function WizIn({lbl,name,type='text',val,onChange,opts,ph}){
 
 function WizardValutazione({onSave,onClose}){
   const TOTAL=8;
+  const [mode,setMode]=useState(null); // 'base' | 'completa'
   const [step,setStep]=useState(1);
   const [d,setD]=useState({
     nome:'',cognome:'',ddn:'',sesso:'F',
@@ -2172,6 +2174,7 @@ function WizardValutazione({onSave,onClose}){
     cirBraccio:'',cirCoscia:'',cirPolpaccio:'',
     plicaSott:'',plicaTric:'',plicaIlio:'',massaGrassa:'',
     rpeRiposo:'',noteVal:'',
+    biaR:'',biaXc:'',biaPhA:'',biaTBW:'',biaFFM:'',biaFM:'',biaBCM:'',biaECW:'',biaBMR:'',
   });
   const upd=k=>e=>setD(x=>({...x,[k]:e.target.value}));
   const set=(k,v)=>setD(x=>({...x,[k]:v}));
@@ -2313,6 +2316,19 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           <div style={{fontSize:10,color:C.blue,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{stepSub[step-1]}</div>
           <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{stepTitles[step-1]}</h2>
 
+          {/* MODE SELECTOR */}
+          {!mode&&<div style={{display:'flex',flexDirection:'column',gap:16,padding:'10px 0'}}>
+            <div style={{fontSize:14,fontWeight:700,color:C.strong,marginBottom:4}}>Che tipo di valutazione vuoi fare?</div>
+            <div onClick={()=>setMode('base')} style={{background:C.bg,border:'2px solid '+C.blue,borderRadius:12,padding:'18px 20px',cursor:'pointer'}}>
+              <div style={{fontSize:16,fontWeight:800,color:C.blue}}>⚡ Valutazione Base — ~5 min</div>
+              <div style={{fontSize:12,color:C.muted,marginTop:4}}>Dati essenziali per iniziare subito. Ideale per il primo incontro.</div>
+            </div>
+            <div onClick={()=>setMode('completa')} style={{background:C.bg,border:'2px solid #8b5cf6',borderRadius:12,padding:'18px 20px',cursor:'pointer'}}>
+              <div style={{fontSize:16,fontWeight:800,color:'#8b5cf6'}}>🔬 Valutazione Completa — ~20 min</div>
+              <div style={{fontSize:12,color:C.muted,marginTop:4}}>Include BIA, postura, mobilita, test fisici approfonditi e lifestyle completo.</div>
+            </div>
+          </div>}
+
           {/* STEP 1 — Anagrafica */}
           {step===1&&<div>
             <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
@@ -2329,40 +2345,44 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Farmaci" name="farmaci" val={d.farmaci} onChange={upd('farmaci')}/>
               <WizIn lbl="Sintomi da sforzo" name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
               <WizIn lbl="Attivita attuale" name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderata','Attiva','Molto attiva']} onChange={upd('attivita')}/>
-              <WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>
-              <WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>
-              <WizIn lbl="Professione" name="professione" val={d.professione} ph="es. Insegnante" onChange={upd('professione')}/>
-              <WizIn lbl="Tipo lavoro" name="attvLavorativa" val={d.attvLavorativa} opts={['Sedentario','In piedi','Fisico leggero','Fisico pesante']} onChange={upd('attvLavorativa')}/>
-              <WizIn lbl="Contatto emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>
-              <WizIn lbl="Medico curante (MMG)" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>
-              <WizIn lbl="SpO2 (%)" name="spo2" type="number" val={d.spo2} onChange={upd('spo2')}/>
-              <WizIn lbl="Torace (cm)" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
-              <WizIn lbl="Braccio dx (cm)" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
-              <WizIn lbl="Coscia dx (cm)" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
-              <WizIn lbl="Polpaccio dx (cm)" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>
-              <WizIn lbl="Allergie" name="allergie" val={d.allergie} ph="Nessuna" onChange={upd('allergie')}/>
-              <WizIn lbl="Familiarita CV/metabolica" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
-              {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
-              <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
-              <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
-              <WizIn lbl="PAR-Q (risposte positive)" name="parq" val={d.parq} opts={['NO','1 SI','2+ SI']} onChange={upd('parq')}/>
+              <WizIn lbl="PAR-Q — Screening attivita fisica" name="parq"
+                desc="Physical Activity Readiness Questionnaire: 7 domande per scremare controindicazioni. Risposta SI = invio medico consigliato."
+                val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
               <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
-              <WizIn lbl="Consenso informato" name="consenso" val={d.consenso} opts={['NO','SI']} onChange={upd('consenso')}/>
-              <WizIn lbl="Sport praticati" name="attivitaTipi" val={d.attivitaTipi} ph="es. Pesi, nuoto, corsa" onChange={upd('attivitaTipi')}/>
-              <WizIn lbl="Esperienza palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
-              <WizIn lbl="Livello esperienza" name="esperienzaLiv" val={d.esperienzaLiv} opts={['Principiante','Intermedio','Avanzato']} onChange={upd('esperienzaLiv')}/>
-              <WizIn lbl="Esercizi che piacciono" name="attivitaPiace" val={d.attivitaPiace} ph="es. Pesi, nuoto" onChange={upd('attivitaPiace')}/>
-              <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>
-              <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
-              <WizIn lbl="Sedute/settimana" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
-              <WizIn lbl="Durata seduta" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
-              <WizIn lbl="Stress percepito" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
-              <WizIn lbl="Colonna vertebrale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi','Cifosi','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
-              <WizIn lbl="Postura spalle" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte','Asimmetria','Elevate']} onChange={upd('posturaSpalle')}/>
-              <WizIn lbl="Mobilita caviglia" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
-              <WizIn lbl="Mobilita anca" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
-              <WizIn lbl="Sit-and-Reach (cm)" name="sitReach" type="number" val={d.sitReach} ph="+ oltre piedi, - prima" onChange={upd('sitReach')}/>
-              <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} ph="Compensi, limitazioni..." onChange={upd('notePostura')}/>
+              <WizIn lbl="Consenso informato" desc="Firma del paziente che dichiara di aver compreso i rischi e autorizza la valutazione" name="consenso" val={d.consenso} opts={['NO','SI']} onChange={upd('consenso')}/>
+              {mode==='completa'&&<WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>}
+              {mode==='completa'&&<WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>}
+              {mode==='completa'&&<WizIn lbl="Professione" name="professione" val={d.professione} ph="es. Insegnante" onChange={upd('professione')}/>}
+              {mode==='completa'&&<WizIn lbl="Tipo lavoro" desc="Livello di attivita fisica nel contesto lavorativo — influenza il NEAT (dispendio energetico non da esercizio)" name="attvLavorativa" val={d.attvLavorativa} opts={['Sedentario','In piedi','Fisico leggero','Fisico pesante']} onChange={upd('attvLavorativa')}/>}
+              {mode==='completa'&&<WizIn lbl="Contatto di emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>}
+              {mode==='completa'&&<WizIn lbl="Medico curante (MMG)" desc="Medico di Medicina Generale — da contattare in caso di rischio clinico rilevato" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>}
+              {mode==='completa'&&<WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>}
+              {mode==='completa'&&<WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>}
+              {mode==='completa'&&<WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>}
+              {mode==='completa'&&<WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>}
+              {mode==='completa'&&<WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>}
+              {mode==='completa'&&<WizIn lbl="Allergie note" name="allergie" val={d.allergie} ph="Nessuna" onChange={upd('allergie')}/>}
+              {mode==='completa'&&<WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>}
+              {mode==='completa'&&d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
+              {mode==='completa'&&<WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>}
+              {mode==='completa'&&<WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>}
+              {mode==='completa'&&<WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} ph="es. Pesi, nuoto, corsa" onChange={upd('attivitaTipi')}/>}
+              {mode==='completa'&&<WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>}
+              {mode==='completa'&&<WizIn lbl="Livello tecnico" name="esperienzaLiv" val={d.esperienzaLiv} opts={['Principiante','Intermedio','Avanzato']} onChange={upd('esperienzaLiv')}/>}
+              {mode==='completa'&&<WizIn lbl="Esercizi che piacciono" name="attivitaPiace" val={d.attivitaPiace} ph="es. Pesi, nuoto" onChange={upd('attivitaPiace')}/>}
+              {mode==='completa'&&<WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>}
+              {mode==='completa'&&<WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>}
+              {mode==='completa'&&<WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>}
+              {mode==='completa'&&<WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>}
+              {mode==='completa'&&<WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche associate a maggior rischio CV, obesita e recupero muscolare ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>}
+              {mode==='completa'&&<WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>}
+              {mode==='completa'&&<WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>}
+              {mode==='completa'&&<WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>}
+              {mode==='completa'&&<WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>}
+              {mode==='completa'&&<WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>}
+              {mode==='completa'&&<WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>}
+              {mode==='completa'&&<WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>}
+              {mode==='completa'&&<WizIn lbl="Note posturali libere" name="notePostura" val={d.notePostura} ph="Compensi rilevati, dolori riferiti, limitazioni funzionali..." onChange={upd('notePostura')}/>}
             </div>
             <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
             {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
@@ -2492,8 +2512,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             <div style={{...S.card,borderLeft:`3px solid ${C.yellow}`}}>
               <div style={{fontSize:12,fontWeight:700,color:C.yellow,marginBottom:6}}>⏱ TUG — rischio cadute</div>
               <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Sedia → alzati → cammina 3m → torna → siediti. Cronometra in secondi. Serve: sedia + cronometro + metro.</div>
-              <WizIn lbl="Tempo (secondi)" name="tugSec" type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
-              <WizIn lbl="Handgrip max (kg)" name="handgrip" type="number" val={d.handgrip} ph="es. 42" onChange={upd('handgrip')}/>
+              <WizIn lbl="TUG — Timed Up and Go (sec)" name="tugSec" desc="Alzarsi da sedia, camminare 3m, tornare, sedersi. Sotto 10s = normale; 10-20s = rischio cadute; oltre 20s = alto rischio." type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
+              <WizIn lbl="Handgrip max (kg)" desc="Forza prensile massima con dinamometro. Predittore di mortalita e sarcopenia. Norma uomini: 35-55kg, donne: 20-35kg." name="handgrip" type="number" val={d.handgrip} ph="es. 42" onChange={upd('handgrip')}/>
               {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<div style={{background:i.c+'15',border:`1px solid ${i.c}40`,borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
                 <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
@@ -2548,6 +2568,87 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>
 
             {/* GAD-7 */}
+            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid #06b6d4',display:mode==='completa'?'block':'none'}}>
+              <div style={{fontSize:12,fontWeight:700,color:'#06b6d4',marginBottom:4}}>📡 BIA — Bioimpedenziometria</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,background:C.bg,borderRadius:6,padding:'6px 10px',lineHeight:1.5}}>
+                Bioelectrical Impedance Analysis — stima la composizione corporea tramite corrente elettrica impercettibile. Inserisci i valori del tuo dispositivo.
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="R — Resistenza (ohm)" name="biaR" type="number" val={d.biaR} ph="es. 520"
+                  desc="Opposizione al passaggio della corrente. Valore alto = piu grasso o meno acqua." onChange={upd('biaR')}/>
+                <WizIn lbl="Xc — Reattanza (ohm)" name="biaXc" type="number" val={d.biaXc} ph="es. 62"
+                  desc="Capacita delle membrane cellulari. Valore alto = cellule sane e ben idratate." onChange={upd('biaXc')}/>
+                <WizIn lbl="PhA — Angolo di fase (°)" name="biaPhA" type="number" val={d.biaPhA} ph="es. 6.8"
+                  desc="PhA = arctan(Xc/R) x 180/pi. Norma adulti: 5-8°. Sotto 4° = sarcopenia o malnutrizione." onChange={upd('biaPhA')}/>
+                <WizIn lbl="TBW — Acqua corporea totale (L)" name="biaTBW" type="number" val={d.biaTBW} ph="es. 38.5"
+                  desc="Total Body Water. Norma: 55-65% peso (uomini), 45-55% (donne). Sotto = disidratazione." onChange={upd('biaTBW')}/>
+                <WizIn lbl="FFM — Massa magra (kg)" name="biaFFM" type="number" val={d.biaFFM} ph="es. 62"
+                  desc="Fat-Free Mass: muscoli + ossa + organi + acqua. Principale indicatore di salute metabolica." onChange={upd('biaFFM')}/>
+                <WizIn lbl="FM — Massa grassa (%)" name="biaFM" type="number" val={d.biaFM} ph="es. 22"
+                  desc="Fat Mass. Norma: uomini 10-20%, donne 20-30%. Sopra 25%/35% = sovrappeso metabolico." onChange={upd('biaFM')}/>
+                <WizIn lbl="BCM — Massa cellulare (kg)" name="biaBCM" type="number" val={d.biaBCM} ph="es. 28"
+                  desc="Body Cell Mass: tessuto metabolicamente attivo (muscoli + organi). Marcatore nutrizionale." onChange={upd('biaBCM')}/>
+                <WizIn lbl="ECW/TBW — Rapporto idratazione (%)" name="biaECW" type="number" val={d.biaECW} ph="es. 38"
+                  desc="Acqua extracellulare / acqua totale. Norma < 40%. Valore alto = infiammazione o ritenzione idrica." onChange={upd('biaECW')}/>
+              </div>
+              {d.biaR&&d.biaXc&&<div style={{background:C.bg,borderRadius:8,padding:'8px 12px',marginTop:6,fontSize:11}}>
+                <span style={{color:C.muted}}>PhA calcolato: </span>
+                <b style={{color:'#06b6d4'}}>{(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2)}°</b>
+                <span style={{color:C.muted,marginLeft:8}}>
+                  {(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))>=5&&(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<=8
+                    ?'✅ Nella norma (5-8°)'
+                    :(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<5?'⚠️ Sotto norma — valutare stato nutrizionale'
+                    :'⚡ Sopra norma — ottima integrita cellulare'}
+                </span>
+              </div>}
+              {/* Calcolo predittivo senza dispositivo */}
+              <div style={{borderTop:'1px solid '+C.border2,marginTop:12,paddingTop:12}}>
+                <div style={{fontSize:11,color:C.muted,marginBottom:8}}>
+                  Nessun dispositivo BIA? Stima automatica da altezza, peso, eta e sesso (formula Deurenberg + Watson).
+                </div>
+                <button type="button" style={{...S.btn('ghost'),fontSize:12,width:'100%'}}
+                  onClick={()=>{
+                    const peso=+d.peso,alt=+d.altezza,age=eta||30,m=d.sesso==='M';
+                    if(!peso||!alt)return alert('Inserire altezza e peso nel passo 1');
+                    const bmiV=peso/((alt/100)**2);
+                    const fmPct=m
+                      ?(1.20*bmiV)+(0.23*age)-16.2
+                      :(1.20*bmiV)+(0.23*age)-5.4;
+                    const fmKg=peso*(fmPct/100);
+                    const ffm=peso-fmKg;
+                    const tbw=m
+                      ?2.447-(0.09156*age)+(0.1074*alt)+(0.3362*peso)
+                      :-2.097+(0.1069*alt)+(0.2466*peso);
+                    const bmr=m
+                      ?10*peso+6.25*alt-5*age+5
+                      :10*peso+6.25*alt-5*age-161;
+                    setD(x=>({...x,
+                      biaFM:fmPct.toFixed(1),
+                      biaFFM:ffm.toFixed(1),
+                      biaTBW:tbw.toFixed(1),
+                      biaBMR:Math.round(bmr),
+                    }));
+                  }}>
+                  ⚡ Calcola FM%, FFM e TBW da dati antropometrici
+                </button>
+                {d.biaBMR&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px',marginTop:8,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,textAlign:'center'}}>
+                  {[
+                    [d.biaFM+'%','Massa grassa','#fb923c'],
+                    [d.biaFFM+' kg','Massa magra (FFM)','#10b981'],
+                    [d.biaTBW+' L','Acqua totale (TBW)','#06b6d4'],
+                    [d.biaBMR+' kcal','BMR — metabolismo basale','#8b5cf6'],
+                  ].map(([v,l,col])=>(
+                    <div key={l} style={{background:col+'15',borderRadius:8,padding:'8px 6px'}}>
+                      <div style={{fontSize:16,fontWeight:800,color:col}}>{v}</div>
+                      <div style={{fontSize:9,color:C.muted,marginTop:2,lineHeight:1.3}}>{l}</div>
+                    </div>
+                  ))}
+                </div>}
+                {d.biaBMR&&<div style={{fontSize:10,color:C.muted,marginTop:6,lineHeight:1.5}}>
+                  ⚠️ Valori stimati (±3-5% errore). BMR = Mifflin-St Jeor. FM% = Deurenberg. TBW = Watson. Per precisione clinica usare dispositivo BIA.
+                </div>}
+              </div>
+            </div>
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.purple}`}}>
               <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧠 GAD-7 — ansia (0-21)</div>
               <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>7 domande: 0=mai · 1=alcuni giorni · 2=più della metà · 3=quasi sempre. Somma i punteggi. Nessun attrezzo.</div>
@@ -2681,6 +2782,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             {step===TOTAL&&<button onClick={()=>{
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
               const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
+                bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
                 test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal,
                   pushupRip:d.pushupRip,pushupNote:d.pushupNote,plankSec:d.plankSec,squatRip:d.squatRip,squatNote:d.squatNote,
                   tugSec:d.tugSec,slbDx:d.slbDx,slbSx:d.slbSx,handgrip:d.handgrip||'',fcPost:d.fcPost,fcRecup:d.fcRecup,
