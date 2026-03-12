@@ -769,7 +769,7 @@ ${(p.progressi||[]).length>1?`
         </div>
       ):(
         <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-          <button style={{...S.btn('ghost',true),display:'flex',alignItems:'center',gap:4}} onClick={onBack}{T.back}</button>
+          <button style={{...S.btn('ghost',true),display:'flex',alignItems:'center',gap:4}} onClick={onBack}>← {T.back}</button>
           <Avatar nome={p.nome} cognome={p.cognome} size={44}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
@@ -2272,8 +2272,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 </div>
               </div>
               <div style={{display:'flex',gap:10}}>
-                <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}{T.exportPdf}</button>
-                <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}{T.exportCsv}</button>
+                <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportPdf}</button>
+                <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportCsv}</button>
               </div>
             </>}
           </div>}
