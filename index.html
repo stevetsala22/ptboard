@@ -172,11 +172,36 @@ input,select,textarea{background:var(--input-bg);color:var(--text)}
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const {useState,useMemo,useEffect,useRef}=React;
+const {useState,useMemo,useEffect,useRef,useCallback}=React;
 
 const SK='fitmanager_v3';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
 const save=(d)=>{try{localStorage.setItem(SK,JSON.stringify(d))}catch{}};
+
+// ── HTML SANITIZATION (anti-XSS) ────────────────────────────────────────────
+const esc=(s)=>{
+  if(s===null||s===undefined)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+};
+
+// ── CSV EXPORT ──────────────────────────────────────────────────────────────
+const exportCSV=(patients)=>{
+  const headers=['ID','Cognome','Nome','Sesso','Data nascita','Altezza (cm)','Peso (kg)','BMI','Profilo','Attività','Obiettivo','Patologie','Farmaci','6MWT (m)','STS 30s (rip)','Sedute totali','Data valutazione'];
+  const rows=patients.map(p=>{
+    const b=bmi(p.peso,p.altezza);
+    const pr=profilo(p.test?.mwtDist,p.test?.stsRip);
+    return [p.id,p.cognome,p.nome,p.sesso,p.ddn,p.altezza,p.peso,b||'',pr?.code||'',p.attivita,p.obiettivo,p.patologie,p.farmaci,p.test?.mwtDist,p.test?.stsRip,p.log?.length||0,p.dataValutazione].map(v=>{
+      const s=String(v??'');
+      return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
+    });
+  });
+  const csv=[headers.join(','),...rows.map(r=>r.join(','))].join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='pazienti_ptboard_'+fmtDate().replace(/\//g,'-')+'.csv';
+  a.click();URL.revokeObjectURL(url);
+};
 
 const LANGS={
   it:{flag:'🇮🇹',name:'Italiano',t:{
@@ -706,25 +731,26 @@ function Avatar({nome='?',cognome='?',size=34}){
   return <div style={{width:size,height:size,borderRadius:'50%',background:'hsl('+hue+',50%,22%)',border:'2px solid hsl('+hue+',50%,38%)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.33,fontWeight:700,color:'hsl('+hue+',60%,72%)',flexShrink:0}}>{initials}</div>;
 }
 
-function FF({label,name,value,onChange,type='text',options,placeholder,span,rows}){
+function FF({label,name,value,onChange,type='text',options,placeholder,span,rows,required}){
+  const id='ff-'+name;
   return(
     <div style={{gridColumn:span?`span ${span}`:undefined}}>
-      <label style={S.label}>{label}</label>
-      {options?<select style={S.sel} name={name} value={value||''} onChange={onChange}>{options.map(o=><option key={o.v||o} value={o.v||o}>{o.l||o}</option>)}</select>
-      :type==='textarea'?<textarea style={{...S.ta,minHeight:rows?rows*22:68}} name={name} value={value||''} onChange={onChange} placeholder={placeholder}/>
-      :<input style={S.inp} type={type} name={name} value={value||''} onChange={onChange} placeholder={placeholder}/>}
+      <label htmlFor={id} style={S.label}>{label}</label>
+      {options?<select id={id} aria-label={label} style={S.sel} name={name} value={value||''} onChange={onChange}>{options.map(o=><option key={o.v||o} value={o.v||o}>{o.l||o}</option>)}</select>
+      :type==='textarea'?<textarea id={id} aria-label={label} style={{...S.ta,minHeight:rows?rows*22:68}} name={name} value={value||''} onChange={onChange} placeholder={placeholder} aria-required={required}/>
+      :<input id={id} aria-label={label} style={S.inp} type={type} name={name} value={value||''} onChange={onChange} placeholder={placeholder} aria-required={required}/>}
     </div>
   );
 }
 
 function Modal({title,onClose,children,width='520px'}){
   return(
-    <div style={{position:'fixed',inset:0,background:'#00000090',display:'flex',alignItems:isMobile?'flex-end':'center',justifyContent:'center',zIndex:200,padding:isMobile?0:16}}>
+    <div role="dialog" aria-modal="true" aria-label={title} style={{position:'fixed',inset:0,background:'#00000090',display:'flex',alignItems:isMobile?'flex-end':'center',justifyContent:'center',zIndex:200,padding:isMobile?0:16}} onKeyDown={e=>{if(e.key==='Escape')onClose()}}>
       <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:isMobile?'20px 20px 0 0':14,padding:isMobile?'20px 16px 32px':24,width:isMobile?'100%':'min('+width+',95vw)',maxHeight:isMobile?'92vh':'90vh',overflowY:'auto'}}>
         {isMobile&&<div style={{width:40,height:4,borderRadius:2,background:C.border2,margin:'0 auto 16px'}}/>}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <h3 style={{fontSize:15,fontWeight:700,color:C.strong,margin:0}}>{title}</h3>
-          <button style={{...S.btn('ghost',true),padding:'4px 8px'}} onClick={onClose}>✕</button>
+          <button aria-label="Chiudi" style={{...S.btn('ghost',true),padding:'4px 8px'}} onClick={onClose}>✕</button>
         </div>
         {children}
       </div>
@@ -773,9 +799,12 @@ function Dashboard({patients,bookings,T}){
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
   return(
     <div>
-      <div style={{marginBottom:14}}>
-        <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{T.dashboard}</h1>
-        <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
+      <div style={{marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div>
+          <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{T.dashboard}</h1>
+          <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
+        </div>
+        {patients.length>0&&<button onClick={()=>exportCSV(patients)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📊 Export CSV</button>}
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(3,1fr)':'repeat(3,1fr)',gap:isMobile?8:14,marginBottom:14}}>
         <StatCard label={T.totalPatients} value={patients.length} color={C.blue}/>
@@ -918,7 +947,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const {l:bl2}=bmiCat(b2);
     const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
     const pesoTarget=p.altezza?(24.9*(p.altezza/100)**2).toFixed(1):null;
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Report – ${p.nome} ${p.cognome}</title>
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Report – ${esc(p.nome)} ${esc(p.cognome)}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff;font-size:13px}
@@ -958,8 +987,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda paziente · ${fmtDate()}</div>
   </div>
   <div style="text-align:right">
-    <div class="patient-name">${p.nome} ${p.cognome}</div>
-    <div class="patient-meta">${p.id} · Valutazione: ${p.dataValutazione||'—'}</div>
+    <div class="patient-name">${esc(p.nome)} ${esc(p.cognome)}</div>
+    <div class="patient-meta">${esc(p.id)} · Valutazione: ${esc(p.dataValutazione)||'—'}</div>
     ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">Profilo ${pr2.code} – ${pr2.l.split('–')[1]?.trim()||''}</span>`:''}
   </div>
 </div>
@@ -974,21 +1003,21 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
 <div>
 <div class="section">
   <div class="section-title">Dati anagrafici</div>
-  ${[['Data nascita',p.ddn],['Sesso',p.sesso],['Altezza',p.altezza?p.altezza+' cm':'—'],['Vita',p.vita?p.vita+' cm':'—'],['Fianchi',p.fianchi?p.fianchi+' cm':'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+  ${[['Data nascita',p.ddn],['Sesso',p.sesso],['Altezza',p.altezza?p.altezza+' cm':'—'],['Vita',p.vita?p.vita+' cm':'—'],['Fianchi',p.fianchi?p.fianchi+' cm':'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
 </div>
 <div class="section">
   <div class="section-title">Parametri clinici</div>
-  ${[['PA',p.pa],['FC riposo',p.fc?p.fc+' bpm':'—'],['FC max',fcM?fcM+' bpm':'—'],['FC target 60%',fcM?Math.round(fcM*0.6)+' bpm':'—'],['FC target 75%',fcM?Math.round(fcM*0.75)+' bpm':'—'],['Patologie',p.patologie],['Farmaci',p.farmaci]].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+  ${[['PA',p.pa],['FC riposo',p.fc?p.fc+' bpm':'—'],['FC max',fcM?fcM+' bpm':'—'],['FC target 60%',fcM?Math.round(fcM*0.6)+' bpm':'—'],['FC target 75%',fcM?Math.round(fcM*0.75)+' bpm':'—'],['Patologie',p.patologie],['Farmaci',p.farmaci]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
 </div>
 </div>
 <div>
 <div class="section">
   <div class="section-title">Test funzionali</div>
-  ${[['6MWT – Distanza',p.test?.mwtDist?p.test.mwtDist+' m':'—'],['6MWT – RPE',p.test?.mwtRpe||'—'],['6MWT – Sintomi',p.test?.mwtSintomi||'—'],['STS 30s – Rip.',p.test?.stsRip||'—'],['Note',p.test?.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v}</span></div>`).join('')}
+  ${[['6MWT – Distanza',p.test?.mwtDist?p.test.mwtDist+' m':'—'],['6MWT – RPE',p.test?.mwtRpe||'—'],['6MWT – Sintomi',p.test?.mwtSintomi||'—'],['STS 30s – Rip.',p.test?.stsRip||'—'],['Note',p.test?.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)}</span></div>`).join('')}
 </div>
 <div class="section">
   <div class="section-title">Stile di vita & obiettivi</div>
-  ${[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Stress',p.stressPercepito],['Sonno',p.sonno?p.sonno+' ore':'—'],['Preferenze',p.preferenze]].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+  ${[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Stress',p.stressPercepito],['Sonno',p.sonno?p.sonno+' ore':'—'],['Preferenze',p.preferenze]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
 </div>
 </div>
 </div>
@@ -1001,8 +1030,8 @@ ${p.programma?.cardio||p.programma?.forza?`
       ${[['Inizio',p.programma.dataInizio],['Sedute/sett.',p.programma.sedute],['Min cardio/sett.',p.programma.minCardio?p.programma.minCardio+" min":'—'],['Min forza/sett.',p.programma.minForza?p.programma.minForza+" min":'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
     </div>
     <div>
-      ${p.programma.cardio?`<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">Cardio</div><div class="note-box">${p.programma.cardio}</div></div>`:''}
-      ${p.programma.forza?`<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">Forza</div><div class="note-box" style="border-color:#10b981">${p.programma.forza}</div></div>`:''}
+      ${p.programma.cardio?`<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">Cardio</div><div class="note-box">${esc(p.programma.cardio)}</div></div>`:''}
+      ${p.programma.forza?`<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">Forza</div><div class="note-box" style="border-color:#10b981">${esc(p.programma.forza)}</div></div>`:''}
     </div>
   </div>
 </div>`:''}
@@ -1011,11 +1040,11 @@ ${p.nutrizione?.kcal?`
 <div class="section">
   <div class="section-title">Piano nutrizionale</div>
   <div class="grid3" style="margin-bottom:10px">
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${p.nutrizione.kcal}</div><div class="kpi-lbl">kcal/giorno</div></div>
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${p.nutrizione.proteine||0}g</div><div class="kpi-lbl">Proteine</div></div>
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${p.nutrizione.carboidrati||0}g</div><div class="kpi-lbl">Carboidrati</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.kcal)}</div><div class="kpi-lbl">kcal/giorno</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.proteine)||0}g</div><div class="kpi-lbl">Proteine</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.carboidrati)||0}g</div><div class="kpi-lbl">Carboidrati</div></div>
   </div>
-  ${p.nutrizione.note?`<div class="note-box">${p.nutrizione.note}</div>`:''}
+  ${p.nutrizione.note?`<div class="note-box">${esc(p.nutrizione.note)}</div>`:''}
 </div>`:''}
 
 ${(p.log||[]).length>0?`
@@ -1024,8 +1053,8 @@ ${(p.log||[]).length>0?`
   ${[...(p.log||[])].reverse().slice(0,10).map(s=>`
   <div class="log-item">
     <div class="dot" style="background:${s.rpe<=3?'#10b981':s.rpe<=6?'#f59e0b':s.rpe<=8?'#fb923c':'#ef4444'}"></div>
-    <div style="flex:1"><span style="font-weight:600">${s.tipo}</span> <span style="color:#64748b">· ${s.data} · ${s.durata} min · RPE ${s.rpe}</span></div>
-    ${s.note?`<div style="font-size:11px;color:#64748b">${s.note}</div>`:''}
+    <div style="flex:1"><span style="font-weight:600">${esc(s.tipo)}</span> <span style="color:#64748b">· ${esc(s.data)} · ${esc(s.durata)} min · RPE ${esc(s.rpe)}</span></div>
+    ${s.note?`<div style="font-size:11px;color:#64748b">${esc(s.note)}</div>`:''}
   </div>`).join('')}
 </div>`:''}
 
@@ -1039,7 +1068,7 @@ ${(p.progressi||[]).length>1?`
 
 <div class="footer">
   <span>PT Board  · Report generato il ${fmtDate()}</span>
-  <span>${p.nome} ${p.cognome} · ${p.id}</span>
+  <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
 </div>
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');
@@ -1070,7 +1099,7 @@ ${(p.progressi||[]).length>1?`
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #334155',background:'transparent',cursor:'pointer',color:C.dim,fontSize:11,fontWeight:600}} onClick={onBack}>
               <span style={{fontSize:18}}>←</span><span>Torna</span>
             </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}}>
+            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
               <span style={{fontSize:18}}>🤖</span><span>AI Coach</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={generaPDF}>
@@ -1093,7 +1122,7 @@ ${(p.progressi||[]).length>1?`
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
           </div>
           <button style={{...S.btn('success',true),display:'flex',alignItems:'center',gap:5}} onClick={generaPDF}>📄 Report PDF</button>
-          <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}}>🤖 AI Coach</button>
+          <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button>
             <button onClick={onEdit} style={S.btn('ghost',true)}>✏ {T.edit}</button>
           <button style={S.btn('danger',true)} onClick={onDelete}>🗑</button>
         </div>
@@ -1661,8 +1690,8 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
         <div style={S.card}>
           <div style={S.st}>Dati anagrafici</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd}/>
-            <FF label="Nome *" name="nome" value={form.nome} onChange={upd}/>
+            <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd} required/>
+            <FF label="Nome *" name="nome" value={form.nome} onChange={upd} required/>
             <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici"/>
             <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA"/>
             <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
@@ -1804,8 +1833,11 @@ function AppInner({user,profile,trialLeft}){
   const T=LANGS[lang]?.t||LANGS.it.t;
   const firstLoad=useRef(true);
 
+  const [syncing,setSyncing]=useState(true);
+
   // Carica dati da Firebase in background (non blocca l'app)
   useEffect(()=>{
+    setSyncing(true);
     fbLoad(user.uid).then(remote=>{
       if(remote){
         if(remote.patients) setPatients(remote.patients);
@@ -1813,7 +1845,7 @@ function AppInner({user,profile,trialLeft}){
         if(remote.exercises) setExercises(remote.exercises);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
       }
-    }).catch(()=>{});
+    }).catch(()=>{}).finally(()=>setSyncing(false));
     if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
   },[]);
 
@@ -1841,11 +1873,12 @@ function AppInner({user,profile,trialLeft}){
       save(data);
       try{fbSave(user.uid,data);}catch{}
     };
-    document.addEventListener('visibilitychange',()=>{if(document.hidden)handleHide();});
+    const onVis=()=>{if(document.hidden)handleHide();};
+    document.addEventListener('visibilitychange',onVis);
     window.addEventListener('pagehide',handleHide);
     window.addEventListener('beforeunload',handleHide);
     return()=>{
-      document.removeEventListener('visibilitychange',handleHide);
+      document.removeEventListener('visibilitychange',onVis);
       window.removeEventListener('pagehide',handleHide);
       window.removeEventListener('beforeunload',handleHide);
     };
@@ -1855,8 +1888,15 @@ function AppInner({user,profile,trialLeft}){
 
   const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
 
-  const handleSave=(form)=>{
-    if(!form.cognome||!form.nome)return alert('Cognome e nome obbligatori');
+  const handleSave=useCallback((form)=>{
+    const errs=[];
+    if(!form.cognome?.trim())errs.push('Cognome');
+    if(!form.nome?.trim())errs.push('Nome');
+    if(form.peso&&(+form.peso<20||+form.peso>400))errs.push('Peso (20-400 kg)');
+    if(form.altezza&&(+form.altezza<50||+form.altezza>250))errs.push('Altezza (50-250 cm)');
+    if(form.fc&&(+form.fc<30||+form.fc>220))errs.push('FC riposo (30-220 bpm)');
+    if(form.sonno&&(+form.sonno<0||+form.sonno>24))errs.push('Sonno (0-24 ore)');
+    if(errs.length)return alert((T.requiredFields||'Campi da correggere')+':\n• '+errs.join('\n• '));
     if(isNew){
       const id=nextPid(patients);
       const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
@@ -1865,7 +1905,7 @@ function AppInner({user,profile,trialLeft}){
     }else{
       setPatients(ps=>ps.map(p=>p.id===form.id?form:p));setSelectedId(form.id);setPage('detail');
     }
-  };
+  },[isNew,patients,T]);
 
   const navItems=[
     {id:'dash',icon:'⊞',l:T.dashboard},
@@ -1880,7 +1920,7 @@ function AppInner({user,profile,trialLeft}){
       {sidebarOpen&&isMobile&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000070',zIndex:50}}/>}
 
       {/* Sidebar */}
-      <div style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
+      <nav role="navigation" aria-label="Menu principale" style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
         transform:sidebarOpen?'translateX(0)':'translateX(-100%)',
         transition:'transform .25s ease',boxShadow:sidebarOpen?'4px 0 20px #0008':'none'}}>
         <div style={S.sbh}>
@@ -1929,7 +1969,7 @@ function AppInner({user,profile,trialLeft}){
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>{T.theme}</div>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12}}>
                 <span style={{fontSize:12,color:C.dim}}>🌙 {T.dark}</span>
-                <div onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
+                <div role="switch" aria-checked={isLight} aria-label="Tema chiaro" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setIsLight(v=>!v)}}} onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
                   <div style={{position:'absolute',top:3,left:isLight?22:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left .25s',boxShadow:'0 1px 4px #0004'}}/>
                 </div>
                 <span style={{fontSize:12,color:C.dim}}>☀️ {T.light}</span>
@@ -1956,12 +1996,12 @@ function AppInner({user,profile,trialLeft}){
           {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ ⏳ Trial: {trialLeft} {T.trialDays}</div>}
           <div style={{padding:'6px 16px 10px',fontSize:10,color:C.muted}}>PT Board · {fmtDate()}</div>
         </div>
-      </div>
+      </nav>
 
       {/* Main content — occupa tutto lo schermo */}
-      <div style={{...S.main,width:'100%'}}>
+      <main role="main" style={{...S.main,width:'100%'}}>
         <div style={{...S.topbar,position:'relative',height:isMobile?56:52}}>
-          <button onClick={()=>setSidebarOpen(v=>!v)} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
+          <button aria-label="Apri menu" onClick={()=>setSidebarOpen(v=>!v)} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
           {isMobile?(
             <>
               <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',pointerEvents:'none'}}>
@@ -1973,11 +2013,12 @@ function AppInner({user,profile,trialLeft}){
             <>
               <div style={{position:'relative',flex:1,maxWidth:300}}>
                 <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
-                <input style={{...S.inp,paddingLeft:32}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
+                <input aria-label={T.search} style={{...S.inp,paddingLeft:32}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
               <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',pointerEvents:'none',textAlign:'center',lineHeight:1.2}}>
                 <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               </div>
+              {syncing&&<span style={{fontSize:11,color:C.blue,fontWeight:600,marginLeft:'auto'}}>☁ Sincronizzazione...</span>}
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600,marginLeft:'auto'}}>{saveMsg}</span>}
               <div style={{fontSize:12,color:C.muted,marginLeft:'auto',flexShrink:0}}>{patients.length} pazienti</div>
             </>
@@ -1988,19 +2029,19 @@ function AppInner({user,profile,trialLeft}){
           <div style={{padding:'8px 12px',background:C.sidebar,borderBottom:`1px solid ${C.border}`}}>
             <div style={{position:'relative'}}>
               <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
-              <input style={{...S.inp,paddingLeft:32,fontSize:14,padding:'10px 12px 10px 34px'}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
+              <input aria-label={T.search} style={{...S.inp,paddingLeft:32,fontSize:14,padding:'10px 12px 10px 34px'}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
             </div>
           </div>
         )}
         <div style={S.content}>
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`Eliminare ${selected.nome}?`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`⚠️ Eliminare definitivamente ${selected.nome} ${selected.cognome}?\n\nTutti i dati, sedute e progressi di questo paziente verranno persi.\n\nQuesta azione non è reversibile.`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
         </div>
-      </div>
+      </main>
       {showValutazione&&<WizardValutazione
         onSave={p=>{
           const id=nextPid(patients);
@@ -2117,7 +2158,7 @@ function WizardValutazione({onSave,onClose}){
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Valutazione ${d.nome} ${d.cognome}</title>
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Valutazione ${esc(d.nome)} ${esc(d.cognome)}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:13px}
 .pg{max-width:800px;margin:0 auto;padding:40px}.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #3b82f6;padding-bottom:16px;margin-bottom:22px}
 .brand{font-size:22px;font-weight:900;color:#3b82f6}small{display:block;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
@@ -2137,7 +2178,7 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:fle
 <body><div class="pg">
 <div class="hdr">
   <div><div class="brand">PT Board<small>Valutazione Base — 20 min</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
-  <div style="text-align:right"><div style="font-size:20px;font-weight:800">${d.nome} ${d.cognome}</div><div style="font-size:11px;color:#64748b">${d.ddn||''} · ${d.sesso}</div></div>
+  <div style="text-align:right"><div style="font-size:20px;font-weight:800">${esc(d.nome)} ${esc(d.cognome)}</div><div style="font-size:11px;color:#64748b">${esc(d.ddn)||''} · ${esc(d.sesso)}</div></div>
 </div>
 <div class="profilo ${pr.code}">
   <div style="font-size:60px;font-weight:900;color:${pr.c};line-height:1">${pr.code}</div>
@@ -2151,10 +2192,10 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:fle
 </div>
 <div class="g2" style="margin-bottom:20px">
 <div class="sec"><div class="st">Anagrafica & Clinica</div>
-${[['Altezza',d.altezza?d.altezza+' cm':'—'],['Vita',d.vita?d.vita+' cm':'—'],['PA',d.pa||'—'],['FC riposo',d.fc?d.fc+' bpm':'—'],['FC max',fcMax?fcMax+' bpm':'—'],['FC target 75%',fcMax?Math.round(fcMax*.75)+' bpm':'—'],['Patologie',d.patologie||'—'],['Farmaci',d.farmaci||'—'],['Attività',d.attivita||'—'],['Obiettivo',d.obiettivo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+${[['Altezza',d.altezza?d.altezza+' cm':'—'],['Vita',d.vita?d.vita+' cm':'—'],['PA',d.pa||'—'],['FC riposo',d.fc?d.fc+' bpm':'—'],['FC max',fcMax?fcMax+' bpm':'—'],['FC target 75%',fcMax?Math.round(fcMax*.75)+' bpm':'—'],['Patologie',d.patologie||'—'],['Farmaci',d.farmaci||'—'],['Attività',d.attivita||'—'],['Obiettivo',d.obiettivo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${esc(k)}</span><span class="rv">${esc(v)}</span></div>`).join('')}
 </div>
 <div class="sec"><div class="st">Test Funzionali</div>
-${[['6MWT — Distanza',d.mwtDist?d.mwtDist+' m':'—'],['6MWT — RPE',d.mwtRpe||'—'],['6MWT — Sintomi',d.mwtSintomi||'—'],['STS 30s — Rip.',d.stsRip||'—'],['Note STS',d.stsNote||'—'],['RPE a riposo',d.rpeRiposo||'—'],['Note valutazione',d.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+${[['6MWT — Distanza',d.mwtDist?d.mwtDist+' m':'—'],['6MWT — RPE',d.mwtRpe||'—'],['6MWT — Sintomi',d.mwtSintomi||'—'],['STS 30s — Rip.',d.stsRip||'—'],['Note STS',d.stsNote||'—'],['RPE a riposo',d.rpeRiposo||'—'],['Note valutazione',d.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="rl">${esc(k)}</span><span class="rv">${esc(v)}</span></div>`).join('')}
 </div></div>
 <div class="sec"><div class="st">${prog.nome}</div>
 <div class="g3" style="margin-bottom:12px">
@@ -2163,9 +2204,9 @@ ${[['6MWT — Distanza',d.mwtDist?d.mwtDist+' m':'—'],['6MWT — RPE',d.mwtRpe
   <div class="kpi"><div class="kv" style="font-size:18px">${prog.minForza}'</div><div class="kl">Min forza</div></div>
 </div>
 ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</div>
-<div style="margin-bottom:3px"><strong style="color:#3b82f6">Cardio:</strong> ${w.cardio}</div>
-<div><strong style="color:#10b981">Forza:</strong> ${w.forza}</div>
-<div class="tip">💡 ${w.note}</div></div>`).join('')}
+<div style="margin-bottom:3px"><strong style="color:#3b82f6">Cardio:</strong> ${esc(w.cardio)}</div>
+<div><strong style="color:#10b981">Forza:</strong> ${esc(w.forza)}</div>
+<div class="tip">💡 ${esc(w.note)}</div></div>`).join('')}
 </div>
 <div class="sec"><div class="st">Linee guida nutrizionali</div>
 <div class="g4">
@@ -2174,7 +2215,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
   <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
 </div></div>
-<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
+<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — Profilo ${pr.code}</span></footer>
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
