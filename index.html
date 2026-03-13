@@ -2591,85 +2591,141 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{stepTitles[step-1]}</h2>
 
           {/* STEP 1 — Anagrafica */}
-          {step===1&&<div>
-            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-              <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
-              <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
-              <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
-              {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
-                🎂 Età calcolata: <b>{eta} anni</b>
-              </div>}
-              <WizIn lbl="Sesso" name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
-              <WizIn lbl="Altezza (cm)" name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
-              <WizIn lbl="Peso (kg)" name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
-              <WizIn lbl="Vita (cm)" name="vita" type="number" val={d.vita} onChange={upd('vita')}/>
-              <WizIn lbl="PA (es. 120/80)" name="pa" val={d.pa} onChange={upd('pa')}/>
-              <WizIn lbl="FC riposo (bpm)" name="fc" type="number" val={d.fc} onChange={upd('fc')}/>
-              <WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>
-              <WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>
-              <WizIn lbl="Professione" name="professione" val={d.professione} opts={['Studente','Insegnante','Medico/Infermiere','Impiegato','Dirigente','Libero professionista','Operaio','Artigiano','Commerciante','Pensionato','Disoccupato','Altro']} onChange={upd('professione')}/>
+          {step===1&&<div style={{display:'flex',flexDirection:'column',gap:16}}>
 
-              <WizIn lbl="Contatto di emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>
-              <WizIn lbl="Medico curante (MMG)" desc="Medico di Medicina Generale — da contattare in caso di rischio clinico rilevato" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>
-              <WizIn lbl="Patologie note" name="patologie" val={d.patologie} opts={['Nessuna','Ipertensione','Diabete tipo 2','Diabete tipo 1','Dislipidemia','Obesita','Cardiopatia','Asma/BPCO','Artrosi/Artrite','Osteoporosi','Ernia lombare','Scoliosi','Patologia tiroidea','Depressione/Ansia','Altra patologia']} onChange={upd('patologie')}/>
-              <WizIn lbl="Farmaci" name="farmaci" val={d.farmaci} opts={['Nessuno','Antipertensivi','Antidiabetici orali','Insulina','Statine','Betabloccanti','Diuretici','Anticoagulanti','Antinfiammatori (FANS)','Broncodilatatori','Antidepressivi','Integratori','Altri farmaci']} onChange={upd('farmaci')}/>
-              <WizIn lbl="Sintomi da sforzo" name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
-              <WizIn lbl="Attivita attuale" name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderata','Attiva','Molto attiva']} onChange={upd('attivita')}/>
-              <WizIn lbl="PAR-Q — Screening attivita fisica" name="parq"
-                desc="Physical Activity Readiness Questionnaire: 7 domande per scremare controindicazioni. Risposta SI = invio medico consigliato."
-                val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
-              {d.parq&&<InterpBox interp={interpPARQ(d.parq==='NO — nessuna risposta positiva'?0:d.parq==='1 SI — attenzione'?1:d.parq==='2+ SI — invio medico'?3:0)} icon="📋"/>}
-              <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
-
-              <WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>
-              {d.spo2&&<InterpBox interp={interpSpO2(d.spo2)} icon="🫁"/>}
-              <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
-              <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
-              <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
-              <WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>
-              <WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>
-              <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
-              {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
-              <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
-              {d.fumo&&d.fumo!=='Non fumatore'&&<InterpBox interp={interpFumo(d.fumo==='Ex fumatore'?'Ex fumatore':d.fumo==='Fumatore occasionale'?'Leggero':d.fumo==='Fumatore regolare'?'Moderato':'Non fumatore')} icon="🚬"/>}
-              <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
-              {d.alcol&&d.alcol!=='Mai'&&<InterpBox interp={interpAlcol(d.alcol==='1-2/sett.'?'Occasionale':d.alcol==='3-7/sett.'?'Moderato':'Elevato')} icon="🍷"/>}
-              <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
-              <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
-
-              <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>
-              <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
-              <WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
-              <WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
-              <WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche associate a maggior rischio CV, obesita e recupero muscolare ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>
-              <WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
-              <WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>
-              <WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
-              {d.posturaColonna&&d.posturaColonna!=='Normale'&&<InterpBox interp={interpPosturaColonna(d.posturaColonna==='Iperlordosi lombare'?'Iperlordosi':d.posturaColonna==='Cifosi dorsale'?'Cifosi':d.posturaColonna==='Scoliosi'?'Scoliosi lieve':d.posturaColonna)} icon="🦴"/>}
-              <WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>
-              {d.posturaSpalle&&d.posturaSpalle!=='Normale'&&<InterpBox interp={interpPosturaSpalle(d.posturaSpalle==='Protratte (avanzate)'?'Protratte':d.posturaSpalle==='Asimmetria dx/sx'?'Asimmetriche':d.posturaSpalle==='Elevate'?'Elevate':d.posturaSpalle)} icon="🤸"/>}
-              <WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
-              {d.mobCaviglia&&d.mobCaviglia!=='Ottima'&&d.mobCaviglia!=='Buona'&&<InterpBox interp={interpMobCaviglia(d.mobCaviglia==='Ridotta'?8:d.mobCaviglia==='Molto limitata'?5:12)} icon="🦶"/>}
-              <WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
-              {d.mobAnca&&d.mobAnca!=='Ottima'&&d.mobAnca!=='Buona'&&<InterpBox interp={interpMobAnca(d.mobAnca==='Ridotta'?90:d.mobAnca==='Molto limitata'?70:120)} icon="🏃"/>}
-              <WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>
-              {d.sitReach!==''&&d.sitReach!==undefined&&<InterpBox interp={interpSitReach(d.sitReach,d.sesso)} icon="🧘"/>}
-              <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>
+            {/* Sezione: Dati personali */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>👤</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Dati personali</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
+                <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
+                <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
+                {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
+                  🎂 Eta calcolata: <b>{eta} anni</b>
+                </div>}
+                <WizIn lbl="Sesso" name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
+                <WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>
+                <WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>
+                <WizIn lbl="Professione" name="professione" val={d.professione} opts={['Studente','Insegnante','Medico/Infermiere','Impiegato','Dirigente','Libero professionista','Operaio','Artigiano','Commerciante','Pensionato','Disoccupato','Altro']} onChange={upd('professione')}/>
+                <WizIn lbl="Contatto di emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>
+                <WizIn lbl="Medico curante (MMG)" desc="Da contattare in caso di rischio clinico rilevato" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>
+              </div>
             </div>
-            <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
-            {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
-              {[[bmiVal,`BMI — ${bmiLbl}`,bmiClr],[`${d.peso} kg`,'Peso attuale',C.text],[`${pesoTarget||'—'} kg`,'Peso target (BMI 24.9)',C.blue]].map(([v,l,c])=>(
-                <div key={l} style={{background:C.bg,border:'1px solid '+c+'30',borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
-                  <div style={{fontSize:20,fontWeight:900,color:c}}>{v}</div>
-                  <div style={{fontSize:10,color:C.muted,marginTop:3}}>{l}</div>
-                </div>
-              ))}
-            </div>}
-            {fcMax&&<div style={{background:C.bg,border:'1px solid '+C.purple+'30',borderRadius:10,padding:'10px 14px',marginTop:10,display:'flex',gap:20,justifyContent:'center'}}>
-              <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.purple}}>{fcMax}</div><div style={{fontSize:10,color:C.muted}}>FC max</div></div>
-              <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.blue}}>{Math.round(fcMax*.6)}</div><div style={{fontSize:10,color:C.muted}}>60% FC max</div></div>
-              <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.teal}}>{Math.round(fcMax*.75)}</div><div style={{fontSize:10,color:C.muted}}>75% FC max</div></div>
-            </div>}
+
+            {/* Sezione: Misure corporee */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.teal}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>📐</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Misure corporee</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Altezza (cm)" name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
+                <WizIn lbl="Peso (kg)" name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
+                <WizIn lbl="Vita (cm)" name="vita" type="number" val={d.vita} onChange={upd('vita')}/>
+                <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
+                <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
+                <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
+                <WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>
+                <WizIn lbl="PA (es. 120/80)" name="pa" val={d.pa} onChange={upd('pa')}/>
+                <WizIn lbl="FC riposo (bpm)" name="fc" type="number" val={d.fc} onChange={upd('fc')}/>
+                <WizIn lbl="SpO2 — Saturazione O2 (%)" desc="Normale: 95-100%. Sotto 94% = ipossiemia" name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>
+                {d.spo2&&<InterpBox interp={interpSpO2(d.spo2)} icon="🫁"/>}
+              </div>
+              {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
+                {[[bmiVal,'BMI — '+bmiLbl,bmiClr],[d.peso+' kg','Peso attuale',C.text],[(pesoTarget||'—')+' kg','Peso target (BMI 24.9)',C.blue]].map(function(item){var v=item[0],l=item[1],c=item[2];return(
+                  <div key={l} style={{background:C.card,border:'1px solid '+c+'30',borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
+                    <div style={{fontSize:20,fontWeight:900,color:c}}>{v}</div>
+                    <div style={{fontSize:10,color:C.muted,marginTop:3}}>{l}</div>
+                  </div>
+                );})}
+              </div>}
+              {fcMax&&<div style={{background:C.card,border:'1px solid '+C.purple+'30',borderRadius:10,padding:'10px 14px',marginTop:10,display:'flex',gap:20,justifyContent:'center'}}>
+                <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.purple}}>{fcMax}</div><div style={{fontSize:10,color:C.muted}}>FC max</div></div>
+                <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.blue}}>{Math.round(fcMax*.6)}</div><div style={{fontSize:10,color:C.muted}}>60% FC max</div></div>
+                <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.teal}}>{Math.round(fcMax*.75)}</div><div style={{fontSize:10,color:C.muted}}>75% FC max</div></div>
+              </div>}
+            </div>
+
+            {/* Sezione: Anamnesi clinica */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.red}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>🏥</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Anamnesi clinica</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Patologie note" name="patologie" val={d.patologie} opts={['Nessuna','Ipertensione','Diabete tipo 2','Diabete tipo 1','Dislipidemia','Obesita','Cardiopatia','Asma/BPCO','Artrosi/Artrite','Osteoporosi','Ernia lombare','Scoliosi','Patologia tiroidea','Depressione/Ansia','Altra patologia']} onChange={upd('patologie')}/>
+                <WizIn lbl="Farmaci" name="farmaci" val={d.farmaci} opts={['Nessuno','Antipertensivi','Antidiabetici orali','Insulina','Statine','Betabloccanti','Diuretici','Anticoagulanti','Antinfiammatori (FANS)','Broncodilatatori','Antidepressivi','Integratori','Altri farmaci']} onChange={upd('farmaci')}/>
+                <WizIn lbl="Sintomi da sforzo" name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
+                <WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>
+                <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1 grado con infarto, ictus o diabete" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
+                {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
+                <WizIn lbl="PAR-Q — Screening" name="parq"
+                  desc="7 domande per controindicazioni. SI = invio medico consigliato"
+                  val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
+                {d.parq&&<InterpBox interp={interpPARQ(d.parq==='NO — nessuna risposta positiva'?0:d.parq==='1 SI — attenzione'?1:d.parq==='2+ SI — invio medico'?3:0)} icon="📋"/>}
+                <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
+                <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>
+              </div>
+            </div>
+
+            {/* Sezione: Stile di vita */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>🌿</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Stile di vita</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Attivita attuale" name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderata','Attiva','Molto attiva']} onChange={upd('attivita')}/>
+                <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
+                <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
+                <WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche: maggior rischio CV e recupero ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>
+                <WizIn lbl="Stress percepito" desc="Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
+                <WizIn lbl="Motivazione (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>
+                <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
+                {d.fumo&&d.fumo!=='Non fumatore'&&<InterpBox interp={interpFumo(d.fumo==='Ex fumatore'?'Ex fumatore':d.fumo==='Fumatore occasionale'?'Leggero':d.fumo==='Fumatore regolare'?'Moderato':'Non fumatore')} icon="🚬"/>}
+                <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
+                {d.alcol&&d.alcol!=='Mai'&&<InterpBox interp={interpAlcol(d.alcol==='1-2/sett.'?'Occasionale':d.alcol==='3-7/sett.'?'Moderato':'Elevato')} icon="🍷"/>}
+              </div>
+            </div>
+
+            {/* Sezione: Postura e mobilita */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>🦴</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Postura e mobilita</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Colonna vertebrale" desc="Iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
+                {d.posturaColonna&&d.posturaColonna!=='Normale'&&<InterpBox interp={interpPosturaColonna(d.posturaColonna==='Iperlordosi lombare'?'Iperlordosi':d.posturaColonna==='Cifosi dorsale'?'Cifosi':d.posturaColonna==='Scoliosi'?'Scoliosi lieve':d.posturaColonna)} icon="🦴"/>}
+                <WizIn lbl="Postura spalle" desc="Protratte = rotazione interna, frequente da sedentarieta" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>
+                {d.posturaSpalle&&d.posturaSpalle!=='Normale'&&<InterpBox interp={interpPosturaSpalle(d.posturaSpalle==='Protratte (avanzate)'?'Protratte':d.posturaSpalle==='Asimmetria dx/sx'?'Asimmetriche':d.posturaSpalle==='Elevate'?'Elevate':d.posturaSpalle)} icon="🤸"/>}
+                <WizIn lbl="Mobilita caviglia — ROM" desc="Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
+                {d.mobCaviglia&&d.mobCaviglia!=='Ottima'&&d.mobCaviglia!=='Buona'&&<InterpBox interp={interpMobCaviglia(d.mobCaviglia==='Ridotta'?8:d.mobCaviglia==='Molto limitata'?5:12)} icon="🦶"/>}
+                <WizIn lbl="Mobilita anca — ROM" desc="Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
+                {d.mobAnca&&d.mobAnca!=='Ottima'&&d.mobAnca!=='Buona'&&<InterpBox interp={interpMobAnca(d.mobAnca==='Ridotta'?90:d.mobAnca==='Molto limitata'?70:120)} icon="🏃"/>}
+                <WizIn lbl="Sit-and-Reach (cm)" desc="+ = raggiunge oltre i piedi; - = non raggiunge" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>
+                {d.sitReach!==''&&d.sitReach!==undefined&&<InterpBox interp={interpSitReach(d.sitReach,d.sesso)} icon="🧘"/>}
+                <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>
+              </div>
+            </div>
+
+            {/* Sezione: Pianificazione */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>🎯</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Obiettivo e pianificazione</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
+                <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
+                <WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
+                <WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
+              </div>
+            </div>
+
           </div>}
 
           {/* STEP 2 — Composizione & BIA */}
