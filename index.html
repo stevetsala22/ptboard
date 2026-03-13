@@ -223,7 +223,7 @@ const exportCSV=(patients)=>{
     const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
     return [p.id,p.cognome,p.nome,p.sesso,p.ddn,p.altezza,p.peso,b||'',pr?.code||'',p.attivita,p.obiettivo,p.patologie,p.farmaci,p.test?.mwtDist,p.test?.stsRip,p.log?.length||0,p.dataValutazione].map(v=>{
       const s=String(v??'');
-      return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
+      return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.split('"').join('""')+'"':s;
     });
   });
   const csv=[headers.join(','),...rows.map(r=>r.join(','))].join('\n');
