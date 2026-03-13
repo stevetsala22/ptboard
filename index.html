@@ -1231,13 +1231,13 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const addLog=()=>{
     if(!newLog.tipo||!newLog.durata){alert('Compila tipo e durata');return;}
     const entry={...newLog,id:Date.now(),durata:+newLog.durata,rpe:+newLog.rpe};
-    upd(x=>({log:[...(x.log||[]),entry]}));
+    upd(x=>({log:(x.log||[]).concat([entry])}));
     setShowLogModal(false);setNewLog({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
   };
   const addPeso=()=>{
     if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){alert('Inserisci un peso valido');return;}
     const entry={...newPeso,peso:+newPeso.peso};
-    upd(x=>({progressi:[...(x.progressi||[]),entry].sort((a,b2)=>a.data.localeCompare(b2.data))}));
+    upd(x=>({progressi:(x.progressi||[]).concat([entry]).sort((a,b2)=>a.data.localeCompare(b2.data))}));
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
   };
 
@@ -1352,7 +1352,7 @@ ${p.nutrizione?.kcal?`
 ${(p.log||[]).length>0?`
 <div class="section">
   <div class="section-title">Ultime sedute (${Math.min(p.log.length,10)})</div>
-  ${[...(p.log||[])].reverse().slice(0,10).map(s=>`
+  ${(p.log||[]).slice().reverse().slice(0,10).map(s=>`
   <div class="log-item">
     <div class="dot" style="background:${s.rpe<=3?'#10b981':s.rpe<=6?'#f59e0b':s.rpe<=8?'#fb923c':'#ef4444'}"></div>
     <div style="flex:1"><span style="font-weight:600">${esc(s.tipo)}</span> <span style="color:#64748b">· ${esc(s.data)} · ${esc(s.durata)} min · RPE ${esc(s.rpe)}</span></div>
@@ -1675,7 +1675,7 @@ ${(p.progressi||[]).length>1?`
             <button style={S.btn('success',true)} onClick={()=>setShowLogModal(true)}>{gT().addSession}</button>
           </div>
           {(!p.log||p.log.length===0)&&<div style={{...S.card,textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>📋</div>{gT().noLog}</div>}
-          {[...(p.log||[])].reverse().map(s=>(
+          {(p.log||[]).slice().reverse().map(s=>(
             <div key={s.id} style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:9,padding:'10px 14px',display:'flex',alignItems:'center',gap:12,marginBottom:6}}>
               <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
               <span style={{fontSize:12,color:C.muted,minWidth:85}}>{s.data}</span>
@@ -1777,7 +1777,7 @@ ${(p.progressi||[]).length>1?`
         </div>
       </Modal>}
 
-      {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:[...(x.schede||[]),s]}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)}/>}
+      {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)}/>}
     </div>
   );
 }
@@ -3741,7 +3741,7 @@ function TutorialModal({onClose,isLight}){
   const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:300,display:'flex',alignItems:'stretch',justifyContent:'center'};
   const BOX={background:C.card,width:'min(900px,100vw)',maxHeight:'100vh',display:'flex',flexDirection:'column'};
   return(
-    <div style={OL} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+    <div style={OL}>
       <div style={BOX}>
         {/* Header */}
         <div style={{padding:'14px 20px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
