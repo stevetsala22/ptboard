@@ -1,0 +1,2462 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#060f1e"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="PT Board"/>
+<meta name="description" content="Gestione pazienti per Personal Trainer"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon192.png"/>
+<title>PT Board</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+// Rimuovi service worker vecchi se presenti
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  });
+}
+</script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
+  authDomain:"ptboard-1.firebaseapp.com",
+  projectId:"ptboard-1",
+  storageBucket:"ptboard-1.firebasestorage.app",
+  messagingSenderId:"223801010947",
+  appId:"1:223801010947:web:9c3f887243609bcdad9736"
+});
+const fbAuth=firebase.auth();
+const fbDb=firebase.firestore();
+
+// ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
+const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
+const TRIAL_DAYS=30;
+const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
+const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
+
+// ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
+const fbSaveUserProfile=async(uid,data)=>{
+  try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
+};
+const fbGetUserProfile=async(uid)=>{
+  try{const d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
+};
+const fbGetAllUsers=async()=>{
+  try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
+};
+const isTrialExpired=(profile)=>{
+  if(!profile) return false;
+  if(profile.plan==='pro'||profile.plan==='admin') return false;
+  if(!profile.trialStart) return false;
+  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return days>TRIAL_DAYS;
+};
+const trialDaysLeft=(profile)=>{
+  if(!profile?.trialStart) return TRIAL_DAYS;
+  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
+};
+
+// ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
+const fbSave=async(uid,data)=>{
+  try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}catch(e){console.warn('fbSave',e);}
+};
+const fbLoad=async(uid)=>{
+  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}catch(e){return null;}
+};
+
+// ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
+// 1. Vai su emailjs.com → crea account gratuito
+// 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
+// 3. Crea template con variabili: {{to_email}}, {{to_name}}, {{subject}}, {{message}}
+// 4. Sostituisci i valori qui sotto
+const EMAILJS_SERVICE='YOUR_SERVICE_ID';   // ← da EmailJS dashboard
+const EMAILJS_TEMPLATE='YOUR_TEMPLATE_ID'; // ← da EmailJS dashboard
+const EMAILJS_KEY='YOUR_PUBLIC_KEY';       // ← da EmailJS dashboard
+
+const sendEmail=async({toEmail,toName,subject,message})=>{
+  try{
+    if(EMAILJS_KEY==='YOUR_PUBLIC_KEY') return {ok:false,err:'EmailJS non configurato'};
+    emailjs.init(EMAILJS_KEY);
+    await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
+      to_email:toEmail,
+      to_name:toName,
+      subject,
+      message,
+      from_name:'PT Board',
+      reply_to:'ptboard@gmail.com',
+    });
+    return {ok:true};
+  }catch(e){return {ok:false,err:String(e)};}
+};
+
+// ── AI COACH ─────────────────────────────────────────────────────────────────
+const aiCoach=async(paziente)=>{
+  const prompt=`Sei un esperto personal trainer. Analizza questo profilo paziente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
+
+PROFILO:
+- Nome: ${paziente.nome} ${paziente.cognome}
+- Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
+- Sesso: ${paziente.sesso}
+- Peso: ${paziente.peso} kg | Altezza: ${paziente.altezza} cm
+- BMI: ${paziente.altezza&&paziente.peso?(paziente.peso/(paziente.altezza/100)**2).toFixed(1):'-'}
+- Attività attuale: ${paziente.attivita}
+- Obiettivo: ${paziente.obiettivo||'non specificato'}
+- Patologie: ${paziente.patologie||'nessuna'}
+- Test MWT: ${paziente.test?.mwtDist||'-'} m | STS: ${paziente.test?.stsRip||'-'} ripetizioni
+- Stress percepito: ${paziente.stressPercepito} | Sonno: ${paziente.sonno||'-'} ore
+
+Fornisci:
+1. 🎯 Obiettivo prioritario (2 righe)
+2. 📅 Schema settimanale (giorni e tipo di allenamento)
+3. 💪 3 esercizi chiave con serie/reps
+4. 🥗 Consiglio nutrizionale rapido
+5. ⚠️ Precauzioni specifiche per questo paziente`;
+
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const data=await res.json();
+  return data.content?.[0]?.text||'Errore nel generare il programma.';
+};
+</script>
+<style>
+:root{
+  --bg:#0f172a;--sidebar:#080d1a;--card:#1e293b;--border:#1e293b;--border2:#334155;
+  --text:#e2e8f0;--muted:#64748b;--dim:#475569;--input-bg:#0f172a;--strong:#ffffff;
+}
+:root.light{
+  --bg:#f1f5f9;--sidebar:#e2e8f0;--card:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#1e293b;--muted:#475569;--dim:#64748b;--input-bg:#f8fafc;--strong:#0f172a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body,#root{height:100%;overflow:hidden;background:var(--bg);transition:background .3s}
+body{font-family:'DM Sans',system-ui,sans-serif;color:var(--text);transition:color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+input,select,textarea,button{font-family:inherit;color:var(--text)}
+input,select,textarea{background:var(--input-bg);color:var(--text)}
+
+/* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  /* Grid forms: 1 colonna su mobile */
+  [style*="grid-template-columns: repeat(3"],[style*="grid-template-columns:repeat(3"]{
+    grid-template-columns:1fr !important;
+  }
+  [style*="grid-template-columns: repeat(4"],[style*="grid-template-columns:repeat(4"]{
+    grid-template-columns:1fr 1fr !important;
+  }
+  [style*="grid-template-columns: repeat(2"],[style*="grid-template-columns:repeat(2"]{
+    grid-template-columns:1fr !important;
+  }
+  /* Font sizes */
+  h1{font-size:16px !important;}
+  h2{font-size:14px !important;}
+  /* Padding cards */
+  [style*="padding:24px"]{padding:14px !important;}
+  [style*="padding:20px"]{padding:12px !important;}
+  /* Bottoni header: testo piccolo */
+  button{font-size:12px !important;}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useMemo,useEffect,useRef}=React;
+
+const SK='fitmanager_v3';
+const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
+const save=(d)=>{try{localStorage.setItem(SK,JSON.stringify(d))}catch{}};
+
+const C={
+  get bg(){return'var(--bg)'},
+  get sidebar(){return'var(--sidebar)'},
+  get card(){return'var(--card)'},
+  get border(){return'var(--border)'},
+  get border2(){return'var(--border2)'},
+  get text(){return'var(--text)'},
+  get muted(){return'var(--muted)'},
+  get dim(){return'var(--dim)'},
+  get strong(){return'var(--strong)'},
+  blue:'#f97316',green:'#0d9488',yellow:'#f59e0b',red:'#ef4444',purple:'#fb923c',
+  cyan:'#14b8a6',orange:'#f97316',pink:'#fbbf24',teal:'#0d9488',
+};
+
+const bmi=(p,h)=>h>0?+(p/(h/100)**2).toFixed(1):0;
+const bmiCat=(b)=>{
+  if(!b)return{l:'—',c:C.muted};
+  if(b<18.5)return{l:'Sottopeso',c:C.blue};
+  if(b<25)return{l:'Normopeso',c:C.green};
+  if(b<30)return{l:'Sovrappeso',c:C.yellow};
+  if(b<35)return{l:'Obesità I',c:'#f87171'};
+  return{l:'Obesità II+',c:C.red};
+};
+const profilo=(mwt,sts)=>{
+  if(!mwt||!sts)return null;
+  const a=((mwt<300?1:mwt<=450?2:3)+(sts<10?1:sts<=15?2:3))/2;
+  if(a<1.5)return{code:'A',l:'A – Molto bassa',c:C.red,bg:'#fee2e2'};
+  if(a<2.5)return{code:'B',l:'B – Moderata',c:C.yellow,bg:'#fef3c7'};
+  return{code:'C',l:'C – Discreta',c:C.green,bg:'#d1fae5'};
+};
+const rpeC=(r)=>r<=3?C.green:r<=6?C.yellow:r<=8?C.orange:C.red;
+const rpeL=(r)=>r<=3?'Leggero':r<=6?'Moderato':r<=8?'Intenso':'Massimale';
+const fmtDate=()=>new Date().toLocaleDateString('it-IT');
+const nextPid=(ps)=>{
+  const n=ps.map(p=>parseInt(p.id.replace('P',''))).filter(Boolean);
+  return`P${String(Math.max(0,...n)+1).padStart(3,'0')}`;
+};
+const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const MONTHS=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+const INIT_EXERCISES=[
+  {id:'E01',nome:'Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Piegamento sulle ginocchia con bilanciere o corpo libero'},
+  {id:'E02',nome:'Push-up',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni sulle braccia'},
+  {id:'E03',nome:'Affondi',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Passo avanti con piegamento'},
+  {id:'E04',nome:'Plank',cat:'Core',muscoli:'Core, Addome',desc:'Posizione isometrica in appoggio sugli avambracci'},
+  {id:'E05',nome:'Rematore',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata verso il corpo con manubrio'},
+  {id:'E06',nome:'Dead Bug',cat:'Core',muscoli:'Core',desc:'Stabilizzazione lombare a terra'},
+  {id:'E07',nome:'Box Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat su panchetta bassa'},
+  {id:'E08',nome:'Wall Push-up',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni al muro'},
+  {id:'E09',nome:'Camminata',cat:'Cardio',muscoli:'Full Body',desc:'Camminata a ritmo moderato'},
+  {id:'E10',nome:'Cyclette',cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Ciclismo stazionario'},
+  {id:'E11',nome:'Mountain Climbers',cat:'Cardio',muscoli:'Full Body',desc:'Arrampicata sul posto in posizione plank'},
+  {id:'E12',nome:'Ponte Glutei',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Sollevamento bacino da supino'},
+  {id:'E13',nome:'Hip Hinge',cat:'Forza',muscoli:'Femorali, Glutei, Lombari',desc:'Cerniera dell anca con bilanciere o corpo libero'},
+  {id:'E14',nome:'Romanian Deadlift',cat:'Forza',muscoli:'Femorali, Glutei',desc:'Stacco rumeno con manubri'},
+  {id:'E15',nome:'Lat Machine',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata alla lat machine'},
+];
+
+const INIT_PATIENTS=[
+  {
+    id:'P001',cognome:'Rossi',nome:'Maria',ddn:'15/03/2004',altezza:165,peso:78,vita:88,fianchi:105,pa:'120/80',fc:75,
+    sesso:'F',annoNascita:2004,patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',
+    allergie:'—',attivita:'Sedentaria',obiettivo:'Dimagrimento',preferenze:'No corsa',stressPercepito:'Alto',sonno:'6',
+    dataValutazione:'10/03/2026',
+    test:{mwtDist:280,mwtRpe:8,mwtSintomi:'Fiato corto',stsRip:8,stsNote:'Ginocchia valghe',noteVal:'Molto sedentaria'},
+    programma:{dataInizio:'11/03/2026',sedute:3,minCardio:30,minForza:40,cardio:'Camminata 10-15 min RPE 3-4',forza:'Circuito base 2-3 giri',note:'Progressione graduale'},
+    nutrizione:{kcal:1600,proteine:128,carboidrati:160,grassi:53,note:'Deficit calorico moderato. Colazione proteica, evitare zuccheri semplici.',pianoPasti:'Colazione: yogurt greco + frutta + noci\nSpuntino: frutta\nPranzo: proteine + verdure + carboidrati complessi\nCena: proteine + verdure'},
+    progressi:[{data:'10/03/2026',peso:78,nota:'Primo accesso'}],
+    schede:[],
+    log:[
+      {id:1,data:'11/03/2026',tipo:'Camminata lenta',durata:10,rpe:4,note:'Prima seduta ok'},
+      {id:2,data:'13/03/2026',tipo:'Forza base',durata:25,rpe:5,note:'Fatica nei giri finali'},
+    ],
+    createdAt:'10/03/2026',
+  },
+  {
+    id:'P002',cognome:'Bianchi',nome:'Giulia',ddn:'22/07/2003',altezza:160,peso:85,vita:95,fianchi:112,pa:'135/85',fc:82,
+    sesso:'F',annoNascita:2003,patologie:'Ipertensione lieve',farmaci:'ACE inibitore',sintomiSforzo:'NO',
+    allergie:'—',attivita:'Sedentaria',obiettivo:'Salute + dimagrimento',preferenze:'No pesi pesanti',stressPercepito:'Medio',sonno:'7',
+    dataValutazione:'10/03/2026',
+    test:{mwtDist:320,mwtRpe:7,mwtSintomi:'NO',stsRip:11,stsNote:'Tecnica ok',noteVal:'Monitorare PA'},
+    programma:{dataInizio:'11/03/2026',sedute:4,minCardio:80,minForza:60,cardio:'Camminata 20-25 min RPE 4-5',forza:'Circuito 3 giri',note:'Introdurre varietà'},
+    nutrizione:{kcal:1500,proteine:120,carboidrati:150,grassi:50,note:'Dieta iposodica per ipertensione. Evitare sale in eccesso.',pianoPasti:'Colazione: fiocchi avena + latte scremato\nPranzo: pesce/pollo + verdure + riso\nCena: legumi + verdure'},
+    progressi:[{data:'10/03/2026',peso:85,nota:'Primo accesso'}],
+    schede:[],log:[],createdAt:'10/03/2026',
+  },
+  {
+    id:'P003',cognome:'Verdi',nome:'Sara',ddn:'10/11/2005',altezza:170,peso:72,vita:82,fianchi:98,pa:'115/75',fc:70,
+    sesso:'F',annoNascita:2005,patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',
+    allergie:'—',attivita:'Poco attiva',obiettivo:'Tonificazione',preferenze:'Va bene tutto',stressPercepito:'Basso',sonno:'8',
+    dataValutazione:'10/03/2026',
+    test:{mwtDist:460,mwtRpe:5,mwtSintomi:'NO',stsRip:16,stsNote:'Tecnica buona',noteVal:'Buona base'},
+    programma:{dataInizio:'11/03/2026',sedute:5,minCardio:135,minForza:80,cardio:'Cardio 30min RPE 5-7',forza:'Upper/Lower split',note:'Progressione carico'},
+    nutrizione:{kcal:1900,proteine:152,carboidrati:200,grassi:63,note:'Mantenimento con leggero surplus. Proteine elevate per tonificazione.',pianoPasti:'Colazione: uova + toast integrale\nSpuntino: banana + mandorle\nPranzo: carne/pesce + pasta integrale + verdure\nCena: proteine + insalata'},
+    progressi:[{data:'10/03/2026',peso:72,nota:'Primo accesso'},{data:'17/03/2026',peso:71.5,nota:'Prima settimana'}],
+    schede:[],log:[],createdAt:'10/03/2026',
+  },
+];
+
+const INIT_BOOKINGS=[
+  {id:'B001',patientId:'P001',data:'2026-03-11',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
+  {id:'B002',patientId:'P002',data:'2026-03-11',ora:'10:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
+  {id:'B003',patientId:'P003',data:'2026-03-12',ora:'11:00',durata:60,tipo:'PT',note:'',stato:'Confermato'},
+];
+
+const isMobile=window.innerWidth<=768;
+const S={
+  app:{display:'flex',height:'100vh',background:C.bg,overflow:'hidden'},
+  sb:{width:isMobile?'100%':220,background:C.sidebar,borderRight:`1px solid ${C.border}`,display:'flex',flexDirection:'column',flexShrink:0},
+  sbh:{padding:'20px 16px 12px',borderBottom:`1px solid ${C.border}`},
+  logo:{fontSize:16,fontWeight:800,color:C.strong,letterSpacing:-0.5},
+  logosub:{fontSize:10,color:C.muted,marginTop:2,letterSpacing:1,textTransform:'uppercase'},
+  nav:{padding:'8px 10px',flex:1,overflowY:'auto'},
+  navlbl:{fontSize:10,color:'#1e3a5f',letterSpacing:1.5,textTransform:'uppercase',padding:'10px 6px 4px',fontWeight:700},
+  navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:500,background:a?'#1e293b':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s'}),
+  main:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'},
+  topbar:{height:52,background:C.sidebar,borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 12px',gap:8,flexShrink:0},
+  content:{flex:1,overflowY:'auto',padding:isMobile?12:20,paddingBottom:isMobile?80:20},
+  btn:(v='primary',sm=false)=>({padding:sm?'5px 10px':'7px 13px',borderRadius:7,border:'none',cursor:'pointer',fontSize:sm?11:12,fontWeight:600,transition:'all .15s',whiteSpace:'nowrap',
+    ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:`1px solid #ef444440`}:v==='success'?{background:'#10b98120',color:C.green,border:`1px solid #10b98140`}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:`1px solid #f59e0b40`}:{background:'transparent',color:C.dim,border:`1px solid ${C.border2}`})}),
+  card:{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,padding:isMobile?12:18},
+  label:{fontSize:11,color:C.muted,textTransform:'uppercase',letterSpacing:.8,fontWeight:600,marginBottom:3,display:'block'},
+  inp:{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box'},
+  sel:{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box'},
+  ta:{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box',resize:'vertical',minHeight:68,fontFamily:'inherit'},
+  tag:(c,bg)=>({display:'inline-flex',alignItems:'center',gap:4,padding:'2px 9px',borderRadius:20,fontSize:11,fontWeight:600,background:bg||c+'20',color:c,border:`1px solid ${c}40`}),
+  grid:(n)=>({display:'grid',gridTemplateColumns:isMobile?'1fr':`repeat(${n},1fr)`,gap:isMobile?10:14}),
+  st:{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:10},
+  kpi:(c)=>({background:C.card,border:`1px solid ${c}30`,borderRadius:11,padding:'14px 16px',position:'relative',overflow:'hidden'}),
+  row:{display:'flex',alignItems:'center',gap:12,padding:'8px 12px',background:C.bg,borderRadius:8,marginBottom:5},
+};
+
+function Avatar({nome='?',cognome='?',size=34}){
+  const initials=`${nome[0]||''}${cognome[0]||''}`.toUpperCase();
+  const hue=(nome.charCodeAt(0)+cognome.charCodeAt(0))*7%360;
+  return <div style={{width:size,height:size,borderRadius:'50%',background:`hsl(${hue},50%,22%)`,border:`2px solid hsl(${hue},50%,38%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.33,fontWeight:700,color:`hsl(${hue},60%,72%)`,flexShrink:0}}>{initials}</div>;
+}
+
+function FF({label,name,value,onChange,type='text',options,placeholder,span,rows}){
+  return(
+    <div style={{gridColumn:span?`span ${span}`:undefined}}>
+      <label style={S.label}>{label}</label>
+      {options?<select style={S.sel} name={name} value={value||''} onChange={onChange}>{options.map(o=><option key={o.v||o} value={o.v||o}>{o.l||o}</option>)}</select>
+      :type==='textarea'?<textarea style={{...S.ta,minHeight:rows?rows*22:68}} name={name} value={value||''} onChange={onChange} placeholder={placeholder}/>
+      :<input style={S.inp} type={type} name={name} value={value||''} onChange={onChange} placeholder={placeholder}/>}
+    </div>
+  );
+}
+
+function Modal({title,onClose,children,width='520px'}){
+  return(
+    <div style={{position:'fixed',inset:0,background:'#00000090',display:'flex',alignItems:isMobile?'flex-end':'center',justifyContent:'center',zIndex:200,padding:isMobile?0:16}}>
+      <div style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:isMobile?'20px 20px 0 0':14,padding:isMobile?'20px 16px 32px':24,width:isMobile?'100%':`min(${width},95vw)`,maxHeight:isMobile?'92vh':'90vh',overflowY:'auto'}}>
+        {isMobile&&<div style={{width:40,height:4,borderRadius:2,background:C.border2,margin:'0 auto 16px'}}/>}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+          <h3 style={{fontSize:15,fontWeight:700,color:C.strong,margin:0}}>{title}</h3>
+          <button style={{...S.btn('ghost',true),padding:'4px 8px'}} onClick={onClose}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({label,value,sub,color=C.blue}){
+  return(
+    <div style={S.kpi(color)}>
+      <div style={{position:'absolute',top:0,right:0,width:44,height:44,borderRadius:'0 11px 0 44px',background:`${color}15`}}/>
+      <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:'uppercase',letterSpacing:.8,marginBottom:5}}>{label}</div>
+      <div style={{fontSize:22,fontWeight:800,color:C.strong,lineHeight:1}}>{value}</div>
+      {sub&&<div style={{fontSize:11,color,fontWeight:600,marginTop:3}}>{sub}</div>}
+    </div>
+  );
+}
+
+function LineChartComp({data,color=C.blue}){
+  const ref=useRef();const chartRef=useRef();
+  useEffect(()=>{
+    if(!ref.current||!data?.length)return;
+    if(chartRef.current)chartRef.current.destroy();
+    chartRef.current=new Chart(ref.current,{type:'line',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),borderColor:color,backgroundColor:color+'20',fill:true,tension:.4,pointBackgroundColor:color,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}},y:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}}}}});
+    return()=>{if(chartRef.current)chartRef.current.destroy()};
+  },[data,color]);
+  if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>Dati insufficienti</div>;
+  return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
+}
+
+function BarChartComp({data,color=C.blue}){
+  const ref=useRef();const chartRef=useRef();
+  useEffect(()=>{
+    if(!ref.current||!data?.length)return;
+    if(chartRef.current)chartRef.current.destroy();
+    chartRef.current=new Chart(ref.current,{type:'bar',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),backgroundColor:color+'80',borderColor:color,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}},y:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}}}}});
+    return()=>{if(chartRef.current)chartRef.current.destroy()};
+  },[data,color]);
+  if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>Dati insufficienti</div>;
+  return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function Dashboard({patients,bookings}){
+  const today=fmtDate();
+  const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
+  const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
+  return(
+    <div>
+      <div style={{marginBottom:14}}>
+        <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>Dashboard</h1>
+        <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(3,1fr)':'repeat(3,1fr)',gap:isMobile?8:14,marginBottom:14}}>
+        <StatCard label="Pazienti" value={patients.length} color={C.blue}/>
+        <StatCard label="Sedute" value={totSedute} color={C.green}/>
+        <StatCard label="Oggi" value={todayBookings.length} color={C.purple}/>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?10:14}}>
+        <div style={S.card}>
+          <div style={S.st}>📅 Appuntamenti oggi</div>
+          {todayBookings.length===0&&<div style={{color:C.muted,fontSize:13,padding:'12px 0'}}>Nessun appuntamento oggi</div>}
+          {todayBookings.map(b=>{
+            const p=patients.find(x=>x.id===b.patientId);
+            return(
+              <div key={b.id} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:9,marginBottom:6}}>
+                <div style={{width:6,height:36,borderRadius:3,background:C.blue,flexShrink:0}}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,color:C.strong,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.ora} · {p?.nome} {p?.cognome}</div>
+                  <div style={{fontSize:11,color:C.muted}}>{b.durata} min · {b.tipo}</div>
+                </div>
+                <span style={S.tag(b.stato==='Confermato'?C.green:C.yellow)}>{b.stato}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>📊 Progressi peso</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {patients.filter(p=>p.progressi?.length>1).map(p=>(
+              <div key={p.id}>
+                <div style={{fontSize:12,color:C.muted,marginBottom:4}}>{p.nome} {p.cognome}</div>
+                <LineChartComp data={p.progressi.map(x=>({x:x.data.slice(0,5),y:x.peso}))} color={C.blue}/>
+              </div>
+            ))}
+            {patients.filter(p=>p.progressi?.length>1).length===0&&<div style={{color:C.muted,fontSize:13}}>Aggiungi misurazioni nelle schede paziente</div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── PATIENT LIST ──────────────────────────────────────────────────────────────
+function PatientList({patients,onSelect,onAdd,search}){
+  const filtered=useMemo(()=>{
+    const q=search.toLowerCase();
+    return patients.filter(p=>`${p.nome} ${p.cognome} ${p.id}`.toLowerCase().includes(q));
+  },[patients,search]);
+  return(
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+        <div><h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>Pazienti</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>{filtered.length} pazienti</p></div>
+        <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onAdd}>＋ Nuovo</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
+        {[{l:'Totali',v:filtered.length,c:C.blue},{l:'Profilo A',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:'Profilo B',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:'Profilo C',v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
+          <StatCard key={x.l} label={x.l} value={x.v} color={x.c}/>
+        ))}
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:isMobile?10:8}}>
+        {filtered.length===0&&<div style={{textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>🔍</div>Nessun paziente trovato</div>}
+        {filtered.map(p=>{
+          const b=bmi(p.peso,p.altezza);
+          const {l:bl,c:bc}=bmiCat(b);
+          const pr=profilo(p.test?.mwtDist,p.test?.stsRip);
+          return(
+            <div key={p.id} onClick={()=>onSelect(p.id)}
+              style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:14,padding:isMobile?'16px':' 14px 18px',display:'flex',alignItems:'center',gap:14,cursor:'pointer',transition:'all .15s',WebkitTapHighlightColor:'transparent'}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=C.blue+'60'}
+              onMouseLeave={e=>e.currentTarget.style.borderColor=C.border2}>
+              <Avatar nome={p.nome} cognome={p.cognome} size={isMobile?46:42}/>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:isMobile?15:14,fontWeight:700,color:C.strong,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nome} {p.cognome}</div>
+                <div style={{fontSize:11,color:C.muted,marginTop:3,display:'flex',gap:8,flexWrap:'wrap'}}>
+                  <span>{p.id}</span>
+                  {p.dataValutazione&&<span>📅 {p.dataValutazione}</span>}
+                </div>
+              </div>
+              <div style={{display:'flex',gap:isMobile?10:18,alignItems:'center',flexShrink:0}}>
+                {b>0&&<div style={{textAlign:'center'}}><div style={{fontSize:isMobile?15:16,fontWeight:800,color:C.strong}}>{b}</div><div style={{fontSize:10,color:bc,fontWeight:600}}>BMI</div></div>}
+                {pr&&<span style={{...S.tag(pr.c,pr.bg),fontSize:isMobile?13:11,padding:isMobile?'4px 12px':'2px 9px'}}>{pr.code}</span>}
+                {!isMobile&&<div style={{textAlign:'center'}}><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{p.log?.length||0}</div><div style={{fontSize:10,color:C.muted}}>sedute</div></div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── PATIENT DETAIL ────────────────────────────────────────────────────────────
+function PatientDetail({patient,exercises,onBack,onEdit,onDelete,onUpdate}){
+  const [tab,setTab]=useState('dash');
+  const [showLogModal,setShowLogModal]=useState(false);
+  const [showPesoModal,setShowPesoModal]=useState(false);
+  const [showSchedaModal,setShowSchedaModal]=useState(false);
+  const [showAI,setShowAI]=useState(false);
+  const [aiResult,setAiResult]=useState('');
+  const [aiLoading,setAiLoading]=useState(false);
+  const [newLog,setNewLog]=useState({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
+  const [newPeso,setNewPeso]=useState({data:fmtDate(),peso:'',nota:''});
+
+  const p=patient;
+  const b=bmi(p.peso,p.altezza);
+  const {l:bl,c:bc}=bmiCat(b);
+  const pr=profilo(p.test?.mwtDist,p.test?.stsRip);
+  const fcMax=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
+
+  const upd=(fn)=>onUpdate({...p,...fn(p)});
+
+  const addLog=()=>{
+    const entry={...newLog,id:Date.now(),durata:+newLog.durata,rpe:+newLog.rpe};
+    upd(x=>({log:[...(x.log||[]),entry]}));
+    setShowLogModal(false);setNewLog({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
+  };
+  const addPeso=()=>{
+    const entry={...newPeso,peso:+newPeso.peso};
+    upd(x=>({progressi:[...(x.progressi||[]),entry].sort((a,b2)=>a.data.localeCompare(b2.data))}));
+    setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
+  };
+
+  const tabs=[{id:'dash',l:'Dashboard'},{id:'ana',l:'Anagrafica'},{id:'test',l:'Test'},{id:'prog',l:'Programma'},{id:'schede',l:'Allenamento'},{id:'nutri',l:'Nutrizione'},{id:'log',l:`Log (${p.log?.length||0})`},{id:'stats',l:'Statistiche'}];
+
+  const generaPDF=()=>{
+    const pr2=profilo(p.test?.mwtDist,p.test?.stsRip);
+    const b2=bmi(p.peso,p.altezza);
+    const {l:bl2}=bmiCat(b2);
+    const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
+    const pesoTarget=p.altezza?(24.9*(p.altezza/100)**2).toFixed(1):null;
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Report – ${p.nome} ${p.cognome}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff;font-size:13px}
+  .page{max-width:800px;margin:0 auto;padding:40px}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:20px;margin-bottom:28px}
+  .brand{font-size:22px;font-weight:900;color:#3b82f6;letter-spacing:-0.5px}
+  .brand small{display:block;font-size:10px;font-weight:500;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+  .patient-name{font-size:20px;font-weight:800;color:#1e293b}
+  .patient-meta{font-size:11px;color:#64748b;margin-top:4px}
+  .section{margin-bottom:24px}
+  .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#3b82f6;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #e2e8f0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .row{display:flex;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:6px}
+  .row-label{color:#64748b;font-size:12px}
+  .row-value{font-weight:600;color:#1e293b;font-size:12px}
+  .kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;text-align:center}
+  .kpi-val{font-size:22px;font-weight:900;color:#3b82f6}
+  .kpi-lbl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .badge-a{background:#fee2e2;color:#ef4444}
+  .badge-b{background:#fef3c7;color:#f59e0b}
+  .badge-c{background:#d1fae5;color:#10b981}
+  .log-item{display:flex;gap:10px;padding:7px 10px;border-bottom:1px solid #f1f5f9;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .note-box{background:#f8fafc;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:#475569;line-height:1.6;white-space:pre-wrap}
+  .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body><div class="page">
+
+<div class="header">
+  <div>
+    <div class="brand">PT Board <small></small></div>
+    <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda paziente · ${fmtDate()}</div>
+  </div>
+  <div style="text-align:right">
+    <div class="patient-name">${p.nome} ${p.cognome}</div>
+    <div class="patient-meta">${p.id} · Valutazione: ${p.dataValutazione||'—'}</div>
+    ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">Profilo ${pr2.code} – ${pr2.l.split('–')[1]?.trim()||''}</span>`:''}
+  </div>
+</div>
+
+<div class="grid3" style="margin-bottom:28px">
+  <div class="kpi"><div class="kpi-val">${b2||'—'}</div><div class="kpi-lbl">BMI · ${bl2}</div></div>
+  <div class="kpi"><div class="kpi-val">${p.peso||'—'} kg</div><div class="kpi-lbl">Peso attuale</div></div>
+  <div class="kpi"><div class="kpi-val">${pesoTarget||'—'} kg</div><div class="kpi-lbl">Peso target (BMI 24.9)</div></div>
+</div>
+
+<div class="grid">
+<div>
+<div class="section">
+  <div class="section-title">Dati anagrafici</div>
+  ${[['Data nascita',p.ddn],['Sesso',p.sesso],['Altezza',p.altezza?p.altezza+' cm':'—'],['Vita',p.vita?p.vita+' cm':'—'],['Fianchi',p.fianchi?p.fianchi+' cm':'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+</div>
+<div class="section">
+  <div class="section-title">Parametri clinici</div>
+  ${[['PA',p.pa],['FC riposo',p.fc?p.fc+' bpm':'—'],['FC max',fcM?fcM+' bpm':'—'],['FC target 60%',fcM?Math.round(fcM*0.6)+' bpm':'—'],['FC target 75%',fcM?Math.round(fcM*0.75)+' bpm':'—'],['Patologie',p.patologie],['Farmaci',p.farmaci]].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+</div>
+</div>
+<div>
+<div class="section">
+  <div class="section-title">Test funzionali</div>
+  ${[['6MWT – Distanza',p.test?.mwtDist?p.test.mwtDist+' m':'—'],['6MWT – RPE',p.test?.mwtRpe||'—'],['6MWT – Sintomi',p.test?.mwtSintomi||'—'],['STS 30s – Rip.',p.test?.stsRip||'—'],['Note',p.test?.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v}</span></div>`).join('')}
+</div>
+<div class="section">
+  <div class="section-title">Stile di vita & obiettivi</div>
+  ${[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Stress',p.stressPercepito],['Sonno',p.sonno?p.sonno+' ore':'—'],['Preferenze',p.preferenze]].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+</div>
+</div>
+</div>
+
+${p.programma?.cardio||p.programma?.forza?`
+<div class="section">
+  <div class="section-title">Programma allenamento</div>
+  <div class="grid">
+    <div>
+      ${[['Inizio',p.programma.dataInizio],['Sedute/sett.',p.programma.sedute],['Min cardio/sett.',p.programma.minCardio?p.programma.minCardio+" min":'—'],['Min forza/sett.',p.programma.minForza?p.programma.minForza+" min":'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+    </div>
+    <div>
+      ${p.programma.cardio?`<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">Cardio</div><div class="note-box">${p.programma.cardio}</div></div>`:''}
+      ${p.programma.forza?`<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">Forza</div><div class="note-box" style="border-color:#10b981">${p.programma.forza}</div></div>`:''}
+    </div>
+  </div>
+</div>`:''}
+
+${p.nutrizione?.kcal?`
+<div class="section">
+  <div class="section-title">Piano nutrizionale</div>
+  <div class="grid3" style="margin-bottom:10px">
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${p.nutrizione.kcal}</div><div class="kpi-lbl">kcal/giorno</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${p.nutrizione.proteine||0}g</div><div class="kpi-lbl">Proteine</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${p.nutrizione.carboidrati||0}g</div><div class="kpi-lbl">Carboidrati</div></div>
+  </div>
+  ${p.nutrizione.note?`<div class="note-box">${p.nutrizione.note}</div>`:''}
+</div>`:''}
+
+${(p.log||[]).length>0?`
+<div class="section">
+  <div class="section-title">Ultime sedute (${Math.min(p.log.length,10)})</div>
+  ${[...(p.log||[])].reverse().slice(0,10).map(s=>`
+  <div class="log-item">
+    <div class="dot" style="background:${s.rpe<=3?'#10b981':s.rpe<=6?'#f59e0b':s.rpe<=8?'#fb923c':'#ef4444'}"></div>
+    <div style="flex:1"><span style="font-weight:600">${s.tipo}</span> <span style="color:#64748b">· ${s.data} · ${s.durata} min · RPE ${s.rpe}</span></div>
+    ${s.note?`<div style="font-size:11px;color:#64748b">${s.note}</div>`:''}
+  </div>`).join('')}
+</div>`:''}
+
+${(p.progressi||[]).length>1?`
+<div class="section">
+  <div class="section-title">Storico peso</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${x.peso} kg</div><div class="kpi-lbl">${x.data}</div></div>`).join('')}
+  </div>
+</div>`:''}
+
+<div class="footer">
+  <span>PT Board  · Report generato il ${fmtDate()}</span>
+  <span>${p.nome} ${p.cognome} · ${p.id}</span>
+</div>
+</div></body></html>`;
+    const w=window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(()=>w.print(),600);
+  };
+
+  return(
+    <div>
+      {/* Header paziente */}
+      <div style={{display:'flex',alignItems:'center',gap:isMobile?8:12,marginBottom:14,flexWrap:'wrap'}}>
+        <button style={{...S.btn('ghost',true),display:'flex',alignItems:'center',gap:4,padding:isMobile?'8px 10px':'5px 12px'}} onClick={onBack}>← {isMobile?'':'Pazienti'}</button>
+        <Avatar nome={p.nome} cognome={p.cognome} size={isMobile?40:44}/>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+            <h1 style={{fontSize:isMobile?16:18,fontWeight:800,color:C.strong,margin:0}}>{p.nome} {p.cognome}</h1>
+            {pr&&<span style={S.tag(pr.c,pr.bg)}>Profilo {pr.code}</span>}
+          </div>
+          <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
+        </div>
+        {isMobile?(
+          <div style={{display:'flex',gap:6}}>
+            <button style={{...S.btn('',true),background:'#7c3aed',border:'none',color:'#fff',padding:'8px 12px',fontSize:13,borderRadius:9}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}}>🤖</button>
+            <button style={{...S.btn('success',true),padding:'8px 12px',fontSize:13,borderRadius:9}} onClick={generaPDF}>📄</button>
+            <button style={{...S.btn('ghost',true),padding:'8px 12px',fontSize:13,borderRadius:9}} onClick={onEdit}>✏</button>
+            <button style={{...S.btn('danger',true),padding:'8px 12px',fontSize:13,borderRadius:9}} onClick={onDelete}>🗑</button>
+          </div>
+        ):(
+          <>
+            <button style={{...S.btn('success',true),display:'flex',alignItems:'center',gap:5}} onClick={generaPDF}>📄 Report PDF</button>
+            <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}}>🤖 AI Coach</button>
+            <button style={S.btn('ghost',true)} onClick={onEdit}>✏ Modifica</button>
+            <button style={S.btn('danger',true)} onClick={onDelete}>🗑</button>
+          </>
+        )}
+      </div>
+
+      {/* Tabs scorrevoli */}
+      <div style={{display:'flex',gap:3,marginBottom:14,background:C.sidebar,borderRadius:9,padding:3,overflowX:'auto',WebkitOverflowScrolling:'touch',scrollbarWidth:'none'}}>
+        {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn(tab===t.id?'primary':'ghost',true),borderRadius:6,border:'none',whiteSpace:'nowrap',fontSize:isMobile?12:12,padding:isMobile?'6px 12px':'5px 12px',flexShrink:0}}>{t.l}</button>)}
+      </div>
+
+      {tab==='dash'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={S.grid(4)}>
+            <StatCard label="Peso" value={`${p.peso} kg`} color={C.blue}/>
+            <StatCard label="BMI" value={b} sub={bl} color={bc}/>
+            <StatCard label="FC riposo" value={`${p.fc} bpm`} color={C.purple}/>
+            <StatCard label="PA" value={p.pa} color={C.pink}/>
+          </div>
+          <div style={S.grid(3)}>
+            <StatCard label="6MWT" value={`${p.test?.mwtDist||'—'} m`} color={C.cyan}/>
+            <StatCard label="Sit-to-Stand" value={`${p.test?.stsRip||'—'} rip`} color={C.green}/>
+            <StatCard label="Sedute" value={p.log?.length||0} color={C.orange}/>
+          </div>
+          <div style={S.grid(2)}>
+            <div style={S.card}>
+              <div style={S.st}>Info cliniche</div>
+              {[['Patologie',p.patologie],['Farmaci',p.farmaci],['Obiettivo',p.obiettivo],['Attività',p.attivita]].map(([k,v])=>(
+                <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'5px 0',borderBottom:`1px solid ${C.border}`}}>
+                  <span style={{color:C.muted}}>{k}</span><span style={{color:C.text,fontWeight:500}}>{v||'—'}</span>
+                </div>
+              ))}
+            </div>
+            <div style={S.card}>
+              <div style={S.st}>Target FC</div>
+              {[
+                ['Peso target (BMI 24.9)',p.altezza?`${(24.9*(p.altezza/100)**2).toFixed(1)} kg`:'—'],
+                ['Calo necessario',p.altezza&&p.peso?`${(p.peso-24.9*(p.altezza/100)**2).toFixed(1)} kg`:'—'],
+                ['FC max',fcMax?`${fcMax} bpm`:'—'],
+                ['FC target 60%',fcMax?`${Math.round(fcMax*.6)} bpm`:'—'],
+                ['FC target 75%',fcMax?`${Math.round(fcMax*.75)} bpm`:'—'],
+              ].map(([k,v])=>(
+                <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'5px 0',borderBottom:`1px solid ${C.border}`}}>
+                  <span style={{color:C.muted}}>{k}</span><span style={{color:C.green,fontWeight:600}}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab==='ana'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {[
+            {title:'Dati anagrafici',fields:[['ID',p.id],['Cognome',p.cognome],['Nome',p.nome],['D.d.N.',p.ddn],['Sesso',p.sesso],['Anno nascita',p.annoNascita]]},
+            {title:'Parametri antropometrici',fields:[['Altezza',`${p.altezza} cm`],['Peso',`${p.peso} kg`],['BMI',`${b} — ${bl}`],['Vita',`${p.vita} cm`],['Fianchi',`${p.fianchi} cm`],['PA',p.pa],['FC',`${p.fc} bpm`]]},
+            {title:'Clinica',fields:[['Patologie',p.patologie],['Farmaci',p.farmaci],['Sintomi',p.sintomiSforzo],['Allergie',p.allergie]]},
+            {title:'Stile di vita',fields:[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Preferenze',p.preferenze],['Stress',p.stressPercepito],['Sonno',p.sonno]]},
+          ].map(({title,fields})=>(
+            <div key={title} style={S.card}>
+              <div style={S.st}>{title}</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:'10px 20px'}}>
+                {fields.map(([k,v])=><div key={k}><div style={S.label}>{k}</div><div style={{fontSize:13,color:C.text,padding:'4px 0'}}>{v||'—'}</div></div>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab==='test'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={S.grid(2)}>
+            <div style={S.card}>
+              <div style={S.st}>6MWT</div>
+              {[['Distanza',`${p.test?.mwtDist||'—'} m`],['RPE',p.test?.mwtRpe||'—'],['Sintomi',p.test?.mwtSintomi||'—']].map(([k,v])=>(
+                <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'7px 0',borderBottom:`1px solid ${C.border}`}}><span style={{color:C.muted}}>{k}</span><span style={{color:C.text,fontWeight:600}}>{v}</span></div>
+              ))}
+            </div>
+            <div style={S.card}>
+              <div style={S.st}>Sit-to-Stand 30s</div>
+              {[['Ripetizioni',p.test?.stsRip||'—'],['Note',p.test?.stsNote||'—']].map(([k,v])=>(
+                <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'7px 0',borderBottom:`1px solid ${C.border}`}}><span style={{color:C.muted}}>{k}</span><span style={{color:C.text,fontWeight:600}}>{v}</span></div>
+              ))}
+            </div>
+          </div>
+          <div style={{...S.card,border:`1px solid ${pr?.c||C.border2}40`}}>
+            <div style={S.st}>Profilo risultante</div>
+            <div style={{display:'flex',alignItems:'center',gap:14}}>
+              {pr?<><span style={{fontSize:36,fontWeight:900,color:pr.c}}>{pr.code}</span><div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>{pr.l}</div><div style={{fontSize:12,color:C.muted,marginTop:3}}>{p.test?.noteVal}</div></div></>
+              :<span style={{color:C.muted}}>Inserire risultati test per calcolare il profilo</span>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab==='prog'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={S.grid(4)}>
+            <StatCard label="Data inizio" value={p.programma?.dataInizio||'—'} color={C.blue}/>
+            <StatCard label="Sedute/sett." value={p.programma?.sedute||'—'} color={C.purple}/>
+            <StatCard label="Min cardio/sett." value={`${p.programma?.minCardio||0} min`} color={C.green}/>
+            <StatCard label="Min forza/sett." value={`${p.programma?.minForza||0} min`} color={C.orange}/>
+          </div>
+          <div style={S.card}>
+            <div style={S.st}>Contenuto sedute</div>
+            {[['Cardio',p.programma?.cardio,C.cyan],['Forza',p.programma?.forza,C.green],['Note',p.programma?.note,C.yellow]].map(([k,v,c])=>(
+              <div key={k} style={{display:'flex',gap:10,marginBottom:12}}>
+                <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
+                <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{v||'—'}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab==='schede'&&(
+        <div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+            <div style={S.st}>Schede allenamento</div>
+            <button style={S.btn('',true)} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
+          </div>
+          {(!p.schede||p.schede.length===0)&&<div style={{...S.card,textAlign:'center',padding:36,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>📋</div>Nessuna scheda. Clicca "+ Nuova scheda" per creare.</div>}
+          {p.schede?.map((scheda,si)=>(
+            <div key={si} style={{...S.card,marginBottom:12}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
+                  <div style={{fontSize:11,color:C.muted}}>{scheda.tipo} · {scheda.data} · {scheda.esercizi?.length||0} esercizi</div>
+                </div>
+                <button style={S.btn('danger',true)} onClick={()=>upd(x=>({schede:x.schede.filter((_,i)=>i!==si)}))}>✕ Elimina</button>
+              </div>
+              {scheda.esercizi?.map((ex,ei)=>{
+                const eInfo=exercises.find(e=>e.id===ex.eId);
+                return(
+                  <div key={ei} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:6}}>
+                    <div style={{width:26,height:26,borderRadius:6,background:C.blue+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:C.blue}}>{ei+1}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:13,color:C.strong,fontWeight:600}}>{eInfo?.nome||ex.eId}</div>
+                      <div style={{fontSize:11,color:C.muted}}>{eInfo?.muscoli}</div>
+                    </div>
+                    <div style={{display:'flex',gap:14,fontSize:12,color:C.muted}}>
+                      <span><b style={{color:C.text}}>{ex.serie}</b> serie</span>
+                      <span><b style={{color:C.text}}>{ex.reps}</b> rip</span>
+                      {ex.peso&&<span><b style={{color:C.text}}>{ex.peso}</b> kg</span>}
+                      <span>rec <b style={{color:C.text}}>{ex.rec}s</b></span>
+                    </div>
+                  </div>
+                );
+              })}
+              {scheda.note&&<div style={{marginTop:8,fontSize:12,color:C.muted,fontStyle:'italic'}}>{scheda.note}</div>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab==='nutri'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={S.grid(4)}>
+            <StatCard label="Kcal/giorno" value={p.nutrizione?.kcal||'—'} color={C.orange}/>
+            <StatCard label="Proteine (g)" value={p.nutrizione?.proteine||'—'} color={C.blue}/>
+            <StatCard label="Carboidrati (g)" value={p.nutrizione?.carboidrati||'—'} color={C.yellow}/>
+            <StatCard label="Grassi (g)" value={p.nutrizione?.grassi||'—'} color={C.green}/>
+          </div>
+          <div style={S.card}><div style={S.st}>Note nutrizionali</div><p style={{fontSize:13,color:C.text,lineHeight:1.7}}>{p.nutrizione?.note||'Nessuna nota'}</p></div>
+          <div style={S.card}><div style={S.st}>Piano pasti</div><pre style={{fontSize:13,color:C.text,lineHeight:1.8,whiteSpace:'pre-wrap',fontFamily:'inherit'}}>{p.nutrizione?.pianoPasti||'Nessun piano pasti inserito'}</pre></div>
+        </div>
+      )}
+
+      {tab==='log'&&(
+        <div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+            <div style={S.st}>Storico sedute</div>
+            <button style={S.btn('success',true)} onClick={()=>setShowLogModal(true)}>+ Seduta</button>
+          </div>
+          {(!p.log||p.log.length===0)&&<div style={{...S.card,textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>📋</div>Nessuna seduta registrata</div>}
+          {[...(p.log||[])].reverse().map(s=>(
+            <div key={s.id} style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:9,padding:'10px 14px',display:'flex',alignItems:'center',gap:12,marginBottom:6}}>
+              <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
+              <span style={{fontSize:12,color:C.muted,minWidth:85}}>{s.data}</span>
+              <span style={{fontSize:13,color:C.strong,flex:1,fontWeight:500}}>{s.tipo}</span>
+              <span style={{fontSize:12,color:C.muted}}>{s.durata} min</span>
+              <span style={S.tag(rpeC(s.rpe))}>{s.rpe} · {rpeL(s.rpe)}</span>
+              <span style={{fontSize:11,color:C.muted,maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>
+              <button style={{...S.btn('danger',true),padding:'3px 8px'}} onClick={()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)}))}>✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab==='stats'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+            <div style={S.st}>Progressi peso</div>
+            <button style={S.btn('',true)} onClick={()=>setShowPesoModal(true)}>+ Misurazione</button>
+          </div>
+          <div style={S.card}><LineChartComp data={(p.progressi||[]).map(x=>({x:x.data.slice(0,5),y:x.peso}))} color={C.blue}/></div>
+          <div style={S.grid(2)}>
+            <div style={S.card}><div style={S.st}>RPE sedute</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.rpe}))} color={C.orange}/></div>
+            <div style={S.card}><div style={S.st}>Durata sedute (min)</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.durata}))} color={C.green}/></div>
+          </div>
+          <div style={S.card}>
+            <div style={S.st}>Storico misurazioni</div>
+            {(p.progressi||[]).map((x,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'6px 0',borderBottom:`1px solid ${C.border}`}}>
+                <span style={{color:C.muted}}>{x.data}</span>
+                <span style={{color:C.blue,fontWeight:700}}>{x.peso} kg</span>
+                <span style={{color:C.muted}}>{x.nota}</span>
+                <button style={{...S.btn('danger',true),padding:'2px 7px',fontSize:11}} onClick={()=>upd(x2=>({progressi:x2.progressi.filter((_,ii)=>ii!==i)}))}>✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* AI Coach Modal */}
+      {showAI&&(
+        <div style={{position:'fixed',inset:0,background:'#000000c0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'#0f1623',border:'1px solid #7c3aed50',borderRadius:16,width:'min(680px,95vw)',maxHeight:'88vh',overflowY:'auto',display:'flex',flexDirection:'column'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1px solid #1e2d47'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span style={{fontSize:20}}>🤖</span>
+                <div>
+                  <div style={{fontSize:15,fontWeight:800,color:'#f8fafc'}}>AI Coach</div>
+                  <div style={{fontSize:11,color:'#64748b'}}>{p.nome} {p.cognome}</div>
+                </div>
+              </div>
+              <button onClick={()=>setShowAI(false)} style={{background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
+            </div>
+            <div style={{padding:22,flex:1}}>
+              {aiLoading?(
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:16,padding:'40px 0'}}>
+                  <div style={{width:40,height:40,border:'3px solid #334155',borderTop:'3px solid #7c3aed',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+                  <div style={{color:'#64748b',fontSize:13}}>Analizzando il profilo con AI...</div>
+                  <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                </div>
+              ):(
+                <div style={{fontSize:13,color:'#cbd5e1',lineHeight:1.8,whiteSpace:'pre-wrap'}}>{aiResult}</div>
+              )}
+            </div>
+            {aiResult&&!aiLoading&&(
+              <div style={{padding:'14px 22px',borderTop:'1px solid #1e2d47',display:'flex',gap:10}}>
+                <button onClick={()=>{const el=document.createElement('textarea');el.value=aiResult;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);alert('Copiato!');}} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>📋 Copia</button>
+                <button onClick={async()=>{setAiResult('');setAiLoading(true);const r=await aiCoach(p);setAiResult(r);setAiLoading(false);}} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #7c3aed40',background:'#7c3aed15',color:'#a78bfa',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>🔄 Rigenera</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showLogModal&&<Modal title="Aggiungi seduta" onClose={()=>setShowLogModal(false)}>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <FF label="Data" name="data" value={newLog.data} onChange={e=>setNewLog(f=>({...f,data:e.target.value}))}/>
+          <FF label="Tipo seduta" name="tipo" value={newLog.tipo} onChange={e=>setNewLog(f=>({...f,tipo:e.target.value}))} options={['Camminata lenta','Camminata svelto','Forza base','Forza intermedia','Forza avanzata','Cardio moderato','Cardio intenso','HIIT','Mobilità/stretching']}/>
+          <FF label="Durata (min)" name="durata" type="number" value={newLog.durata} onChange={e=>setNewLog(f=>({...f,durata:e.target.value}))}/>
+          <FF label="RPE (0-10)" name="rpe" type="number" value={newLog.rpe} onChange={e=>setNewLog(f=>({...f,rpe:e.target.value}))}/>
+          <FF label="Note" name="note" type="textarea" value={newLog.note} onChange={e=>setNewLog(f=>({...f,note:e.target.value}))}/>
+        </div>
+        <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+          <button style={S.btn('ghost')} onClick={()=>setShowLogModal(false)}>Annulla</button>
+          <button style={S.btn()} onClick={addLog}>Salva</button>
+        </div>
+      </Modal>}
+
+      {showPesoModal&&<Modal title="Aggiungi misurazione peso" onClose={()=>setShowPesoModal(false)}>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <FF label="Data" name="data" value={newPeso.data} onChange={e=>setNewPeso(f=>({...f,data:e.target.value}))}/>
+          <FF label="Peso (kg)" name="peso" type="number" value={newPeso.peso} onChange={e=>setNewPeso(f=>({...f,peso:e.target.value}))}/>
+          <FF label="Nota" name="nota" value={newPeso.nota} onChange={e=>setNewPeso(f=>({...f,nota:e.target.value}))}/>
+        </div>
+        <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+          <button style={S.btn('ghost')} onClick={()=>setShowPesoModal(false)}>Annulla</button>
+          <button style={S.btn()} onClick={addPeso}>Salva</button>
+        </div>
+      </Modal>}
+
+      {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:[...(x.schede||[]),s]}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)}/>}
+    </div>
+  );
+}
+
+function SchedaModal({exercises,onSave,onClose}){
+  const [form,setForm]=useState({nome:'',tipo:'Forza',data:fmtDate(),esercizi:[],note:''});
+  const [addEx,setAddEx]=useState({eId:'',serie:3,reps:12,peso:'',rec:60});
+  const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
+  return(
+    <Modal title="Nuova scheda allenamento" onClose={onClose} width="660px">
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 1fr',gap:12,marginBottom:16}}>
+        <FF label="Nome scheda" name="nome" value={form.nome} onChange={upd}/>
+        <FF label="Tipo" name="tipo" value={form.tipo} onChange={upd} options={['Forza','Cardio','Funzionale','Mobilità','Full Body','Upper','Lower','HIIT']}/>
+        <FF label="Data" name="data" value={form.data} onChange={upd}/>
+      </div>
+      <div style={{...S.card,marginBottom:14}}>
+        <div style={S.st}>Aggiungi esercizio</div>
+        <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr',gap:8,alignItems:'end'}}>
+          <FF label="Esercizio" name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:'-- Scegli --'},...exercises.map(e=>({v:e.id,l:`${e.nome} (${e.cat})`}))]}/>
+          <FF label="Serie" name="serie" type="number" value={addEx.serie} onChange={e=>setAddEx(f=>({...f,serie:+e.target.value}))}/>
+          <FF label="Rip." name="reps" type="number" value={addEx.reps} onChange={e=>setAddEx(f=>({...f,reps:+e.target.value}))}/>
+          <FF label="Peso kg" name="peso" value={addEx.peso} onChange={e=>setAddEx(f=>({...f,peso:e.target.value}))}/>
+          <FF label="Rec. (s)" name="rec" type="number" value={addEx.rec} onChange={e=>setAddEx(f=>({...f,rec:+e.target.value}))}/>
+        </div>
+        <button style={{...S.btn('success',true),marginTop:8}} onClick={()=>{if(addEx.eId){setForm(f=>({...f,esercizi:[...f.esercizi,{...addEx}]}));setAddEx({eId:'',serie:3,reps:12,peso:'',rec:60})}}}>+ Aggiungi</button>
+      </div>
+      {form.esercizi.length>0&&(
+        <div style={{marginBottom:14}}>
+          <div style={S.st}>Esercizi ({form.esercizi.length})</div>
+          {form.esercizi.map((ex,i)=>{
+            const info=exercises.find(e=>e.id===ex.eId);
+            return(
+              <div key={i} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:5}}>
+                <span style={{fontSize:12,color:C.blue,fontWeight:700,minWidth:20}}>{i+1}</span>
+                <span style={{flex:1,fontSize:13,color:C.strong}}>{info?.nome}</span>
+                <span style={{fontSize:12,color:C.muted}}>{ex.serie}×{ex.reps}{ex.peso?` @ ${ex.peso}kg`:''} · rec {ex.rec}s</span>
+                <button style={{...S.btn('danger',true),padding:'2px 7px'}} onClick={()=>setForm(f=>({...f,esercizi:f.esercizi.filter((_,ii)=>ii!==i)}))}>✕</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <FF label="Note scheda" name="note" type="textarea" value={form.note} onChange={upd}/>
+      <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+        <button style={S.btn('ghost')} onClick={onClose}>Annulla</button>
+        <button style={S.btn()} onClick={()=>form.nome&&onSave(form)}>Salva scheda</button>
+      </div>
+    </Modal>
+  );
+}
+
+// ── CALENDARIO ────────────────────────────────────────────────────────────────
+function CalendarView({patients,bookings,setBookings}){
+  const [weekOffset,setWeekOffset]=useState(0);
+  const [showModal,setShowModal]=useState(false);
+  const [newB,setNewB]=useState({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
+
+  const getWeekDays=()=>{
+    const d=new Date();d.setDate(d.getDate()-d.getDay()+1+weekOffset*7);
+    return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return x});
+  };
+  const days=getWeekDays();
+  const hours=['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+
+  const saveBooking=()=>{
+    setBookings(prev=>[...prev,{...newB,id:'B'+Date.now()}]);
+    setShowModal(false);
+    setNewB({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
+  };
+
+  return(
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
+          <span style={{fontSize:14,fontWeight:700,color:C.strong}}>
+            {days[0].toLocaleDateString('it-IT',{day:'2-digit',month:'short'})} — {days[6].toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
+          </span>
+          <button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w+1)}>›</button>
+          <button style={{...S.btn('ghost',true),fontSize:11}} onClick={()=>setWeekOffset(0)}>Oggi</button>
+        </div>
+        <button style={S.btn()} onClick={()=>setShowModal(true)}>+ Prenota</button>
+      </div>
+      <div style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'60px repeat(7,1fr)',borderBottom:`1px solid ${C.border2}`}}>
+          <div/>
+          {days.map((d,i)=>{
+            const isToday=d.toDateString()===new Date().toDateString();
+            return(
+              <div key={i} style={{padding:'10px 4px',textAlign:'center',borderLeft:`1px solid ${C.border}`}}>
+                <div style={{fontSize:11,color:C.muted,fontWeight:600}}>{DAYS[i]}</div>
+                <div style={{fontSize:16,fontWeight:800,color:isToday?C.blue:C.strong,marginTop:2}}>{d.getDate()}</div>
+                <div style={{fontSize:10,color:C.muted}}>{MONTHS[d.getMonth()]}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{overflowY:'auto',maxHeight:'calc(100vh - 260px)'}}>
+          {hours.map(h=>(
+            <div key={h} style={{display:'grid',gridTemplateColumns:'60px repeat(7,1fr)',borderBottom:`1px solid ${C.border}`,minHeight:50}}>
+              <div style={{padding:'4px 8px',fontSize:11,color:C.muted,borderRight:`1px solid ${C.border2}`,display:'flex',alignItems:'center'}}>{h}</div>
+              {days.map((d,di)=>{
+                const dateStr=d.toISOString().slice(0,10);
+                const slot=bookings.filter(b=>b.data===dateStr&&b.ora===h);
+                return(
+                  <div key={di} style={{borderLeft:`1px solid ${C.border}`,padding:3}}>
+                    {slot.map(b=>{
+                      const pat=patients.find(x=>x.id===b.patientId);
+                      return(
+                        <div key={b.id} style={{background:C.blue+'25',border:`1px solid ${C.blue}50`,borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
+                          onClick={async()=>{
+                            const pat=patients.find(x=>x.id===b.patientId);
+                            const actions=['📧 Invia promemoria email','🗑 Elimina prenotazione','Annulla'];
+                            const choice=window.confirm(`📧 Inviare promemoria email a ${pat?.nome} per l'appuntamento del ${b.data} alle ${b.ora}?\n\nClicca OK per inviare, Annulla per eliminare la prenotazione.`);
+                            if(choice){
+                              if(pat?.email){
+                                const r=await sendEmail({toEmail:pat.email,toName:`${pat.nome} ${pat.cognome}`,subject:`Promemoria appuntamento PT Board — ${b.data}`,message:`Ciao ${pat.nome},\n\nTi ricordiamo il tuo appuntamento:\n📅 Data: ${b.data}\n⏰ Ora: ${b.ora}\n🏋 Tipo: ${b.tipo}\n⏱ Durata: ${b.durata} minuti\n\n${b.note?`Note: ${b.note}\n\n`:''}A presto!\nIl tuo Personal Trainer`});
+                                alert(r.ok?'✅ Email inviata!':'⚠️ '+r.err);
+                              } else {
+                                alert('⚠️ Nessuna email nel profilo del paziente. Aggiungila in Modifica paziente.');
+                              }
+                            } else {
+                              if(window.confirm(`Eliminare prenotazione di ${pat?.nome}?`)) setBookings(prev=>prev.filter(x=>x.id!==b.id));
+                            }
+                          }}>
+                          <div style={{fontSize:11,fontWeight:700,color:C.blue,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
+                          <div style={{fontSize:10,color:C.muted}}>{b.durata}' · {b.tipo}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+      {showModal&&(
+        <Modal title="Nuova prenotazione" onClose={()=>setShowModal(false)}>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'},...patients.map(p=>({v:p.id,l:`${p.nome} ${p.cognome}`}))]}/>
+            <div style={S.grid(2)}>
+              <FF label="Data" name="data" type="date" value={newB.data} onChange={e=>setNewB(f=>({...f,data:e.target.value}))}/>
+              <FF label="Ora" name="ora" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))} options={['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00']}/>
+              <FF label="Durata (min)" name="durata" type="number" value={newB.durata} onChange={e=>setNewB(f=>({...f,durata:+e.target.value}))}/>
+              <FF label="Tipo" name="tipo" value={newB.tipo} onChange={e=>setNewB(f=>({...f,tipo:e.target.value}))} options={['PT','Valutazione','Follow-up','Corpo libero','Pesi']}/>
+            </div>
+            <FF label="Note" name="note" type="textarea" value={newB.note} onChange={e=>setNewB(f=>({...f,note:e.target.value}))}/>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+            <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>Annulla</button>
+            <button style={S.btn()} onClick={saveBooking}>Prenota</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ── ESERCIZI ──────────────────────────────────────────────────────────────────
+function ExercisesPage({exercises,setExercises}){
+  const [showModal,setShowModal]=useState(false);
+  const [editing,setEditing]=useState(null);
+  const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:''});
+  const [filter,setFilter]=useState('Tutti');
+  const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
+  const cats=['Tutti',...new Set(exercises.map(e=>e.cat))];
+  const filtered=filter==='Tutti'?exercises:exercises.filter(e=>e.cat===filter);
+  const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:''});setEditing(null);setShowModal(true)};
+  const openEdit=(ex)=>{setForm({...ex});setEditing(ex.id);setShowModal(true)};
+  const save=()=>{
+    if(editing)setExercises(es=>es.map(e=>e.id===editing?{...form,id:editing}:e));
+    else setExercises(es=>[...es,{...form,id:'E'+Date.now()}]);
+    setShowModal(false);
+  };
+  const catColors={Forza:C.blue,Cardio:C.green,Core:C.orange,Mobilità:C.teal,Funzionale:C.purple};
+  return(
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+        <h1 style={{fontSize:20,fontWeight:800,color:C.strong}}>Libreria Esercizi</h1>
+        <button style={S.btn()} onClick={openAdd}>+ Nuovo esercizio</button>
+      </div>
+      <div style={{display:'flex',gap:6,marginBottom:14}}>
+        {cats.map(c=><button key={c} style={S.btn(filter===c?'primary':'ghost',true)} onClick={()=>setFilter(c)}>{c}</button>)}
+      </div>
+      <div style={S.grid(3)}>
+        {filtered.map(ex=>(
+          <div key={ex.id} style={{...S.card,border:`1px solid ${catColors[ex.cat]||C.border2}30`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+              <div><div style={{fontSize:13,fontWeight:700,color:C.strong,marginBottom:4}}>{ex.nome}</div><span style={S.tag(catColors[ex.cat]||C.muted)}>{ex.cat}</span></div>
+              <div style={{display:'flex',gap:4}}>
+                <button style={{...S.btn('ghost',true),padding:'3px 7px'}} onClick={()=>openEdit(ex)}>✏</button>
+                <button style={{...S.btn('danger',true),padding:'3px 7px'}} onClick={()=>setExercises(es=>es.filter(e=>e.id!==ex.id))}>✕</button>
+              </div>
+            </div>
+            <div style={{fontSize:11,color:C.muted,marginBottom:4}}><b style={{color:C.cyan}}>Muscoli:</b> {ex.muscoli}</div>
+            <div style={{fontSize:12,color:C.dim,lineHeight:1.5}}>{ex.desc}</div>
+          </div>
+        ))}
+      </div>
+      {showModal&&(
+        <Modal title={editing?'Modifica esercizio':'Nuovo esercizio'} onClose={()=>setShowModal(false)}>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <FF label="Nome" name="nome" value={form.nome} onChange={upd}/>
+            <div style={S.grid(2)}>
+              <FF label="Categoria" name="cat" value={form.cat} onChange={upd} options={['Forza','Cardio','Core','Mobilità','Funzionale']}/>
+              <FF label="Muscoli" name="muscoli" value={form.muscoli} onChange={upd}/>
+            </div>
+            <FF label="Descrizione / note tecniche" name="desc" type="textarea" value={form.desc} onChange={upd}/>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+            <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>Annulla</button>
+            <button style={S.btn()} onClick={save}>Salva</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ── FORM PAZIENTE ─────────────────────────────────────────────────────────────
+function PatientForm({initial,onSave,onCancel,isNew}){
+  const [form,setForm]=useState(initial);
+  const b=bmi(form.peso,form.altezza);
+  const pr=profilo(form.test?.mwtDist,form.test?.stsRip);
+  const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
+  const updT=e=>setForm(f=>({...f,test:{...f.test,[e.target.name]:e.target.value}}));
+  const updP=e=>setForm(f=>({...f,programma:{...f.programma,[e.target.name]:e.target.value}}));
+  const updN=e=>setForm(f=>({...f,nutrizione:{...f.nutrizione,[e.target.name]:e.target.value}}));
+  return(
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+        <h1 style={{fontSize:18,fontWeight:800,color:C.strong}}>{isNew?'Nuovo paziente':`Modifica — ${form.nome} ${form.cognome}`}</h1>
+        <div style={{display:'flex',gap:8}}>
+          <button style={S.btn('ghost')} onClick={onCancel}>Annulla</button>
+          <button style={S.btn()} onClick={()=>onSave(form)}>✓ Salva</button>
+        </div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:14}}>
+        <div style={S.card}>
+          <div style={S.st}>Dati anagrafici</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
+            <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd}/>
+            <FF label="Nome *" name="nome" value={form.nome} onChange={upd}/>
+            <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici"/>
+            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA"/>
+            <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
+            <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>Parametri antropometrici</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
+            <FF label="Altezza (cm)" name="altezza" type="number" value={form.altezza} onChange={upd}/>
+            <FF label="Peso (kg)" name="peso" type="number" value={form.peso} onChange={upd}/>
+            <div><label style={S.label}>BMI (auto)</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${C.border2}`,fontSize:13}}>{b?<span style={{color:bmiCat(b).c,fontWeight:700}}>{b} — {bmiCat(b).l}</span>:<span style={{color:C.muted}}>—</span>}</div></div>
+            <FF label="Vita (cm)" name="vita" type="number" value={form.vita} onChange={upd}/>
+            <FF label="Fianchi (cm)" name="fianchi" type="number" value={form.fianchi} onChange={upd}/>
+            <FF label="PA riposo" name="pa" value={form.pa} onChange={upd}/>
+            <FF label="FC riposo (bpm)" name="fc" type="number" value={form.fc} onChange={upd}/>
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>Clinica</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:12}}>
+            <FF label="Patologie" name="patologie" type="textarea" value={form.patologie} onChange={upd}/>
+            <FF label="Farmaci" name="farmaci" type="textarea" value={form.farmaci} onChange={upd}/>
+            <FF label="Sintomi da sforzo" name="sintomiSforzo" value={form.sintomiSforzo} onChange={upd} options={['NO','SI']}/>
+            <FF label="Allergie" name="allergie" value={form.allergie} onChange={upd}/>
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>Stile di vita</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
+            <FF label="Attività attuale" name="attivita" value={form.attivita} onChange={upd} options={['Sedentaria','Poco attiva','Moderatamente attiva','Attiva']}/>
+            <FF label="Obiettivo" name="obiettivo" value={form.obiettivo} onChange={upd}/>
+            <FF label="Stress" name="stressPercepito" value={form.stressPercepito} onChange={upd} options={['Basso','Medio','Alto']}/>
+            <FF label="Preferenze/limiti" name="preferenze" value={form.preferenze} onChange={upd} span={2}/>
+            <FF label="Sonno (ore)" name="sonno" type="number" value={form.sonno} onChange={upd}/>
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>Test funzionali</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
+            <FF label="6MWT (m)" name="mwtDist" type="number" value={form.test?.mwtDist} onChange={updT}/>
+            <FF label="6MWT RPE" name="mwtRpe" type="number" value={form.test?.mwtRpe} onChange={updT}/>
+            <FF label="6MWT Sintomi" name="mwtSintomi" value={form.test?.mwtSintomi} onChange={updT}/>
+            <FF label="STS 30s (rip)" name="stsRip" type="number" value={form.test?.stsRip} onChange={updT}/>
+            <FF label="STS Note" name="stsNote" value={form.test?.stsNote} onChange={updT}/>
+            <div><label style={S.label}>Profilo (auto)</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${pr?.c||C.border2}40`,fontSize:13}}>{pr?<span style={{color:pr.c,fontWeight:700}}>{pr.l}</span>:<span style={{color:C.muted}}>Inserire 6MWT + STS</span>}</div></div>
+            <FF label="Note valutazione" name="noteVal" type="textarea" value={form.test?.noteVal} onChange={updT} span={3}/>
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>Programma</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
+            <FF label="Data inizio" name="dataInizio" value={form.programma?.dataInizio} onChange={updP}/>
+            <FF label="Sedute/sett." name="sedute" type="number" value={form.programma?.sedute} onChange={updP}/>
+            <div/>
+            <FF label="Min cardio/sett." name="minCardio" type="number" value={form.programma?.minCardio} onChange={updP}/>
+            <FF label="Min forza/sett." name="minForza" type="number" value={form.programma?.minForza} onChange={updP}/>
+            <div/>
+            <FF label="Desc. cardio" name="cardio" type="textarea" value={form.programma?.cardio} onChange={updP} span={3}/>
+            <FF label="Desc. forza" name="forza" type="textarea" value={form.programma?.forza} onChange={updP} span={3}/>
+            <FF label="Note" name="note" type="textarea" value={form.programma?.note} onChange={updP} span={3}/>
+          </div>
+        </div>
+        <div style={S.card}>
+          <div style={S.st}>Nutrizione</div>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:12}}>
+            <FF label="Kcal/giorno" name="kcal" type="number" value={form.nutrizione?.kcal} onChange={updN}/>
+            <FF label="Proteine (g)" name="proteine" type="number" value={form.nutrizione?.proteine} onChange={updN}/>
+            <FF label="Carboidrati (g)" name="carboidrati" type="number" value={form.nutrizione?.carboidrati} onChange={updN}/>
+            <FF label="Grassi (g)" name="grassi" type="number" value={form.nutrizione?.grassi} onChange={updN}/>
+            <FF label="Note nutrizionali" name="note" type="textarea" value={form.nutrizione?.note} onChange={updN} span={4}/>
+            <FF label="Piano pasti" name="pianoPasti" type="textarea" value={form.nutrizione?.pianoPasti} onChange={updN} span={4} rows={5}/>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App(){
+  const [user,setUser]=useState(undefined);
+  const [profile,setProfile]=useState(null);
+
+  const loadProfile=async(u)=>{
+    if(!u){setProfile(null);return;}
+    const p=await fbGetUserProfile(u.uid);
+    setProfile(p);
+  };
+
+  useEffect(()=>{
+    let done=false;
+    const timeout=setTimeout(()=>{if(!done){done=true;setUser(null);}},5000);
+    try{
+      const unsub=fbAuth.onAuthStateChanged(async u=>{
+        if(!done){done=true;clearTimeout(timeout);}
+        setUser(u);
+        await loadProfile(u);
+      });
+      return()=>{clearTimeout(timeout);try{unsub();}catch(e){}};
+    }catch(e){clearTimeout(timeout);setUser(null);}
+  },[]);
+
+  if(user===undefined) return(
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'#07090f',gap:16}}>
+      <div style={{fontSize:32,fontWeight:900,color:'#3b82f6'}}>PT Board</div>
+      <div style={{width:36,height:36,border:'3px solid #334155',borderTop:'3px solid #3b82f6',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  if(!user) return <AuthScreen onProfileReady={p=>setProfile(p)}/>;
+  if(profile?.plan==='blocked') return <PaywallScreen user={user} profile={profile} blocked/>;
+  if(isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
+  return <AppInner user={user} profile={profile} trialLeft={trialDaysLeft(profile)}/>;
+}
+
+function AppInner({user,profile,trialLeft}){
+  const stored=load();
+  const [patients,setPatients]=useState(stored?.patients||INIT_PATIENTS);
+  const [bookings,setBookings]=useState(stored?.bookings||INIT_BOOKINGS);
+  const [exercises,setExercises]=useState(stored?.exercises||INIT_EXERCISES);
+  const [page,setPage]=useState('dash');
+  const [selectedId,setSelectedId]=useState(null);
+  const [editingPatient,setEditingPatient]=useState(null);
+  const [isNew,setIsNew]=useState(false);
+  const [search,setSearch]=useState('');
+  const [saveMsg,setSaveMsg]=useState('');
+  const [showParametri,setShowParametri]=useState(false);
+  const [sidebarOpen,setSidebarOpen]=useState(!isMobile);
+  const [isLight,setIsLight]=useState(stored?.isLight||false);
+  const [dataReady,setDataReady]=useState(true);
+  const [showValutazione,setShowValutazione]=useState(false);
+  const [showTutorial,setShowTutorial]=useState(false);
+  const [showAdmin,setShowAdmin]=useState(false);
+  const [showPiani,setShowPiani]=useState(false);
+  const firstLoad=useRef(true);
+
+  // Carica dati da Firebase in background (non blocca l'app)
+  useEffect(()=>{
+    fbLoad(user.uid).then(remote=>{
+      if(remote){
+        if(remote.patients) setPatients(remote.patients);
+        if(remote.bookings) setBookings(remote.bookings);
+        if(remote.exercises) setExercises(remote.exercises);
+        if(remote.isLight!==undefined) setIsLight(remote.isLight);
+      }
+    }).catch(()=>{});
+    if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
+  },[]);
+
+  // Applica tema
+  useEffect(()=>{
+    if(isLight) document.documentElement.classList.add('light');
+    else document.documentElement.classList.remove('light');
+  },[isLight]);
+
+  // Salva su localStorage + Firebase
+  useEffect(()=>{
+    if(firstLoad.current){firstLoad.current=false;return;}
+    const data={patients,bookings,exercises,isLight};
+    save(data);
+    fbSave(user.uid,data);
+    setSaveMsg('✓ Salvato');
+    const t=setTimeout(()=>setSaveMsg(''),1500);
+    return()=>clearTimeout(t);
+  },[patients,bookings,exercises,isLight]);
+
+  const selected=patients.find(p=>p.id===selectedId);
+
+  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
+
+  const handleSave=(form)=>{
+    if(!form.cognome||!form.nome)return alert('Cognome e nome obbligatori');
+    if(isNew){
+      const id=nextPid(patients);
+      const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
+      if(p.peso)p.progressi=[{data:p.dataValutazione||fmtDate(),peso:+p.peso,nota:'Primo accesso'}];
+      setPatients(ps=>[...ps,p]);setPage('patients');
+    }else{
+      setPatients(ps=>ps.map(p=>p.id===form.id?form:p));setSelectedId(form.id);setPage('detail');
+    }
+  };
+
+  const navItems=[
+    {id:'dash',icon:'⊞',l:'Dashboard'},
+    {id:'patients',icon:'👥',l:'Pazienti'},
+    {id:'calendar',icon:'📅',l:'Calendario'},
+    {id:'exercises',icon:'🏋',l:'Esercizi'},
+  ];
+
+  return(
+    <div style={S.app}>
+      {/* Overlay per chiudere sidebar su mobile */}
+      {sidebarOpen&&isMobile&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000070',zIndex:50}}/>}
+
+      {/* Sidebar */}
+      <div style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
+        transform:sidebarOpen?'translateX(0)':'translateX(-100%)',
+        transition:'transform .25s ease',boxShadow:sidebarOpen?'4px 0 20px #0008':'none'}}>
+        <div style={S.sbh}>
+          {/* Pulsante chiudi (X) */}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              
+              <div>
+                <div style={{textAlign:'center',padding:'8px 0'}}>
+              <div style={{fontSize:16,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
+              <div style={{fontSize:10,fontWeight:700,color:'#e8c84a',letterSpacing:2,textTransform:'uppercase',marginTop:2}}></div>
+            </div>
+              </div>
+            </div>
+            <button onClick={()=>setSidebarOpen(false)} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:20,padding:'4px 6px',borderRadius:6,lineHeight:1}}>✕</button>
+          </div>
+        </div>
+        <div style={S.nav}>
+          <div style={S.navlbl}>Menu</div>
+          {navItems.map(n=>(
+            <button key={n.id} style={S.navi(page===n.id||((page==='detail'||page==='form')&&n.id==='patients'))} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}}>
+              <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
+            </button>
+          ))}
+          <button style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
+            <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione 20 min</span>
+          </button>
+          <button style={{...S.navi(false),background:'#a78bfa10',border:'1px solid #a78bfa30',marginTop:4}} onClick={()=>{setShowTutorial(true);setSidebarOpen(false);}}>
+            <span style={{fontSize:14}}>📖</span><span style={{color:'#a78bfa',fontWeight:700}}>Tutorial</span>
+          </button>
+          <div style={S.navlbl}>Recenti</div>
+          {patients.slice(-5).reverse().map(p=>(
+            <button key={p.id} style={{...S.navi(selectedId===p.id&&page==='detail'),gap:7}} onClick={()=>{setSelectedId(p.id);setPage('detail');setSidebarOpen(false);}}>
+              <Avatar nome={p.nome} cognome={p.cognome} size={22}/>
+              <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12}}>{p.nome} {p.cognome}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{borderTop:`1px solid ${C.border2}`,flexShrink:0}}>
+          <button onClick={()=>setShowParametri(p=>!p)} style={{display:'flex',alignItems:'center',gap:9,width:'100%',padding:'12px 16px',background:'transparent',border:'none',cursor:'pointer',color:showParametri?C.blue:C.dim,fontSize:13,fontWeight:600,transition:'all .15s'}}>
+            <span style={{fontSize:14}}>⚙</span><span>Parametri</span>
+            <span style={{marginLeft:'auto',fontSize:10,color:C.muted}}>{showParametri?'▲':'▼'}</span>
+          </button>
+          {showParametri&&(
+            <div style={{padding:'12px 16px 16px',background:C.sidebar,borderTop:`1px solid ${C.border}`}}>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Tema</div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:12}}>
+                <span style={{fontSize:12,color:C.dim}}>🌙 Scuro</span>
+                <div onClick={()=>setIsLight(v=>!v)} style={{width:44,height:24,borderRadius:12,background:isLight?C.blue:'#334155',cursor:'pointer',position:'relative',transition:'background .25s',flexShrink:0}}>
+                  <div style={{position:'absolute',top:3,left:isLight?22:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left .25s',boxShadow:'0 1px 4px #0004'}}/>
+                </div>
+                <span style={{fontSize:12,color:C.dim}}>☀️ Chiaro</span>
+              </div>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Account</div>
+              <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
+              <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
+                {profile?.plan==='pro'?'✅ Piano Pro attivo':'💎 Vedi piani'}
+              </button>
+              {user?.email===ADMIN_EMAIL&&(
+                <button onClick={()=>setShowAdmin(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
+                  👑 Pannello Admin
+                </button>
+              )}
+              <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                Esci dall'account
+              </button>
+            </div>
+          )}
+          {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ Trial: {trialLeft} giorni rimasti</div>}
+          <div style={{padding:'6px 16px 10px',fontSize:10,color:C.muted}}>PT Board · {fmtDate()}</div>
+        </div>
+      </div>
+
+      {/* Main content — occupa tutto lo schermo */}
+      <div style={{...S.main,width:'100%'}}>
+        <div style={{...S.topbar,position:'relative',height:isMobile?56:52}}>
+          <button onClick={()=>setSidebarOpen(v=>!v)} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
+          {isMobile?(
+            <>
+              <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',pointerEvents:'none'}}>
+                <div style={{fontSize:16,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
+              </div>
+              <div style={{marginLeft:'auto',fontSize:12,color:C.muted,flexShrink:0}}>{patients.length} paz.</div>
+            </>
+          ):(
+            <>
+              <div style={{position:'relative',flex:1,maxWidth:300}}>
+                <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
+                <input style={{...S.inp,paddingLeft:32}} placeholder="Cerca paziente..." value={search} onChange={e=>setSearch(e.target.value)}/>
+              </div>
+              <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',pointerEvents:'none',textAlign:'center',lineHeight:1.2}}>
+                <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
+              </div>
+              {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600,marginLeft:'auto'}}>{saveMsg}</span>}
+              <div style={{fontSize:12,color:C.muted,marginLeft:'auto',flexShrink:0}}>{patients.length} pazienti</div>
+            </>
+          )}
+        </div>
+        {/* Barra ricerca mobile sotto topbar */}
+        {isMobile&&(
+          <div style={{padding:'8px 12px',background:C.sidebar,borderBottom:`1px solid ${C.border}`}}>
+            <div style={{position:'relative'}}>
+              <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
+              <input style={{...S.inp,paddingLeft:32,fontSize:14,padding:'10px 12px 10px 34px'}} placeholder="Cerca paziente..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            </div>
+          </div>
+        )}
+        <div style={S.content}>
+          {page==='dash'&&<Dashboard patients={patients} bookings={bookings}/>}
+          {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} search={search}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`Eliminare ${selected.nome}?`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))}/>}
+          {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
+          {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings}/>}
+          {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises}/>}
+        </div>
+      </div>
+      {showValutazione&&<WizardValutazione
+        onSave={p=>{
+          const id=nextPid(patients);
+          const np={...p,id,progressi:p.peso?[{data:fmtDate(),peso:+p.peso,nota:'Primo accesso — Valutazione 20 min'}]:[],log:[],schede:[]};
+          setPatients(ps=>[...ps,np]);
+          setShowValutazione(false);
+          setSelectedId(id);setPage('detail');
+        }}
+        onClose={()=>setShowValutazione(false)}
+      />}
+      {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
+      {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
+      {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile}/>}
+
+      {/* Bottom nav bar mobile */}
+      {isMobile&&(
+        <div style={{position:'fixed',bottom:0,left:0,right:0,height:60,background:C.sidebar,borderTop:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'space-around',zIndex:200,paddingBottom:'env(safe-area-inset-bottom)'}}>
+          {[
+            {id:'dash',icon:'⊞',l:'Home'},
+            {id:'patients',icon:'👥',l:'Pazienti'},
+            {id:'calendar',icon:'📅',l:'Agenda'},
+            {id:'exercises',icon:'🏋',l:'Esercizi'},
+          ].map(n=>(
+            <button key={n.id} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:page===n.id?'#3b82f6':C.dim}}>
+              <span style={{fontSize:20}}>{n.icon}</span>
+              <span style={{fontSize:10,fontWeight:600}}>{n.l}</span>
+            </button>
+          ))}
+          <button onClick={()=>setSidebarOpen(v=>!v)} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,background:'none',border:'none',cursor:'pointer',padding:'6px 12px',borderRadius:8,color:C.dim}}>
+            <span style={{fontSize:20}}>☰</span>
+            <span style={{fontSize:10,fontWeight:600}}>Menu</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── DATI PROGRAMMI PER PROFILO ────────────────────────────────────────────────
+const PROGRAMMI={
+  A:{
+    nome:'Programma Profilo A — Avvio Graduale',
+    desc:'Capacità molto bassa. Focus su adattamento, sicurezza e costruzione abitudine.',
+    settimane:[
+      {num:1,cardio:'Camminata lenta 10-15 min, RPE 2-3. Pausa ogni 5 min se necessario.',forza:'Esercizi da seduto: sollevamento gambe, push-up da muro (2×8). Recupero 90s.',note:'Monitorare PA e FC. Fermarsi se RPE > 5.'},
+      {num:2,cardio:'Camminata 15-20 min, RPE 3-4. Intervalli: 5 min cammino / 2 min pausa.',forza:'Squat assistito con sedia + alzate laterali 1kg (2×10). Recupero 90s.',note:'Aggiungere 5 min se ben tollerato.'},
+      {num:3,cardio:'Camminata 20-25 min continua, RPE 3-4.',forza:'Squat libero + curl 2kg + step-up basso (3×8). Recupero 60s.',note:'Prima settimana con resistenza leggera.'},
+      {num:4,cardio:'Camminata 25-30 min, RPE 4-5. Primo tratto in leggera salita.',forza:'Circuito 3 esercizi × 3 giri: squat, push-up ginocchia, row elastico.',note:'Rivalutare con 6MWT a fine mese.'},
+    ],
+    sedute:3,minCardio:75,minForza:45,kcal:1600,prot:128,carbo:160,grassi:53,
+  },
+  B:{
+    nome:'Programma Profilo B — Progressione Moderata',
+    desc:'Capacità moderata. Progressione controllata su cardio e forza funzionale.',
+    settimane:[
+      {num:1,cardio:'Camminata veloce 20 min + 2 brevi salite, RPE 4-5.',forza:'Squat + affondi + push-up (3×10). Recupero 60s.',note:'Stabilire il ritmo di base della settimana.'},
+      {num:2,cardio:'Camminata/corsa blanda 25 min, RPE 4-5. Intervalli 3 min corsa / 2 min cammino.',forza:'Aggiunta peso leggero (2-4 kg). Circuit training 3 giri.',note:'Aumentare intensità cardio del 10%.'},
+      {num:3,cardio:'30 min cardio (bike o camminata veloce), RPE 5-6.',forza:'Supersets: squat+curl, affondi+press (3×12). Recupero 45s.',note:'Introdurre attrezzatura minima.'},
+      {num:4,cardio:'35 min cardio variato (LISS + 2×5 min HIIT leggero), RPE 5-7.',forza:'Full body con sovraccarichi: 4 esercizi × 3 giri × 12 rip.',note:'Rivalutare test funzionali. Obiettivo: profilo C.'},
+    ],
+    sedute:4,minCardio:110,minForza:70,kcal:1800,prot:144,carbo:180,grassi:60,
+  },
+  C:{
+    nome:'Programma Profilo C — Sviluppo Intensivo',
+    desc:'Buona capacità di base. Obiettivo: composizione corporea e performance.',
+    settimane:[
+      {num:1,cardio:'30 min LISS (60-70% FC max) + 10 min HIIT 30/30, RPE 5-7.',forza:'Upper/Lower split: 4 esercizi × 4 giri × 10-12 rip. Recupero 45s.',note:'Settimana baseline — registrare i carichi.'},
+      {num:2,cardio:'35 min cardio + 15 min HIIT (40/20), RPE 6-7.',forza:'Aumentare carico +5-10%. Aggiungere esercizio accessorio per gruppo.',note:'Progressione lineare del carico.'},
+      {num:3,cardio:'40 min cardio. 2 sessioni HIIT dedicate (20 min, 30/15).',forza:'Volume alto: 5 giri × 8-10 rip. Compound: stacco, panca.',note:'Monitorare recupero e sonno.'},
+      {num:4,cardio:'45 min cardio variato. Prova corsa 5 km se ben tollerato.',forza:'Deload parziale: 3 giri × 12 rip, carico -20%. Lavoro mobilità.',note:'Rivalutare e pianificare prossimo mesociclo.'},
+    ],
+    sedute:5,minCardio:150,minForza:100,kcal:2100,prot:168,carbo:220,grassi:70,
+  },
+};
+
+// ── WIZARD VALUTAZIONE 20 MIN ─────────────────────────────────────────────────
+// Definito FUORI dal wizard — evita re-mount ad ogni keystroke
+function WizIn({lbl,name,type='text',val,onChange,opts,ph}){
+  return(
+    <div style={{marginBottom:10}}>
+      <label style={S.label}>{lbl}</label>
+      {opts
+        ?<select value={val||''} onChange={onChange} style={S.sel}>{opts.map(o=><option key={o}>{o}</option>)}</select>
+        :<input type={type} value={val||''} onChange={onChange} placeholder={ph} style={S.inp}/>}
+    </div>
+  );
+}
+
+function WizardValutazione({onSave,onClose}){
+  const TOTAL=6;
+  const [step,setStep]=useState(1);
+  const [d,setD]=useState({nome:'',cognome:'',ddn:'',sesso:'F',altezza:'',peso:'',vita:'',pa:'',fc:'',patologie:'Nessuna',farmaci:'Nessuno',sintomiSforzo:'NO',attivita:'Sedentaria',obiettivo:'',mwtDist:'',mwtRpe:'',mwtSintomi:'NO',stsRip:'',stsNote:'',rpeRiposo:'',noteVal:''});
+  const upd=k=>e=>setD(x=>({...x,[k]:e.target.value}));
+  const set=(k,v)=>setD(x=>({...x,[k]:v}));
+
+  const bmiVal=d.peso&&d.altezza?bmi(+d.peso,+d.altezza):null;
+  const {l:bmiLbl,c:bmiClr}=bmiVal?bmiCat(bmiVal):{l:'—',c:C.muted};
+  const pr=profilo(+d.mwtDist,+d.stsRip);
+  const prog=pr?PROGRAMMI[pr.code]:null;
+  const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
+  const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
+  const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
+
+  const exportPDF=()=>{
+    if(!prog||!pr)return;
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Valutazione ${d.nome} ${d.cognome}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:13px}
+.pg{max-width:800px;margin:0 auto;padding:40px}.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #3b82f6;padding-bottom:16px;margin-bottom:22px}
+.brand{font-size:22px;font-weight:900;color:#3b82f6}small{display:block;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.sec{margin-bottom:20px}.st{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#3b82f6;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.row{display:flex;justify-content:space-between;padding:5px 9px;background:#f8fafc;border-radius:5px;margin-bottom:4px}
+.rl{color:#64748b;font-size:12px}.rv{font-weight:600;font-size:12px}
+.kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center}
+.kv{font-size:22px;font-weight:900;color:#3b82f6}.kl{font-size:9px;color:#64748b;text-transform:uppercase;margin-top:2px}
+.profilo{text-align:center;padding:24px;border-radius:14px;margin-bottom:20px}
+.A{background:#fee2e2;border:2px solid #ef4444}.B{background:#fef3c7;border:2px solid #f59e0b}.C{background:#d1fae5;border:2px solid #10b981}
+.wk{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px}
+.wk-t{font-size:11px;font-weight:700;color:#3b82f6;margin-bottom:6px}
+.tip{background:#fffbeb;border-left:3px solid #f59e0b;padding:7px 10px;font-size:11px;color:#92400e;border-radius:0 5px 5px 0;margin-top:6px}
+footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
+<body><div class="pg">
+<div class="hdr">
+  <div><div class="brand">PT Board<small>Valutazione Base — 20 min</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
+  <div style="text-align:right"><div style="font-size:20px;font-weight:800">${d.nome} ${d.cognome}</div><div style="font-size:11px;color:#64748b">${d.ddn||''} · ${d.sesso}</div></div>
+</div>
+<div class="profilo ${pr.code}">
+  <div style="font-size:60px;font-weight:900;color:${pr.c};line-height:1">${pr.code}</div>
+  <div style="font-size:16px;font-weight:700;margin-top:6px">${pr.l}</div>
+  <div style="font-size:12px;color:#475569;margin-top:4px">${prog.desc}</div>
+</div>
+<div class="g3" style="margin-bottom:20px">
+  <div class="kpi"><div class="kv">${bmiVal||'—'}</div><div class="kl">BMI · ${bmiLbl}</div></div>
+  <div class="kpi"><div class="kv">${d.peso||'—'} kg</div><div class="kl">Peso attuale</div></div>
+  <div class="kpi"><div class="kv">${pesoTarget||'—'} kg</div><div class="kl">Peso target</div></div>
+</div>
+<div class="g2" style="margin-bottom:20px">
+<div class="sec"><div class="st">Anagrafica & Clinica</div>
+${[['Altezza',d.altezza?d.altezza+' cm':'—'],['Vita',d.vita?d.vita+' cm':'—'],['PA',d.pa||'—'],['FC riposo',d.fc?d.fc+' bpm':'—'],['FC max',fcMax?fcMax+' bpm':'—'],['FC target 75%',fcMax?Math.round(fcMax*.75)+' bpm':'—'],['Patologie',d.patologie||'—'],['Farmaci',d.farmaci||'—'],['Attività',d.attivita||'—'],['Obiettivo',d.obiettivo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+</div>
+<div class="sec"><div class="st">Test Funzionali</div>
+${[['6MWT — Distanza',d.mwtDist?d.mwtDist+' m':'—'],['6MWT — RPE',d.mwtRpe||'—'],['6MWT — Sintomi',d.mwtSintomi||'—'],['STS 30s — Rip.',d.stsRip||'—'],['Note STS',d.stsNote||'—'],['RPE a riposo',d.rpeRiposo||'—'],['Note valutazione',d.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+</div></div>
+<div class="sec"><div class="st">${prog.nome}</div>
+<div class="g3" style="margin-bottom:12px">
+  <div class="kpi"><div class="kv" style="font-size:18px">${prog.sedute}</div><div class="kl">Sedute/sett.</div></div>
+  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minCardio}'</div><div class="kl">Min cardio</div></div>
+  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minForza}'</div><div class="kl">Min forza</div></div>
+</div>
+${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</div>
+<div style="margin-bottom:3px"><strong style="color:#3b82f6">Cardio:</strong> ${w.cardio}</div>
+<div><strong style="color:#10b981">Forza:</strong> ${w.forza}</div>
+<div class="tip">💡 ${w.note}</div></div>`).join('')}
+</div>
+<div class="sec"><div class="st">Linee guida nutrizionali</div>
+<div class="g4">
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${prog.kcal}</div><div class="kl">kcal/gg</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px">${prog.prot}g</div><div class="kl">Proteine</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
+</div></div>
+<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
+</div></body></html>`;
+    const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),600);
+  };
+
+  const exportCSV=()=>{
+    if(!prog||!pr)return;
+    const rows=[
+      ['PT Board — Valutazione Base 20 min',''],['Data',fmtDate()],[''],
+      ['PAZIENTE',''],['Cognome',d.cognome],['Nome',d.nome],['Data nascita',d.ddn],['Sesso',d.sesso],
+      ['Altezza cm',d.altezza],['Peso kg',d.peso],['Vita cm',d.vita],['PA',d.pa],['FC riposo bpm',d.fc],
+      ['FC max bpm',fcMax||''],['BMI',bmiVal||''],['Categoria BMI',bmiLbl],['Peso target kg',pesoTarget||''],
+      ['Patologie',d.patologie],['Farmaci',d.farmaci],['Attività',d.attivita],['Obiettivo',d.obiettivo],[''],
+      ['TEST FUNZIONALI',''],['6MWT Distanza m',d.mwtDist],['6MWT RPE',d.mwtRpe],['6MWT Sintomi',d.mwtSintomi],
+      ['STS 30s Ripetizioni',d.stsRip],['Note STS',d.stsNote],['RPE riposo',d.rpeRiposo],['Note valutazione',d.noteVal],[''],
+      ['PROFILO',''],['Codice',pr.code],['Descrizione',pr.l],[''],
+      ['PROGRAMMA 4 SETTIMANE',''],['Nome',prog.nome],['Sedute/sett',prog.sedute],['Min cardio/sett',prog.minCardio],['Min forza/sett',prog.minForza],[''],
+      ['SETTIMANA','CARDIO','FORZA','NOTE'],
+      ...prog.settimane.map(w=>[`Settimana ${w.num}`,w.cardio,w.forza,w.note]),[''],
+      ['NUTRIZIONE',''],['kcal/gg',prog.kcal],['Proteine g',prog.prot],['Carboidrati g',prog.carbo],['Grassi g',prog.grassi],
+    ];
+    const csv=rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+    a.download=`Valutazione_${d.cognome}_${d.nome}_${fmtDate().replace(/\//g,'-')}.csv`;
+    a.click();
+  };
+
+  const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:12};
+  const BOX={background:C.card,border:`1px solid ${C.border2}`,borderRadius:18,width:'min(800px,98vw)',maxHeight:'94vh',display:'flex',flexDirection:'column'};
+  const pct=Math.round(step/TOTAL*100);
+  const clr=pr?pr.c:C.blue;
+
+  const stepTitles=['Anagrafica & Clinica','🚶 6 Minute Walk Test','🪑 Sit-to-Stand 30s','😮‍💨 RPE & Note finali','📊 Classificazione','🏆 Programma 4 Settimane'];
+  const stepSub=['Dati base — ~5 min','Test 1 di 3 — ~8 min','Test 2 di 3 — ~5 min','Test 3 di 3 — ~2 min','Risultato automatico','Pronto per iniziare'];
+
+  return(
+    <div style={OL} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={BOX}>
+        {/* Header */}
+        <div style={{padding:'18px 22px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
+          <div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:`1px solid ${C.blue}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🎯</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:800,color:C.strong}}>Valutazione Base — 20 minuti</div>
+            <div style={{fontSize:11,color:C.muted,marginTop:1}}>Passo {step} di {TOTAL} · {stepTitles[step-1]}</div>
+          </div>
+          <button onClick={onClose} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
+        </div>
+        {/* Progress */}
+        <div style={{height:3,background:C.border,flexShrink:0}}>
+          <div style={{height:'100%',width:pct+'%',background:`linear-gradient(90deg,${C.blue},${C.green})`,transition:'width .4s ease'}}/>
+        </div>
+        {/* Step pills */}
+        <div style={{display:'flex',padding:'10px 22px',gap:4,flexShrink:0,overflowX:'auto'}}>
+          {stepTitles.map((t,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
+              <div style={{width:22,height:22,borderRadius:'50%',background:i<step-1?C.green:i===step-1?C.blue:C.border2,color:i<=step-1?'#fff':C.muted,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:i<step?'pointer':'default',transition:'all .2s'}}
+                onClick={()=>{if(i<step)setStep(i+1);}}>
+                {i<step-1?'✓':i+1}
+              </div>
+              {i<TOTAL-1&&<div style={{width:20,height:1,background:i<step-1?C.green:C.border2}}/>}
+            </div>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div style={{padding:'20px 24px',flex:1,overflowY:'auto'}}>
+          <div style={{fontSize:10,color:C.blue,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{stepSub[step-1]}</div>
+          <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{stepTitles[step-1]}</h2>
+
+          {/* STEP 1 — Anagrafica */}
+          {step===1&&<div>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+              <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
+              <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
+              <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
+              <WizIn lbl="Sesso" name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
+              <WizIn lbl="Altezza (cm)" name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
+              <WizIn lbl="Peso (kg)" name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
+              <WizIn lbl="Vita (cm)" name="vita" type="number" val={d.vita} onChange={upd('vita')}/>
+              <WizIn lbl="PA (es. 120/80)" name="pa" val={d.pa} onChange={upd('pa')}/>
+              <WizIn lbl="FC riposo (bpm)" name="fc" type="number" val={d.fc} onChange={upd('fc')}/>
+              <WizIn lbl="Patologie note" name="patologie" val={d.patologie} onChange={upd('patologie')}/>
+              <WizIn lbl="Farmaci" name="farmaci" val={d.farmaci} onChange={upd('farmaci')}/>
+              <WizIn lbl="Sintomi da sforzo" name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
+              <WizIn lbl="Attività attuale" name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderatamente attiva','Attiva']} onChange={upd('attivita')}/>
+            </div>
+            <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} ph="es. Dimagrimento, migliorare salute..." onChange={upd('obiettivo')}/>
+            {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
+              {[[bmiVal,`BMI — ${bmiLbl}`,bmiClr],[`${d.peso} kg`,'Peso attuale',C.text],[`${pesoTarget||'—'} kg`,'Peso target (BMI 24.9)',C.blue]].map(([v,l,c])=>(
+                <div key={l} style={{background:C.bg,border:`1px solid ${c}30`,borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
+                  <div style={{fontSize:20,fontWeight:900,color:c}}>{v}</div>
+                  <div style={{fontSize:10,color:C.muted,marginTop:3}}>{l}</div>
+                </div>
+              ))}
+            </div>}
+            {fcMax&&<div style={{background:C.bg,border:`1px solid ${C.purple}30`,borderRadius:10,padding:'10px 14px',marginTop:10,display:'flex',gap:20,justifyContent:'center'}}>
+              <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.purple}}>{fcMax}</div><div style={{fontSize:10,color:C.muted}}>FC max</div></div>
+              <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.blue}}>{Math.round(fcMax*.6)}</div><div style={{fontSize:10,color:C.muted}}>60% FC max</div></div>
+              <div style={{textAlign:'center'}}><div style={{fontSize:20,fontWeight:900,color:C.teal}}>{Math.round(fcMax*.75)}</div><div style={{fontSize:10,color:C.muted}}>75% FC max</div></div>
+            </div>}
+          </div>}
+
+          {/* STEP 2 — 6MWT */}
+          {step===2&&<div>
+            <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:8}}>📋 Protocollo rapido</div>
+              {['Corridoio piano ≥ 20m (o circuito all\'aperto)','Il paziente cammina il più veloce possibile per 6 minuti esatti','Può fermarsi se necessario — registrare le soste','Misurare la distanza totale in metri','Rilevare RPE (0-10) subito al termine'].map((t,i)=>(
+                <div key={i} style={{display:'flex',gap:8,marginBottom:7}}>
+                  <div style={{width:18,height:18,borderRadius:'50%',background:C.blue+'25',color:C.blue,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
+                  <div style={{fontSize:13,color:C.text,lineHeight:1.5}}>{t}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+              <WizIn lbl="Distanza percorsa (m) *" name="mwtDist" type="number" val={d.mwtDist} ph="es. 320" onChange={upd('mwtDist')}/>
+              <WizIn lbl="RPE al termine (0-10)" name="mwtRpe" type="number" val={d.mwtRpe} ph="0 = nessuno sforzo" onChange={upd('mwtRpe')}/>
+            </div>
+            <WizIn lbl="Sintomi durante il test" name="mwtSintomi" val={d.mwtSintomi} opts={['NO','Dispnea lieve','Dispnea moderata','Affaticamento gambe','Dolore','Test interrotto']} onChange={upd('mwtSintomi')}/>
+            {d.mwtDist&&<div style={{background:C.bg,border:`1px solid ${+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green}40`,borderRadius:10,padding:'10px 14px',marginTop:4}}>
+              <div style={{fontSize:10,color:C.muted}}>Indicatore 6MWT</div>
+              <div style={{fontSize:15,fontWeight:700,color:+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green,marginTop:3}}>
+                {+d.mwtDist<300?'< 300m — Capacità molto bassa → Profilo A tendenziale':+d.mwtDist<=450?'300–450m — Capacità moderata → Profilo B tendenziale':'> 450m — Buona capacità → Profilo C tendenziale'}
+              </div>
+            </div>}
+          </div>}
+
+          {/* STEP 3 — STS */}
+          {step===3&&<div>
+            <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14,marginBottom:16}}>
+              <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:8}}>📋 Protocollo rapido</div>
+              {['Sedia standard senza braccioli, altezza ~43 cm','Partenza seduto, braccia incrociate al petto','Al via: alzarsi completamente e risedersi per 30 secondi esatti','Contare ogni alzata completa come 1 ripetizione','Non usare le mani — annotarlo se indispensabile'].map((t,i)=>(
+                <div key={i} style={{display:'flex',gap:8,marginBottom:7}}>
+                  <div style={{width:18,height:18,borderRadius:'50%',background:C.green+'25',color:C.green,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
+                  <div style={{fontSize:13,color:C.text,lineHeight:1.5}}>{t}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+              <WizIn lbl="Ripetizioni completate *" name="stsRip" type="number" val={d.stsRip} ph="es. 12" onChange={upd('stsRip')}/>
+              <WizIn lbl="Note tecnica" name="stsNote" val={d.stsNote} ph="es. Uso mani, ginocchia valghe..." onChange={upd('stsNote')}/>
+            </div>
+            {d.stsRip&&<div style={{background:C.bg,border:`1px solid ${+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green}40`,borderRadius:10,padding:'10px 14px',marginTop:4}}>
+              <div style={{fontSize:10,color:C.muted}}>Indicatore STS</div>
+              <div style={{fontSize:15,fontWeight:700,color:+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green,marginTop:3}}>
+                {+d.stsRip<10?'< 10 rip. — Forza molto ridotta → Profilo A tendenziale':+d.stsRip<=15?'10–15 rip. — Forza moderata → Profilo B tendenziale':'> 15 rip. — Buona forza → Profilo C tendenziale'}
+              </div>
+            </div>}
+            {d.mwtDist&&d.stsRip&&pr&&<div style={{background:`${pr.c}12`,border:`1px solid ${pr.c}40`,borderRadius:10,padding:'10px 14px',marginTop:10,display:'flex',alignItems:'center',gap:10}}>
+              <div style={{fontSize:30,fontWeight:900,color:pr.c,width:40,textAlign:'center'}}>{pr.code}</div>
+              <div><div style={{fontSize:13,fontWeight:700,color:C.strong}}>Profilo {pr.code} già determinabile</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{pr.l}</div></div>
+            </div>}
+          </div>}
+
+          {/* STEP 4 — RPE & Note */}
+          {step===4&&<div>
+            <p style={{fontSize:13,color:C.muted,marginBottom:16,lineHeight:1.6}}>Valuta lo stato percepito <strong style={{color:C.text}}>dopo i test</strong>, a riposo. Registra osservazioni cliniche utili per il futuro.</p>
+            <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>Scala RPE — clicca per selezionare</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6,marginBottom:14}}>
+              {[[0,'#10b981','Nulla'],[2,'#22d3ee','Molto lieve'],[4,'#f59e0b','Lieve'],[6,'#fb923c','Moderata'],[8,'#ef4444','Intensa']].map(([v,c,l])=>(
+                <div key={v} onClick={()=>set('rpeRiposo',String(v))} style={{background:String(d.rpeRiposo)===String(v)?c+'30':C.bg,border:`1px solid ${String(d.rpeRiposo)===String(v)?c:C.border2}`,borderRadius:8,padding:'8px 4px',textAlign:'center',cursor:'pointer',transition:'all .15s'}}>
+                  <div style={{fontSize:18,fontWeight:800,color:c}}>{v}</div>
+                  <div style={{fontSize:9,color:C.muted,marginTop:2}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <WizIn lbl="RPE a riposo (0-10)" name="rpeRiposo" type="number" val={d.rpeRiposo} ph="0-10" onChange={upd('rpeRiposo')}/>
+            <div style={{marginBottom:10}}>
+              <label style={S.label}>Note generali valutazione</label>
+              <textarea value={d.noteVal||''} onChange={upd('noteVal')} placeholder="Osservazioni cliniche, comportamento durante i test, motivazione, note utili per il programma..." style={{...S.ta,minHeight:90}}/>
+            </div>
+          </div>}
+
+          {/* STEP 5 — Classificazione */}
+          {step===5&&<div>
+            {!pr?<div style={{background:C.bg,border:`1px dashed ${C.border2}`,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
+              <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
+              <div style={{fontSize:14}}>Inserisci i valori del 6MWT (passo 2) e STS (passo 3) per ottenere la classificazione automatica.</div>
+            </div>:<>
+              <div style={{background:`${pr.c}12`,border:`2px solid ${pr.c}50`,borderRadius:16,padding:28,textAlign:'center',marginBottom:18}}>
+                <div style={{fontSize:80,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code}</div>
+                <div style={{fontSize:18,fontWeight:700,color:C.strong,marginTop:8}}>{pr.l}</div>
+                <div style={{fontSize:13,color:C.muted,marginTop:6,maxWidth:400,margin:'8px auto 0'}}>{prog?.desc}</div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:8,marginBottom:16}}>
+                {[[`6MWT: ${d.mwtDist||'—'} m`,+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],[`STS: ${d.stsRip||'—'} rip.`,+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],[`BMI: ${bmiVal||'—'} — ${bmiLbl}`,bmiClr],[`Peso target: ${pesoTarget||'—'} kg`,C.blue]].map(([l,c])=>(
+                  <div key={l} style={{background:C.bg,border:`1px solid ${c}30`,borderRadius:10,padding:'10px 14px'}}>
+                    <div style={{fontSize:13,fontWeight:700,color:c}}>{l}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{background:C.bg,border:`1px solid ${C.border2}`,borderRadius:12,padding:14}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>Criteri di classificazione automatica</div>
+                {[['A',C.red,'6MWT < 300m  e/o  STS < 10 rip.','Avvio molto graduale — priorità sicurezza'],['B',C.yellow,'6MWT 300-450m  e  STS 10-15 rip.','Progressione moderata e controllata'],['C',C.green,'6MWT > 450m  e  STS > 15 rip.','Progressione più intensa — focus composizione']].map(([p,c,v,desc])=>(
+                  <div key={p} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:`1px solid ${C.border}`}}>
+                    <div style={{width:28,height:28,borderRadius:8,background:c+'20',border:`1px solid ${c}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c,flexShrink:0}}>{p}</div>
+                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
+                  </div>
+                ))}
+              </div>
+            </>}
+          </div>}
+
+          {/* STEP 6 — Programma + Export */}
+          {step===6&&<div>
+            {!prog?<div style={{background:C.bg,border:`1px dashed ${C.border2}`,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
+              <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
+              <div style={{fontSize:14}}>Completa i test funzionali per ricevere il programma automatico.</div>
+            </div>:<>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:8,marginBottom:16}}>
+                {[[prog.sedute,'Sedute/sett.',C.blue],[prog.minCardio+"'",'Min cardio/sett.',C.green],[prog.minForza+"'",'Min forza/sett.',C.orange]].map(([v,l,c])=>(
+                  <div key={l} style={{background:C.bg,border:`1px solid ${c}30`,borderRadius:12,padding:'12px 8px',textAlign:'center'}}>
+                    <div style={{fontSize:24,fontWeight:900,color:c}}>{v}</div>
+                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',marginTop:4}}>{l}</div>
+                  </div>
+                ))}
+              </div>
+              {prog.settimane.map(w=>(
+                <div key={w.num} style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.blue}`}}>
+                  <div style={{fontSize:10,fontWeight:700,color:C.blue,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Settimana {w.num}</div>
+                  <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10}}>
+                    <div><div style={{fontSize:9,color:C.green,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Cardio</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.cardio}</div></div>
+                    <div><div style={{fontSize:9,color:C.purple,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Forza</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.forza}</div></div>
+                  </div>
+                  <div style={{marginTop:8,background:C.yellow+'10',border:`1px solid ${C.yellow}30`,borderRadius:7,padding:'6px 10px',fontSize:12,color:C.yellow}}>💡 {w.note}</div>
+                </div>
+              ))}
+              <div style={{...S.card,marginBottom:14}}>
+                <div style={S.st}>🥗 Linee guida nutrizionali</div>
+                <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:8}}>
+                  {[[prog.kcal,'kcal/gg',C.orange],[prog.prot+'g','Proteine',C.blue],[prog.carbo+'g','Carboidrati',C.yellow],[prog.grassi+'g','Grassi',C.green]].map(([v,l,c])=>(
+                    <div key={l} style={{background:C.bg,borderRadius:9,padding:'10px 6px',textAlign:'center',border:`1px solid ${c}30`}}>
+                      <div style={{fontSize:16,fontWeight:800,color:c}}>{v}</div>
+                      <div style={{fontSize:9,color:C.muted,marginTop:2}}>{l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{display:'flex',gap:10}}>
+                <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>📄 Esporta PDF</button>
+                <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>📊 Esporta Excel / CSV</button>
+              </div>
+            </>}
+          </div>}
+        </div>
+
+        {/* Footer */}
+        <div style={{padding:'14px 22px',borderTop:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap'}}>
+          <button onClick={onClose} style={S.btn('ghost',true)}>Annulla</button>
+          <div style={{display:'flex',gap:8}}>
+            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>← Indietro</button>}
+            {step<TOTAL&&<button onClick={()=>{
+              if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
+              setStep(s=>s+1);
+            }} style={S.btn()}>Avanti →</button>}
+            {step===TOTAL&&<button onClick={()=>{
+              if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
+              const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,pa:d.pa,fc:d.fc,patologie:d.patologie,farmaci:d.farmaci,sintomiSforzo:d.sintomiSforzo,allergie:'',attivita:d.attivita,obiettivo:d.obiettivo,preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),
+                test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal},
+                programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note}:{},
+                nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
+              };
+              onSave(p);
+            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>✓ Salva &amp; apri scheda</button>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ERROR BOUNDARY ────────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component{
+  constructor(p){super(p);this.state={err:null};}
+  static getDerivedStateFromError(e){return{err:e};}
+  render(){
+    if(this.state.err) return(
+      <div style={{padding:24,background:'#07090f',minHeight:'100vh',color:'#e2e8f0',fontFamily:'monospace'}}>
+        <div style={{fontSize:20,fontWeight:700,color:'#ef4444',marginBottom:12}}>⚠ Errore app</div>
+        <div style={{fontSize:12,color:'#94a3b8',wordBreak:'break-all',whiteSpace:'pre-wrap'}}>{String(this.state.err)}</div>
+        <button onClick={()=>window.location.reload()} style={{marginTop:20,padding:'10px 20px',background:'#3b82f6',color:'#fff',border:'none',borderRadius:8,fontSize:14,cursor:'pointer'}}>Ricarica</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
+// ── PAYWALL SCREEN ────────────────────────────────────────────────────────────
+function PaywallScreen({user,profile,blocked}){
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
+      <div style={{width:'100%',maxWidth:420,textAlign:'center'}}>
+        <div style={{fontSize:40,marginBottom:12}}>{blocked?'🚫':'⏰'}</div>
+        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>{blocked?'Account sospeso':'Periodo di prova terminato'}</div>
+        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>{blocked?'Il tuo account è stato sospeso. Contatta il supporto.':'Il tuo trial gratuito di 30 giorni è scaduto.'}<br/>Attiva PT Board Pro per continuare.</div>
+        <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:16,padding:28,marginBottom:20}}>
+          <div style={{fontSize:13,color:'#3b82f6',fontWeight:700,marginBottom:6}}>PT Board Pro</div>
+          <div style={{fontSize:36,fontWeight:900,color:'#f8fafc',marginBottom:4}}>€19<span style={{fontSize:16,color:'#64748b'}}>/mese</span></div>
+          <div style={{fontSize:12,color:'#64748b',marginBottom:20}}>Pazienti illimitati · Sync cloud · Aggiornamenti inclusi</div>
+          <a href={PAYPAL_PRO} target="_blank" style={{display:'block',padding:'14px',borderRadius:10,background:'#3b82f6',color:'#fff',fontSize:15,fontWeight:700,textDecoration:'none',marginBottom:10}}>
+            💳 Paga con PayPal · Apple Pay · Google Pay
+          </a>
+          <div style={{fontSize:11,color:'#475569'}}>Dopo il pagamento contatta <strong style={{color:'#94a3b8'}}>stevetsala22@gmail.com</strong><br/>per attivare il tuo account</div>
+        </div>
+        <button onClick={()=>fbAuth.signOut()} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>Esci dall'account ({user?.email})</button>
+      </div>
+    </div>
+  );
+}
+
+// ── PIANI MODAL ───────────────────────────────────────────────────────────────
+function PianiModal({onClose,profile}){
+  const isPro=profile?.plan==='pro';
+  const daysLeft=trialDaysLeft(profile);
+
+  const piani=[
+    {
+      id:'starter',
+      nome:'Starter',
+      prezzo:'Gratis',
+      sub:'30 giorni di prova',
+      color:'#64748b',
+      features:[
+        '✅ Fino a 5 pazienti',
+        '✅ Valutazione 20 min',
+        '✅ Calendario appuntamenti',
+        '✅ Sync cloud',
+        '❌ Pazienti illimitati',
+        '❌ Export PDF',
+        '❌ Aggiornamenti prioritari',
+      ],
+      cta:'Piano attuale',
+      disabled:true,
+    },
+    {
+      id:'pro',
+      nome:'Pro',
+      prezzo:'€19',
+      sub:'/mese',
+      color:'#3b82f6',
+      badge:'⭐ Più popolare',
+      features:[
+        '✅ Pazienti illimitati',
+        '✅ Valutazione 20 min completa',
+        '✅ Calendario + promemoria',
+        '✅ Sync cloud multi-dispositivo',
+        '✅ Export PDF schede',
+        '✅ Aggiornamenti inclusi',
+        '✅ Supporto prioritario',
+      ],
+      cta:isPro?'✅ Attivo':'Attiva Pro',
+      link:PAYPAL_PRO,
+    },
+    {
+      id:'studio',
+      nome:'Studio',
+      prezzo:'€49',
+      sub:'/mese',
+      color:'#f59e0b',
+      badge:'🏆 Per palestre',
+      features:[
+        '✅ Tutto di Pro',
+        '✅ Fino a 5 PT nel team',
+        '✅ Dashboard condivisa',
+        '✅ Report mensili automatici',
+        '✅ Branding personalizzato',
+        '✅ Onboarding dedicato',
+        '✅ Account manager',
+      ],
+      cta:'Contattaci',
+      link:PAYPAL_STUDIO,
+    },
+  ];
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'#000000c0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16,overflowY:'auto'}}>
+      <div style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:20,width:'min(860px,95vw)',maxHeight:'95vh',overflowY:'auto'}}>
+
+        {/* Header */}
+        <div style={{padding:'24px 28px 0',textAlign:'center',position:'relative'}}>
+          <button onClick={onClose} style={{position:'absolute',right:20,top:20,background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
+          <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>Scegli il tuo piano</div>
+          <div style={{fontSize:13,color:'#64748b',marginBottom:4}}>
+            {isPro
+              ? '✅ Sei già su Piano Pro — grazie per il supporto!'
+              : `⏳ Hai ancora ${daysLeft} giorni di prova gratuita`}
+          </div>
+          {/* Competitor comparison banner */}
+          <div style={{display:'inline-block',background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'6px 14px',fontSize:11,color:'#10b981',margin:'12px 0 20px'}}>
+            💪 Mindflex €49/m · Trainerize €35/m · PT Distinction €99/m — PT Board Pro solo €19/m
+          </div>
+        </div>
+
+        {/* Cards */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:16,padding:'0 24px 28px'}}>
+          {piani.map(p=>(
+            <div key={p.id} style={{
+              background:'#0f1623',
+              border:`2px solid ${p.id==='pro'?p.color:'#1e2d47'}`,
+              borderRadius:16,
+              padding:22,
+              position:'relative',
+              display:'flex',flexDirection:'column',
+            }}>
+              {p.badge&&(
+                <div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:p.color,color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>
+                  {p.badge}
+                </div>
+              )}
+
+              <div style={{fontSize:13,fontWeight:700,color:p.color,marginBottom:4}}>{p.nome}</div>
+              <div style={{display:'flex',alignItems:'baseline',gap:3,marginBottom:2}}>
+                <span style={{fontSize:32,fontWeight:900,color:'#f8fafc'}}>{p.prezzo}</span>
+                <span style={{fontSize:13,color:'#64748b'}}>{p.sub}</span>
+              </div>
+              <div style={{fontSize:11,color:'#475569',marginBottom:16,paddingBottom:16,borderBottom:'1px solid #1e2d47'}}>
+                {p.id==='starter'&&`Trial: ${daysLeft} giorni rimasti`}
+                {p.id==='pro'&&'Fatturazione mensile · Cancella quando vuoi'}
+                {p.id==='studio'&&'Ideal per centri fitness e palestre'}
+              </div>
+
+              <div style={{flex:1,display:'flex',flexDirection:'column',gap:7,marginBottom:20}}>
+                {p.features.map((f,i)=>(
+                  <div key={i} style={{fontSize:12,color:f.startsWith('❌')?'#475569':'#cbd5e1'}}>{f}</div>
+                ))}
+              </div>
+
+              {p.disabled
+                ? <div style={{padding:'10px',borderRadius:9,border:'1px solid #334155',color:'#475569',fontSize:13,fontWeight:600,textAlign:'center'}}>{p.cta}</div>
+                : isPro&&p.id==='pro'
+                  ? <div style={{padding:'10px',borderRadius:9,background:'#10b98120',border:'1px solid #10b98140',color:'#10b981',fontSize:13,fontWeight:700,textAlign:'center'}}>✅ Attivo</div>
+                  : <a href={p.link} target="_blank" style={{display:'block',padding:'11px',borderRadius:9,background:p.color,color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',textDecoration:'none',cursor:'pointer'}}>
+                      {p.cta}
+                    </a>
+              }
+            </div>
+          ))}
+        </div>
+
+        {/* Footer note */}
+        <div style={{padding:'0 24px 20px',textAlign:'center',fontSize:11,color:'#334155'}}>
+          Dopo il pagamento invia email a <span style={{color:'#64748b'}}>stevetsala22@gmail.com</span> per attivare il tuo account entro 24h 🔒
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN MODAL ───────────────────────────────────────────────────────────────
+function AdminModal({onClose}){
+  const [users,setUsers]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [msg,setMsg]=useState('');
+
+  useEffect(()=>{
+    fbGetAllUsers().then(u=>{setUsers(u);setLoading(false);});
+  },[]);
+
+  const setPlan=async(uid,plan)=>{
+    await fbSaveUserProfile(uid,{plan});
+    setUsers(us=>us.map(u=>u.id===uid?{...u,plan}:u));
+    setMsg('✓ Aggiornato');
+    setTimeout(()=>setMsg(''),2000);
+  };
+
+  const planColor={trial:'#f59e0b',pro:'#10b981',blocked:'#ef4444'};
+  const sel={padding:'5px 8px',borderRadius:6,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:12,fontFamily:'inherit',cursor:'pointer'};
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'#000000b0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+      <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:16,width:'min(860px,95vw)',maxHeight:'90vh',overflowY:'auto'}}>
+        {/* Header */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1px solid #1e2d47'}}>
+          <div style={{fontSize:16,fontWeight:800,color:'#f8fafc'}}>👑 Pannello Admin</div>
+          <button onClick={onClose} style={{background:'none',border:'none',color:'#64748b',fontSize:18,cursor:'pointer',padding:'0 4px'}}>✕</button>
+        </div>
+
+        <div style={{padding:22}}>
+          {/* Stats */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:10,marginBottom:20}}>
+            {[
+              ['Totale',users.length,'#3b82f6'],
+              ['Trial attivi',users.filter(u=>u.plan==='trial'&&!isTrialExpired(u)).length,'#f59e0b'],
+              ['Pro',users.filter(u=>u.plan==='pro').length,'#10b981'],
+              ['Scaduti',users.filter(u=>isTrialExpired(u)&&u.plan!=='pro').length,'#ef4444'],
+            ].map(([l,v,c])=>(
+              <div key={l} style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:10,padding:'12px 14px',textAlign:'center'}}>
+                <div style={{fontSize:10,color:'#64748b',marginBottom:4,textTransform:'uppercase',letterSpacing:.5}}>{l}</div>
+                <div style={{fontSize:26,fontWeight:900,color:c}}>{v}</div>
+              </div>
+            ))}
+          </div>
+
+          {msg&&<div style={{background:'#10b98120',border:'1px solid #10b98140',borderRadius:8,padding:'9px 14px',color:'#10b981',fontSize:13,marginBottom:14}}>{msg}</div>}
+
+          {/* Table */}
+          {loading?<div style={{padding:40,textAlign:'center',color:'#475569'}}>Caricamento...</div>:
+          users.length===0?<div style={{padding:40,textAlign:'center',color:'#475569'}}>Nessun utente ancora</div>:
+          <div style={{overflowX:'auto'}}>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+              <thead>
+                <tr style={{borderBottom:'1px solid #1e2d47'}}>
+                  {['Email','Nome','Piano','Giorni rimasti','Iscritto','Cambia piano'].map(h=>(
+                    <th key={h} style={{padding:'9px 12px',textAlign:'left',fontSize:10,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:.5,whiteSpace:'nowrap'}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(u=>(
+                  <tr key={u.id} style={{borderBottom:'1px solid #0f172a'}}>
+                    <td style={{padding:'10px 12px',color:'#e2e8f0'}}>{u.email}</td>
+                    <td style={{padding:'10px 12px',color:'#94a3b8'}}>{u.displayName||'—'}</td>
+                    <td style={{padding:'10px 12px'}}>
+                      <span style={{padding:'3px 9px',borderRadius:20,fontSize:11,fontWeight:700,background:(planColor[u.plan]||'#475569')+'25',color:planColor[u.plan]||'#94a3b8'}}>
+                        {u.plan||'trial'}
+                      </span>
+                    </td>
+                    <td style={{padding:'10px 12px',color:isTrialExpired(u)&&u.plan!=='pro'?'#ef4444':'#10b981',fontWeight:600}}>
+                      {u.plan==='pro'?'∞':isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
+                    </td>
+                    <td style={{padding:'10px 12px',color:'#475569',whiteSpace:'nowrap'}}>
+                      {u.createdAt?new Date(u.createdAt).toLocaleDateString('it-IT'):'—'}
+                    </td>
+                    <td style={{padding:'10px 12px'}}>
+                      <select style={sel} value={u.plan||'trial'} onChange={e=>setPlan(u.id,e.target.value)}>
+                        <option value="trial">Trial</option>
+                        <option value="pro">✅ Pro</option>
+                        <option value="blocked">🚫 Bloccato</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
+function AuthScreen({onProfileReady}){
+  const [mode,setMode]=useState('login');
+  const [email,setEmail]=useState('');
+  const [pw,setPw]=useState('');
+  const [pw2,setPw2]=useState('');
+  const [nome,setNome]=useState('');
+  const [err,setErr]=useState('');
+  const [msg,setMsg]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const errMap=(code)=>{
+    if(code==='auth/user-not-found'||code==='auth/wrong-password'||code==='auth/invalid-credential') return 'Email o password errati';
+    if(code==='auth/email-already-in-use') return 'Email già registrata';
+    if(code==='auth/weak-password') return 'Password troppo corta (minimo 6 caratteri)';
+    if(code==='auth/invalid-email') return 'Email non valida';
+    return 'Errore. Riprova.';
+  };
+
+  const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()){setErr('Inserisci il tuo nome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome});const profile={email,displayName:nome,plan:'trial',trialStart:Date.now(),createdAt:Date.now()};await fbSaveUserProfile(c.user.uid,profile);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
+
+  const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
+  const btn={width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1};
+
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
+      <div style={{width:'100%',maxWidth:400}}>
+        <div style={{textAlign:'center',marginBottom:32}}>
+          <div style={{fontSize:32,fontWeight:900,color:'#3b82f6',marginBottom:6}}>PT Board</div>
+          <div style={{fontSize:13,color:'#64748b'}}>Gestione pazienti per Personal Trainer</div>
+        </div>
+        <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:28}}>
+          {mode!=='reset'&&(
+            <div style={{display:'flex',gap:4,background:'#080d1a',borderRadius:9,padding:4,marginBottom:22}}>
+              {[['login','Accedi'],['register','Registrati']].map(([m,l])=>(
+                <button key={m} onClick={()=>{setMode(m);setErr('');setMsg('');}} style={{flex:1,padding:'8px',borderRadius:7,border:'none',background:mode===m?'#3b82f6':'transparent',color:mode===m?'#fff':'#64748b',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',transition:'all .2s'}}>{l}</button>
+              ))}
+            </div>
+          )}
+          {mode==='reset'&&(
+            <div style={{marginBottom:16}}>
+              <button onClick={()=>{setMode('login');setErr('');setMsg('');}} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:13,fontFamily:'inherit',padding:0}}>← Torna al login</button>
+              <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
+            </div>
+          )}
+          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>}
+          <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
+          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
+          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
+          {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
+          {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
+          {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?'Accesso...':'Accedi'}</button>}
+          {mode==='register'&&<button style={btn} onClick={doRegister} disabled={loading}>{loading?'Registrazione...':'Crea account'}</button>}
+          {mode==='reset'&&<button style={btn} onClick={doReset} disabled={loading}>{loading?'Invio...':'Invia email di recupero'}</button>}
+          {mode==='login'&&<button onClick={()=>{setMode('reset');setErr('');setMsg('');}} style={{width:'100%',background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:12,fontFamily:'inherit',textAlign:'center',padding:'4px 0'}}>Password dimenticata?</button>}
+        </div>
+        <div style={{textAlign:'center',marginTop:20,fontSize:11,color:'#334155'}}>Dati salvati in modo sicuro su Google Firebase 🔒</div>
+      </div>
+    </div>
+  );
+}
+
+// ── TUTORIAL MODAL ────────────────────────────────────────────────────────────
+const TSTEPS=[
+  {label:'Panoramica',time:'1 min',bc:'#3b82f630',bct:'#60a5fa',badge:'Introduzione',title:'Benvenuto in PT Board',desc:"PT Board è il tuo spazio di lavoro digitale. Pazienti, test funzionali, programmi, nutrizione e report PDF — tutto in un solo file.",
+  html:`<div style="display:flex;flex-direction:column;gap:14px">
+    <div style="background:#0a1020;border-radius:12px;padding:16px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${[['👥','Pazienti','Lista con profili A/B/C'],['🎯','Valutazione 20 min','Wizard + export PDF/Excel'],['📅','Calendario','Appuntamenti'],['⊞','Dashboard','Panoramica']].map(([ic,t,d])=>`<div style="flex:1;min-width:120px;background:#1e293b;border-radius:8px;padding:10px;border:1px solid #334155"><div style="font-size:18px;margin-bottom:4px">${ic}</div><div style="font-size:11px;font-weight:700;color:#fff">${t}</div><div style="font-size:10px;color:#64748b;margin-top:2px">${d}</div></div>`).join('')}
+      </div>
+    </div>
+    ${[['☰','Menu laterale','Tocca ☰ in alto a sinistra per aprire la navigazione. Su mobile si chiude toccando una voce o la ✕.'],['🎯','Valutazione 20 min','Il pulsante evidenziato in blu nel menu. È il flusso principale — inizia sempre da qui con un nuovo paziente.'],['🌙','Tema chiaro / scuro','Menu → Parametri in fondo → toggle per cambiare tema.']].map(([ic,t,d])=>`<div style="display:flex;gap:12px"><div style="width:30px;height:30px;border-radius:50%;background:#3b82f6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px">${ic}</div><div><div style="font-size:13px;font-weight:700;color:#f8fafc;margin-bottom:3px">${t}</div><div style="font-size:12px;color:#94a3b8;line-height:1.6">${d}</div></div></div>`).join('')}
+  </div>`},
+  {label:'🎯 Wizard — panoramica',time:'Flusso principale',bc:'#fb923c30',bct:'#fb923c',badge:'Funzione principale',title:'Il Wizard Valutazione — 20 min',desc:'Un flusso guidato in 6 passi: dall\'anagrafica al programma pronto, con classificazione automatica A/B/C e doppio export.',
+  html:`<div style="display:flex;flex-direction:column;gap:8px">
+    ${[['1','#3b82f6','Anagrafica & Clinica','Nome, peso, altezza, PA, FC — BMI e FC max live','~5 min'],['2','#3b82f6','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — distanza e RPE','~8 min'],['3','#3b82f6','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~5 min'],['4','#3b82f6','😮‍💨 RPE & Note','Stato percepito post-test + note cliniche','~2 min'],['5','#3b82f6','📊 Classificazione','Il sistema assegna profilo A, B o C automaticamente','istantaneo'],['6','#10b981','🏆 Programma 4 settimane','Cardio, forza, nutrizione + export PDF/Excel','subito']].map(([n,c,t,d,tm])=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px">
+      <div style="width:24px;height:24px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${n}</div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b;margin-top:2px">${d}</div></div>
+      <div style="font-size:10px;color:#475569;white-space:nowrap">${tm}</div>
+    </div>`).join('')}
+  </div>`},
+  {label:'Passo 1 — Anagrafica',time:'~5 min',bc:'#10b98130',bct:'#2dd4bf',badge:'Passo 1 / 6',title:'Anagrafica & parametri clinici',desc:'Il primo passo raccoglie i dati essenziali. BMI, peso target, FC max e zone cardiache si calcolano in tempo reale mentre scrivi.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="background:#0a1020;border-radius:10px;padding:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        ${[['Cognome *','Rossi'],['Nome *','Maria'],['Data nascita','15/03/2000'],['Sesso','F — Femmina'],['Altezza (cm)','165'],['Peso (kg)','78'],['PA','120/80'],['FC riposo','72 bpm']].map(([l,v])=>`<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:3px">${l}</div><div style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:6px 9px;font-size:11px;color:#fff">${v}</div></div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="background:#1e3a5f;border-radius:8px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:900;color:#3b82f6">28.7</div><div style="font-size:9px;color:#64748b;margin-top:2px">BMI</div></div>
+        <div style="background:#1e293b;border-radius:8px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:900;color:#10b981">71.4 kg</div><div style="font-size:9px;color:#64748b;margin-top:2px">Peso target</div></div>
+        <div style="background:#1e293b;border-radius:8px;padding:9px;text-align:center"><div style="font-size:18px;font-weight:900;color:#a78bfa">220</div><div style="font-size:9px;color:#64748b;margin-top:2px">FC max</div></div>
+      </div>
+    </div>
+    ${[['⚡','Calcoli automatici live','Peso + altezza → BMI. Data nascita → FC max, 60%, 75%. Altezza → peso target. Tutto aggiornato mentre scrivi.'],['★','Solo Nome e Cognome obbligatori','Gli altri campi puoi completarli subito o tornare dopo dalla scheda paziente.'],['🩺','Sezione clinica','Inserisci sempre patologie, farmaci e sintomi da sforzo prima dei test fisici.']].map(([ic,t,d])=>`<div style="display:flex;gap:10px"><div style="width:28px;height:28px;border-radius:50%;background:#10b981;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px">${ic}</div><div><div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:3px">${t}</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">${d}</div></div></div>`).join('')}
+  </div>`},
+  {label:'Passi 2-3 — Test funzionali',time:'~13 min',bc:'#10b98130',bct:'#2dd4bf',badge:'Passi 2-3 / 6',title:'I due test funzionali',desc:'6MWT e Sit-to-Stand determinano il profilo del paziente. Il protocollo completo è integrato in ogni passo del wizard.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
+        <div style="font-size:20px;margin-bottom:8px">🚶</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px">6MWT</div>
+        ${['Corridoio piano ≥ 20m','Cammina al max per 6 min','Misura distanza in metri','RPE subito alla fine'].map((t,i)=>`<div style="display:flex;gap:6px;margin-bottom:5px"><div style="width:14px;height:14px;border-radius:50%;background:#3b82f625;color:#3b82f6;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:11px;color:#e2e8f0">${t}</div></div>`).join('')}
+        <div style="margin-top:8px;background:#3b82f612;border:1px solid #3b82f625;border-radius:6px;padding:5px 8px;font-size:10px;color:#60a5fa">Stima: 8 min</div>
+      </div>
+      <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
+        <div style="font-size:20px;margin-bottom:8px">🪑</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px">Sit-to-Stand 30s</div>
+        ${['Sedia standard h ~43cm','Braccia incrociate al petto','Alzarsi completamente','Contare ogni alzata = 1 rip.'].map((t,i)=>`<div style="display:flex;gap:6px;margin-bottom:5px"><div style="width:14px;height:14px;border-radius:50%;background:#10b98125;color:#10b981;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:11px;color:#e2e8f0">${t}</div></div>`).join('')}
+        <div style="margin-top:8px;background:#10b98112;border:1px solid #10b98125;border-radius:6px;padding:5px 8px;font-size:10px;color:#10b981">Stima: 5 min</div>
+      </div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:10px">Feedback live</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7">Mentre inserisci la distanza del 6MWT e le ripetizioni dello STS, l'app mostra subito il <strong style="color:#f8fafc">profilo tendenziale (A/B/C)</strong> — il risultato è visibile già al passo 3.</div>
+    </div>
+  </div>`},
+  {label:'Passi 4-5 — Classificazione',time:'Istantaneo',bc:'#10b98130',bct:'#2dd4bf',badge:'Passi 4-5 / 6',title:'Classificazione automatica A/B/C',desc:'Il sistema elabora i due test e assegna il profilo automaticamente. Nessun calcolo manuale.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="background:#fee2e210;border:1px solid #ef444430;border-radius:10px;padding:14px;text-align:center"><div style="font-size:36px;font-weight:900;color:#ef4444;line-height:1">A</div><div style="font-size:10px;font-weight:700;color:#ef4444;margin:4px 0">Molto bassa</div><div style="font-size:10px;color:#64748b">6MWT &lt;300m<br>STS &lt;10 rip.</div></div>
+      <div style="background:#fef3c710;border:1px solid #f59e0b30;border-radius:10px;padding:14px;text-align:center"><div style="font-size:36px;font-weight:900;color:#f59e0b;line-height:1">B</div><div style="font-size:10px;font-weight:700;color:#f59e0b;margin:4px 0">Moderata</div><div style="font-size:10px;color:#64748b">6MWT 300-450m<br>STS 10-15 rip.</div></div>
+      <div style="background:#d1fae510;border:1px solid #10b98130;border-radius:10px;padding:14px;text-align:center"><div style="font-size:36px;font-weight:900;color:#10b981;line-height:1">C</div><div style="font-size:10px;font-weight:700;color:#10b981;margin:4px 0">Discreta</div><div style="font-size:10px;color:#64748b">6MWT &gt;450m<br>STS &gt;15 rip.</div></div>
+    </div>
+    <div style="background:#10b98112;border:2px solid #10b98140;border-radius:12px;padding:18px;text-align:center">
+      <div style="font-size:52px;font-weight:900;color:#10b981;line-height:1">C</div>
+      <div style="font-size:14px;font-weight:700;color:#f8fafc;margin-top:6px">Profilo C — Capacità discreta</div>
+      <div style="font-size:11px;color:#64748b;margin-top:4px">Progressione più intensa — focus composizione corporea</div>
+    </div>
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:12px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:8px">Passo 4 — RPE &amp; Note (2 min)</div>
+      <div style="display:flex;gap:5px">
+        ${[[0,'#10b981','Nulla'],[2,'#22d3ee','Lieve'],[4,'#f59e0b','Media'],[6,'#fb923c','Alta'],[8,'#ef4444','Max']].map(([v,c,l])=>`<div style="flex:1;background:${c}20;border:1px solid ${c}40;border-radius:6px;padding:6px 3px;text-align:center"><div style="font-size:14px;font-weight:800;color:${c}">${v}</div><div style="font-size:8px;color:#64748b;margin-top:2px">${l}</div></div>`).join('')}
+      </div>
+    </div>
+  </div>`},
+  {label:'Passo 6 — Programma + Export',time:'Export immediato',bc:'#10b98130',bct:'#2dd4bf',badge:'Passo 6 / 6',title:'Programma 4 settimane & Export',desc:'L\'ultimo passo genera il programma completo. Export PDF o Excel in un click — poi salvi e tutto è già nella scheda.',
+  html:`<div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="background:#1e293b;border:1px solid #3b82f630;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#3b82f6">5</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;margin-top:3px">Sedute/sett.</div></div>
+      <div style="background:#1e293b;border:1px solid #10b98130;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#10b981">150'</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;margin-top:3px">Min cardio</div></div>
+      <div style="background:#1e293b;border:1px solid #fb923c30;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:900;color:#fb923c">100'</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;margin-top:3px">Min forza</div></div>
+    </div>
+    ${[[1,'30 min LISS + 10 min HIIT 30/30','4 eserc × 4 giri × 10-12 rip.','Settimana baseline — registra i carichi'],[2,'35 min cardio + 15 min HIIT 40/20','Aumentare carico +5-10%','Progressione lineare del carico']].map(([n,c,f,note])=>`
+    <div style="background:#1e293b;border-left:3px solid #3b82f6;border-radius:0 8px 8px 0;padding:12px">
+      <div style="font-size:9px;font-weight:700;color:#3b82f6;text-transform:uppercase;margin-bottom:8px">Settimana ${n}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+        <div><div style="font-size:8px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:2px">Cardio</div><div style="font-size:10px;color:#e2e8f0;line-height:1.5">${c}</div></div>
+        <div><div style="font-size:8px;color:#a78bfa;font-weight:700;text-transform:uppercase;margin-bottom:2px">Forza</div><div style="font-size:10px;color:#e2e8f0;line-height:1.5">${f}</div></div>
+      </div>
+      <div style="background:#f59e0b12;border:1px solid #f59e0b25;border-radius:5px;padding:5px 8px;font-size:10px;color:#f59e0b">💡 ${note}</div>
+    </div>`).join('')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:#10b98114;border:1px solid #10b98130;border-radius:10px;padding:12px;text-align:center"><div style="font-size:13px;font-weight:700;color:#10b981;margin-bottom:4px">📄 Esporta PDF</div><div style="font-size:11px;color:#64748b">Report professionale pronto da stampare o inviare</div></div>
+      <div style="background:#a78bfa14;border:1px solid #a78bfa30;border-radius:10px;padding:12px;text-align:center"><div style="font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:4px">📊 Esporta Excel</div><div style="font-size:11px;color:#64748b">File CSV con tutti i dati + programma</div></div>
+    </div>
+  </div>`},
+  {label:'Scheda paziente',time:'Sempre disponibile',bc:'#10b98130',bct:'#2dd4bf',badge:'Extra',title:'La scheda paziente — 8 tab',desc:'Dopo la valutazione puoi aprire la scheda per registrare sedute, pesate, modificare il programma e generare nuovi report.',
+  html:`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;gap:4px;background:#0f172a;border-radius:8px;padding:4px;overflow-x:auto">
+      ${['Dashboard','Anagrafica','Test','Programma','Allenamento','Nutrizione','Log','Statistiche'].map((t,i)=>`<div style="padding:5px 10px;border-radius:5px;font-size:10px;font-weight:${i===6?700:500};color:${i===6?'#fff':'#64748b'};background:${i===6?'#3b82f6':'transparent'};white-space:nowrap">${t}</div>`).join('')}
+    </div>
+    ${[['📋','#3b82f6','Tab Log — registra ogni seduta','Dopo ogni allenamento: tipo, durata, RPE. Bastano 30 secondi. Il log alimenta le statistiche.'],['⚖️','#fb923c','Tab Progressi — storico peso','Aggiungi pesate periodiche. Il grafico mostra la curva di dimagrimento da mostrare al paziente.'],['📄','#a78bfa','Report PDF dalla scheda','Il pulsante 📄 verde in cima genera un report aggiornato in qualsiasi momento.']].map(([ic,c,t,d])=>`
+    <div style="display:flex;gap:10px">
+      <div style="width:28px;height:28px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px">${ic}</div>
+      <div><div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:3px">${t}</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">${d}</div></div>
+    </div>`).join('')}
+    <div style="background:#1e293b;border-radius:10px;padding:12px">
+      ${[['Camminata progressiva','11/03','30 min','RPE 5','#10b981'],['Circuito corpo libero','13/03','40 min','RPE 6','#f59e0b'],['HIIT + stretching','15/03','35 min','RPE 7','#3b82f6']].map(([t,d,dur,rpe,c])=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #334155">
+        <div style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0"></div>
+        <div style="flex:1;font-size:11px;font-weight:600;color:#fff">${t} <span style="color:#64748b;font-weight:400">${d} · ${dur}</span></div>
+        <div style="background:${c}20;color:${c};border:1px solid ${c}35;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700">${rpe}</div>
+      </div>`).join('')}
+    </div>
+  </div>`},
+  {label:'Fatto! 🎉',time:'',bc:'#a78bfa30',bct:'#a78bfa',badge:'Completato',title:'Sei pronto!',desc:'Hai imparato tutto quello che ti serve per usare PT Board in modo professionale.',
+  html:`<div style="text-align:center;padding:8px 0 16px">
+    <div style="font-size:52px;margin-bottom:16px">🎉</div>
+    <div style="display:flex;flex-direction:column;gap:7px;max-width:420px;margin:0 auto 24px">
+      ${['Navigazione e menu principale','Wizard Valutazione 20 min — tutti i 6 passi','Test 6MWT e Sit-to-Stand con protocollo','Classificazione automatica profili A / B / C','Programma 4 settimane pronto per profilo','Export PDF professionale e Excel/CSV','Scheda paziente — log sedute e progressi peso'].map(t=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:#10b98112;border:1px solid #10b98128;border-radius:8px;font-size:12px;color:#e2e8f0"><span style="color:#10b981;font-weight:700">✓</span>${t}</div>`).join('')}
+    </div>
+  </div>`},
+];
+
+function TutorialModal({onClose,isLight}){
+  const [cur,setCur]=useState(0);
+  const total=TSTEPS.length;
+  const s=TSTEPS[cur];
+  const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.88)',zIndex:300,display:'flex',alignItems:'stretch',justifyContent:'center'};
+  const BOX={background:C.card,width:'min(900px,100vw)',maxHeight:'100vh',display:'flex',flexDirection:'column'};
+  return(
+    <div style={OL} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={BOX}>
+        {/* Header */}
+        <div style={{padding:'14px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
+          <div style={{width:34,height:34,borderRadius:9,background:C.blue+'20',border:`1px solid ${C.blue}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>📖</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14,fontWeight:800,color:C.strong}}>Tutorial PT Board</div>
+            <div style={{fontSize:11,color:C.muted,marginTop:1}}>Passo {cur+1} di {total} · {s.label}</div>
+          </div>
+          <button onClick={onClose} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
+        </div>
+        {/* Progress */}
+        <div style={{height:3,background:C.border,flexShrink:0}}>
+          <div style={{height:'100%',width:((cur+1)/total*100)+'%',background:`linear-gradient(90deg,${C.blue},${C.green})`,transition:'width .4s ease'}}/>
+        </div>
+        {/* Step pills */}
+        <div style={{display:'flex',padding:'10px 20px',gap:3,flexShrink:0,overflowX:'auto',borderBottom:`1px solid ${C.border}`}}>
+          {TSTEPS.map((x,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+              <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
+              {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
+            </div>
+          ))}
+        </div>
+        {/* Body */}
+        <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
+          <div style={{display:'inline-flex',alignItems:'center',padding:'3px 12px',borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:'uppercase',background:s.bc,color:s.bct,marginBottom:14}}>{s.badge}</div>
+          <div style={{fontSize:20,fontWeight:800,color:C.strong,letterSpacing:-0.5,marginBottom:8}}>{s.title}</div>
+          <div style={{fontSize:13,color:C.muted,lineHeight:1.7,marginBottom:20,fontWeight:300}}>{s.desc}</div>
+          <div dangerouslySetInnerHTML={{__html:s.html}}/>
+        </div>
+        {/* Footer */}
+        <div style={{padding:'12px 20px',borderTop:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',flexShrink:0,gap:8}}>
+          <button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:`1px solid ${C.border2}`,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Chiudi</button>
+          <div style={{display:'flex',gap:8}}>
+            {cur>0&&<button onClick={()=>setCur(c=>c-1)} style={{padding:'8px 18px',borderRadius:8,border:`1px solid ${C.border2}`,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>← Indietro</button>}
+            {cur<total-1
+              ?<button onClick={()=>setCur(c=>c+1)} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.blue,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Avanti →</button>
+              :<button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.green,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>✓ Inizia ad usare PT Board</button>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
+</script>
+</body>
+</html>
