@@ -189,7 +189,7 @@ const exportCSV=(patients)=>{
   const headers=['ID','Cognome','Nome','Sesso','Data nascita','Altezza (cm)','Peso (kg)','BMI','Profilo','Attività','Obiettivo','Patologie','Farmaci','6MWT (m)','STS 30s (rip)','Sedute totali','Data valutazione'];
   const rows=patients.map(p=>{
     const b=bmi(p.peso,p.altezza);
-    const pr=profilo(p.test?.mwtDist,p.test?.stsRip);
+    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
     return [p.id,p.cognome,p.nome,p.sesso,p.ddn,p.altezza,p.peso,b||'',pr?.code||'',p.attivita,p.obiettivo,p.patologie,p.farmaci,p.test?.mwtDist,p.test?.stsRip,p.log?.length||0,p.dataValutazione].map(v=>{
       const s=String(v??'');
       return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;
@@ -652,12 +652,69 @@ const bmiCat=(b)=>{
   if(b<35)return{l:gT().bmiOb1,c:'#f87171'};
   return{l:gT().bmiOb2,c:C.red};
 };
-const profilo=(mwt,sts)=>{
-  if(!mwt||!sts)return null;
-  const a=((mwt<300?1:mwt<=450?2:3)+(sts<10?1:sts<=15?2:3))/2;
-  if(a<1.5)return{code:'A',l:gT().profileLow,c:C.red,bg:'#fee2e2'};
-  if(a<2.5)return{code:'B',l:gT().profileMed,c:C.yellow,bg:'#fef3c7'};
-  return{code:'C',l:gT().profileGood,c:C.green,bg:'#d1fae5'};
+// ── CLASSIFICAZIONE PESATA SCIENTIFICA ────────────────────────────────────────
+const calcScore=(test,sesso,extra)=>{
+  // test = {mwtDist, stsRip, handgrip, tugSec, biaFM/massaGrassa, ...}
+  // extra = {biaFM} from bia object or massaGrassa from test
+  const m=sesso==='M';
+  const components=[];
+  // 1. CAPACITÀ AEROBICA (peso 40%) — 6MWT
+  if(test?.mwtDist&&+test.mwtDist>0){
+    const d=+test.mwtDist;
+    const s=d>550?100:d>=451?75:d>=300?50:25;
+    components.push({id:'aerobica',label:'Capacita aerobica (6MWT)',w:40,score:s,val:d+'m',icon:'🚶'});
+  }
+  // 2. FORZA (peso 30%) — media STS + Handgrip
+  const stsS=test?.stsRip&&+test.stsRip>0?(+test.stsRip>15?100:+test.stsRip>=10?67:33):null;
+  const hg=test?.handgrip&&+test.handgrip>0?+test.handgrip:null;
+  let hgS=null;
+  if(hg!==null){
+    if(m){hgS=hg>=44?100:hg>=35?75:hg>=25?50:25;}
+    else{hgS=hg>=28?100:hg>=20?75:hg>=14?50:25;}
+  }
+  let forzaScore=null,forzaVal='';
+  if(stsS!==null&&hgS!==null){forzaScore=Math.round((stsS+hgS)/2);forzaVal='STS '+test.stsRip+' rip + HG '+hg+'kg';}
+  else if(stsS!==null){forzaScore=stsS;forzaVal='STS '+test.stsRip+' rip';}
+  else if(hgS!==null){forzaScore=hgS;forzaVal='HG '+hg+'kg';}
+  if(forzaScore!==null) components.push({id:'forza',label:'Forza (STS + Handgrip)',w:30,score:forzaScore,val:forzaVal,icon:'💪'});
+  // 3. COMPOSIZIONE CORPOREA (peso 20%) — FM%
+  const fm=extra?.biaFM?+extra.biaFM:(test?.massaGrassa?+test.massaGrassa:(test?.biaFM?+test.biaFM:null));
+  if(fm!==null&&fm>0){
+    let cs;
+    if(m){cs=fm<14?100:fm<=17?75:fm<=24?50:25;}
+    else{cs=fm<21?100:fm<=24?75:fm<=31?50:25;}
+    components.push({id:'corpo',label:'Composizione corporea (FM%)',w:20,score:cs,val:fm+'%',icon:'📏'});
+  }
+  // 4. EQUILIBRIO (peso 10%) — TUG
+  if(test?.tugSec&&+test.tugSec>0){
+    const t=+test.tugSec;
+    const ts=t<10?100:t<=12?67:t<=20?33:0;
+    components.push({id:'equilibrio',label:'Equilibrio (TUG)',w:10,score:ts,val:t+'s',icon:'⏱'});
+  }
+  // Minimo: almeno 6MWT o STS
+  if(components.length===0)return null;
+  if(!components.find(c=>c.id==='aerobica')&&!components.find(c=>c.id==='forza'))return null;
+  // Calcolo media pesata normalizzata
+  const totalW=components.reduce((a,c)=>a+c.w,0);
+  const score=Math.round(components.reduce((a,c)=>a+c.score*(c.w/totalW),0));
+  // Componenti mancanti
+  const allIds=['aerobica','forza','corpo','equilibrio'];
+  const missing=allIds.filter(id=>!components.find(c=>c.id===id));
+  const missingLabels={aerobica:'6MWT',forza:'STS o Handgrip',corpo:'FM% (BIA o plicometria)',equilibrio:'TUG'};
+  // Risultato
+  let code,l,c,bg;
+  if(score>=70){code='C';l=gT().profileGood;c=C.green;bg='#d1fae5';}
+  else if(score>=40){code='B';l=gT().profileMed;c=C.yellow;bg='#fef3c7';}
+  else{code='A';l=gT().profileLow;c=C.red;bg='#fee2e2';}
+  return{code,l,c,bg,score,components,missing:missing.map(id=>missingLabels[id])};
+};
+
+// Wrapper retrocompatibile — stessa interfaccia {code,l,c,bg}
+const profilo=(mwt,sts,sesso,test,extra)=>{
+  // Chiamata legacy con solo mwt,sts → costruisci test minimale
+  const t=test||{mwtDist:mwt,stsRip:sts};
+  const r=calcScore(t,sesso||'M',extra);
+  return r;
 };
 const interpPushup=(rip,sesso)=>{if(!rip)return null;const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}else{if(r<7)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<15)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}};
 const interpPlank=(sec)=>{if(!sec)return null;const s=+sec;if(s<30)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con plank sulle ginocchia 3×15s'};if(s<60)return{l:gT().base,c:'#f59e0b',cons:'Progressione a 45s poi 60s'};if(s<120)return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti laterale e dinamico'};return{l:gT().excellent,c:'#3b82f6',cons:'Core molto stabile — esercizi avanzati'};};
@@ -1054,7 +1111,7 @@ function PatientList({patients,onSelect,onAdd,search,T}){
         {filtered.map(p=>{
           const b=bmi(p.peso,p.altezza);
           const {l:bl,c:bc}=bmiCat(b);
-          const pr=profilo(p.test?.mwtDist,p.test?.stsRip);
+          const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
           return(
             <div key={p.id} onClick={()=>onSelect(p.id)}
               style={{background:C.card,border:'1px solid '+C.border2,borderRadius:14,padding:isMobile?'16px':' 14px 18px',display:'flex',alignItems:'center',gap:14,cursor:'pointer',transition:'all .15s',WebkitTapHighlightColor:'transparent'}}
@@ -1095,7 +1152,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const p=patient;
   const b=bmi(p.peso,p.altezza);
   const {l:bl,c:bc}=bmiCat(b);
-  const pr=profilo(p.test?.mwtDist,p.test?.stsRip);
+  const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
   const fcMax=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
 
   const upd=(fn)=>onUpdate({...p,...fn(p)});
@@ -1114,7 +1171,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const T2=gT();const tabs=[{id:'dash',l:T2.tabDash},{id:'ana',l:T2.tabAna},{id:'test',l:T2.tabTest},{id:'prog',l:T2.tabProg},{id:'schede',l:T2.tabSchede},{id:'nutri',l:T2.tabNutri},{id:'log',l:`${T2.tabLog} (${p.log?.length||0})`},{id:'stats',l:T2.tabStats}];
 
   const generaPDF=()=>{
-    const pr2=profilo(p.test?.mwtDist,p.test?.stsRip);
+    const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
     const b2=bmi(p.peso,p.altezza);
     const {l:bl2}=bmiCat(b2);
     const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
@@ -1366,11 +1423,17 @@ ${(p.progressi||[]).length>1?`
       {tab==='test'&&(
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           {/* Profilo risultante */}
-          <div style={{...S.card,border:`2px solid ${pr?.c||C.border2}40`,background:`${pr?.c||C.border2}08`}}>
-            <div style={{display:'flex',alignItems:'center',gap:14}}>
-              {pr?<><span style={{fontSize:40,fontWeight:900,color:pr.c}}>{pr.code}</span><div><div style={{fontSize:16,fontWeight:700,color:C.strong}}>{pr.l}</div><div style={{fontSize:12,color:C.muted,marginTop:3}}>Basato su 6MWT + STS · {p.dataValutazione}</div></div></>
+          <div style={{...S.card,border:'2px solid '+(pr?.c||C.border2)+'40',background:(pr?.c||C.border2)+'08'}}>
+            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:pr?12:0}}>
+              {pr?<React.Fragment><span style={{fontSize:40,fontWeight:900,color:pr.c}}>{pr.code}</span><div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'baseline',gap:8}}><div style={{fontSize:16,fontWeight:700,color:C.strong}}>{pr.l}</div><div style={{fontSize:20,fontWeight:900,color:pr.c}}>{pr.score}/100</div></div>
+                <div style={{fontSize:12,color:C.muted,marginTop:3}}>Score pesato multi-componente · {p.dataValutazione}</div>
+              </div></React.Fragment>
               :<span style={{color:C.muted}}>Inserire risultati test per calcolare il profilo</span>}
             </div>
+            {pr&&<React.Fragment><ScoreBar score={pr.score} color={pr.c} height={12}/>
+              <div style={{marginTop:12}}><ScoreBreakdown pr={pr} compact={true}/></div>
+            </React.Fragment>}
           </div>
 
           {/* Test principali */}
@@ -1866,7 +1929,7 @@ function ExercisesPage({exercises,setExercises,T}){
 function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   const [form,setForm]=useState(initial);
   const b=bmi(form.peso,form.altezza);
-  const pr=profilo(form.test?.mwtDist,form.test?.stsRip);
+  const pr=profilo(form.test?.mwtDist,form.test?.stsRip,form.sesso,form.test,{biaFM:form.bia?.FM});
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   const updT=e=>setForm(f=>({...f,test:{...f.test,[e.target.name]:e.target.value}}));
   const updP=e=>setForm(f=>({...f,programma:{...f.programma,[e.target.name]:e.target.value}}));
@@ -2319,6 +2382,41 @@ function InterpBox({interp,icon}){
   );
 }
 
+function ScoreBar({score,color,height}){
+  const h=height||14;
+  return(
+    <div style={{width:'100%',background:C.border+'40',borderRadius:h/2,height:h,overflow:'hidden'}}>
+      <div style={{width:score+'%',height:'100%',background:color||C.blue,borderRadius:h/2,transition:'width .4s ease'}}/>
+    </div>
+  );
+}
+
+function ScoreBreakdown({pr,compact}){
+  if(!pr)return null;
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:compact?6:10}}>
+      {pr.components.map(comp=>{
+        const barC=comp.score>=70?C.green:comp.score>=40?C.yellow:C.red;
+        return(
+          <div key={comp.id}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:3}}>
+              <div style={{fontSize:compact?11:12,fontWeight:600,color:C.text}}>{comp.icon} {comp.label}</div>
+              <div style={{fontSize:compact?10:11,color:C.muted}}>{comp.val} — <span style={{fontWeight:700,color:barC}}>{comp.score}/100</span> (peso {comp.w}%)</div>
+            </div>
+            <ScoreBar score={comp.score} color={barC} height={compact?8:10}/>
+          </div>
+        );
+      })}
+      {pr.missing&&pr.missing.length>0&&(
+        <div style={{background:C.yellow+'12',border:'1px solid '+C.yellow+'30',borderRadius:8,padding:'8px 12px',marginTop:2}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.yellow}}>Dati mancanti per uno score piu preciso:</div>
+          <div style={{fontSize:11,color:C.muted,marginTop:3}}>{pr.missing.join(', ')}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WizardValutazione({onSave,onClose}){
   const T=gT();
   const TOTAL=8;
@@ -2356,7 +2454,7 @@ function WizardValutazione({onSave,onClose}){
 
   const bmiVal=d.peso&&d.altezza?bmi(+d.peso,+d.altezza):null;
   const {l:bmiLbl,c:bmiClr}=bmiVal?bmiCat(bmiVal):{l:'—',c:C.muted};
-  const pr=profilo(+d.mwtDist,+d.stsRip);
+  const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM});
   const prog=pr?PROGRAMMI[pr.code]:null;
   const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
   const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
@@ -2860,28 +2958,38 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           {step===7&&<div>
             {!pr?<div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
-              <div style={{fontSize:14}}>Inserisci i valori del 6MWT (passo 2) e STS (passo 3) per ottenere la classificazione automatica.</div>
+              <div style={{fontSize:14}}>Inserisci almeno il 6MWT (passo 3) o STS (passo 4) per ottenere la classificazione automatica.</div>
             </div>:<>
-              <div style={{background:`${pr.c}12`,border:'2px solid '+pr.c+'50',borderRadius:16,padding:28,textAlign:'center',marginBottom:18}}>
-                <div style={{fontSize:80,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code}</div>
-                <div style={{fontSize:18,fontWeight:700,color:C.strong,marginTop:8}}>{pr.l}</div>
-                <div style={{fontSize:13,color:C.muted,marginTop:6,maxWidth:400,margin:'8px auto 0'}}>{prog?.desc}</div>
+              <div style={{background:pr.bg,border:'2px solid '+pr.c+'50',borderRadius:16,padding:28,textAlign:'center',marginBottom:18}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,marginBottom:12}}>
+                  <div style={{fontSize:64,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code}</div>
+                  <div style={{textAlign:'left'}}>
+                    <div style={{fontSize:36,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.score}<span style={{fontSize:16,fontWeight:600}}>/100</span></div>
+                    <div style={{fontSize:15,fontWeight:700,color:C.strong,marginTop:4}}>{pr.l}</div>
+                  </div>
+                </div>
+                <ScoreBar score={pr.score} color={pr.c} height={16}/>
+                <div style={{fontSize:13,color:C.muted,marginTop:10,maxWidth:400,margin:'10px auto 0'}}>{prog?.desc}</div>
+              </div>
+              <div style={{...S.card,marginBottom:16}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>Breakdown componenti score</div>
+                <ScoreBreakdown pr={pr}/>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:8,marginBottom:16}}>
-                {[['6MWT: '+(d.mwtDist||'—')+' m',+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],[`STS: ${d.stsRip||'—'} rip.`,+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],[`BMI: ${bmiVal||'—'} — ${bmiLbl}`,bmiClr],[`Peso target: ${pesoTarget||'—'} kg`,C.blue]].map(([l,c])=>(
+                {[['6MWT: '+(d.mwtDist||'—')+' m',+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],['STS: '+(d.stsRip||'—')+' rip.',+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],['BMI: '+(bmiVal||'—')+' — '+bmiLbl,bmiClr],['Peso target: '+(pesoTarget||'—')+' kg',C.blue]].map(function(item){var l=item[0],c=item[1];return(
                   <div key={l} style={{background:C.bg,border:'1px solid '+c+'30',borderRadius:10,padding:'10px 14px'}}>
                     <div style={{fontSize:13,fontWeight:700,color:c}}>{l}</div>
                   </div>
-                ))}
+                );})}
               </div>
               <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:12,padding:14}}>
-                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>Criteri di classificazione automatica</div>
-                {[['A',C.red,'6MWT < 300m  e/o  STS < 10 rip.','Avvio molto graduale — priorità sicurezza','🔴 Forma Bassa'],['B',C.yellow,'6MWT 300-450m  e  STS 10-15 rip.','Progressione moderata e controllata','🟡 Forma Media'],['C',C.green,'6MWT > 450m  e  STS > 15 rip.','Progressione più intensa — focus composizione','🟢 Buona Forma']].map(([p,c,v,desc,label])=>(
-                  <div key={p} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+C.border}}>
-                    <div style={{width:28,height:28,borderRadius:8,background:c+'20',border:'1px solid '+c+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c,flexShrink:0}}>{p}</div>
-                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{label} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>Criteri di classificazione</div>
+                {[['A',C.red,'Score < 40','Avvio molto graduale — priorita sicurezza'],['B',C.yellow,'Score 40-69','Progressione moderata e controllata'],['C',C.green,'Score >= 70','Progressione intensa — focus composizione']].map(function(item){var p2=item[0],c2=item[1],v=item[2],desc=item[3];return(
+                  <div key={p2} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+C.border}}>
+                    <div style={{width:28,height:28,borderRadius:8,background:c2+'20',border:'1px solid '+c2+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c2,flexShrink:0}}>{p2}</div>
+                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{p2==='A'?'Forma Bassa':p2==='B'?'Forma Media':'Buona Forma'} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
                   </div>
-                ))}
+                );})}
               </div>
             </>}
           </div>}
