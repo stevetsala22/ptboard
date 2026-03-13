@@ -2117,68 +2117,226 @@ function WizardValutazione({onSave,onClose}){
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Valutazione ${d.nome} ${d.cognome}</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:13px}
-.pg{max-width:800px;margin:0 auto;padding:40px}.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #3b82f6;padding-bottom:16px;margin-bottom:22px}
-.brand{font-size:22px;font-weight:900;color:#3b82f6}small{display:block;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-.sec{margin-bottom:20px}.st{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#3b82f6;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:8px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.row{display:flex;justify-content:space-between;padding:5px 9px;background:#f8fafc;border-radius:5px;margin-bottom:4px}
-.rl{color:#64748b;font-size:12px}.rv{font-weight:600;font-size:12px}
-.kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center}
-.kv{font-size:22px;font-weight:900;color:#3b82f6}.kl{font-size:9px;color:#64748b;text-transform:uppercase;margin-top:2px}
-.profilo{text-align:center;padding:24px;border-radius:14px;margin-bottom:20px}
-.A{background:#fee2e2;border:2px solid #ef4444}.B{background:#fef3c7;border:2px solid #f59e0b}.C{background:#d1fae5;border:2px solid #10b981}
-.wk{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px}
-.wk-t{font-size:11px;font-weight:700;color:#3b82f6;margin-bottom:6px}
-.tip{background:#fffbeb;border-left:3px solid #f59e0b;padding:7px 10px;font-size:11px;color:#92400e;border-radius:0 5px 5px 0;margin-top:6px}
-footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>
-<body><div class="pg">
-<div class="hdr">
-  <div><div class="brand">PT Board<small>Valutazione Paziente</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
-  <div style="text-align:right"><div style="font-size:20px;font-weight:800">${d.nome} ${d.cognome}</div><div style="font-size:11px;color:#64748b">${d.ddn||''} · ${d.sesso}</div></div>
-</div>
-<div class="profilo ${pr.code}">
-  <div style="font-size:60px;font-weight:900;color:${pr.c};line-height:1">${pr.code}</div>
-  <div style="font-size:16px;font-weight:700;margin-top:6px">${pr.l}</div>
-  <div style="font-size:12px;color:#475569;margin-top:4px">${prog.desc}</div>
-</div>
-<div class="g3" style="margin-bottom:20px">
-  <div class="kpi"><div class="kv">${bmiVal||'—'}</div><div class="kl">BMI · ${bmiLbl}</div></div>
-  <div class="kpi"><div class="kv">${d.peso||'—'} kg</div><div class="kl">Peso attuale</div></div>
-  <div class="kpi"><div class="kv">${pesoTarget||'—'} kg</div><div class="kl">Peso target</div></div>
-</div>
-<div class="g2" style="margin-bottom:20px">
-<div class="sec"><div class="st">Anagrafica & Clinica</div>
-${[['Altezza',d.altezza?d.altezza+' cm':'—'],['Vita',d.vita?d.vita+' cm':'—'],['PA',d.pa||'—'],['FC riposo',d.fc?d.fc+' bpm':'—'],['FC max',fcMax?fcMax+' bpm':'—'],['FC target 75%',fcMax?Math.round(fcMax*.75)+' bpm':'—'],['Patologie',d.patologie||'—'],['Farmaci',d.farmaci||'—'],['Attività',d.attivita||'—'],['Obiettivo',d.obiettivo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
-</div>
-<div class="sec"><div class="st">Test Funzionali</div>
-${[['6MWT — Distanza',d.mwtDist?d.mwtDist+' m':'—'],['6MWT — RPE',d.mwtRpe||'—'],['6MWT — Sintomi',d.mwtSintomi||'—'],['STS 30s — Rip.',d.stsRip||'—'],['Note STS',d.stsNote||'—'],['RPE a riposo',d.rpeRiposo||'—'],['Note valutazione',d.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
-</div></div>
-<div class="sec"><div class="st">${prog.nome}</div>
-<div class="g3" style="margin-bottom:12px">
-  <div class="kpi"><div class="kv" style="font-size:18px">${prog.sedute}</div><div class="kl">Sedute/sett.</div></div>
-  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minCardio}'</div><div class="kl">Min cardio</div></div>
-  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minForza}'</div><div class="kl">Min forza</div></div>
-</div>
-${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</div>
-<div style="margin-bottom:3px"><strong style="color:#3b82f6">Cardio:</strong> ${w.cardio}</div>
-<div><strong style="color:#10b981">Forza:</strong> ${w.forza}</div>
-<div class="tip">💡 ${w.note}</div></div>`).join('')}
-</div>
-<div class="sec"><div class="st">Linee guida nutrizionali</div>
-<div class="g4">
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${prog.kcal}</div><div class="kl">kcal/gg</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px">${prog.prot}g</div><div class="kl">Proteine</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
-</div></div>
-<footer><span>PT Board · Valutazione Paziente · ${fmtDate()}</span><span>${d.nome} ${d.cognome} — Profilo ${pr.code}</span></footer>
-</div>${'</body></html>'}`;
-    const w=window.open('','_blank');w.document.write(html);w.document.close();
-  };
+    const hasBIA=d.biaFFM||d.biaFM||d.biaBMR;
+    const hasPlico=d.plicaSott||d.plicaTric||d.plicaIlio;
+    const hasCir=d.cirBraccio||d.cirCoscia||d.fianchi;
+    const hasPostura=d.posturaColonna||d.posturaSpalle||d.notePostura;
+    const hasTest=d.pushupRip||d.plankSec||d.squatRip||d.tugSec||d.handgrip;
+    const html=`<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"/>
+<title>Valutazione — ${d.nome} ${d.cognome}</title>
+<style>
+@page{size:A4;margin:18mm 16mm 18mm 16mm}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:11.5px;line-height:1.5;background:#fff}
+/* LAYOUT */
+.page{width:100%;padding:0}
+.page-break{page-break-before:always;break-before:page;padding-top:8mm}
+/* HEADER */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #3b82f6;padding-bottom:10px;margin-bottom:14px}
+.brand{font-size:20px;font-weight:900;color:#3b82f6;letter-spacing:-0.5px}
+.brand small{display:block;font-size:8px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:1px;font-weight:400}
+.patient-name{font-size:17px;font-weight:800;color:#1e293b;text-align:right}
+.patient-sub{font-size:10px;color:#64748b;text-align:right;margin-top:2px}
+/* PROFILO BADGE */
+.profilo{display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:12px;margin-bottom:14px}
+.profilo-code{font-size:48px;font-weight:900;line-height:1}
+.profilo-label{font-size:14px;font-weight:700}
+.profilo-desc{font-size:10px;color:#475569;margin-top:3px}
+.A{background:#fee2e2;border:2px solid #ef4444}.A .profilo-code{color:#ef4444}
+.B{background:#fef3c7;border:2px solid #f59e0b}.B .profilo-code{color:#d97706}
+.C{background:#d1fae5;border:2px solid #10b981}.C .profilo-code{color:#10b981}
+/* KPI BOXES */
+.kpi-row{display:grid;gap:7px;margin-bottom:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+.kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:9px 6px;text-align:center}
+.kv{font-size:18px;font-weight:900;color:#3b82f6}
+.kl{font-size:8px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+/* SEZIONI */
+.sec{margin-bottom:12px;break-inside:avoid}
+.st{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#3b82f6;border-bottom:1.5px solid #dbeafe;padding-bottom:3px;margin-bottom:7px}
+/* DATA ROWS */
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 8px;border-radius:4px;margin-bottom:3px}
+.row:nth-child(even){background:#f8fafc}
+.rl{color:#64748b;font-size:11px}
+.rv{font-weight:600;font-size:11px;text-align:right;max-width:55%}
+/* 2 COLONNE DATI */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+/* PROGRAMMA */
+.wk{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:10px;margin-bottom:7px;break-inside:avoid}
+.wk-t{font-size:10px;font-weight:700;color:#3b82f6;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.wk-row{font-size:11px;margin-bottom:3px}
+.tip{background:#fffbeb;border-left:3px solid #f59e0b;padding:5px 9px;font-size:10px;color:#92400e;border-radius:0 4px 4px 0;margin-top:5px}
+/* BADGE RISULTATO TEST */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+/* FOOTER */
+.ftr{margin-top:14px;padding-top:8px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:9px;color:#94a3b8}
+@media print{
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page-break{page-break-before:always}
+  .sec,.wk,.kpi{break-inside:avoid}
+}
+</style></head>
+<body>
 
+<!-- ══════════ PAGINA 1 — Profilo + Anagrafica + Test ══════════ -->
+<div class="page">
+
+<div class="hdr">
+  <div>
+    <div class="brand">PT Board<small>Referto Valutazione Paziente</small></div>
+    <div style="font-size:10px;color:#64748b;margin-top:5px">Data: ${fmtDate()} · PT: ${user?.email||''}</div>
+  </div>
+  <div>
+    <div class="patient-name">${d.nome} ${d.cognome}</div>
+    <div class="patient-sub">${d.ddn||''} · ${d.sesso==='F'?'Femmina':'Maschio'} · Età: ${eta||'—'} anni</div>
+    <div class="patient-sub">${d.professione||''} · ${d.attivita||''}</div>
+  </div>
+</div>
+
+<!-- Profilo -->
+<div class="profilo ${pr.code}">
+  <div class="profilo-code">${pr.code}</div>
+  <div>
+    <div class="profilo-label">${pr.l}</div>
+    <div class="profilo-desc">${prog.desc}</div>
+  </div>
+</div>
+
+<!-- KPI principali -->
+<div class="kpi-row g5" style="margin-bottom:14px">
+  <div class="kpi"><div class="kv">${bmiVal||'—'}</div><div class="kl">BMI · ${bmiLbl}</div></div>
+  <div class="kpi"><div class="kv">${d.peso||'—'} kg</div><div class="kl">Peso</div></div>
+  <div class="kpi"><div class="kv">${pesoTarget||'—'} kg</div><div class="kl">Peso target</div></div>
+  <div class="kpi"><div class="kv" style="color:#ef4444">${d.mwtDist||'—'} m</div><div class="kl">6MWT</div></div>
+  <div class="kpi"><div class="kv" style="color:#10b981">${d.stsRip||'—'}</div><div class="kl">STS 30s rip.</div></div>
+</div>
+
+<!-- Anagrafica + Clinica + Test -->
+<div class="cols2">
+  <div>
+    <div class="sec">
+      <div class="st">Anagrafica & Dati Clinici</div>
+      ${[['Altezza',d.altezza?d.altezza+' cm':'—'],['Peso',d.peso?d.peso+' kg':'—'],['Vita',d.vita?d.vita+' cm':'—'],['Fianchi',d.fianchi?d.fianchi+' cm':'—'],['PA',d.pa||'—'],['FC riposo',d.fc?d.fc+' bpm':'—'],['SpO2',d.spo2?d.spo2+'%':'—'],['FC max stim.',fcMax?fcMax+' bpm':'—'],['FC target 60%',fcMax?Math.round(fcMax*.6)+' bpm':'—'],['FC target 75%',fcMax?Math.round(fcMax*.75)+' bpm':'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>
+    <div class="sec">
+      <div class="st">Anamnesi</div>
+      ${[['Patologie',d.patologie||'—'],['Farmaci',d.farmaci||'—'],['Allergie',d.allergie||'—'],['Familiarità CV',d.familiarita||'—'],['Fumo',d.fumo||'—'],['Alcol',d.alcol||'—'],['Sintomi sforzo',d.sintomiSforzo||'—'],['PAR-Q',d.parq||'—'],['Invio medico',d.invioMedico||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>
+  </div>
+  <div>
+    <div class="sec">
+      <div class="st">6 Minute Walk Test</div>
+      ${[['Distanza percorsa',d.mwtDist?d.mwtDist+' m':'—'],['RPE al termine',d.mwtRpe||'—'],['Sintomi',d.mwtSintomi||'—'],['FC post-esercizio',d.fcPost?d.fcPost+' bpm':'—'],['FC dopo 1 min',d.fcRecup?d.fcRecup+' bpm':'—'],['Delta FC (recupero)',d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup)+' bpm':'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>
+    <div class="sec">
+      <div class="st">Sit-to-Stand 30s</div>
+      ${[['Ripetizioni',d.stsRip||'—'],['Note tecnica',d.stsNote||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>
+    ${hasTest?`<div class="sec">
+      <div class="st">Test Fisici</div>
+      ${[['Push-up',d.pushupRip?d.pushupRip+' rip.':'—'],['Plank',d.plankSec?d.plankSec+' sec':'—'],['Squat',d.squatRip?d.squatRip+' rip.':'—'],['SLB dx/sx',d.slbDx||d.slbSx?(d.slbDx||'—')+'/'+(d.slbSx||'—')+' sec':'—'],['TUG',d.tugSec?d.tugSec+' sec':'—'],['Handgrip',d.handgrip?d.handgrip+' kg':'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>`:''}
+    <div class="sec">
+      <div class="st">Stile di vita & Psicologico</div>
+      ${[['Obiettivo',d.obiettivo||'—'],['Orizzonte',d.orizzonte||'—'],['Sedute/sett.',d.seduteSettimana||'—'],['Durata seduta',d.durataSeduta||'—'],['Sonno',d.sonno?d.sonno+'h/notte':'—'],['Stress',d.stress||'—'],['Motivazione',d.motivazione?d.motivazione+'/10':'—'],['GAD-7',d.gad7!==''&&d.gad7!==undefined?d.gad7+'/21':'—'],['RPE riposo',d.rpeRiposo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>
+  </div>
+</div>
+
+<div class="ftr">
+  <span>PT Board · Referto Valutazione · ${fmtDate()}</span>
+  <span>${d.nome} ${d.cognome} · Pagina 1 di 2</span>
+</div>
+</div>
+
+<!-- ══════════ PAGINA 2 — Composizione + Postura + Programma ══════════ -->
+<div class="page-break">
+
+<div class="hdr">
+  <div><div class="brand">PT Board<small>Programma di Allenamento</small></div></div>
+  <div>
+    <div class="patient-name">${d.nome} ${d.cognome}</div>
+    <div class="patient-sub">Profilo ${pr.code} · ${fmtDate()}</div>
+  </div>
+</div>
+
+${hasCir||hasPlico||hasBIA?`<!-- Composizione corporea -->
+<div class="cols2">
+  ${hasCir||hasPlico?`<div>
+    ${hasCir?`<div class="sec">
+      <div class="st">Circonferenze (cm)</div>
+      ${[['Braccio dx',d.cirBraccio?d.cirBraccio+' cm':'—'],['Coscia dx',d.cirCoscia?d.cirCoscia+' cm':'—'],['Polpaccio dx',d.cirPolpaccio?d.cirPolpaccio+' cm':'—'],['Fianchi',d.fianchi?d.fianchi+' cm':'—'],['Vita',d.vita?d.vita+' cm':'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>`:''}
+    ${hasPlico?`<div class="sec">
+      <div class="st">Plicometria</div>
+      ${[['Plica sottoscapolare',d.plicaSott?d.plicaSott+' mm':'—'],['Plica tricipitale',d.plicaTric?d.plicaTric+' mm':'—'],['Plica soprailiaca',d.plicaIlio?d.plicaIlio+' mm':'—'],['% Massa grassa',d.massaGrassa?d.massaGrassa+'%':'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>`:''}
+  </div>`:''}
+  ${hasBIA?`<div>
+    <div class="sec">
+      <div class="st">BIA — Bioimpedenziometria</div>
+      ${[['R — Resistenza',d.biaR?d.biaR+' Ω':'—'],['Xc — Reattanza',d.biaXc?d.biaXc+' Ω':'—'],['PhA — Angolo di fase',d.biaPhA?d.biaPhA+'°':'—'],['TBW — Acqua totale',d.biaTBW?d.biaTBW+' L':'—'],['FFM — Massa magra',d.biaFFM?d.biaFFM+' kg':'—'],['FM — Massa grassa',d.biaFM?d.biaFM+'%':'—'],['BCM — Massa cellulare',d.biaBCM?d.biaBCM+' kg':'—'],['ECW/TBW — Idratazione',d.biaECW?d.biaECW+'%':'—'],['BMR — Metabolismo basale',d.biaBMR?d.biaBMR+' kcal':'—']].map(([k,v])=>`<div class="row"><span class="rl">${k}</span><span class="rv">${v}</span></div>`).join('')}
+    </div>
+  </div>`:''}
+</div>`:''}
+
+${hasPostura?`<div class="sec">
+  <div class="st">Postura & Mobilità</div>
+  <div class="kpi-row g4">
+    ${[['Colonna',d.posturaColonna||'—'],['Spalle',d.posturaSpalle||'—'],['Mob. caviglia',d.mobCaviglia||'—'],['Mob. anca',d.mobAnca||'—']].map(([l,v])=>`<div class="kpi"><div class="kl">${l}</div><div style="font-size:11px;font-weight:700;margin-top:4px;color:#1e293b">${v}</div></div>`).join('')}
+  </div>
+  ${d.sitReach?`<div class="row" style="margin-top:6px"><span class="rl">Sit-and-Reach</span><span class="rv">${d.sitReach} cm</span></div>`:''}
+  ${d.notePostura&&d.notePostura!=='Nessuna'?`<div class="row"><span class="rl">Note posturali</span><span class="rv">${d.notePostura}</span></div>`:''}
+</div>`:''}
+
+${d.noteVal?`<div class="sec">
+  <div class="st">Note cliniche</div>
+  <div style="background:#f8fafc;border-radius:6px;padding:9px 12px;font-size:11px;color:#334155;line-height:1.6">${d.noteVal}</div>
+</div>`:''}
+
+<!-- Programma -->
+<div class="sec">
+  <div class="st">${prog.nome} — Programma 4 Settimane</div>
+  <div class="kpi-row g4" style="margin-bottom:10px">
+    <div class="kpi"><div class="kv" style="font-size:16px">${prog.sedute}</div><div class="kl">Sedute/sett.</div></div>
+    <div class="kpi"><div class="kv" style="font-size:16px">${prog.minCardio}'</div><div class="kl">Min cardio</div></div>
+    <div class="kpi"><div class="kv" style="font-size:16px">${prog.minForza}'</div><div class="kl">Min forza</div></div>
+    <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${prog.kcal}</div><div class="kl">kcal/gg</div></div>
+  </div>
+  ${prog.settimane.map(w=>`<div class="wk">
+    <div class="wk-t">Settimana ${w.num}</div>
+    <div class="wk-row"><strong style="color:#3b82f6">Cardio:</strong> ${w.cardio}</div>
+    <div class="wk-row"><strong style="color:#10b981">Forza:</strong> ${w.forza}</div>
+    <div class="tip">💡 ${w.note}</div>
+  </div>`).join('')}
+</div>
+
+<!-- Nutrizione -->
+<div class="sec">
+  <div class="st">Linee Guida Nutrizionali</div>
+  <div class="kpi-row g4">
+    <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${prog.kcal}</div><div class="kl">kcal/giorno</div></div>
+    <div class="kpi"><div class="kv" style="font-size:16px">${prog.prot}g</div><div class="kl">Proteine</div></div>
+    <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
+    <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
+  </div>
+</div>
+
+<div class="ftr">
+  <span>PT Board · Referto Valutazione · ${fmtDate()}</span>
+  <span>${d.nome} ${d.cognome} · Pagina 2 di 2</span>
+</div>
+</div>
+
+${'</body></html>'}\`;
+    const w=window.open('','_blank','width=900,height=700');
+    w.document.write(html);
+    w.document.close();
+    w.onload=()=>{ w.focus(); w.print(); };
+  };
   const exportCSV=()=>{
     if(!prog||!pr)return;
     const rows=[
