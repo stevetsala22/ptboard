@@ -2354,7 +2354,7 @@ ${'</body></html>'}\`;
       [''],
       ['NUTRIZIONE',''],['kcal/gg',prog.kcal],['Proteine g',prog.prot],['Carboidrati g',prog.carbo],['Grassi g',prog.grassi],
     ]);
-    const csv=rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const csv=rows.map(function(r){return r.map(function(cell){return '"'+String(cell||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
     a.download=`Valutazione_${d.cognome}_${d.nome}_${fmtDate().replace(/\//g,'-')}.csv`;
