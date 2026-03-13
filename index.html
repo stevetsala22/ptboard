@@ -39,13 +39,11 @@ firebase.initializeApp({
 });
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
-
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=30;
 const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
 const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
-
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
 const fbSaveUserProfile=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
@@ -68,7 +66,6 @@ const trialDaysLeft=(profile)=>{
   const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
   return Math.max(0,Math.ceil(TRIAL_DAYS-used));
 };
-
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
 const fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}catch(e){console.warn('fbSave',e);}
@@ -76,7 +73,6 @@ const fbSave=async(uid,data)=>{
 const fbLoad=async(uid)=>{
   try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}catch(e){return null;}
 };
-
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
 // 1. Vai su emailjs.com → crea account gratuito
 // 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
@@ -85,7 +81,6 @@ const fbLoad=async(uid)=>{
 const EMAILJS_SERVICE='YOUR_SERVICE_ID';   // ← da EmailJS dashboard
 const EMAILJS_TEMPLATE='YOUR_TEMPLATE_ID'; // ← da EmailJS dashboard
 const EMAILJS_KEY='YOUR_PUBLIC_KEY';       // ← da EmailJS dashboard
-
 const sendEmail=async({toEmail,toName,subject,message})=>{
   try{
     if(EMAILJS_KEY==='YOUR_PUBLIC_KEY') return {ok:false,err:'EmailJS non configurato'};
@@ -101,11 +96,9 @@ const sendEmail=async({toEmail,toName,subject,message})=>{
     return {ok:true};
   }catch(e){return {ok:false,err:String(e)};}
 };
-
 // ── AI COACH ─────────────────────────────────────────────────────────────────
 const aiCoach=async(paziente)=>{
   const prompt=`Sei un esperto personal trainer. Analizza questo profilo paziente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
-
 PROFILO:
 - Nome: ${paziente.nome} ${paziente.cognome}
 - Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
@@ -117,14 +110,12 @@ PROFILO:
 - Patologie: ${paziente.patologie||'nessuna'}
 - Test MWT: ${paziente.test?.mwtDist||'-'} m | STS: ${paziente.test?.stsRip||'-'} ripetizioni
 - Stress percepito: ${paziente.stressPercepito} | Sonno: ${paziente.sonno||'-'} ore
-
 Fornisci:
 1. 🎯 Obiettivo prioritario (2 righe)
 2. 📅 Schema settimanale (giorni e tipo di allenamento)
 3. 💪 3 esercizi chiave con serie/reps
 4. 🥗 Consiglio nutrizionale rapido
 5. ⚠️ Precauzioni specifiche per questo paziente`;
-
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -155,7 +146,6 @@ body{font-family:'DM Sans',system-ui,sans-serif;color:var(--text);transition:col
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 input,select,textarea,button{font-family:inherit;color:var(--text)}
 input,select,textarea{background:var(--input-bg);color:var(--text)}
-
 /* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────────── */
 @media(max-width:768px){
   /* Grid forms: 1 colonna su mobile */
@@ -188,7 +178,6 @@ const SK='fitmanager_v3';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
 const save=(d)=>{try{localStorage.setItem(SK,JSON.stringify(d))}catch{}};
 
-// ─── TRADUZIONI (IT / EN / FR) ────────────────────────────────────────────
 const LANGS={
   it:{flag:'🇮🇹',name:'Italiano',t:{
     dashboard:'Dashboard',patients:'Pazienti',calendar:'Calendario',exercises:'Esercizi',
@@ -306,7 +295,7 @@ const LANGS={
     wProgStartDate:'Data inizio programma',wProgSessions:'Sedute a settimana',
     wProgCardioMin:'Min cardio/sett.',wProgForzaMin:'Min forza/sett.',
     wProgCardioDesc:'Descrizione cardio',wProgForzaDesc:'Descrizione forza',wProgNotes:'Note programma',
-    wComplete:'✓ Completa valutazione',wPrev:'← Indietro',wNext:'Avanti →',
+    wComplete:'✓ Completa valutazione',wPrev:'← Indietro',addSession:'+ Aggiungi seduta',noLog:'Nessuna seduta registrata',wNext:'Avanti →',
     wOptional:'opzionale',wOptionalSkip:'Test opzionali. Salta quelli non applicabili.',
     wAlreadyProfile:'Profilo già determinabile',
     veryLow:'Molto bassa',average:'Nella media',good:'Buona',excellent:'Eccellente',
@@ -446,7 +435,7 @@ const LANGS={
     wProgStartDate:'Program start date',wProgSessions:'Sessions per week',
     wProgCardioMin:'Cardio min/week',wProgForzaMin:'Strength min/week',
     wProgCardioDesc:'Cardio description',wProgForzaDesc:'Strength description',wProgNotes:'Program notes',
-    wComplete:'✓ Complete assessment',wPrev:'← Back',wNext:'Next →',
+    wComplete:'✓ Complete assessment',wPrev:'← Back',addSession:'+ Add session',noLog:'No sessions recorded',domande:'questions',wNext:'Next →',
     wOptional:'optional',wOptionalSkip:'Optional tests. Skip those not applicable.',
     wAlreadyProfile:'Profile already determinable',
     veryLow:'Very low',average:'Average',good:'Good',excellent:'Excellent',
@@ -586,7 +575,7 @@ const LANGS={
     wProgStartDate:'Date de début du programme',wProgSessions:'Séances par semaine',
     wProgCardioMin:'Min cardio/semaine',wProgForzaMin:'Min force/semaine',
     wProgCardioDesc:'Description cardio',wProgForzaDesc:'Description force',wProgNotes:'Notes programme',
-    wComplete:"✓ Terminer l'évaluation",wPrev:'← Retour',wNext:'Suivant →',
+    wComplete:"✓ Terminer l'évaluation",wPrev:'← Retour',addSession:'+ Ajouter séance',noLog:'Aucune séance enregistrée',domande:'questions',wNext:'Suivant →',
     wOptional:'optionnel',wOptionalSkip:'Tests optionnels. Ignorez ceux non applicables.',
     wAlreadyProfile:'Profil déjà déterminable',
     veryLow:'Très faible',average:'Dans la moyenne',good:'Bon',excellent:'Excellent',
@@ -614,7 +603,6 @@ const LANGS={
 const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
 const setLangStore=(l)=>localStorage.setItem('ptboard_lang',l);
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
-
 
 const C={
   get bg(){return'var(--bg)'},
@@ -684,7 +672,6 @@ const INIT_EXERCISES=[
 
 const INIT_PATIENTS=[];
 const INIT_BOOKINGS=[];
-
 
 const isMobile=window.innerWidth<=768;
 const S={
@@ -780,7 +767,6 @@ function BarChartComp({data,color=C.blue}){
   return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function Dashboard({patients,bookings,T}){
   const today=fmtDate();
   const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
@@ -831,7 +817,6 @@ function Dashboard({patients,bookings,T}){
   );
 }
 
-// ── PATIENT LIST ──────────────────────────────────────────────────────────────
 function PatientList({patients,onSelect,onAdd,search,T}){
   const filtered=useMemo(()=>{
     const q=search.toLowerCase();
@@ -895,7 +880,6 @@ function PatientList({patients,onSelect,onAdd,search,T}){
   );
 }
 
-// ── PATIENT DETAIL ────────────────────────────────────────────────────────────
 function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade}){
   const [tab,setTab]=useState('dash');
   const [showLogModal,setShowLogModal]=useState(false);
@@ -1073,7 +1057,7 @@ ${(p.progressi||[]).length>1?`
     const w=window.open('','_blank');
     w.document.write(html);
     w.document.close();
-    // Non auto-stampa — l'utente clicca il bottone manualmente (evita il blocco su iPhone)
+
   };
 
   return(
@@ -1498,7 +1482,6 @@ function SchedaModal({exercises,onSave,onClose}){
   );
 }
 
-// ── CALENDARIO ────────────────────────────────────────────────────────────────
 function CalendarView({patients,bookings,setBookings,T}){
   const [weekOffset,setWeekOffset]=useState(0);
   const [showModal,setShowModal]=useState(false);
@@ -1606,7 +1589,6 @@ function CalendarView({patients,bookings,setBookings,T}){
   );
 }
 
-// ── ESERCIZI ──────────────────────────────────────────────────────────────────
 function ExercisesPage({exercises,setExercises,T}){
   const [showModal,setShowModal]=useState(false);
   const [editing,setEditing]=useState(null);
@@ -1667,7 +1649,6 @@ function ExercisesPage({exercises,setExercises,T}){
   );
 }
 
-// ── FORM PAZIENTE ─────────────────────────────────────────────────────────────
 function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   const [form,setForm]=useState(initial);
   const b=bmi(form.peso,form.altezza);
@@ -1770,7 +1751,6 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   );
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────────────────────
 function App(){
   const [user,setUser]=useState(undefined);
   const [profile,setProfile]=useState(null);
@@ -1832,7 +1812,6 @@ function AppInner({user,profile,trialLeft}){
   const T=LANGS[lang]?.t||LANGS.it.t;
   const firstLoad=useRef(true);
 
-  // Carica dati da Firebase in background (non blocca l'app)
   useEffect(()=>{
     fbLoad(user.uid).then(remote=>{
       if(remote){
@@ -1845,13 +1824,11 @@ function AppInner({user,profile,trialLeft}){
     if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
   },[]);
 
-  // Applica tema
   useEffect(()=>{
     if(isLight) document.documentElement.classList.add('light');
     else document.documentElement.classList.remove('light');
   },[isLight]);
 
-  // Salva su localStorage + Firebase
   useEffect(()=>{
     if(firstLoad.current){firstLoad.current=false;return;}
     const data={patients,bookings,exercises,isLight};
@@ -1862,7 +1839,6 @@ function AppInner({user,profile,trialLeft}){
     return()=>clearTimeout(t);
   },[patients,bookings,exercises,isLight]);
 
-  // Salva IMMEDIATAMENTE quando l'app viene chiusa/minimizzata
   useEffect(()=>{
     const handleHide=()=>{
       const data={patients,bookings,exercises,isLight};
@@ -1915,7 +1891,7 @@ function AppInner({user,profile,trialLeft}){
           {/* Pulsante chiudi (X) */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
-              
+
               <div>
                 <div style={{textAlign:'center',padding:'8px 0'}}>
               <div style={{fontSize:16,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
@@ -2048,7 +2024,6 @@ function AppInner({user,profile,trialLeft}){
   );
 }
 
-// ── DATI PROGRAMMI PER PROFILO ────────────────────────────────────────────────
 const PROGRAMMI={
   A:{
     nome:'Programma Forma Bassa — Avvio Graduale',
@@ -2085,8 +2060,6 @@ const PROGRAMMI={
   },
 };
 
-// ── WIZARD VALUTAZIONE 20 MIN ─────────────────────────────────────────────────
-// Definito FUORI dal wizard — evita re-mount ad ogni keystroke
 function WizIn({lbl,name,type='text',val,onChange,opts,ph,desc}){
   return(
     <div style={{marginBottom:10}}>
@@ -2300,7 +2273,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 desc="Physical Activity Readiness Questionnaire: 7 domande per scremare controindicazioni. Risposta SI = invio medico consigliato."
                 val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
               <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
-              
+
               <WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>
               <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
               <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
@@ -2313,7 +2286,6 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
               <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
               <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
-
 
               <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>
               <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
@@ -2528,7 +2500,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           {/* STEP 5 — Test Fisici */}
           {step===5&&<div>
             <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali. Salta quelli non applicabili.</p>
-            
+
             {/* Push-up */}
             <div style={{...S.card,marginBottom:10,borderLeft:`3px solid ${C.blue}`}}>
               <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:6}}>💪 Push-up — resistenza arti superiori</div>
@@ -2700,7 +2672,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         <div style={{padding:'14px 22px',borderTop:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap'}}>
           <button onClick={onClose} style={S.btn('ghost',true)}>{gT().cancel}</button>
           <div style={{display:'flex',gap:8}}>
-            
+
             {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
             {step<TOTAL&&<button onClick={()=>{
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
@@ -2727,7 +2699,6 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   );
 }
 
-// ── ERROR BOUNDARY ────────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component{
   constructor(p){super(p);this.state={err:null};}
   static getDerivedStateFromError(e){return{err:e};}
@@ -2743,7 +2714,6 @@ class ErrorBoundary extends React.Component{
   }
 }
 
-// ── PAYWALL SCREEN ────────────────────────────────────────────────────────────
 function PaywallScreen({user,profile,blocked}){
   return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
@@ -2766,7 +2736,6 @@ function PaywallScreen({user,profile,blocked}){
   );
 }
 
-// ── PIANI MODAL ───────────────────────────────────────────────────────────────
 function LinguaModal({onClose,lang,setLang}){
   const lingue=[
     {k:'it',flag:'🇮🇹',nome:'Italiano',desc:'Lingua predefinita'},
@@ -2938,7 +2907,6 @@ function PianiModal({onClose,profile}){
   );
 }
 
-// ── ADMIN MODAL ───────────────────────────────────────────────────────────────
 function AdminModal({onClose}){
   const [users,setUsers]=useState([]);
   const [loading,setLoading]=useState(true);
@@ -3031,7 +2999,6 @@ function AdminModal({onClose}){
   );
 }
 
-// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen({onProfileReady}){
   const [mode,setMode]=useState('login');
   const [email,setEmail]=useState('');
@@ -3095,7 +3062,6 @@ function AuthScreen({onProfileReady}){
   );
 }
 
-// ── TUTORIAL MODAL ────────────────────────────────────────────────────────────
 const TSTEPS=[
   {label:'Benvenuto',time:'1 min',bc:'#3b82f630',bct:'#60a5fa',badge:'Introduzione',title:'Benvenuto in PT Board 👋',desc:'Il tuo strumento completo per gestire pazienti, valutazioni, allenamenti e molto altro. Ecco le 5 cose più importanti da sapere.',
   html:`<div style="display:flex;flex-direction:column;gap:10px">
