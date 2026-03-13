@@ -3065,21 +3065,21 @@ function AuthScreen({onProfileReady}){
 const TSTEPS=[
   {label:'Benvenuto',time:'1 min',bc:'#3b82f630',bct:'#60a5fa',badge:'Introduzione',title:'Benvenuto in PT Board 👋',desc:'Il tuo strumento completo per gestire pazienti, valutazioni, allenamenti e molto altro. Ecco le 5 cose più importanti da sapere.',
   html:`<div style="display:flex;flex-direction:column;gap:10px">
-    ${[['🥇','Valutazione 20 min','Il cuore dell\'app. Inizia sempre da qui con ogni nuovo paziente — anagrafica, test, profilo e programma pronto in un clic.','#3b82f6'],['🥈','Scheda paziente','Dopo la valutazione trovi tutto: log sedute, peso, programma, nutrizione, AI Coach e report PDF.','#10b981'],['🥉','Calendario','Prenota appuntamenti e invia promemoria email automatici ai pazienti.','#f59e0b'],['4️⃣','AI Coach','Nella scheda paziente — genera un programma personalizzato con l\'AI in pochi secondi.','#7c3aed'],['5️⃣','Dashboard','Panoramica rapida: pazienti del giorno, appuntamenti, progressi peso.','#64748b']].map(([n,t,d,c])=>'
+    ${[['🥇','Valutazione 20 min','Il cuore dell\'app. Inizia sempre da qui con ogni nuovo paziente — anagrafica, test, profilo e programma pronto in un clic.','#3b82f6'],['🥈','Scheda paziente','Dopo la valutazione trovi tutto: log sedute, peso, programma, nutrizione, AI Coach e report PDF.','#10b981'],['🥉','Calendario','Prenota appuntamenti e invia promemoria email automatici ai pazienti.','#f59e0b'],['4️⃣','AI Coach','Nella scheda paziente — genera un programma personalizzato con l\'AI in pochi secondi.','#7c3aed'],['5️⃣','Dashboard','Panoramica rapida: pazienti del giorno, appuntamenti, progressi peso.','#64748b']].map(([n,t,d,c])=>`
     <div style="display:flex;gap:12px;align-items:flex-start;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
-      <div style="font-size:22px;flex-shrink:0">'+n+'</div>
-      <div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">'+t+'</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">'+d+'</div></div>
-    </div>').join('')}
+      <div style="font-size:22px;flex-shrink:0">${n}</div>
+      <div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">${t}</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">${d}</div></div>
+    </div>`).join('')}
   </div>`},
 
   {label:'🎯 Valutazione 20 min',time:'Funzione principale',bc:'#fb923c30',bct:'#fb923c',badge:'⭐ Più importante',title:'Inizia sempre da qui',desc:'La Valutazione 20 min è il flusso principale. In 6 passi guidati crei il profilo completo del paziente con programma pronto.',
   html:`<div style="display:flex;flex-direction:column;gap:8px">
-    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Forma Bassa / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>'
+    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Forma Bassa / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
     <div style="display:flex;gap:10px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:11px 14px">
-      <div style="width:26px;height:26px;border-radius:50%;background:'+c+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+n+'</div>
-      <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">'+t+'</div><div style="font-size:11px;color:#64748b;margin-top:1px">'+d+'</div></div>
-      <div style="font-size:10px;color:#475569;white-space:nowrap;background:#0f172a;padding:3px 8px;border-radius:20px">'+tm+'</div>
-    </div>').join('')}
+      <div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${n}</div>
+      <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b;margin-top:1px">${d}</div></div>
+      <div style="font-size:10px;color:#475569;white-space:nowrap;background:#0f172a;padding:3px 8px;border-radius:20px">${tm}</div>
+    </div>`).join('')}
     <div style="background:#3b82f615;border:1px solid #3b82f640;border-radius:10px;padding:12px;text-align:center;margin-top:4px">
       <div style="font-size:12px;color:#93c5fd">💡 Tocca <strong>{T.valutazione}</strong> nel menu per avviarlo</div>
     </div>
@@ -3087,11 +3087,11 @@ const TSTEPS=[
 
   {label:'📋 Scheda paziente',time:'Uso quotidiano',bc:'#10b98130',bct:'#2dd4bf',badge:'Uso quotidiano',title:'La scheda paziente — tutto in un posto',desc:'Dopo la valutazione ogni paziente ha una scheda completa con 8 sezioni. Accedici dalla lista Pazienti.',
   html:`<div style="display:flex;flex-direction:column;gap:8px">
-    ${[['⊞','Dashboard','KPI principali: peso, BMI, profilo, sedute'],['👤','Anagrafica','Dati clinici, patologie, farmaci'],['🏃','Test','Risultati 6MWT e Sit-to-Stand con storico'],['📅','Programma','4 settimane pronte — modifica se vuoi'],['💪','Allenamento','Log sedute: tipo, durata, RPE, note'],['🥗','Nutrizione','Kcal, macros, piano pasti personalizzato'],['📊','Log','Storico completo di tutte le sedute'],['📈','Statistiche','Grafici peso e performance nel tempo']].map(([ic,t,d])=>'
+    ${[['⊞','Dashboard','KPI principali: peso, BMI, profilo, sedute'],['👤','Anagrafica','Dati clinici, patologie, farmaci'],['🏃','Test','Risultati 6MWT e Sit-to-Stand con storico'],['📅','Programma','4 settimane pronte — modifica se vuoi'],['💪','Allenamento','Log sedute: tipo, durata, RPE, note'],['🥗','Nutrizione','Kcal, macros, piano pasti personalizzato'],['📊','Log','Storico completo di tutte le sedute'],['📈','Statistiche','Grafici peso e performance nel tempo']].map(([ic,t,d])=>`
     <div style="display:flex;gap:10px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px">
-      <div style="font-size:18px;width:28px;text-align:center;flex-shrink:0">'+ic+'</div>
-      <div><div style="font-size:12px;font-weight:700;color:#f8fafc">'+t+'</div><div style="font-size:11px;color:#64748b">'+d+'</div></div>
-    </div>').join('')}
+      <div style="font-size:18px;width:28px;text-align:center;flex-shrink:0">${ic}</div>
+      <div><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b">${d}</div></div>
+    </div>`).join('')}
     <div style="background:#7c3aed15;border:1px solid #7c3aed40;border-radius:10px;padding:12px;margin-top:4px">
       <div style="font-size:12px;color:#c4b5fd">🤖 <strong>AI Coach</strong> — pulsante viola nella scheda. Genera un programma personalizzato con l'intelligenza artificiale in 5 secondi!</div>
     </div>
@@ -3101,11 +3101,11 @@ const TSTEPS=[
   html:`<div style="display:flex;flex-direction:column;gap:12px">
     <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:10px">Come prenotare</div>
-      ${[['1','Vai su 📅 Calendario nel menu'],['2','Tocca + Prenota in alto a destra'],['3','Scegli paziente, data, ora e tipo seduta'],['4','Salva — appare subito nel calendario']].map(([n,t])=>'
+      ${[['1','Vai su 📅 Calendario nel menu'],['2','Tocca + Prenota in alto a destra'],['3','Scegli paziente, data, ora e tipo seduta'],['4','Salva — appare subito nel calendario']].map(([n,t])=>`
       <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-        <div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+n+'</div>
-        <div style="font-size:12px;color:#e2e8f0">'+t+'</div>
-      </div>').join('')}
+        <div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div>
+        <div style="font-size:12px;color:#e2e8f0">${t}</div>
+      </div>`).join('')}
     </div>
     <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:10px">📧 Promemoria email automatici</div>
@@ -3119,11 +3119,11 @@ const TSTEPS=[
     <div style="background:#7c3aed15;border:2px solid #7c3aed40;border-radius:12px;padding:16px">
       <div style="font-size:13px;font-weight:800;color:#c4b5fd;margin-bottom:8px">🤖 AI Coach</div>
       <div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:10px">Apri la scheda di un paziente → tocca il pulsante viola <strong style="color:#c4b5fd">🤖 AI Coach</strong> → ricevi in 5 secondi:</div>
-      ${[['🎯','Obiettivo prioritario personalizzato'],['📅','Schema settimanale completo'],['💪','3 esercizi chiave con serie e reps'],['🥗','Consiglio nutrizionale rapido'],['⚠️','Precauzioni specifiche per quel paziente']].map(([ic,t])=>'
+      ${[['🎯','Obiettivo prioritario personalizzato'],['📅','Schema settimanale completo'],['💪','3 esercizi chiave con serie e reps'],['🥗','Consiglio nutrizionale rapido'],['⚠️','Precauzioni specifiche per quel paziente']].map(([ic,t])=>`
       <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
-        <span style="font-size:14px">'+ic+'</span>
-        <div style="font-size:11px;color:#e2e8f0">'+t+'</div>
-      </div>').join('')}
+        <span style="font-size:14px">${ic}</span>
+        <div style="font-size:11px;color:#e2e8f0">${t}</div>
+      </div>`).join('')}
     </div>
     <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:16px">
       <div style="font-size:13px;font-weight:800;color:#60a5fa;margin-bottom:8px">📱 Installa come app</div>
@@ -3146,11 +3146,11 @@ const TSTEPS=[
     <div style="font-size:16px;font-weight:800;color:#f8fafc;margin-bottom:6px">Da dove iniziare?</div>
     <div style="font-size:13px;color:#64748b;margin-bottom:20px">Segui questi 3 passi e sei operativo in 5 minuti</div>
     <div style="display:flex;flex-direction:column;gap:8px;max-width:380px;margin:0 auto 20px">
-      ${[['1','🎯','Clicca "Valutazione 20 min" nel menu','Crea il tuo primo paziente con il wizard'],['2','📋','Apri la scheda paziente','Esplora le 8 tab e aggiungi sedute'],['3','🤖','Prova AI Coach','Genera un programma in 5 secondi']].map(([n,ic,t,d])=>'
+      ${[['1','🎯','Clicca "Valutazione 20 min" nel menu','Crea il tuo primo paziente con il wizard'],['2','📋','Apri la scheda paziente','Esplora le 8 tab e aggiungi sedute'],['3','🤖','Prova AI Coach','Genera un programma in 5 secondi']].map(([n,ic,t,d])=>`
       <div style="display:flex;gap:12px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px;text-align:left">
-        <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+n+'</div>
-        <div><div style="font-size:13px;font-weight:700;color:#fff">'+ic+' '+t+'</div><div style="font-size:11px;color:#64748b;margin-top:2px">'+d+'</div></div>
-      </div>').join('')}
+        <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div>
+        <div><div style="font-size:13px;font-weight:700;color:#fff">${ic} ${t}</div><div style="font-size:11px;color:#64748b;margin-top:2px">${d}</div></div>
+      </div>`).join('')}
     </div>
     <div style="background:#3b82f615;border:1px solid #3b82f640;border-radius:10px;padding:12px;font-size:12px;color:#93c5fd">
       💡 Puoi riaprire questo tutorial in qualsiasi momento dal menu → 📖 Tutorial
