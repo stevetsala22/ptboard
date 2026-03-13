@@ -2557,8 +2557,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   const stepSub=['Anagrafica & clinica','Composizione & BIA','6MWT + Recupero FC','Sit-to-Stand 30s','Test fisici','RPE & note finali','Classificazione automatica','Programma 4 settimane'];
 
   return(
-    <div style={OL} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
-      <div style={BOX}>
+    <div style={OL}>
+      <div style={BOX} onClick={function(e){e.stopPropagation();}}>
         {/* Header */}
         <div style={{padding:'18px 22px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
           <div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:'1px solid '+C.blue+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🎯</div>
@@ -2566,7 +2566,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             <div style={{fontSize:15,fontWeight:800,color:C.strong}}>Valutazione Paziente</div>
             <div style={{fontSize:11,color:C.muted,marginTop:1}}>Passo {step} di {TOTAL} · {stepTitles[step-1]}</div>
           </div>
-          <button onClick={onClose} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
+          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
         </div>
         {/* Progress */}
         <div style={{height:3,background:C.border,flexShrink:0}}>
@@ -3174,7 +3174,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
         {/* Footer */}
         <div style={{padding:'14px 22px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap'}}>
-          <button onClick={onClose} style={S.btn('ghost',true)}>{gT().cancel}</button>
+          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button>
           <div style={{display:'flex',gap:8}}>
 
             {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
