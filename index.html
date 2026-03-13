@@ -2845,17 +2845,12 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   Calcola FM%, FFM e TBW da dati antropometrici
                 </button>
                 {d.biaBMR&&<div style={{background:C.card,borderRadius:10,padding:'12px 14px',marginTop:10,display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:8,textAlign:'center'}}>
-                  {[
-                    [d.biaFM+'%','Massa grassa','#fb923c'],
-                    [d.biaFFM+' kg','Massa magra','#10b981'],
-                    [d.biaTBW+' L','Acqua totale','#06b6d4'],
-                    [d.biaBMR+' kcal','BMR basale','#8b5cf6'],
-                  ].map(function(item){var v=item[0],l=item[1],col=item[2];return(
+                  {[[d.biaFM+'%','Massa grassa','#fb923c'],[d.biaFFM+' kg','Massa magra','#10b981'],[d.biaTBW+' L','Acqua totale','#06b6d4'],[d.biaBMR+' kcal','BMR basale','#8b5cf6']].map(([v,l,col])=>(
                     <div key={l} style={{background:col+'12',borderRadius:10,padding:'10px 8px',border:'1px solid '+col+'20'}}>
                       <div style={{fontSize:18,fontWeight:800,color:col}}>{v}</div>
                       <div style={{fontSize:9,color:C.muted,marginTop:3,lineHeight:1.3}}>{l}</div>
                     </div>
-                  );})
+                  ))}
                 </div>}
                 {d.biaBMR&&<div style={{fontSize:10,color:C.muted,marginTop:8,lineHeight:1.5,fontStyle:'italic'}}>
                   Valori stimati (3-5% errore). BMR = Mifflin-St Jeor. FM% = Deurenberg. TBW = Watson.
