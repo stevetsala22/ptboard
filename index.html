@@ -2178,7 +2178,7 @@ function AppInner({user,profile,trialLeft}){
 
       {/* Sidebar */}
       <nav role="navigation" aria-label="Menu principale" style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
-        transform:sidebarOpen?'translateX(0)':'translateX(-100%)',
+        transform:(sidebarOpen&&!showValutazione)?'translateX(0)':'translateX(-100%)',
         transition:'transform .25s ease',boxShadow:sidebarOpen?'4px 0 20px #0008':'none'}}>
         <div style={S.sbh}>
           {/* Pulsante chiudi (X) */}
@@ -2258,7 +2258,7 @@ function AppInner({user,profile,trialLeft}){
       {/* Main content — occupa tutto lo schermo */}
       <main role="main" style={{...S.main,width:'100%'}}>
         <div style={{...S.topbar,position:'relative',height:isMobile?56:52}}>
-          <button aria-label="Apri menu" onClick={()=>setSidebarOpen(v=>!v)} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
+          <button aria-label="Apri menu" onClick={function(){if(showValutazione)return;setSidebarOpen(function(v){return!v;});}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
           {isMobile?(
             <>
               <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',pointerEvents:'none'}}>
