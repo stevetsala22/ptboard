@@ -2081,7 +2081,7 @@ function App(){
 
 function AppInner({user,profile,trialLeft}){
   const stored=load();
-  const [patients,setPatients]=useState(stored?.patients||INIT_PATIENTS);
+  const [patients,setPatients]=useState(stored?.patients?.length?stored.patients:INIT_PATIENTS);
   const [bookings,setBookings]=useState(stored?.bookings||INIT_BOOKINGS);
   const [exercises,setExercises]=useState(stored?.exercises||INIT_EXERCISES);
   const [page,setPage]=useState('dash');
@@ -2122,7 +2122,7 @@ function AppInner({user,profile,trialLeft}){
     setSyncing(true);
     fbLoad(user.uid).then(remote=>{
       if(remote){
-        if(remote.patients) setPatients(remote.patients);
+        if(remote.patients?.length) setPatients(remote.patients);
         if(remote.bookings) setBookings(remote.bookings);
         if(remote.exercises) setExercises(remote.exercises);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
