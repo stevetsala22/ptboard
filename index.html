@@ -2357,7 +2357,7 @@ ${'</body></html>'}\`;
     const csv=rows.map(function(r){return r.map(function(cell){return '"'+String(cell||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
-    a.download=`Valutazione_${d.cognome}_${d.nome}_${fmtDate().replace(/\//g,'-')}.csv`;
+    a.download='Valutazione_'+d.cognome+'_'+d.nome+'_'+fmtDate().split('/').join('-')+'.csv';
     a.click();
   };
 
