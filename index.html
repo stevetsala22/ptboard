@@ -668,6 +668,178 @@ const interpRecupFC=(delta)=>{if(!delta)return null;const d=+delta;if(d>=20)retu
 const interpGAD7=(s)=>{if(s===''||s===null||s===undefined)return null;const v=+s;if(v<=4)return{l:gT().minAnx,c:'#10b981',cons:'Nessun intervento specifico'};if(v<=9)return{l:gT().mildAnx,c:'#f59e0b',cons:'Tecniche respirazione e rilassamento'};if(v<=14)return{l:gT().moderateAnx,c:'#fb923c',cons:'Valutare supporto professionale'};return{l:gT().severeAnx,c:'#ef4444',cons:'Consigliare supporto psicologico'};};
 const interpSonno=(ore)=>{if(!ore)return null;const o=+ore;if(o<6)return{l:gT().sleepInsuff,c:'#ef4444',cons:'Priorità al recupero — limitare intensità allenamento'};if(o<7)return{l:gT().sleepBorder,c:'#f59e0b',cons:'Lavorare su igiene del sonno'};if(o<=9)return{l:gT().sleepOk,c:'#10b981',cons:'Recupero adeguato'};return{l:gT().sleepExcess,c:'#f59e0b',cons:'Valutare qualità del sonno'};};
 
+// ── 1. SpO2 — soglie WHO/AHA ────────────────────────────────────────────────
+const interpSpO2=(val)=>{
+  if(!val)return null;const v=+val;
+  if(v>=96)return{l:'Normale',c:'#10b981',cons:'Saturazione ottimale — nessuna limitazione all\'esercizio.'};
+  if(v>=94)return{l:'Lieve riduzione',c:'#f59e0b',cons:'Monitorare durante esercizio aerobico. Evitare alta quota non acclimatata. Se persistente, consultare medico.'};
+  if(v>=90)return{l:'Ipossiemia moderata',c:'#fb923c',cons:'⚠️ Limitare intensità a RPE ≤4. Evitare esercizio anaerobico. Consultare medico prima di proseguire attività fisica.'};
+  return{l:'Ipossiemia severa',c:'#ef4444',cons:'🚨 STOP esercizio — invio immediato a valutazione medica. SpO2 <90% richiede ossigenoterapia (WHO).'};
+};
+
+// ── 2. Handgrip — normativi Dodds 2014 (kg) ─────────────────────────────────
+const interpHandgrip=(kg,sesso,eta)=>{
+  if(!kg)return null;const v=+kg,m=sesso==='M',a=+eta||50;
+  // Soglie basate su Dodds RM et al. (2014) "Grip strength across the life course" + cut-off sarcopenia EWGSOP2 2019
+  if(m){
+    const sarco=a<65?30:27; // EWGSOP2: <27 kg uomini anziani, <30 giovani adulti
+    const ref=a<30?50:a<40?51:a<50?50:a<60?46:a<70?42:a<80?36:30; // mediane Dodds
+    if(v<sarco)return{l:'Sotto soglia sarcopenia',c:'#ef4444',cons:`Forza prensile ${v} kg < ${sarco} kg (soglia sarcopenia EWGSOP2). Priorità: rinforzo arti superiori, esercizi con grip (farmer walk, dead hang). Valutare integrazione proteica 1.2-1.6 g/kg/die.`};
+    if(v<ref*0.8)return{l:'Sotto la media',c:'#f59e0b',cons:`Forza prensile inferiore alla media per età/sesso (rif. ${ref} kg, Dodds 2014). Inserire esercizi di presa: farmer carry, plate pinch, wrist curl. Progressione con sovraccarico.`};
+    if(v<ref*1.1)return{l:'Nella media',c:'#10b981',cons:`Forza prensile nella norma per età e sesso (rif. ${ref} kg). Mantenere con allenamento regolare di forza.`};
+    return{l:'Sopra la media',c:'#3b82f6',cons:`Eccellente forza prensile (> media ${ref} kg). Indicatore positivo di forza generale e longevità (Leong 2015).`};
+  }else{
+    const sarco=a<65?20:16; // EWGSOP2: <16 kg donne anziane
+    const ref=a<30?31:a<40?32:a<50?31:a<60?28:a<70?25:a<80?22:18;
+    if(v<sarco)return{l:'Sotto soglia sarcopenia',c:'#ef4444',cons:`Forza prensile ${v} kg < ${sarco} kg (soglia sarcopenia EWGSOP2). Priorità: rinforzo globale, esercizi con grip. Valutare apporto proteico ≥1.2 g/kg/die.`};
+    if(v<ref*0.8)return{l:'Sotto la media',c:'#f59e0b',cons:`Forza prensile inferiore alla media per età/sesso (rif. ${ref} kg, Dodds 2014). Inserire esercizi di presa e forza arti superiori.`};
+    if(v<ref*1.1)return{l:'Nella media',c:'#10b981',cons:`Forza prensile nella norma per età e sesso (rif. ${ref} kg). Mantenere con allenamento regolare.`};
+    return{l:'Sopra la media',c:'#3b82f6',cons:`Eccellente forza prensile (> media ${ref} kg). Ottimo indicatore di salute generale.`};
+  }
+};
+
+// ── 3. Sit-and-Reach — flessibilità ACSM (cm) ──────────────────────────────
+const interpSitReach=(cm,sesso)=>{
+  if(cm===''||cm===null||cm===undefined)return null;const v=+cm,m=sesso==='M';
+  // ACSM Guidelines for Exercise Testing and Prescription (11th ed.)
+  if(m){
+    if(v<-8)return{l:'Molto scarsa',c:'#ef4444',cons:'Flessibilità catena posteriore molto ridotta. Rischio aumentato lombalgia. Stretching quotidiano: hamstring stretch 3×30s, cat-cow 2×10, forward fold progressivo. Evitare deadlift da terra fino a miglioramento.'};
+    if(v<0)return{l:'Sotto la media',c:'#f59e0b',cons:'Flessibilità ridotta. Stretching dinamico pre-allenamento + statico post (hamstring, piriforme, polpacci). Aggiungere yoga/mobilità 2×/settimana.'};
+    if(v<17)return{l:'Nella media',c:'#10b981',cons:'Flessibilità nella norma ACSM. Mantenere con stretching regolare post-sessione.'};
+    return{l:'Eccellente',c:'#3b82f6',cons:'Ottima flessibilità catena posteriore. Attenzione a ipermobilità — rinforzare core e stabilizzatori.'};
+  }else{
+    if(v<-4)return{l:'Molto scarsa',c:'#ef4444',cons:'Flessibilità catena posteriore molto ridotta. Stretching quotidiano: hamstring stretch 3×30s, cat-cow 2×10. Evitare carichi elevati su catena posteriore.'};
+    if(v<4)return{l:'Sotto la media',c:'#f59e0b',cons:'Flessibilità ridotta. Stretching dinamico + statico (hamstring, piriforme, polpacci). Yoga/mobilità 2×/settimana.'};
+    if(v<21)return{l:'Nella media',c:'#10b981',cons:'Flessibilità nella norma ACSM. Mantenere con stretching regolare.'};
+    return{l:'Eccellente',c:'#3b82f6',cons:'Ottima flessibilità. Attenzione a ipermobilità — rinforzare core e stabilizzatori.'};
+  }
+};
+
+// ── 4. BIA — Angolo di Fase (PhA) — Bosy-Westphal 2006 ─────────────────────
+const interpPhA=(pha,sesso,eta)=>{
+  if(!pha)return null;const v=+pha,m=sesso==='M',a=+eta||50;
+  // Ref: Bosy-Westphal A et al. (2006), Norman K et al. (2012)
+  const refM=a<30?7.5:a<40?7.3:a<50?7.1:a<60?6.8:a<70?6.3:5.8;
+  const refF=a<30?6.6:a<40?6.4:a<50?6.2:a<60?5.9:a<70?5.5:5.1;
+  const ref=m?refM:refF;
+  const sarcoThresh=m?4.5:3.8; // soglie associate a sarcopenia/malnutrizione
+  if(v<sarcoThresh)return{l:'Critico — rischio sarcopenia',c:'#ef4444',cons:`PhA ${v}° molto basso (soglia critica ${sarcoThresh}°). Indica perdita integrità cellulare, possibile sarcopenia o malnutrizione (Norman 2012). Priorità: screening nutrizionale completo, apporto proteico ≥1.5 g/kg/die, allenamento resistenza 3×/settimana. Consultare specialista.`};
+  if(v<ref*0.85)return{l:'Sotto la media',c:'#f59e0b',cons:`PhA ${v}° inferiore alla media per età/sesso (rif. ${ref}°, Bosy-Westphal 2006). Possibile riduzione massa cellulare. Aumentare apporto proteico, allenamento di forza progressivo, verificare idratazione.`};
+  if(v<ref*1.15)return{l:'Nella norma',c:'#10b981',cons:`PhA ${v}° nella norma (rif. ${ref}°). Buona integrità cellulare e stato nutrizionale. Mantenere allenamento e alimentazione bilanciata.`};
+  return{l:'Sopra la media',c:'#3b82f6',cons:`PhA ${v}° eccellente (> media ${ref}°). Indica alta massa cellulare e ottimo stato nutrizionale. Tipico di soggetti allenati.`};
+};
+
+// ── 5. BIA — ECW/TBW ratio — Kyle 2004 ─────────────────────────────────────
+const interpECW_TBW=(ratio)=>{
+  if(!ratio)return null;const v=+ratio;
+  // Kyle UG et al. (2004) "Bioelectrical impedance analysis" — norma ECW/TBW 0.36-0.39
+  if(v<0.36)return{l:'Ottimo — buona distribuzione idrica',c:'#3b82f6',cons:`ECW/TBW ${v} indica ottima distribuzione idrica intracellulare. Tipico di soggetti ben idratati e con buona massa muscolare.`};
+  if(v<=0.39)return{l:'Normale',c:'#10b981',cons:`ECW/TBW ${v} nella norma (0.36-0.39, Kyle 2004). Equilibrio idrico adeguato.`};
+  if(v<=0.42)return{l:'Lieve ritenzione',c:'#f59e0b',cons:`ECW/TBW ${v} leggermente elevato. Possibile ritenzione idrica lieve. Ridurre sodio, aumentare potassio (frutta, verdura), camminata quotidiana 30 min, drenaggio linfatico se sedentario. Verificare apporto idrico ≥2L/die.`};
+  if(v<=0.45)return{l:'Ritenzione moderata',c:'#fb923c',cons:`ECW/TBW ${v} elevato — ritenzione idrica moderata. Possibili cause: insufficienza venosa, dieta ipersodica, sedentarietà, farmaci. Elevare arti inferiori, compressione graduata, ridurre sodio <2g/die. Consultare medico se persistente.`};
+  return{l:'Ritenzione severa',c:'#ef4444',cons:`⚠️ ECW/TBW ${v} molto elevato (>0.45). Edema significativo — consultazione medica necessaria prima di programmare esercizio. Escludere cause cardiache, renali, epatiche.`};
+};
+
+// ── 6. BIA — FM% — massa grassa ACSM/ACE ───────────────────────────────────
+const interpFMpct=(pct,sesso)=>{
+  if(!pct)return null;const v=+pct,m=sesso==='M';
+  // ACSM Guidelines + ACE body fat categories
+  if(m){
+    if(v<6)return{l:'Grasso essenziale',c:'#ef4444',cons:'FM% sotto il minimo essenziale maschile (2-5%). Rischio ormonale (↓testosterone), immunitario e metabolico. Non sostenibile a lungo termine. Aumentare gradualmente intake calorico.'};
+    if(v<14)return{l:'Atletico',c:'#3b82f6',cons:'FM% da atleta (6-13% ACSM). Ottimo per performance. Mantenere con alimentazione bilanciata e monitoraggio periodico.'};
+    if(v<18)return{l:'Fitness',c:'#10b981',cons:'FM% nella fascia fitness (14-17% ACE). Eccellente per salute e performance. Composizione corporea ideale.'};
+    if(v<25)return{l:'Accettabile',c:'#f59e0b',cons:'FM% accettabile (18-24%). Per migliorare: deficit calorico moderato (-300/400 kcal), allenamento di forza 3×/settimana + cardio LISS 150 min/settimana.'};
+    return{l:'Eccesso',c:'#ef4444',cons:`FM% ${v}% elevata (>25% uomini). Rischio cardiometabolico aumentato. Piano: deficit calorico controllato, allenamento combinato forza+cardio, obiettivo -0.5 kg/settimana. Monitorare circonferenza vita.`};
+  }else{
+    if(v<14)return{l:'Grasso essenziale',c:'#ef4444',cons:'FM% sotto il minimo essenziale femminile (10-13%). Rischio amenorrea, osteoporosi, triade dell\'atleta. Aumentare intake calorico, consultare endocrinologo.'};
+    if(v<21)return{l:'Atletico',c:'#3b82f6',cons:'FM% da atleta (14-20% ACSM). Eccellente per performance sportiva. Monitorare ciclo mestruale e densità ossea.'};
+    if(v<25)return{l:'Fitness',c:'#10b981',cons:'FM% nella fascia fitness (21-24% ACE). Composizione corporea ideale per salute e performance.'};
+    if(v<32)return{l:'Accettabile',c:'#f59e0b',cons:'FM% accettabile (25-31%). Per migliorare: deficit calorico moderato, allenamento di forza 3×/settimana + cardio 150 min/settimana.'};
+    return{l:'Eccesso',c:'#ef4444',cons:`FM% ${v}% elevata (>32% donne). Rischio cardiometabolico. Piano: deficit calorico controllato, allenamento combinato, obiettivo -0.5 kg/settimana.`};
+  }
+};
+
+// ── 7. Postura colonna — implicazioni + correttivi ──────────────────────────
+const interpPosturaColonna=(tipo)=>{
+  if(!tipo)return null;
+  const map={
+    'Normale':{l:'Curve fisiologiche normali',c:'#10b981',cons:'Allineamento nella norma. Mantenere con: core stability (plank, dead bug, bird dog), mobilità toracica, stretching psoas e pettorali.'},
+    'Iperlordosi':{l:'Iperlordosi lombare',c:'#f59e0b',cons:'Lordosi lombare accentuata → compressione faccette articolari, rischio lombalgia. Cause comuni: debolezza core + glutei, accorciamento flessori anca. Correttivi: plank 3×30s, glute bridge 3×12, stretching psoas (Thomas stretch) 3×30s/lato, dead bug 3×8, evitare iperestensione in back squat.'},
+    'Cifosi':{l:'Ipercifosi dorsale',c:'#f59e0b',cons:'Cifosi toracica accentuata → spalle protratte, ridotta capacità respiratoria, rischio cervicalgia. Correttivi: foam roller estensione toracica 2×10, face pull 3×15, wall angel 3×10, stretching pettorali a muro 3×30s, rowing con focus retrazione scapolare.'},
+    'Dorso piatto':{l:'Dorso piatto',c:'#f59e0b',cons:'Riduzione curve fisiologiche → minore assorbimento impatti, rigidità. Correttivi: mobilità segmentale colonna (cat-cow 3×10), estensioni toraciche su foam roller, esercizi in flessione-estensione controllata, nuoto.'},
+    'Scoliosi lieve':{l:'Scoliosi lieve',c:'#fb923c',cons:'Deviazione laterale lieve → squilibri muscolari, carichi asimmetrici. Correttivi: esercizi simmetrici di rinforzo (plank, pallof press), allungamento lato concavo, side plank lato convesso, monitorare progressione. Evitare carichi assiali pesanti asimmetrici.'},
+    'Scoliosi moderata':{l:'Scoliosi moderata',c:'#ef4444',cons:'⚠️ Deviazione laterale significativa — necessaria valutazione ortopedica. Esercizio sotto supervisione: rinforzo simmetrico core, evitare carichi assiali elevati, preferire esercizi in scarico (nuoto, cyclette). Metodo Schroth se indicato.'},
+  };
+  return map[tipo]||{l:tipo,c:C.muted,cons:'Valutazione posturale registrata. Monitorare nel tempo.'};
+};
+
+// ── 8. Postura spalle — implicazioni + correttivi ───────────────────────────
+const interpPosturaSpalle=(tipo)=>{
+  if(!tipo)return null;
+  const map={
+    'Normali':{l:'Allineamento normale',c:'#10b981',cons:'Spalle allineate, buon equilibrio rotatori. Mantenere con: face pull, external rotation, band pull-apart regolari.'},
+    'Protratte':{l:'Spalle protratte (arrotondate)',c:'#f59e0b',cons:'Accorciamento pettorali e subscapolare, debolezza trapezio medio/inferiore e romboidi. Rischio impingement e cervicalgia. Correttivi: stretching pettorali a muro 3×30s, face pull 3×15, band pull-apart 3×15, rowing con pausa in retrazione 3×10, prone Y-T-W 2×8, ridurre volume push a favore di pull (ratio 2:1 pull:push).'},
+    'Elevate':{l:'Spalle elevate (trapezio ipertonico)',c:'#f59e0b',cons:'Ipertono trapezio superiore, spesso legato a stress/postura da scrivania. Rischio cefalea tensiva e cervicalgia. Correttivi: rilascio trapezio con pallina 2 min/lato, stretching scaleni e trapezio 3×30s, shrug inversi alla sbarra, respirazione diaframmatica 5 min/giorno, evitare shrug con carico.'},
+    'Asimmetriche':{l:'Asimmetria scapolare',c:'#fb923c',cons:'Dislivello scapolare → possibile scoliosi, disfunzione scapolo-toracica. Correttivi: lavoro unilaterale (single-arm row, single-arm press), serratus punch 3×12, mobilità scapolare (wall slide), valutare se origine vertebrale o muscolare. Se marcata, invio a fisioterapista.'},
+  };
+  return map[tipo]||{l:tipo,c:C.muted,cons:'Postura spalle registrata. Monitorare nel tempo.'};
+};
+
+// ── 9. Mobilità caviglia (dorsiflessione, gradi o cm wall test) ─────────────
+const interpMobCaviglia=(cm)=>{
+  if(!cm)return null;const v=+cm;
+  // Wall test: distanza alluce-muro con ginocchio che tocca. Norma ≥10 cm (~35° dorsiflessione)
+  if(v>=12)return{l:'Ottima mobilità',c:'#3b82f6',cons:'Dorsiflessione eccellente (≥12 cm wall test). Nessuna limitazione per squat profondo, corsa e salti.'};
+  if(v>=10)return{l:'Normale',c:'#10b981',cons:'Mobilità caviglia nella norma (≥10 cm). Sufficiente per squat e corsa. Mantenere con: calf stretch 3×30s, mobilità con banda elastica.'};
+  if(v>=7)return{l:'Ridotta',c:'#f59e0b',cons:'Mobilità caviglia ridotta (7-9 cm). Limita profondità squat e biomeccanica corsa (sovraccarico ginocchio/anca). Correttivi: calf stretch a muro 3×30s, mobilità con banda elastica (banded ankle distraction) 2×1min, squat con rialzo talloni temporaneo, foam roll polpacci 2 min.'};
+  return{l:'Molto ridotta',c:'#ef4444',cons:'Mobilità caviglia molto ridotta (<7 cm). Impatto significativo su squat (compenso lombare), corsa (rischio periostite/tendinopatia achilleo), equilibrio. Correttivi quotidiani: mobilità articolare con banda, stretching soleo e gastrocnemio 4×30s, esercizi eccentrici polpacci. Usare rialzo talloni in squat. Valutare eventuale rigidità articolare (invio fisioterapista).'};
+};
+
+// ── 10. Mobilità anca (flessione + rotazioni, gradi) ────────────────────────
+const interpMobAnca=(gradi)=>{
+  if(!gradi)return null;const v=+gradi;
+  // Norma flessione anca: 120°, rotazione interna ≥35°, rotazione esterna ≥45° (Clarkson)
+  if(v>=120)return{l:'Ottima mobilità',c:'#3b82f6',cons:'Flessione anca completa (≥120°). Nessuna limitazione per squat, deadlift, corsa. Mantenere con: 90/90 stretch, pigeon pose.'};
+  if(v>=100)return{l:'Normale',c:'#10b981',cons:'Mobilità anca buona (100-119°). Sufficiente per la maggior parte degli esercizi. Stretching psoas e piriforme regolare per mantenere.'};
+  if(v>=80)return{l:'Ridotta',c:'#f59e0b',cons:'Mobilità anca ridotta (80-99°). Impatto su squat profondo e deadlift (compenso lombare = rischio ernia). Correttivi: stretching psoas (half-kneeling) 3×30s, piriforme 3×30s, 90/90 hip switch 2×8, frog stretch 3×30s, goblet squat con pausa 3×8. Rischio aumentato lombalgia (Ellison 1990).'};
+  return{l:'Molto ridotta',c:'#ef4444',cons:'Mobilità anca molto ridotta (<80°). Rischio elevato lombalgia cronica e disfunzione movimento (hip-spine syndrome). Evitare: squat sotto parallelo, deadlift convenzionale pesante. Correttivi quotidiani: stretching flessori anca 4×30s, mobilità quadrupedia (rocking), piriforme con banda, Thomas stretch. Valutare impingement femoro-acetabolare (FAI) — invio ortopedico se dolore.'};
+};
+
+// ── 11. PAR-Q — livello rischio + clearance ─────────────────────────────────
+const interpPARQ=(siCount)=>{
+  if(siCount===''||siCount===null||siCount===undefined)return null;const v=+siCount;
+  // PAR-Q+ 2020 guidelines
+  if(v===0)return{l:'Rischio basso — clearance OK',c:'#10b981',cons:'Nessuna risposta positiva al PAR-Q. Il paziente può iniziare un programma di attività fisica da lieve a moderata senza clearance medica aggiuntiva. Monitorare sintomi durante esercizio.'};
+  if(v<=2)return{l:'Rischio moderato',c:'#f59e0b',cons:`${v} rispost${v===1?'a':'e'} positiv${v===1?'a':'e'} al PAR-Q. Consigliata clearance medica prima di attività vigorosa (>6 METs). Può procedere con attività leggera-moderata sotto supervisione. Adattare intensità e monitorare PA e FC durante esercizio.`};
+  if(v<=4)return{l:'Rischio elevato',c:'#fb923c',cons:`${v} risposte positive al PAR-Q. Clearance medica obbligatoria prima di qualsiasi programma di esercizio. Iniziare solo dopo autorizzazione scritta del medico. Preferire attività supervisionata, bassa intensità, con monitoraggio costante.`};
+  return{l:'Rischio alto — clearance medica obbligatoria',c:'#ef4444',cons:`⚠️ ${v} risposte positive al PAR-Q. NON iniziare esercizio senza clearance medica completa (ECG sforzo, visita cardiologica se indicato). Possibili controindicazioni assolute all'esercizio non supervisionato.`};
+};
+
+// ── 12. Fumo — impatto VO2max e FC ──────────────────────────────────────────
+const interpFumo=(tipo)=>{
+  if(!tipo)return null;
+  const map={
+    'Non fumatore':{l:'Non fumatore',c:'#10b981',cons:'Nessun impatto da fumo su VO2max e FC. Capacità aerobica non limitata da fattori tabagici.'},
+    'Ex fumatore':{l:'Ex fumatore',c:'#3b82f6',cons:'Benefici progressivi dopo cessazione: FC normalizzata in 2-12 settimane, VO2max +10-15% in 3-9 mesi, funzione polmonare migliorata in 1-9 mesi (AHA). Allenamento aerobico accelera il recupero. Progressione normale del programma.'},
+    'Leggero':{l:'Fumatore leggero (<10/die)',c:'#f59e0b',cons:'Impatto: VO2max ridotto ~5-8%, FC a riposo +5-10 bpm (↑ attivazione simpatica), COHb 3-5% → ridotta capacità di trasporto O2. Soglia anaerobica anticipata. Adattamento: ridurre intensità aerobica attesa del 10%, allungare fasi di riscaldamento, monitorare SpO2. Motivare alla cessazione.'},
+    'Moderato':{l:'Fumatore moderato (10-20/die)',c:'#fb923c',cons:'Impatto significativo: VO2max ridotto ~10-15%, FC riposo +10-15 bpm, COHb 5-8%. Ridotta clearance mucociliare, maggiore dispnea da sforzo. Adattamento: FC target calcolata -10%, evitare esercizio intenso in ambienti freddi, pause più frequenti, monitorare SpO2 e sintomi. Forte raccomandazione cessazione — invio centro antifumo.'},
+    'Pesante':{l:'Fumatore pesante (>20/die)',c:'#ef4444',cons:'⚠️ Impatto severo: VO2max ridotto 15-25%, FC riposo +15-20 bpm, COHb >8%. Rischio eventi cardiaci aumentato durante esercizio. Adattamento: SOLO attività leggera (camminata, cyclette bassa intensità), RPE ≤4, monitoraggio PA/FC costante, evitare sforzi massimali. Clearance cardiologica consigliata. Cessazione fumo è la priorità clinica n.1.'},
+  };
+  return map[tipo]||{l:tipo,c:C.muted,cons:'Stato fumo registrato.'};
+};
+
+// ── 13. Alcol — impatto recupero e metabolismo ──────────────────────────────
+const interpAlcol=(livello)=>{
+  if(!livello)return null;
+  const map={
+    'Astemio':{l:'Astemio',c:'#10b981',cons:'Nessun impatto da alcol su recupero e metabolismo. Ottimale per performance e composizione corporea.'},
+    'Occasionale':{l:'Bevitore occasionale (1-2/settimana)',c:'#10b981',cons:'Impatto minimo se ≤2 unità/occasione. Evitare alcol nelle 24h post-allenamento intenso (riduce sintesi proteica muscolare del 24%, Parr 2014). Preferire giornate di riposo. Idratazione extra.'},
+    'Moderato':{l:'Bevitore moderato (3-7/settimana)',c:'#f59e0b',cons:'Impatto: riduzione sintesi proteica muscolare fino a 37% post-esercizio (Parr 2014), ↓ testosterone 6-10%, disturbo sonno REM → recupero compromesso, ~7 kcal/g (calorie vuote). Adattamento: pianificare allenamenti lontano da consumo, aumentare proteine +20%, non bere nelle 4h post-workout, conteggiare kcal da alcol nel bilancio. Obiettivo: ridurre a occasionale.'},
+    'Elevato':{l:'Consumo elevato (>7/settimana)',c:'#ef4444',cons:'⚠️ Impatto severo: ↓ sintesi proteica muscolare fino a 50%, ↓ testosterone 15-20%, ↓ GH notturno, steatosi epatica → metabolismo lipidico compromesso, disidratazione cronica, ↑ cortisolo. Recupero muscolare gravemente compromesso (Lakicevic 2019). Adattamento: ridurre intensità attesa, focus su volume basso, idratazione prioritaria. Forte raccomandazione riduzione/cessazione — invio a supporto se necessario.'},
+  };
+  return map[livello]||{l:livello,c:C.muted,cons:'Consumo alcol registrato.'};
+};
+
 const rpeL=(r)=>r<=3?'Leggero':r<=6?'Moderato':r<=8?'Intenso':'Massimale';
 const fmtDate=()=>new Date().toLocaleDateString('it-IT');
 const nextPid=(ps)=>{
@@ -1256,6 +1428,28 @@ ${(p.progressi||[]).length>1?`
                 {p.test?.gad7!==undefined&&p.test?.gad7!==''&&(()=>{const i=interpGAD7(p.test.gad7);return<div style={{background:i?.c+'12',border:`1px solid ${i?.c}30`,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:11,color:C.muted,marginBottom:4}}>GAD-7 Ansia</div><div style={{fontSize:20,fontWeight:800,color:i?.c}}>{p.test.gad7}/21</div><div style={{fontSize:11,color:i?.c,fontWeight:600}}>{i?.l}</div><div style={{fontSize:10,color:C.muted,marginTop:3}}>💡 {i?.cons}</div></div>})()}
                 {p.sonno&&(()=>{const i=interpSonno(p.sonno);return<div style={{background:i?.c+'12',border:`1px solid ${i?.c}30`,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:11,color:C.muted,marginBottom:4}}>Sonno</div><div style={{fontSize:20,fontWeight:800,color:i?.c}}>{p.sonno}h</div><div style={{fontSize:11,color:i?.c,fontWeight:600}}>{i?.l}</div><div style={{fontSize:10,color:C.muted,marginTop:3}}>💡 {i?.cons}</div></div>})()}
                 {p.test?.motivazione&&<div style={{background:(+p.test.motivazione>=7?C.green:+p.test.motivazione>=4?C.yellow:C.red)+'12',border:`1px solid ${+p.test.motivazione>=7?C.green:+p.test.motivazione>=4?C.yellow:C.red}30`,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:11,color:C.muted,marginBottom:4}}>Motivazione</div><div style={{fontSize:20,fontWeight:800,color:+p.test.motivazione>=7?C.green:+p.test.motivazione>=4?C.yellow:C.red}}>{p.test.motivazione}/10</div><div style={{fontSize:11,color:+p.test.motivazione>=7?C.green:+p.test.motivazione>=4?C.yellow:C.red,fontWeight:600}}>{+p.test.motivazione>=7?'Alta':''+p.test.motivazione>=4?'Media':'Bassa'}</div></div>}
+              </div>
+            </div>
+          )}
+
+          {/* Parametri Avanzati — interpretazioni scientifiche */}
+          {(p.spo2||p.test?.handgrip||p.sitReach||p.bia?.PhA||p.bia?.ECW||p.bia?.FM||p.posturaColonna||p.posturaSpalle||p.mobCaviglia||p.mobAnca||p.parq||p.fumo||p.alcol)&&(
+            <div style={S.card}>
+              <div style={S.st}>🔬 Parametri Avanzati</div>
+              <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                {p.spo2&&<InterpBox interp={interpSpO2(p.spo2)} icon="🫁"/>}
+                {p.test?.handgrip&&<InterpBox interp={interpHandgrip(p.test.handgrip,p.sesso,p.annoNascita?new Date().getFullYear()-p.annoNascita:50)} icon="✊"/>}
+                {p.sitReach!==undefined&&p.sitReach!==''&&<InterpBox interp={interpSitReach(p.sitReach,p.sesso)} icon="🧘"/>}
+                {p.bia?.PhA&&<InterpBox interp={interpPhA(p.bia.PhA,p.sesso,p.annoNascita?new Date().getFullYear()-p.annoNascita:50)} icon="⚡"/>}
+                {p.bia?.ECW&&<InterpBox interp={interpECW_TBW(+p.bia.ECW/100)} icon="💧"/>}
+                {p.bia?.FM&&<InterpBox interp={interpFMpct(p.bia.FM,p.sesso)} icon="🏋"/>}
+                {p.posturaColonna&&p.posturaColonna!=='Normale'&&<InterpBox interp={interpPosturaColonna(p.posturaColonna==='Iperlordosi lombare'?'Iperlordosi':p.posturaColonna==='Cifosi dorsale'?'Cifosi':p.posturaColonna==='Scoliosi'?'Scoliosi lieve':p.posturaColonna)} icon="🦴"/>}
+                {p.posturaSpalle&&p.posturaSpalle!=='Normale'&&<InterpBox interp={interpPosturaSpalle(p.posturaSpalle==='Protratte (avanzate)'?'Protratte':p.posturaSpalle==='Asimmetria dx/sx'?'Asimmetriche':p.posturaSpalle==='Elevate'?'Elevate':p.posturaSpalle)} icon="🤸"/>}
+                {p.mobCaviglia&&p.mobCaviglia!=='Ottima'&&p.mobCaviglia!=='Buona'&&<InterpBox interp={interpMobCaviglia(p.mobCaviglia==='Ridotta'?8:5)} icon="🦶"/>}
+                {p.mobAnca&&p.mobAnca!=='Ottima'&&p.mobAnca!=='Buona'&&<InterpBox interp={interpMobAnca(p.mobAnca==='Ridotta'?90:70)} icon="🏃"/>}
+                {p.parq&&p.parq!=='NO'&&p.parq!=='NO — nessuna risposta positiva'&&<InterpBox interp={interpPARQ(p.parq==='1 SI — attenzione'?1:3)} icon="📋"/>}
+                {p.fumo&&p.fumo!=='Non fumatore'&&<InterpBox interp={interpFumo(p.fumo==='Ex fumatore'?'Ex fumatore':p.fumo==='Fumatore occasionale'?'Leggero':p.fumo==='Fumatore regolare'?'Moderato':'Non fumatore')} icon="🚬"/>}
+                {p.alcol&&p.alcol!=='Mai'&&<InterpBox interp={interpAlcol(p.alcol==='1-2/sett.'?'Occasionale':p.alcol==='3-7/sett.'?'Moderato':'Elevato')} icon="🍷"/>}
               </div>
             </div>
           )}
@@ -2112,6 +2306,19 @@ function WizIn({lbl,name,type='text',val,onChange,opts,ph,desc}){
   );
 }
 
+function InterpBox({interp,icon}){
+  if(!interp)return null;
+  return(
+    <div style={{background:interp.c+'12',border:'1px solid '+interp.c+'40',borderRadius:8,padding:'8px 12px',marginTop:4,marginBottom:8,display:'flex',gap:10,alignItems:'flex-start'}}>
+      <div style={{fontSize:18,flexShrink:0}}>{icon||'📊'}</div>
+      <div style={{flex:1}}>
+        <div style={{fontSize:12,fontWeight:700,color:interp.c}}>{interp.l}</div>
+        <div style={{fontSize:11,color:C.muted,marginTop:3,lineHeight:1.5}}>{interp.cons}</div>
+      </div>
+    </div>
+  );
+}
+
 function WizardValutazione({onSave,onClose}){
   const T=gT();
   const TOTAL=8;
@@ -2313,9 +2520,11 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="PAR-Q — Screening attivita fisica" name="parq"
                 desc="Physical Activity Readiness Questionnaire: 7 domande per scremare controindicazioni. Risposta SI = invio medico consigliato."
                 val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
+              {d.parq&&<InterpBox interp={interpPARQ(d.parq==='NO — nessuna risposta positiva'?0:d.parq==='1 SI — attenzione'?1:d.parq==='2+ SI — invio medico'?3:0)} icon="📋"/>}
               <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
 
               <WizIn lbl="SpO2 — Saturazione ossigeno (%)" desc="% emoglobina ossigenata nel sangue. Normale: 95-100%. Sotto 94% = ipossiemia. Richiede pulsossimetro." name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>
+              {d.spo2&&<InterpBox interp={interpSpO2(d.spo2)} icon="🫁"/>}
               <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
               <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante, non contratto" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
               <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
@@ -2324,7 +2533,9 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1° grado (genitori, fratelli) con infarto, ictus o diabete — fattore di rischio indipendente" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
               {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
               <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
+              {d.fumo&&d.fumo!=='Non fumatore'&&<InterpBox interp={interpFumo(d.fumo==='Ex fumatore'?'Ex fumatore':d.fumo==='Fumatore occasionale'?'Leggero':d.fumo==='Fumatore regolare'?'Moderato':'Non fumatore')} icon="🚬"/>}
               <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
+              {d.alcol&&d.alcol!=='Mai'&&<InterpBox interp={interpAlcol(d.alcol==='1-2/sett.'?'Occasionale':d.alcol==='3-7/sett.'?'Moderato':'Elevato')} icon="🍷"/>}
               <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
               <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
 
@@ -2336,10 +2547,15 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Stress percepito" desc="Livello soggettivo di stress psicofisico. Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
               <WizIn lbl="Motivazione all'allenamento (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>
               <WizIn lbl="Colonna vertebrale" desc="Valutazione visiva: iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata; scoliosi = deviazione laterale" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
+              {d.posturaColonna&&d.posturaColonna!=='Normale'&&<InterpBox interp={interpPosturaColonna(d.posturaColonna==='Iperlordosi lombare'?'Iperlordosi':d.posturaColonna==='Cifosi dorsale'?'Cifosi':d.posturaColonna==='Scoliosi'?'Scoliosi lieve':d.posturaColonna)} icon="🦴"/>}
               <WizIn lbl="Postura spalle" desc="Spalle protratte = rotazione interna/avanzamento — frequente da sedentarieta e uso smartphone" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>
+              {d.posturaSpalle&&d.posturaSpalle!=='Normale'&&<InterpBox interp={interpPosturaSpalle(d.posturaSpalle==='Protratte (avanzate)'?'Protratte':d.posturaSpalle==='Asimmetria dx/sx'?'Asimmetriche':d.posturaSpalle==='Elevate'?'Elevate':d.posturaSpalle)} icon="🤸"/>}
               <WizIn lbl="Mobilita caviglia — ROM" desc="ROM = Range of Motion (ampiezza di movimento). Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
+              {d.mobCaviglia&&d.mobCaviglia!=='Ottima'&&d.mobCaviglia!=='Buona'&&<InterpBox interp={interpMobCaviglia(d.mobCaviglia==='Ridotta'?8:d.mobCaviglia==='Molto limitata'?5:12)} icon="🦶"/>}
               <WizIn lbl="Mobilita anca — ROM" desc="Limitazione frequente da sedentarieta. Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
+              {d.mobAnca&&d.mobAnca!=='Ottima'&&d.mobAnca!=='Buona'&&<InterpBox interp={interpMobAnca(d.mobAnca==='Ridotta'?90:d.mobAnca==='Molto limitata'?70:120)} icon="🏃"/>}
               <WizIn lbl="Sit-and-Reach (cm)" desc="Test flessibilita catena posteriore. Paziente seduto, gambe tese: + = raggiunge oltre i piedi; - = non raggiunge i piedi" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>
+              {d.sitReach!==''&&d.sitReach!==undefined&&<InterpBox interp={interpSitReach(d.sitReach,d.sesso)} icon="🧘"/>}
               <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>
             </div>
             <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
@@ -2403,16 +2619,19 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   desc="Capacita delle membrane cellulari. Valore alto = cellule sane e ben idratate." onChange={upd('biaXc')}/>
                 <WizIn lbl="PhA — Angolo di fase (°)" name="biaPhA" type="number" val={d.biaPhA} ph="es. 6.8"
                   desc="PhA = arctan(Xc/R) x 180/pi. Norma adulti: 5-8°. Sotto 4° = sarcopenia o malnutrizione." onChange={upd('biaPhA')}/>
+                {d.biaPhA&&<InterpBox interp={interpPhA(d.biaPhA,d.sesso,eta)} icon="⚡"/>}
                 <WizIn lbl="TBW — Acqua corporea totale (L)" name="biaTBW" type="number" val={d.biaTBW} ph="es. 38.5"
                   desc="Total Body Water. Norma: 55-65% peso (uomini), 45-55% (donne). Sotto = disidratazione." onChange={upd('biaTBW')}/>
                 <WizIn lbl="FFM — Massa magra (kg)" name="biaFFM" type="number" val={d.biaFFM} ph="es. 62"
                   desc="Fat-Free Mass: muscoli + ossa + organi + acqua. Principale indicatore di salute metabolica." onChange={upd('biaFFM')}/>
                 <WizIn lbl="FM — Massa grassa (%)" name="biaFM" type="number" val={d.biaFM} ph="es. 22"
                   desc="Fat Mass. Norma: uomini 10-20%, donne 20-30%. Sopra 25%/35% = sovrappeso metabolico." onChange={upd('biaFM')}/>
+                {d.biaFM&&<InterpBox interp={interpFMpct(d.biaFM,d.sesso)} icon="🏋"/>}
                 <WizIn lbl="BCM — Massa cellulare (kg)" name="biaBCM" type="number" val={d.biaBCM} ph="es. 28"
                   desc="Body Cell Mass: tessuto metabolicamente attivo (muscoli + organi). Marcatore nutrizionale." onChange={upd('biaBCM')}/>
                 <WizIn lbl="ECW/TBW — Rapporto idratazione (%)" name="biaECW" type="number" val={d.biaECW} ph="es. 38"
                   desc="Acqua extracellulare / acqua totale. Norma < 40%. Valore alto = infiammazione o ritenzione idrica." onChange={upd('biaECW')}/>
+                {d.biaECW&&<InterpBox interp={interpECW_TBW(+d.biaECW/100)} icon="💧"/>}
               </div>
               {d.biaR&&d.biaXc&&<div style={{background:C.bg,borderRadius:8,padding:'8px 12px',marginTop:6,fontSize:11}}>
                 <span style={{color:C.muted}}>PhA calcolato: </span>
@@ -2601,6 +2820,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Sedia → alzati → cammina 3m → torna → siediti. Cronometra in secondi. Serve: sedia + cronometro + metro.</div>
               <WizIn lbl="TUG — Timed Up and Go (sec)" name="tugSec" desc="Alzarsi da sedia, camminare 3m, tornare, sedersi. Sotto 10s = normale; 10-20s = rischio cadute; oltre 20s = alto rischio." type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
               <WizIn lbl="Handgrip max (kg)" desc="Forza prensile massima con dinamometro. Predittore di mortalita e sarcopenia. Norma uomini: 35-55kg, donne: 20-35kg." name="handgrip" type="number" val={d.handgrip} ph="es. 42" onChange={upd('handgrip')}/>
+              {d.handgrip&&<InterpBox interp={interpHandgrip(d.handgrip,d.sesso,eta)} icon="✊"/>}
               {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
                 <div style={{fontSize:18}}>📊</div>
                 <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
