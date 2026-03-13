@@ -68,10 +68,15 @@ const trialDaysLeft=(profile)=>{
 };
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
 const fbSave=async(uid,data)=>{
-  try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}catch(e){console.warn('fbSave',e);}
+  try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
+  catch(e){console.warn('fbSave',e);
+    try{await new Promise(r=>setTimeout(r,2000));await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
+    catch(e2){console.warn('fbSave retry failed',e2);}
+  }
 };
 const fbLoad=async(uid)=>{
-  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}catch(e){return null;}
+  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
+  catch(e){console.warn('fbLoad',e);return null;}
 };
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
 // 1. Vai su emailjs.com → crea account gratuito
@@ -927,7 +932,7 @@ const INIT_EXERCISES=[
 const INIT_PATIENTS=[];
 const INIT_BOOKINGS=[];
 
-const isMobile=window.innerWidth<=768;
+let isMobile=window.innerWidth<=768;
 const S={
   app:{display:'flex',height:'100vh',background:C.bg,overflow:'hidden'},
   sb:{width:isMobile?'100%':220,background:C.sidebar,borderRight:'1px solid '+C.border,display:'flex',flexDirection:'column',flexShrink:0},
@@ -1158,11 +1163,13 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const upd=(fn)=>onUpdate({...p,...fn(p)});
 
   const addLog=()=>{
+    if(!newLog.tipo||!newLog.durata){alert('Compila tipo e durata');return;}
     const entry={...newLog,id:Date.now(),durata:+newLog.durata,rpe:+newLog.rpe};
     upd(x=>({log:[...(x.log||[]),entry]}));
     setShowLogModal(false);setNewLog({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
   };
   const addPeso=()=>{
+    if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){alert('Inserisci un peso valido');return;}
     const entry={...newPeso,peso:+newPeso.peso};
     upd(x=>({progressi:[...(x.progressi||[]),entry].sort((a,b2)=>a.data.localeCompare(b2.data))}));
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
@@ -1630,7 +1637,7 @@ ${(p.progressi||[]).length>1?`
           <div style={S.card}>
             <div style={S.st}>Storico misurazioni</div>
             {(p.progressi||[]).map((x,i)=>(
-              <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'6px 0',borderBottom:`1px solid ${C.border}`}}>
+              <div key={x.data+'-'+i} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'6px 0',borderBottom:`1px solid ${C.border}`}}>
                 <span style={{color:C.muted}}>{x.data}</span>
                 <span style={{color:C.blue,fontWeight:700}}>{x.peso} kg</span>
                 <span style={{color:C.muted}}>{x.nota}</span>
@@ -1737,7 +1744,7 @@ function SchedaModal({exercises,onSave,onClose}){
           {form.esercizi.map((ex,i)=>{
             const info=exercises.find(e=>e.id===ex.eId);
             return(
-              <div key={i} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:5}}>
+              <div key={ex.eId+'-'+i} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:5}}>
                 <span style={{fontSize:12,color:C.blue,fontWeight:700,minWidth:20}}>{i+1}</span>
                 <span style={{flex:1,fontSize:13,color:C.strong}}>{info?.nome}</span>
                 <span style={{fontSize:12,color:C.muted}}>{ex.serie}×{ex.reps}{ex.peso?` @ ${ex.peso}kg`:''} · rec {ex.rec}s</span>
@@ -1794,7 +1801,7 @@ function CalendarView({patients,bookings,setBookings,T}){
           {days.map((d,i)=>{
             const isToday=d.toDateString()===new Date().toDateString();
             return(
-              <div key={i} style={{padding:'10px 4px',textAlign:'center',borderLeft:`1px solid ${C.border}`}}>
+              <div key={d.toISOString()} style={{padding:'10px 4px',textAlign:'center',borderLeft:`1px solid ${C.border}`}}>
                 <div style={{fontSize:11,color:C.muted,fontWeight:600}}>{DAYS[i]}</div>
                 <div style={{fontSize:16,fontWeight:800,color:isToday?C.blue:C.strong,marginTop:2}}>{d.getDate()}</div>
                 <div style={{fontSize:10,color:C.muted}}>{MONTHS[d.getMonth()]}</div>
@@ -2091,6 +2098,18 @@ function AppInner({user,profile,trialLeft}){
   const firstLoad=useRef(true);
 
   const [syncing,setSyncing]=useState(true);
+  const [,forceUpdate]=useState(0);
+
+  // Responsive isMobile
+  useEffect(()=>{
+    const onResize=()=>{
+      const m=window.innerWidth<=768;
+      if(m!==isMobile){isMobile=m;forceUpdate(n=>n+1);}
+    };
+    window.addEventListener('resize',onResize);
+    window.addEventListener('orientationchange',onResize);
+    return()=>{window.removeEventListener('resize',onResize);window.removeEventListener('orientationchange',onResize);};
+  },[]);
 
   // Carica dati da Firebase in background (non blocca l'app)
   useEffect(()=>{
@@ -2575,7 +2594,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         {/* Step pills */}
         <div style={{display:'flex',padding:'10px 22px',gap:4,flexShrink:0,overflowX:'auto'}}>
           {stepTitles.map((t,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
+            <div key={t} style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
               <div style={{width:22,height:22,borderRadius:'50%',background:i<step-1?C.green:i===step-1?C.blue:C.border2,color:i<=step-1?'#fff':C.muted,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:i<step?'pointer':'default',transition:'all .2s'}}
                 onClick={()=>{if(i<step)setStep(i+1);}}>
                 {i<step-1?'✓':i+1}
@@ -3381,7 +3400,7 @@ function PianiModal({onClose,profile}){
 
               <div style={{flex:1,display:'flex',flexDirection:'column',gap:7,marginBottom:20}}>
                 {p.features.map((f,i)=>(
-                  <div key={i} style={{fontSize:12,color:f.startsWith('❌')?'#475569':'#cbd5e1'}}>{f}</div>
+                  <div key={f} style={{fontSize:12,color:f.startsWith('❌')?'#475569':'#cbd5e1'}}>{f}</div>
                 ))}
               </div>
 
@@ -3682,7 +3701,7 @@ function TutorialModal({onClose,isLight}){
         {/* Step pills */}
         <div style={{display:'flex',padding:'10px 20px',gap:3,flexShrink:0,overflowX:'auto',borderBottom:'1px solid '+C.border}}>
           {TSTEPS.map((x,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+            <div key={x} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
               <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
               {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
             </div>

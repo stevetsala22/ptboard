@@ -1,6 +1,7 @@
-const CACHE='ptboard-v4';
+const CACHE='ptboard-v5';
 const ASSETS=[
-  '/PTBoard_v10.html',
+  '/',
+  '/index.html',
   '/manifest.json',
   '/icon192.png',
   '/icon512.png'
@@ -21,14 +22,33 @@ self.addEventListener('activate',e=>{
 });
 
 self.addEventListener('fetch',e=>{
-  // Network first, fallback to cache
+  const url=new URL(e.request.url);
+  // Skip non-GET and cross-origin requests
+  if(e.request.method!=='GET')return;
+  if(url.origin!==location.origin){
+    // For CDN resources (React, Babel, Firebase, etc.) - cache first, network fallback
+    e.respondWith(
+      caches.match(e.request).then(cached=>{
+        if(cached)return cached;
+        return fetch(e.request).then(res=>{
+          if(res.ok){
+            const clone=res.clone();
+            caches.open(CACHE).then(c=>c.put(e.request,clone));
+          }
+          return res;
+        }).catch(()=>cached);
+      })
+    );
+    return;
+  }
+  // Local assets - network first, cache fallback
   e.respondWith(
-    fetch(e.request)
-      .then(res=>{
+    fetch(e.request).then(res=>{
+      if(res.ok){
         const clone=res.clone();
         caches.open(CACHE).then(c=>c.put(e.request,clone));
-        return res;
-      })
-      .catch(()=>caches.match(e.request))
+      }
+      return res;
+    }).catch(()=>caches.match(e.request))
   );
 });
