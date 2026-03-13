@@ -2729,78 +2729,95 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           </div>}
 
           {/* STEP 2 — Composizione & BIA */}
-          {step===2&&<div>
-            <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Circonferenze, plicometria e BIA — dati opzionali, salta i campi non disponibili.</p>
+          {step===2&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{background:C.blue+'08',border:'1px solid '+C.blue+'20',borderRadius:10,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
+              <span style={{fontSize:18}}>📋</span>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>Dati opzionali — compila solo le sezioni per cui hai strumenti disponibili. Salta il resto.</div>
+            </div>
 
             {/* Circonferenze */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.blue}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:8}}>📏 Circonferenze corporee (cm)</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>📏</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Circonferenze corporee</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="Braccio dx (cm)" name="cirBraccio" type="number" val={d.cirBraccio} ph="es. 32" onChange={upd('cirBraccio')}/>
                 <WizIn lbl="Coscia dx (cm)" name="cirCoscia" type="number" val={d.cirCoscia} ph="es. 55" onChange={upd('cirCoscia')}/>
                 <WizIn lbl="Polpaccio dx (cm)" name="cirPolpaccio" type="number" val={d.cirPolpaccio} ph="es. 37" onChange={upd('cirPolpaccio')}/>
                 <WizIn lbl="Fianchi (cm)" name="fianchi" type="number" val={d.fianchi} ph="es. 98" onChange={upd('fianchi')}/>
               </div>
-              {d.vita&&d.fianchi&&<div style={{marginTop:8,background:C.bg,borderRadius:8,padding:'8px 12px'}}>
-                {(()=>{const ratio=(+d.vita/+d.fianchi).toFixed(2);const alto=d.sesso==='M'?ratio>0.9:ratio>0.85;return<div style={{fontSize:12,fontWeight:700,color:alto?C.red:C.green}}>Rapporto vita/fianchi: {ratio} — {alto?'⚠️ Rischio cardiovascolare elevato':'✅ Nella norma'}</div>})()}
+              {d.vita&&d.fianchi&&<div style={{marginTop:8,background:C.card,borderRadius:8,padding:'8px 12px'}}>
+                {(()=>{const ratio=(+d.vita/+d.fianchi).toFixed(2);const alto=d.sesso==='M'?ratio>0.9:ratio>0.85;return<div style={{fontSize:12,fontWeight:700,color:alto?C.red:C.green}}>Rapporto vita/fianchi: {ratio} — {alto?'Rischio CV elevato':'Nella norma'}</div>})()}
               </div>}
             </div>
 
             {/* Plicometria */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.orange}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.orange,marginBottom:8}}>📐 Plicometria — stima massa grassa</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>📐</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Plicometria</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— stima massa grassa</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="Plica sottoscapolare (mm)" name="plicaSott" type="number" val={d.plicaSott} ph="es. 12" onChange={upd('plicaSott')}/>
                 <WizIn lbl="Plica tricipitale (mm)" name="plicaTric" type="number" val={d.plicaTric} ph="es. 15" onChange={upd('plicaTric')}/>
                 <WizIn lbl="Plica soprailiaca (mm)" name="plicaIlio" type="number" val={d.plicaIlio} ph="es. 14" onChange={upd('plicaIlio')}/>
                 <WizIn lbl="% Massa grassa stimata" name="massaGrassa" type="number" val={d.massaGrassa} ph="es. 22" onChange={upd('massaGrassa')}/>
               </div>
-              {d.massaGrassa&&<div style={{marginTop:8,background:C.bg,borderRadius:8,padding:'8px 12px'}}>
-                {(()=>{const mg=+d.massaGrassa,m=d.sesso==='M';let l,c;if(m){l=mg<6?'Essenziale':mg<14?'Atletica':mg<18?'Fitness':mg<25?'Accettabile':'Obesa';c=mg<25?C.green:C.red;}else{l=mg<14?'Essenziale':mg<21?'Atletica':mg<25?'Fitness':mg<32?'Accettabile':'Obesa';c=mg<32?C.green:C.red;}return<div style={{fontSize:12,fontWeight:700,color:c}}>% Massa grassa: {mg}% — Categoria: {l}</div>})()}
+              {d.massaGrassa&&<div style={{marginTop:8,background:C.card,borderRadius:8,padding:'8px 12px'}}>
+                {(()=>{const mg=+d.massaGrassa,m=d.sesso==='M';var l2,c2;if(m){l2=mg<6?'Essenziale':mg<14?'Atletica':mg<18?'Fitness':mg<25?'Accettabile':'Obesa';c2=mg<25?C.green:C.red;}else{l2=mg<14?'Essenziale':mg<21?'Atletica':mg<25?'Fitness':mg<32?'Accettabile':'Obesa';c2=mg<32?C.green:C.red;}return<div style={{fontSize:12,fontWeight:700,color:c2}}>Massa grassa: {mg}% — Categoria: {l2}</div>})()}
               </div>}
             </div>
 
-            {/* GAD-7 */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid #06b6d4',display:'block'}}>
-              <div style={{fontSize:12,fontWeight:700,color:'#06b6d4',marginBottom:4}}>📡 BIA — Bioimpedenziometria</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,background:C.bg,borderRadius:6,padding:'6px 10px',lineHeight:1.5}}>
-                Bioelectrical Impedance Analysis — stima la composizione corporea tramite corrente elettrica impercettibile. Inserisci i valori del tuo dispositivo.
+            {/* BIA */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #06b6d4'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:16}}>📡</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>BIA — Bioimpedenziometria</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12,lineHeight:1.5}}>
+                Stima la composizione corporea tramite corrente elettrica. Inserisci i valori dal tuo dispositivo.
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="R — Resistenza (ohm)" name="biaR" type="number" val={d.biaR} ph="es. 520"
-                  desc="Opposizione al passaggio della corrente. Valore alto = piu grasso o meno acqua." onChange={upd('biaR')}/>
+                  desc="Opposizione al passaggio della corrente" onChange={upd('biaR')}/>
                 <WizIn lbl="Xc — Reattanza (ohm)" name="biaXc" type="number" val={d.biaXc} ph="es. 62"
-                  desc="Capacita delle membrane cellulari. Valore alto = cellule sane e ben idratate." onChange={upd('biaXc')}/>
-                <WizIn lbl="PhA — Angolo di fase (°)" name="biaPhA" type="number" val={d.biaPhA} ph="es. 6.8"
-                  desc="PhA = arctan(Xc/R) x 180/pi. Norma adulti: 5-8°. Sotto 4° = sarcopenia o malnutrizione." onChange={upd('biaPhA')}/>
+                  desc="Capacita delle membrane cellulari" onChange={upd('biaXc')}/>
+                <WizIn lbl="PhA — Angolo di fase" name="biaPhA" type="number" val={d.biaPhA} ph="es. 6.8"
+                  desc="Norma adulti: 5-8. Sotto 4 = sarcopenia" onChange={upd('biaPhA')}/>
                 {d.biaPhA&&<InterpBox interp={interpPhA(d.biaPhA,d.sesso,eta)} icon="⚡"/>}
-                <WizIn lbl="TBW — Acqua corporea totale (L)" name="biaTBW" type="number" val={d.biaTBW} ph="es. 38.5"
-                  desc="Total Body Water. Norma: 55-65% peso (uomini), 45-55% (donne). Sotto = disidratazione." onChange={upd('biaTBW')}/>
+                <WizIn lbl="TBW — Acqua totale (L)" name="biaTBW" type="number" val={d.biaTBW} ph="es. 38.5"
+                  desc="Norma: 55-65% peso (M), 45-55% (F)" onChange={upd('biaTBW')}/>
                 <WizIn lbl="FFM — Massa magra (kg)" name="biaFFM" type="number" val={d.biaFFM} ph="es. 62"
-                  desc="Fat-Free Mass: muscoli + ossa + organi + acqua. Principale indicatore di salute metabolica." onChange={upd('biaFFM')}/>
+                  desc="Muscoli + ossa + organi + acqua" onChange={upd('biaFFM')}/>
                 <WizIn lbl="FM — Massa grassa (%)" name="biaFM" type="number" val={d.biaFM} ph="es. 22"
-                  desc="Fat Mass. Norma: uomini 10-20%, donne 20-30%. Sopra 25%/35% = sovrappeso metabolico." onChange={upd('biaFM')}/>
+                  desc="Norma: M 10-20%, F 20-30%" onChange={upd('biaFM')}/>
                 {d.biaFM&&<InterpBox interp={interpFMpct(d.biaFM,d.sesso)} icon="🏋"/>}
                 <WizIn lbl="BCM — Massa cellulare (kg)" name="biaBCM" type="number" val={d.biaBCM} ph="es. 28"
-                  desc="Body Cell Mass: tessuto metabolicamente attivo (muscoli + organi). Marcatore nutrizionale." onChange={upd('biaBCM')}/>
-                <WizIn lbl="ECW/TBW — Rapporto idratazione (%)" name="biaECW" type="number" val={d.biaECW} ph="es. 38"
-                  desc="Acqua extracellulare / acqua totale. Norma < 40%. Valore alto = infiammazione o ritenzione idrica." onChange={upd('biaECW')}/>
+                  desc="Tessuto metabolicamente attivo" onChange={upd('biaBCM')}/>
+                <WizIn lbl="ECW/TBW — Idratazione (%)" name="biaECW" type="number" val={d.biaECW} ph="es. 38"
+                  desc="Norma < 40%. Alto = ritenzione idrica" onChange={upd('biaECW')}/>
                 {d.biaECW&&<InterpBox interp={interpECW_TBW(+d.biaECW/100)} icon="💧"/>}
               </div>
-              {d.biaR&&d.biaXc&&<div style={{background:C.bg,borderRadius:8,padding:'8px 12px',marginTop:6,fontSize:11}}>
+              {d.biaR&&d.biaXc&&<div style={{background:C.card,borderRadius:8,padding:'8px 12px',marginTop:8,fontSize:11}}>
                 <span style={{color:C.muted}}>PhA calcolato: </span>
-                <b style={{color:'#06b6d4'}}>{(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2)}°</b>
+                <b style={{color:'#06b6d4'}}>{(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2)}</b>
                 <span style={{color:C.muted,marginLeft:8}}>
                   {(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))>=5&&(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<=8
-                    ?'✅ Nella norma (5-8°)'
-                    :(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<5?'⚠️ Sotto norma — valutare stato nutrizionale'
-                    :'⚡ Sopra norma — ottima integrita cellulare'}
+                    ?'Nella norma (5-8)'
+                    :(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<5?'Sotto norma — valutare stato nutrizionale'
+                    :'Sopra norma — ottima integrita cellulare'}
                 </span>
               </div>}
-              {/* Calcolo predittivo senza dispositivo */}
-              <div style={{borderTop:'1px solid '+C.border2,marginTop:12,paddingTop:12}}>
-                <div style={{fontSize:11,color:C.muted,marginBottom:8}}>
-                  Nessun dispositivo BIA? Stima automatica da altezza, peso, eta e sesso (formula Deurenberg + Watson).
+              {/* Stima predittiva */}
+              <div style={{borderTop:'1px solid '+C.border2,marginTop:14,paddingTop:14}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                  <span style={{fontSize:14}}>🔬</span>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:700,color:C.strong}}>Nessun dispositivo BIA?</div>
+                    <div style={{fontSize:10,color:C.muted}}>Stima automatica da altezza, peso, eta e sesso</div>
+                  </div>
                 </div>
                 <button type="button" style={{...S.btn('ghost'),fontSize:12,width:'100%'}}
                   onClick={()=>{
@@ -2825,188 +2842,250 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                       biaBMR:Math.round(bmr),
                     }));
                   }}>
-                  ⚡ Calcola FM%, FFM e TBW da dati antropometrici
+                  Calcola FM%, FFM e TBW da dati antropometrici
                 </button>
-                {d.biaBMR&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px',marginTop:8,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,textAlign:'center'}}>
+                {d.biaBMR&&<div style={{background:C.card,borderRadius:10,padding:'12px 14px',marginTop:10,display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:8,textAlign:'center'}}>
                   {[
                     [d.biaFM+'%','Massa grassa','#fb923c'],
-                    [d.biaFFM+' kg','Massa magra (FFM)','#10b981'],
-                    [d.biaTBW+' L','Acqua totale (TBW)','#06b6d4'],
-                    [d.biaBMR+' kcal','BMR — metabolismo basale','#8b5cf6'],
-                  ].map(([v,l,col])=>(
-                    <div key={l} style={{background:col+'15',borderRadius:8,padding:'8px 6px'}}>
-                      <div style={{fontSize:16,fontWeight:800,color:col}}>{v}</div>
-                      <div style={{fontSize:9,color:C.muted,marginTop:2,lineHeight:1.3}}>{l}</div>
+                    [d.biaFFM+' kg','Massa magra','#10b981'],
+                    [d.biaTBW+' L','Acqua totale','#06b6d4'],
+                    [d.biaBMR+' kcal','BMR basale','#8b5cf6'],
+                  ].map(function(item){var v=item[0],l=item[1],col=item[2];return(
+                    <div key={l} style={{background:col+'12',borderRadius:10,padding:'10px 8px',border:'1px solid '+col+'20'}}>
+                      <div style={{fontSize:18,fontWeight:800,color:col}}>{v}</div>
+                      <div style={{fontSize:9,color:C.muted,marginTop:3,lineHeight:1.3}}>{l}</div>
                     </div>
-                  ))}
+                  );})
                 </div>}
-                {d.biaBMR&&<div style={{fontSize:10,color:C.muted,marginTop:6,lineHeight:1.5}}>
-                  ⚠️ Valori stimati (±3-5% errore). BMR = Mifflin-St Jeor. FM% = Deurenberg. TBW = Watson. Per precisione clinica usare dispositivo BIA.
+                {d.biaBMR&&<div style={{fontSize:10,color:C.muted,marginTop:8,lineHeight:1.5,fontStyle:'italic'}}>
+                  Valori stimati (3-5% errore). BMR = Mifflin-St Jeor. FM% = Deurenberg. TBW = Watson.
                 </div>}
               </div>
             </div>
           </div>}
 
           {/* STEP 3 — 6MWT */}
-          {step===3&&<div>
-            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:12,padding:14,marginBottom:16}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:8}}>📋 Protocollo rapido</div>
-              {['Corridoio piano ≥ 20m (o circuito all\'aperto)','Il paziente cammina il più veloce possibile per 6 minuti esatti','Può fermarsi se necessario — registrare le soste','Misurare la distanza totale in metri','Rilevare RPE (0-10) subito al termine'].map((t,i)=>(
-                <div key={i} style={{display:'flex',gap:8,marginBottom:7}}>
-                  <div style={{width:18,height:18,borderRadius:'50%',background:C.blue+'25',color:C.blue,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
-                  <div style={{fontSize:13,color:C.text,lineHeight:1.5}}>{t}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-              <WizIn lbl="Distanza percorsa (m) *" name="mwtDist" type="number" val={d.mwtDist} ph="es. 320" onChange={upd('mwtDist')}/>
-              <WizIn lbl="RPE al termine (0-10)" name="mwtRpe" type="number" val={d.mwtRpe} ph="0 = nessuno sforzo" onChange={upd('mwtRpe')}/>
-            </div>
-            <WizIn lbl="Sintomi durante il test" name="mwtSintomi" val={d.mwtSintomi} opts={['NO','Dispnea lieve','Dispnea moderata','Affaticamento gambe','Dolore','Test interrotto']} onChange={upd('mwtSintomi')}/>
-            {d.mwtDist&&<div style={{background:C.bg,border:'1px solid '+(+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green+'40'),borderRadius:10,padding:'10px 14px',marginTop:4}}>
-              <div style={{fontSize:10,color:C.muted}}>Indicatore 6MWT</div>
-              <div style={{fontSize:15,fontWeight:700,color:+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green,marginTop:3}}>
-                {+d.mwtDist<300?'< 300m — Capacità molto bassa → Forma Bassa tendenziale':+d.mwtDist<=450?'300–450m — Capacità moderata → Forma Media tendenziale':'> 450m — Buona capacità → Buona Forma tendenziale'}
+          {step===3&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+            {/* Protocollo */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>📋</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Protocollo 6MWT</span>
               </div>
-            </div>}
-            {/* Recupero FC — subito dopo 6MWT */}
-            <div style={{...S.card,marginTop:12,borderLeft:'3px solid '+C.red}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>❤️ Recupero FC — fitness cardiaca</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Subito dopo il 6MWT: misura FC → aspetta 1 min → misura di nuovo. Serve: cardiofrequenzimetro o polso × 15s × 4.</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="FC subito post-esercizio (bpm)" name="fcPost" type="number" val={d.fcPost} ph="es. 145" onChange={upd('fcPost')}/>
+              {['Corridoio piano >= 20m (o circuito esterno)','Camminare il piu veloce possibile per 6 minuti','Soste consentite — registrarle','Misurare distanza totale in metri','Rilevare RPE (0-10) subito al termine'].map(function(t,i){return(
+                <div key={i} style={{display:'flex',gap:8,marginBottom:6}}>
+                  <div style={{width:20,height:20,borderRadius:'50%',background:C.blue+'15',color:C.blue,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
+                  <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{t}</div>
+                </div>
+              );})}
+            </div>
+            {/* Risultati */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.teal}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>🚶</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Risultati 6MWT</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Distanza percorsa (m) *" name="mwtDist" type="number" val={d.mwtDist} ph="es. 320" onChange={upd('mwtDist')}/>
+                <WizIn lbl="RPE al termine (0-10)" name="mwtRpe" type="number" val={d.mwtRpe} ph="0 = nessuno sforzo" onChange={upd('mwtRpe')}/>
+              </div>
+              <WizIn lbl="Sintomi durante il test" name="mwtSintomi" val={d.mwtSintomi} opts={['NO','Dispnea lieve','Dispnea moderata','Affaticamento gambe','Dolore','Test interrotto']} onChange={upd('mwtSintomi')}/>
+              {d.mwtDist&&(()=>{var mwtC=+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green;return<div style={{background:mwtC+'10',border:'1px solid '+mwtC+'30',borderRadius:10,padding:'10px 14px',marginTop:4}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <div style={{width:36,height:36,borderRadius:10,background:mwtC+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,color:mwtC,flexShrink:0}}>{d.mwtDist}</div>
+                  <div>
+                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',letterSpacing:.5}}>Indicatore 6MWT</div>
+                    <div style={{fontSize:13,fontWeight:700,color:mwtC,marginTop:2}}>
+                      {+d.mwtDist<300?'Capacita molto bassa':+d.mwtDist<=450?'Capacita moderata':'Buona capacita aerobica'}
+                    </div>
+                  </div>
+                </div>
+              </div>})()}
+            </div>
+            {/* Recupero FC */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.red}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:16}}>❤️</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Recupero FC</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Dopo il 6MWT: misura FC immediata, aspetta 1 min, misura di nuovo.</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="FC post-esercizio (bpm)" name="fcPost" type="number" val={d.fcPost} ph="es. 145" onChange={upd('fcPost')}/>
                 <WizIn lbl="FC dopo 1 minuto (bpm)" name="fcRecup" type="number" val={d.fcRecup} ph="es. 120" onChange={upd('fcRecup')}/>
               </div>
-              {d.fcPost&&d.fcRecup&&(()=>{const delta=+d.fcPost-+d.fcRecup;const i=interpRecupFC(delta);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6}}>
+              {d.fcPost&&d.fcRecup&&(()=>{const delta=+d.fcPost-+d.fcRecup;const i=interpRecupFC(delta);return i&&<div style={{background:i.c+'10',border:'1px solid '+i.c+'30',borderRadius:8,padding:'8px 12px',marginTop:6}}>
                 <div style={{fontSize:12,fontWeight:700,color:i.c}}>Delta FC: -{delta} bpm — {i.l}</div>
-                <div style={{fontSize:11,color:C.muted,marginTop:3}}>💡 {i.cons}</div>
+                <div style={{fontSize:11,color:C.muted,marginTop:3}}>{i.cons}</div>
               </div>})()}
             </div>
           </div>}
 
           {/* STEP 4 — Sit-to-Stand */}
-          {step===4&&<div>
-            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:12,padding:14,marginBottom:16}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:8}}>📋 Protocollo rapido</div>
-              {['Sedia standard senza braccioli, altezza ~43 cm','Partenza seduto, braccia incrociate al petto','Al via: alzarsi completamente e risedersi per 30 secondi esatti','Contare ogni alzata completa come 1 ripetizione','Non usare le mani — annotarlo se indispensabile'].map((t,i)=>(
-                <div key={i} style={{display:'flex',gap:8,marginBottom:7}}>
-                  <div style={{width:18,height:18,borderRadius:'50%',background:C.green+'25',color:C.green,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
-                  <div style={{fontSize:13,color:C.text,lineHeight:1.5}}>{t}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-              <WizIn lbl="Ripetizioni completate *" name="stsRip" type="number" val={d.stsRip} ph="es. 12" onChange={upd('stsRip')}/>
-              <WizIn lbl="Note tecnica" name="stsNote" val={d.stsNote} ph="es. Uso mani, ginocchia valghe..." onChange={upd('stsNote')}/>
-            </div>
-            {d.stsRip&&<div style={{background:C.bg,border:'1px solid '+(+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green+'40'),borderRadius:10,padding:'10px 14px',marginTop:4}}>
-              <div style={{fontSize:10,color:C.muted}}>Indicatore STS</div>
-              <div style={{fontSize:15,fontWeight:700,color:+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green,marginTop:3}}>
-                {+d.stsRip<10?'< 10 rip. — Forza molto ridotta → Forma Bassa tendenziale':+d.stsRip<=15?'10–15 rip. — Forza moderata → Forma Media tendenziale':'> 15 rip. — Buona forza → Buona Forma tendenziale'}
+          {step===4&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+            {/* Protocollo */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>📋</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Protocollo STS 30s</span>
               </div>
-            </div>}
-            {d.mwtDist&&d.stsRip&&pr&&<div style={{background:`${pr.c}12`,border:'1px solid '+pr.c+'40',borderRadius:10,padding:'10px 14px',marginTop:10,display:'flex',alignItems:'center',gap:10}}>
-              <div style={{fontSize:30,fontWeight:900,color:pr.c,width:40,textAlign:'center'}}>{pr.code}</div>
-              <div><div style={{fontSize:13,fontWeight:700,color:C.strong}}>Profilo {pr.code} già determinabile</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{pr.l}</div></div>
+              {['Sedia standard senza braccioli, altezza ~43 cm','Partenza seduto, braccia incrociate al petto','Alzarsi completamente e risedersi per 30 secondi','Contare ogni alzata completa come 1 ripetizione','Non usare le mani — annotarlo se necessario'].map(function(t,i){return(
+                <div key={i} style={{display:'flex',gap:8,marginBottom:6}}>
+                  <div style={{width:20,height:20,borderRadius:'50%',background:C.green+'15',color:C.green,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
+                  <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{t}</div>
+                </div>
+              );})}
+            </div>
+            {/* Risultati */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>🪑</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Risultati STS</span>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="Ripetizioni completate *" name="stsRip" type="number" val={d.stsRip} ph="es. 12" onChange={upd('stsRip')}/>
+                <WizIn lbl="Note tecnica" name="stsNote" val={d.stsNote} ph="es. Uso mani, ginocchia valghe..." onChange={upd('stsNote')}/>
+              </div>
+              {d.stsRip&&(()=>{var stsC=+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green;return<div style={{background:stsC+'10',border:'1px solid '+stsC+'30',borderRadius:10,padding:'10px 14px',marginTop:4}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <div style={{width:36,height:36,borderRadius:10,background:stsC+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,color:stsC,flexShrink:0}}>{d.stsRip}</div>
+                  <div>
+                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',letterSpacing:.5}}>Indicatore STS</div>
+                    <div style={{fontSize:13,fontWeight:700,color:stsC,marginTop:2}}>
+                      {+d.stsRip<10?'Forza molto ridotta':+d.stsRip<=15?'Forza moderata':'Buona forza arti inferiori'}
+                    </div>
+                  </div>
+                </div>
+              </div>})()}
+            </div>
+            {/* Preview profilo */}
+            {d.mwtDist&&d.stsRip&&pr&&<div style={{background:pr.bg,border:'2px solid '+pr.c+'40',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
+              <div style={{fontSize:36,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{pr.l}</div>
+                <div style={{fontSize:12,color:C.muted,marginTop:2}}>Score: {pr.score}/100 — profilo determinabile</div>
+                <div style={{marginTop:6}}><ScoreBar score={pr.score} color={pr.c} height={8}/></div>
+              </div>
             </div>}
           </div>}
 
           {/* STEP 5 — Test Fisici */}
-          {step===5&&<div>
-            <p style={{fontSize:13,color:C.muted,marginBottom:14,lineHeight:1.6}}>Test opzionali. Salta quelli non applicabili.</p>
+          {step===5&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{background:C.green+'08',border:'1px solid '+C.green+'20',borderRadius:10,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
+              <span style={{fontSize:18}}>💪</span>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>Test opzionali — compila solo quelli per cui hai gli strumenti. Salta il resto.</div>
+            </div>
 
             {/* Push-up */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.blue}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.blue,marginBottom:6}}>💪 Push-up — resistenza arti superiori</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Mani larghezza spalle · corpo dritto · scendi fino a 90° · quante riesci senza pause</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>💪</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Push-up</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— resistenza arti superiori</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Mani larghezza spalle, corpo dritto, scendi a 90, quante riesci senza pause</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="Ripetizioni" name="pushupRip" type="number" val={d.pushupRip} ph="es. 15" onChange={upd('pushupRip')}/>
                 <WizIn lbl="Note" name="pushupNote" val={d.pushupNote} ph="es. uso ginocchia..." onChange={upd('pushupNote')}/>
               </div>
-              {d.pushupRip&&(()=>{const i=interpPushup(d.pushupRip,d.sesso);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
+              {d.pushupRip&&(()=>{const i=interpPushup(d.pushupRip,d.sesso);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
             {/* Plank */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.purple}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧱 Plank — resistenza core</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Avambracci a terra · corpo dritto · non cedere i fianchi · cronometra fino al cedimento</div>
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🧱</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Plank</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— resistenza core</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Avambracci a terra, corpo dritto, cronometra fino al cedimento</div>
               <WizIn lbl="Secondi mantenuti" name="plankSec" type="number" val={d.plankSec} ph="es. 45" onChange={upd('plankSec')}/>
-              {d.plankSec&&(()=>{const i=interpPlank(d.plankSec);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
+              {d.plankSec&&(()=>{const i=interpPlank(d.plankSec);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
             {/* Squat */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.orange}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.orange,marginBottom:6}}>🦵 Squat — forza arti inferiori</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Piedi larghezza spalle · scendi a 90° · schiena dritta · quante riesci senza pause</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🦵</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Squat</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— forza arti inferiori</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Piedi larghezza spalle, scendi a 90, schiena dritta, quante riesci senza pause</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="Ripetizioni" name="squatRip" type="number" val={d.squatRip} ph="es. 20" onChange={upd('squatRip')}/>
                 <WizIn lbl="Note" name="squatNote" val={d.squatNote} ph="es. ginocchia valghe..." onChange={upd('squatNote')}/>
               </div>
-              {d.squatRip&&(()=>{const i=interpSquat(d.squatRip);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
+              {d.squatRip&&(()=>{const i=interpSquat(d.squatRip);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
             {/* Single Leg Balance */}
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.teal}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.teal,marginBottom:6}}>🦶 Single Leg Balance — equilibrio</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>In piedi su una gamba · occhi aperti · cronometra fino a max 30s · ripeti per l'altra</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 12px'}}>
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.teal}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🦶</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Single Leg Balance</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— equilibrio</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>In piedi su una gamba, occhi aperti, cronometra fino a max 30s, ripeti per l'altra</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl="Secondi gamba dx" name="slbDx" type="number" val={d.slbDx} ph="max 30s" onChange={upd('slbDx')}/>
                 <WizIn lbl="Secondi gamba sx" name="slbSx" type="number" val={d.slbSx} ph="max 30s" onChange={upd('slbSx')}/>
               </div>
-              {(d.slbDx||d.slbSx)&&(()=>{const avg=((+d.slbDx||0)+(+d.slbSx||0))/((d.slbDx?1:0)+(d.slbSx?1:0));const i=interpSLB(avg);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
+              {(d.slbDx||d.slbSx)&&(()=>{const avg=((+d.slbDx||0)+(+d.slbSx||0))/((d.slbDx?1:0)+(d.slbSx?1:0));const i=interpSLB(avg);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
-            {/* TUG */}
-            <div style={{...S.card,borderLeft:'3px solid '+C.yellow}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.yellow,marginBottom:6}}>⏱ TUG — rischio cadute</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>Sedia → alzati → cammina 3m → torna → siediti. Cronometra in secondi. Serve: sedia + cronometro + metro.</div>
-              <WizIn lbl="TUG — Timed Up and Go (sec)" name="tugSec" desc="Alzarsi da sedia, camminare 3m, tornare, sedersi. Sotto 10s = normale; 10-20s = rischio cadute; oltre 20s = alto rischio." type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
-              <WizIn lbl="Handgrip max (kg)" desc="Forza prensile massima con dinamometro. Predittore di mortalita e sarcopenia. Norma uomini: 35-55kg, donne: 20-35kg." name="handgrip" type="number" val={d.handgrip} ph="es. 42" onChange={upd('handgrip')}/>
+            {/* TUG + Handgrip */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.yellow}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>⏱</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>TUG + Handgrip</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— rischio cadute e forza prensile</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>TUG: alzarsi, camminare 3m, tornare, sedersi. Handgrip: dinamometro, presa massima.</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl="TUG (secondi)" name="tugSec" type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
+                <WizIn lbl="Handgrip max (kg)" name="handgrip" type="number" val={d.handgrip} ph="es. 42" onChange={upd('handgrip')}/>
+              </div>
               {d.handgrip&&<InterpBox interp={interpHandgrip(d.handgrip,d.sesso,eta)} icon="✊"/>}
-              {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
+              {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<InterpBox interp={i} icon="⏱"/>})()}
             </div>
           </div>}
 
           {/* STEP 6 — RPE & Note */}
-          {step===6&&<div>
-            <p style={{fontSize:13,color:C.muted,marginBottom:16,lineHeight:1.6}}>Valuta lo stato percepito <strong style={{color:C.text}}>dopo i test</strong>, a riposo. Registra osservazioni cliniche utili per il futuro.</p>
-            <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:8}}>Scala RPE — clicca per selezionare</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6,marginBottom:14}}>
-              {[[0,'#10b981','Nulla'],[2,'#22d3ee','Molto lieve'],[4,'#f59e0b','Lieve'],[6,'#fb923c','Moderata'],[8,'#ef4444','Intensa']].map(([v,c,l])=>(
-                <div key={v} onClick={()=>set('rpeRiposo',String(v))} style={{background:String(d.rpeRiposo)===String(v)?c+'30':C.bg,border:'1px solid '+String(d.rpeRiposo)===String(v)?c:C.border2,borderRadius:8,padding:'8px 4px',textAlign:'center',cursor:'pointer',transition:'all .15s'}}>
-                  <div style={{fontSize:18,fontWeight:800,color:c}}>{v}</div>
-                  <div style={{fontSize:9,color:C.muted,marginTop:2}}>{l}</div>
-                </div>
-              ))}
+          {step===6&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+            {/* RPE */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:16}}>📊</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>RPE — Sforzo percepito</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12,lineHeight:1.5}}>Valuta lo stato percepito dopo i test, a riposo.</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8,marginBottom:12}}>
+                {[[0,'#10b981','Nulla'],[2,'#22d3ee','Molto lieve'],[4,'#f59e0b','Lieve'],[6,'#fb923c','Moderata'],[8,'#ef4444','Intensa']].map(function(item){var v=item[0],c=item[1],l=item[2];var sel=String(d.rpeRiposo)===String(v);return(
+                  <div key={v} onClick={function(){set('rpeRiposo',String(v));}} style={{background:sel?c+'20':C.card,border:'2px solid '+(sel?c:C.border2),borderRadius:12,padding:'10px 4px',textAlign:'center',cursor:'pointer',transition:'all .15s',transform:sel?'scale(1.05)':'scale(1)'}}>
+                    <div style={{fontSize:22,fontWeight:900,color:c,lineHeight:1}}>{v}</div>
+                    <div style={{fontSize:9,color:sel?c:C.muted,fontWeight:sel?700:400,marginTop:4}}>{l}</div>
+                  </div>
+                );})}
+              </div>
+              <WizIn lbl="RPE a riposo (0-10)" name="rpeRiposo" type="number" val={d.rpeRiposo} ph="0-10" onChange={upd('rpeRiposo')}/>
             </div>
-            <WizIn lbl="RPE a riposo (0-10)" name="rpeRiposo" type="number" val={d.rpeRiposo} ph="0-10" onChange={upd('rpeRiposo')}/>
-            <div style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.purple}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.purple,marginBottom:6}}>🧠 GAD-7 — ansia (0-21)</div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:8,background:C.bg,borderRadius:6,padding:'6px 10px'}}>7 domande: 0=mai · 1=alcuni giorni · 2=più della metà · 3=quasi sempre. Somma i punteggi. Nessun attrezzo.</div>
+            {/* GAD-7 */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #06b6d4'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:16}}>🧠</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>GAD-7 — Ansia</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>punteggio 0-21</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>7 domande: 0=mai, 1=alcuni giorni, 2=piu della meta, 3=quasi sempre. Somma i punteggi.</div>
               <WizIn lbl="Punteggio totale GAD-7 (0-21)" name="gad7" type="number" val={d.gad7} ph="es. 5" onChange={upd('gad7')}/>
-              {d.gad7!==''&&d.gad7!==undefined&&(()=>{const i=interpGAD7(d.gad7);return i&&<div style={{background:i.c+'15',border:'1px solid '+i.c+'40',borderRadius:8,padding:'8px 12px',marginTop:6,display:'flex',gap:10,alignItems:'center'}}>
-                <div style={{fontSize:18}}>📊</div>
-                <div><div style={{fontSize:12,fontWeight:700,color:i.c}}>{i.l}</div><div style={{fontSize:11,color:C.muted}}>💡 {i.cons}</div></div>
-              </div>})()}
+              {d.gad7!==''&&d.gad7!==undefined&&(()=>{const i=interpGAD7(d.gad7);return i&&<InterpBox interp={i} icon="🧠"/>})()}
             </div>
-            <div style={{marginBottom:10}}>
-              <label style={S.label}>Note generali valutazione</label>
-              <textarea value={d.noteVal||''} onChange={upd('noteVal')} placeholder="Osservazioni cliniche, comportamento durante i test, motivazione, note utili per il programma..." style={{...S.ta,minHeight:90}}/>
+            {/* Note */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                <span style={{fontSize:16}}>📝</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Note generali</span>
+              </div>
+              <textarea value={d.noteVal||''} onChange={upd('noteVal')} placeholder="Osservazioni cliniche, comportamento durante i test, motivazione, note utili per il programma..." style={{...S.ta,minHeight:100,borderRadius:10}}/>
             </div>
           </div>}
 
