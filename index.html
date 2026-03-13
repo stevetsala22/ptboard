@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#060f1e"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PT Board"/>
 <meta name="description" content="Gestione pazienti per Personal Trainer"/>
@@ -902,6 +902,7 @@ const interpAlcol=(livello)=>{
   return map[livello]||{l:livello,c:C.muted,cons:'Consumo alcol registrato.'};
 };
 
+const rpeC=(r)=>r<=3?C.green:r<=6?C.yellow:r<=8?C.orange:C.red;
 const rpeL=(r)=>r<=3?'Leggero':r<=6?'Moderato':r<=8?'Intenso':'Massimale';
 const fmtDate=()=>new Date().toLocaleDateString('it-IT');
 const nextPid=(ps)=>{
