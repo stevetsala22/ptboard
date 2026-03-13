@@ -179,7 +179,7 @@ input,select,textarea{background:var(--input-bg);color:var(--text)}
 <script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
 
-const SK='fitmanager_v3';
+const SK='fitmanager_v4';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
 const save=(d)=>{try{localStorage.setItem(SK,JSON.stringify(d))}catch{}};
 
