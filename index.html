@@ -2449,7 +2449,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="RPE al termine (0-10)" name="mwtRpe" type="number" val={d.mwtRpe} ph="0 = nessuno sforzo" onChange={upd('mwtRpe')}/>
             </div>
             <WizIn lbl="Sintomi durante il test" name="mwtSintomi" val={d.mwtSintomi} opts={['NO','Dispnea lieve','Dispnea moderata','Affaticamento gambe','Dolore','Test interrotto']} onChange={upd('mwtSintomi')}/>
-            {d.mwtDist&&<div style={{background:C.bg,border:'1px solid '++d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green+'40',borderRadius:10,padding:'10px 14px',marginTop:4}}>
+            {d.mwtDist&&<div style={{background:C.bg,border:'1px solid '+(+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green+'40'),borderRadius:10,padding:'10px 14px',marginTop:4}}>
               <div style={{fontSize:10,color:C.muted}}>Indicatore 6MWT</div>
               <div style={{fontSize:15,fontWeight:700,color:+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green,marginTop:3}}>
                 {+d.mwtDist<300?'< 300m — Capacità molto bassa → Forma Bassa tendenziale':+d.mwtDist<=450?'300–450m — Capacità moderata → Forma Media tendenziale':'> 450m — Buona capacità → Buona Forma tendenziale'}
@@ -2485,7 +2485,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <WizIn lbl="Ripetizioni completate *" name="stsRip" type="number" val={d.stsRip} ph="es. 12" onChange={upd('stsRip')}/>
               <WizIn lbl="Note tecnica" name="stsNote" val={d.stsNote} ph="es. Uso mani, ginocchia valghe..." onChange={upd('stsNote')}/>
             </div>
-            {d.stsRip&&<div style={{background:C.bg,border:'1px solid '++d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green+'40',borderRadius:10,padding:'10px 14px',marginTop:4}}>
+            {d.stsRip&&<div style={{background:C.bg,border:'1px solid '+(+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green+'40'),borderRadius:10,padding:'10px 14px',marginTop:4}}>
               <div style={{fontSize:10,color:C.muted}}>Indicatore STS</div>
               <div style={{fontSize:15,fontWeight:700,color:+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green,marginTop:3}}>
                 {+d.stsRip<10?'< 10 rip. — Forza molto ridotta → Forma Bassa tendenziale':+d.stsRip<=15?'10–15 rip. — Forza moderata → Forma Media tendenziale':'> 15 rip. — Buona forza → Buona Forma tendenziale'}
