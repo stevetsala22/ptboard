@@ -2121,7 +2121,7 @@ function AppInner({user,profile,trialLeft}){
   useEffect(()=>{
     setSyncing(true);
     fbLoad(user.uid).then(remote=>{
-      if(remote){
+      if(remote&&remote.dataVersion>=4){
         if(remote.patients?.length) setPatients(remote.patients);
         if(remote.bookings) setBookings(remote.bookings);
         if(remote.exercises) setExercises(remote.exercises);
@@ -2140,7 +2140,7 @@ function AppInner({user,profile,trialLeft}){
   // Salva su localStorage + Firebase
   useEffect(()=>{
     if(firstLoad.current){firstLoad.current=false;return;}
-    const data={patients,bookings,exercises,isLight};
+    const data={patients,bookings,exercises,isLight,dataVersion:4};
     save(data);
     fbSave(user.uid,data);
     setSaveMsg(T.saved||'✓ Salvato');
@@ -2151,7 +2151,7 @@ function AppInner({user,profile,trialLeft}){
   // Salva IMMEDIATAMENTE quando l'app viene chiusa/minimizzata
   useEffect(()=>{
     const handleHide=()=>{
-      const data={patients,bookings,exercises,isLight};
+      const data={patients,bookings,exercises,isLight,dataVersion:4};
       save(data);
       try{fbSave(user.uid,data);}catch{}
     };
