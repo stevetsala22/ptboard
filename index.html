@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.9/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
@@ -171,7 +171,7 @@ input,select,textarea{background:var(--input-bg);color:var(--text)}
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
+<script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef}=React;
 
 const SK='fitmanager_v3';
@@ -647,7 +647,7 @@ const rpeL=(r)=>r<=3?'Leggero':r<=6?'Moderato':r<=8?'Intenso':'Massimale';
 const fmtDate=()=>new Date().toLocaleDateString('it-IT');
 const nextPid=(ps)=>{
   const n=ps.map(p=>parseInt(p.id.replace('P',''))).filter(Boolean);
-  return`P${String(Math.max(0,...n)+1).padStart(3,'0')}`;
+  return 'P'+String((n.length?Math.max.apply(null,n):0)+1).padStart(3,'0');
 };
 const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MONTHS=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
@@ -829,7 +829,7 @@ function PatientList({patients,onSelect,onAdd,search,T}){
         <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onAdd}>{T.addPatient}</button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
-        {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace(/[🔴🟡🟢] /,''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:T.profileMed.replace(/[🔴🟡🟢] /,''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace(/[🔴🟡🟢] /,''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
+        {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:T.profileMed.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
           <StatCard key={x.l} label={x.l} value={x.v} color={x.c}/>
         ))}
       </div>
@@ -2354,7 +2354,7 @@ ${'</body></html>'}\`;
       [''],
       ['NUTRIZIONE',''],['kcal/gg',prog.kcal],['Proteine g',prog.prot],['Carboidrati g',prog.carbo],['Grassi g',prog.grassi],
     ]);
-    const csv=rows.map(function(r){return r.map(function(cell){return '"'+String(cell||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+    const csv=rows.map(function(r){return r.map(function(cell){var s=String(cell||'');var escaped=s.split('"').join('""');return '"'+escaped+'"';}).join(',');}).join('\n');
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
     a.download='Valutazione_'+d.cognome+'_'+d.nome+'_'+fmtDate().split('/').join('-')+'.csv';
