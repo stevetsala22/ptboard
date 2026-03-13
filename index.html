@@ -1449,7 +1449,7 @@ function SchedaModal({exercises,onSave,onClose}){
       <div style={{...S.card,marginBottom:14}}>
         <div style={S.st}>Aggiungi esercizio</div>
         <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr',gap:8,alignItems:'end'}}>
-          <FF label="Esercizio" name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:'-- Scegli --'},...exercises.map(e=>({v:e.id,l:`${e.nome} (${e.cat})`}))]}/>
+          <FF label="Esercizio" name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:'-- Scegli --'}].concat(exercises.map(e=>({v:e.id,l:e.nome+' ('+e.cat+')'})))}/>
           <FF label="Serie" name="serie" type="number" value={addEx.serie} onChange={e=>setAddEx(f=>({...f,serie:+e.target.value}))}/>
           <FF label="Rip." name="reps" type="number" value={addEx.reps} onChange={e=>setAddEx(f=>({...f,reps:+e.target.value}))}/>
           <FF label="Peso kg" name="peso" value={addEx.peso} onChange={e=>setAddEx(f=>({...f,peso:e.target.value}))}/>
@@ -1570,7 +1570,7 @@ function CalendarView({patients,bookings,setBookings,T}){
       {showModal&&(
         <Modal title="Nuova prenotazione" onClose={()=>setShowModal(false)}>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'},...patients.map(p=>({v:p.id,l:`${p.nome} ${p.cognome}`}))]}/>
+            <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'}].concat(patients.map(p=>({v:p.id,l:p.nome+' '+p.cognome})))}/>
             <div style={S.grid(2)}>
               <FF label="Data" name="data" type="date" value={newB.data} onChange={e=>setNewB(f=>({...f,data:e.target.value}))}/>
               <FF label="Ora" name="ora" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))} options={['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00']}/>
@@ -1595,7 +1595,7 @@ function ExercisesPage({exercises,setExercises,T}){
   const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:''});
   const [filter,setFilter]=useState('Tutti');
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
-  const cats=['Tutti',...new Set(exercises.map(e=>e.cat))];
+  const cats=['Tutti'].concat(Array.from(new Set(exercises.map(e=>e.cat))));
   const filtered=filter==='Tutti'?exercises:exercises.filter(e=>e.cat===filter);
   const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:''});setEditing(null);setShowModal(true)};
   const openEdit=(ex)=>{setForm({...ex});setEditing(ex.id);setShowModal(true)};
@@ -2350,9 +2350,10 @@ ${'</body></html>'}\`;
       ['PROFILO',''],['Codice',pr.code],['Descrizione',pr.l],[''],
       ['PROGRAMMA 4 SETTIMANE',''],['Nome',prog.nome],['Sedute/sett',prog.sedute],['Min cardio/sett',prog.minCardio],['Min forza/sett',prog.minForza],[''],
       ['SETTIMANA','CARDIO','FORZA','NOTE'],
-      ...prog.settimane.map(w=>[`Settimana ${w.num}`,w.cardio,w.forza,w.note]),[''],
+    ].concat(prog.settimane.map(function(w){return['Settimana '+w.num,w.cardio,w.forza,w.note];})).concat([
+      [''],
       ['NUTRIZIONE',''],['kcal/gg',prog.kcal],['Proteine g',prog.prot],['Carboidrati g',prog.carbo],['Grassi g',prog.grassi],
-    ];
+    ]);
     const csv=rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
