@@ -164,73 +164,28 @@ input,select,textarea,button{font-family:inherit;color:var(--text)}
 input,select,textarea{background:var(--input-bg);color:var(--text)}
 /* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────────── */
 @media(max-width:768px){
-  /* 1. FONT SIZE — dimensioni minime leggibili */
-  h1{font-size:18px !important;}
-  h2{font-size:16px !important;}
-  h3{font-size:15px !important;}
-  label{font-size:13px !important;}
-  button{font-size:15px !important;min-height:44px;}
-  input,select,textarea{font-size:16px !important;min-height:44px;}
-  table,td,th{font-size:13px !important;}
-
-  /* 2. TOUCH TARGETS — 44px minimo */
-  button,
-  [role="button"],
-  input[type="checkbox"],
-  input[type="radio"]{
-    min-height:44px !important;
-    min-width:44px !important;
-  }
-  input,select,textarea{
-    min-height:44px !important;
-    padding:10px 12px !important;
-  }
-
-  /* 3. PADDING E SPAZIATURA */
-  [style*="padding:24px"]{padding:16px !important;}
-  [style*="padding:20px"]{padding:16px !important;}
-  [style*="padding:18px"]{padding:16px !important;}
-
-  /* 5. WIZARD — step pills nascoste su mobile (testo "Passo X di N" nel header) */
-  .wiz-step-pills{display:none !important;}
-
-  /* 6. GRIGLIE — max 2 colonne su mobile */
+  /* Grid forms: 1 colonna su mobile */
   [style*="grid-template-columns: repeat(3"],[style*="grid-template-columns:repeat(3"]{
-    grid-template-columns:1fr 1fr !important;
+    grid-template-columns:1fr !important;
   }
   [style*="grid-template-columns: repeat(4"],[style*="grid-template-columns:repeat(4"]{
     grid-template-columns:1fr 1fr !important;
   }
   [style*="grid-template-columns: repeat(2"],[style*="grid-template-columns:repeat(2"]{
-    grid-template-columns:1fr 1fr !important;
+    grid-template-columns:1fr !important;
   }
-
-  /* 7. TESTO CHE DEBORDA */
-  body,#root{
-    max-width:100vw;
-    overflow-x:hidden;
-  }
-  p,span,div,td,th,li,label{
-    overflow-wrap:break-word;
-    word-wrap:break-word;
-  }
-
-  /* 4. BOTTOM NAVIGATION BAR — visibile su mobile */
-  .mobile-bottom-nav{
-    display:flex !important;
-    position:fixed !important;
-    bottom:0 !important;
-    left:0 !important;
-    right:0 !important;
-    height:60px !important;
-    z-index:300 !important;
-    padding-bottom:env(safe-area-inset-bottom,0px) !important;
-  }
-  #root{padding-bottom:60px;}
-}
-/* Bottom nav nascosta su desktop */
-@media(min-width:769px){
-  .mobile-bottom-nav{display:none !important;}
+  /* Font sizes */
+  h1{font-size:16px !important;}
+  h2{font-size:14px !important;}
+  /* Padding cards */
+  [style*="padding:24px"]{padding:14px !important;}
+  [style*="padding:20px"]{padding:12px !important;}
+  /* Bottoni header: testo piccolo */
+  button{font-size:12px !important;}
+  /* Wizard mobile: input più grandi */
+  input,select,textarea{font-size:16px !important;padding:14px 16px !important;}
+  /* Wizard mobile: step pills nascoste */
+  .wiz-step-pills{display:none !important;}
 }
 @keyframes fadeInUp {
   from { opacity:0; transform:translateY(12px); }
@@ -1030,22 +985,22 @@ const S={
   logosub:{fontSize:10,color:C.muted,marginTop:2,letterSpacing:1,textTransform:'uppercase'},
   nav:{padding:'8px 10px',flex:1,overflowY:'auto'},
   navlbl:{fontSize:10,color:'#1e3a5f',letterSpacing:1.5,textTransform:'uppercase',padding:'10px 6px 4px',fontWeight:700},
-  navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:isMobile?'12px 12px':'8px 10px',borderRadius:7,cursor:'pointer',fontSize:isMobile?15:13,fontWeight:500,background:a?'#1e293b':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s',minHeight:isMobile?44:undefined}),
+  navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:500,background:a?'#1e293b':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s'}),
   main:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'},
   topbar:{height:52,background:C.sidebar,borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',padding:'0 12px',gap:8,flexShrink:0},
-  content:{flex:1,overflowY:'auto',padding:isMobile?16:20,paddingBottom:isMobile?80:20},
-  btn:(v='primary',sm=false)=>({padding:isMobile?(sm?'8px 12px':'10px 16px'):(sm?'5px 10px':'7px 13px'),borderRadius:7,border:'none',cursor:'pointer',fontSize:isMobile?15:(sm?11:12),fontWeight:600,transition:'all .15s',whiteSpace:'nowrap',minHeight:isMobile?44:undefined,
+  content:{flex:1,overflowY:'auto',padding:isMobile?12:20,paddingBottom:isMobile?80:20},
+  btn:(v='primary',sm=false)=>({padding:sm?'5px 10px':'7px 13px',borderRadius:7,border:'none',cursor:'pointer',fontSize:sm?11:12,fontWeight:600,transition:'all .15s',whiteSpace:'nowrap',
     ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:'1px solid #ef444440'}:v==='success'?{background:'#10b98120',color:C.green,border:'1px solid #10b98140'}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:'1px solid #f59e0b40'}:{background:'transparent',color:C.dim,border:'1px solid '+C.border2})}),
-  card:{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:18},
-  label:{fontSize:isMobile?13:11,color:C.muted,textTransform:'uppercase',letterSpacing:.8,fontWeight:600,marginBottom:3,display:'block'},
+  card:{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?12:18},
+  label:{fontSize:11,color:C.muted,textTransform:'uppercase',letterSpacing:.8,fontWeight:600,marginBottom:3,display:'block'},
   inp:{width:'100%',background:C.bg,border:'1px solid '+C.border2,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box'},
   sel:{width:'100%',background:C.bg,border:'1px solid '+C.border2,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box'},
   ta:{width:'100%',background:C.bg,border:'1px solid '+C.border2,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box',resize:'vertical',minHeight:68,fontFamily:'inherit'},
   tag:(c,bg)=>({display:'inline-flex',alignItems:'center',gap:4,padding:'2px 9px',borderRadius:20,fontSize:11,fontWeight:600,background:bg||c+'20',color:c,border:'1px solid '+c+'40'}),
-  grid:(n)=>({display:'grid',gridTemplateColumns:isMobile?(n>=3?'1fr 1fr':'1fr'):'repeat('+n+',1fr)',gap:isMobile?12:14}),
-  st:{fontSize:isMobile?14:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:10},
+  grid:(n)=>({display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat('+n+',1fr)',gap:isMobile?10:14}),
+  st:{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:10},
   kpi:(c)=>({background:C.card,border:'1px solid '+c+'30',borderRadius:11,padding:'14px 16px',position:'relative',overflow:'hidden'}),
-  row:{display:'flex',alignItems:'center',gap:12,padding:isMobile?'10px 12px':'8px 12px',background:C.bg,borderRadius:8,marginBottom:isMobile?8:5},
+  row:{display:'flex',alignItems:'center',gap:12,padding:'8px 12px',background:C.bg,borderRadius:8,marginBottom:5},
 };
 
 function Avatar({nome='?',cognome='?',size=34}){
@@ -1488,7 +1443,7 @@ ${(p.progressi||[]).length>1?`
 
       {/* Tabs scorrevoli */}
       <div style={{display:'flex',gap:3,marginBottom:14,background:C.sidebar,borderRadius:9,padding:3,overflowX:'auto',WebkitOverflowScrolling:'touch',scrollbarWidth:'none'}}>
-        {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn(tab===t.id?'primary':'ghost',true),borderRadius:6,border:'none',whiteSpace:'nowrap',fontSize:isMobile?13:12,padding:isMobile?'10px 14px':'5px 12px',flexShrink:0,minHeight:isMobile?44:undefined}}>{t.l}</button>)}
+        {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn(tab===t.id?'primary':'ghost',true),borderRadius:6,border:'none',whiteSpace:'nowrap',fontSize:isMobile?12:12,padding:isMobile?'6px 12px':'5px 12px',flexShrink:0}}>{t.l}</button>)}
       </div>
 
       {tab==='dash'&&(
@@ -2455,25 +2410,6 @@ function AppInner({user,profile,trialLeft}){
       {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile}/>}
       {showLingua&&<LinguaModal onClose={()=>setShowLingua(false)} lang={lang} setLang={setLang}/>}
 
-      {/* Bottom Navigation Bar — solo mobile */}
-      {isMobile&&<div className="mobile-bottom-nav" style={{display:'flex',alignItems:'center',justifyContent:'space-around',background:C.sidebar,borderTop:'1px solid '+C.border,height:60,position:'fixed',bottom:0,left:0,right:0,zIndex:300,paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
-        {[
-          {id:'dash',icon:'\u229E',l:T.dashboard},
-          {id:'patients',icon:'\uD83D\uDC65',l:T.patients},
-          {id:'calendar',icon:'\uD83D\uDCC5',l:T.calendar},
-          {id:'exercises',icon:'\uD83C\uDFCB',l:T.exercises},
-          {id:'_settings',icon:'\u2699',l:T.settings},
-        ].map(n=>(
-          <button key={n.id} onClick={()=>{
-            if(n.id==='_settings'){setSidebarOpen(true);return;}
-            setPage(n.id);setSelectedId(null);
-          }} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,background:'transparent',border:'none',cursor:'pointer',color:(page===n.id||((page==='detail'||page==='form')&&n.id==='patients'))?C.blue:C.dim,fontSize:20,padding:'4px 8px',minHeight:44,minWidth:44,flex:1}}>
-            <span>{n.icon}</span>
-            <span style={{fontSize:10,fontWeight:600}}>{n.l}</span>
-          </button>
-        ))}
-      </div>}
-
     </div>
   );
 }
@@ -2724,8 +2660,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
     a.click();
   };
 
-  const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:isMobile?'stretch':'center',justifyContent:'center',padding:isMobile?0:12};
-  const BOX={background:C.card,border:isMobile?'none':'1px solid '+C.border2,borderRadius:isMobile?0:18,width:isMobile?'100%':'min(800px,98vw)',maxHeight:isMobile?'100vh':'94vh',height:isMobile?'100vh':undefined,display:'flex',flexDirection:'column'};
+  const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:12};
+  const BOX={background:C.card,border:'1px solid '+C.border2,borderRadius:18,width:'min(800px,98vw)',maxHeight:'94vh',display:'flex',flexDirection:'column'};
   const pct=Math.round(step/TOTAL*100);
   const clr=pr?pr.c:C.blue;
 
@@ -2742,7 +2678,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?'Passo '+step+' di '+TOTAL:'Valutazione Paziente'}</div>
             <div style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?stepTitles[step-1]:'Passo '+step+' di '+TOTAL+' \u00B7 '+stepTitles[step-1]}</div>
           </div>
-          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:22,padding:'8px',borderRadius:6,lineHeight:1,minWidth:44,minHeight:44,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
         </div>
         {/* Progress */}
         <div style={{height:3,background:C.border,flexShrink:0}}>
@@ -3320,15 +3256,15 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         </div>
 
         {/* Footer */}
-        <div style={{padding:isMobile?'12px 16px':'14px 22px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:isMobile?'center':'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:isMobile?'wrap':'nowrap',position:isMobile?'sticky':'static',bottom:0,background:C.card,zIndex:10}}>
-          {!isMobile&&<button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button>}
-          <div style={{display:'flex',gap:8,width:isMobile?'100%':'auto'}}>
+        <div style={{padding:isMobile?'12px 16px':'14px 22px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap',position:isMobile?'sticky':'static',bottom:0,background:C.card,zIndex:10}}>
+          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{...S.btn('ghost',true),padding:isMobile?'14px 20px':undefined,minHeight:isMobile?44:undefined}}>{gT().cancel}</button>
+          <div style={{display:'flex',gap:8}}>
 
-            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={{...S.btn('ghost',true),flex:isMobile?1:undefined,width:isMobile?'100%':undefined,minHeight:44,fontSize:15,justifyContent:'center',display:'flex',alignItems:'center'}}>{gT().wPrev}</button>}
+            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={{...S.btn('ghost',true),padding:isMobile?'14px 24px':undefined,minHeight:isMobile?44:undefined}}>{gT().wPrev}</button>}
             {step<TOTAL&&<button onClick={()=>{
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
               setStep(s=>s+1);
-            }} style={{...S.btn(),flex:isMobile?1:undefined,width:isMobile?'100%':undefined,minHeight:44,fontSize:15,justifyContent:'center',display:'flex',alignItems:'center'}}>{gT().wNext}</button>}
+            }} style={{...S.btn(),padding:isMobile?'14px 24px':undefined,minHeight:isMobile?44:undefined}}>{gT().wNext}</button>}
             {step===TOTAL&&<button onClick={()=>{
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
               const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
@@ -3342,7 +3278,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
               };
               onSave(p);
-            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6,flex:isMobile?1:undefined,width:isMobile?'100%':undefined,minHeight:44,fontSize:15,justifyContent:'center'}}>✓ Salva &amp; apri scheda</button>}
+            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>✓ Salva &amp; apri scheda</button>}
           </div>
         </div>
       </div>
