@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── USERS COLLECTION ──
+    // Ogni utente puo leggere/scrivere SOLO il proprio documento
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // ── APP DATA (sub-collection) ──
+      // Solo il proprietario puo accedere ai propri dati app
+      match /appdata/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ── ADMIN: lettura tutti gli utenti ──
+    // Solo l'admin (verificato via email) puo leggere tutti i documenti users
+    match /users/{userId} {
+      allow read: if request.auth != null
+                  && request.auth.token.email == 'stevetsala22@gmail.com';
+    }
+
+    // ── BLOCCA TUTTO IL RESTO ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

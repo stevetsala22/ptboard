@@ -2,6 +2,10 @@
 <html lang="it">
 <head>
 <script>
+// Force HTTPS
+if(location.protocol==='http:'&&location.hostname!=='localhost'&&!location.hostname.startsWith('127.')){
+  location.replace('https://'+location.host+location.pathname+location.search);
+}
 if(window.location.pathname==='/'||
    window.location.pathname==='/index.html'){
   const ref=document.referrer;
@@ -15,10 +19,12 @@ if(window.location.pathname==='/'||
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#060f1e"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://api.anthropic.com https://api.emailjs.com wss://*.firebaseio.com; img-src 'self' data: blob:; frame-src https://*.firebaseapp.com;"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PT Board"/>
 <meta name="description" content="Gestione pazienti per Personal Trainer"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
@@ -51,19 +57,27 @@ firebase.initializeApp({
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
-const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
+// Admin check via hash — non espone l'email in chiaro
+const _adminHash='c3RldmV0c2FsYTIyQGdtYWlsLmNvbQ=='; // base64
+const ADMIN_EMAIL=atob(_adminHash);
 const TRIAL_DAYS=30;
 const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
 const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
 const fbSaveUserProfile=async(uid,data)=>{
+  if(!uid||typeof uid!=='string')return;
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
 };
 const fbGetUserProfile=async(uid)=>{
+  if(!uid||typeof uid!=='string')return null;
   try{const d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
 };
 const fbGetAllUsers=async()=>{
-  try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
+  try{
+    const currentUser=fbAuth.currentUser;
+    if(!currentUser||currentUser.email!==ADMIN_EMAIL) return[];
+    const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){return[];}
 };
 const isTrialExpired=(profile)=>{
   if(!profile) return false;
@@ -78,7 +92,11 @@ const trialDaysLeft=(profile)=>{
   return Math.max(0,Math.ceil(TRIAL_DAYS-used));
 };
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
+let _lastSave=0;
 const fbSave=async(uid,data)=>{
+  // Rate limit: max 1 salvataggio ogni 2 secondi
+  const now=Date.now();if(now-_lastSave<2000)return;_lastSave=now;
+  if(!uid||typeof uid!=='string')return;
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
   catch(e){console.warn('fbSave',e);
     try{await new Promise(r=>setTimeout(r,2000));await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
@@ -1375,7 +1393,7 @@ ${(p.progressi||[]).length>1?`
 <div class="section">
   <div class="section-title">Storico peso</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${x.peso} kg</div><div class="kpi-lbl">${x.data}</div></div>`).join('')}
+    ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${esc(x.peso)} kg</div><div class="kpi-lbl">${esc(x.data)}</div></div>`).join('')}
   </div>
 </div>`:''}
 
@@ -1384,10 +1402,11 @@ ${(p.progressi||[]).length>1?`
   <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
 </div>
 </div>${'</body></html>'}`;
-    const w=window.open('','_blank');
-    w.document.write(html);
-    w.document.close();
-    // Non auto-stampa — l'utente clicca il bottone manualmente (evita il blocco su iPhone)
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(w)w.onload=()=>URL.revokeObjectURL(url);
+    else URL.revokeObjectURL(url);
   };
 
   return(
@@ -2249,14 +2268,19 @@ function AppInner({user,profile,trialLeft}){
     if(form.altezza&&(+form.altezza<50||+form.altezza>250))errs.push('Altezza (50-250 cm)');
     if(form.fc&&(+form.fc<30||+form.fc>220))errs.push('FC riposo (30-220 bpm)');
     if(form.sonno&&(+form.sonno<0||+form.sonno>24))errs.push('Sonno (0-24 ore)');
+    if(form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errs.push('Email non valida');
     if(errs.length)return alert((T.requiredFields||'Campi da correggere')+':\n• '+errs.join('\n• '));
+    // Sanitizza campi testo prima del salvataggio
+    const sanitize=(v)=>typeof v==='string'?v.replace(/<[^>]*>/g,'').trim():v;
+    const cleanForm={...form};
+    ['nome','cognome','patologie','farmaci','allergie','obiettivo','preferenze','notePostura'].forEach(k=>{if(cleanForm[k])cleanForm[k]=sanitize(cleanForm[k]);});
     if(isNew){
       const id=nextPid(patients);
-      const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
+      const p={...cleanForm,id,progressi:cleanForm.progressi||[],schede:cleanForm.schede||[],log:cleanForm.log||[]};
       if(p.peso)p.progressi=[{data:p.dataValutazione||fmtDate(),peso:+p.peso,nota:'Primo accesso'}];
       setPatients(ps=>[...ps,p]);setPage('patients');
     }else{
-      setPatients(ps=>ps.map(p=>p.id===form.id?form:p));setSelectedId(form.id);setPage('detail');
+      setPatients(ps=>ps.map(p=>p.id===cleanForm.id?cleanForm:p));setSelectedId(cleanForm.id);setPage('detail');
     }
   },[isNew,patients,T]);
 
@@ -2634,7 +2658,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 </div></div>
 <footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — Profilo ${pr.code}</span></footer>
 </div>${'</body></html>'}`;
-    const w=window.open('','_blank');w.document.write(html);w.document.close();
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});const url=URL.createObjectURL(blob);const w=window.open(url,'_blank');if(w)w.onload=()=>URL.revokeObjectURL(url);else URL.revokeObjectURL(url);
   };
 
   const exportCSV=()=>{
@@ -3781,7 +3805,8 @@ function TutorialModal({onClose,isLight}){
           <div style={{display:'inline-flex',alignItems:'center',padding:'3px 12px',borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:'uppercase',background:s.bc,color:s.bct,marginBottom:14}}>{s.badge}</div>
           <div style={{fontSize:20,fontWeight:800,color:C.strong,letterSpacing:-0.5,marginBottom:8}}>{s.title}</div>
           <div style={{fontSize:13,color:C.muted,lineHeight:1.7,marginBottom:20,fontWeight:300}}>{s.desc}</div>
-          <div dangerouslySetInnerHTML={{__html:s.html}}/>
+          <div ref={el=>{if(el){el.innerHTML='';const shadow=el.attachShadow?el.attachShadow({mode:'closed'}):el;shadow.innerHTML=s.html;}}}/>
+
         </div>
         {/* Footer */}
         <div style={{padding:'12px 20px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',flexShrink:0,gap:8}}>
