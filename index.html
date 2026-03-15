@@ -2,10 +2,6 @@
 <html lang="it">
 <head>
 <script>
-// Force HTTPS
-if(location.protocol==='http:'&&location.hostname!=='localhost'&&!location.hostname.startsWith('127.')){
-  location.replace('https://'+location.host+location.pathname+location.search);
-}
 if(window.location.pathname==='/'||
    window.location.pathname==='/index.html'){
   const ref=document.referrer;
@@ -19,12 +15,10 @@ if(window.location.pathname==='/'||
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#060f1e"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://api.anthropic.com https://api.emailjs.com wss://*.firebaseio.com; img-src 'self' data: blob:; frame-src https://*.firebaseapp.com;"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PT Board"/>
 <meta name="description" content="Gestione pazienti per Personal Trainer"/>
-<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
@@ -57,27 +51,19 @@ firebase.initializeApp({
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
-// Admin check via hash — non espone l'email in chiaro
-const _adminHash='c3RldmV0c2FsYTIyQGdtYWlsLmNvbQ=='; // base64
-const ADMIN_EMAIL=atob(_adminHash);
+const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=30;
 const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
 const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
 const fbSaveUserProfile=async(uid,data)=>{
-  if(!uid||typeof uid!=='string')return;
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
 };
 const fbGetUserProfile=async(uid)=>{
-  if(!uid||typeof uid!=='string')return null;
   try{const d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
 };
 const fbGetAllUsers=async()=>{
-  try{
-    const currentUser=fbAuth.currentUser;
-    if(!currentUser||currentUser.email!==ADMIN_EMAIL) return[];
-    const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){return[];}
+  try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
 };
 const isTrialExpired=(profile)=>{
   if(!profile) return false;
@@ -92,11 +78,7 @@ const trialDaysLeft=(profile)=>{
   return Math.max(0,Math.ceil(TRIAL_DAYS-used));
 };
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
-let _lastSave=0;
 const fbSave=async(uid,data)=>{
-  // Rate limit: max 1 salvataggio ogni 2 secondi
-  const now=Date.now();if(now-_lastSave<2000)return;_lastSave=now;
-  if(!uid||typeof uid!=='string')return;
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
   catch(e){console.warn('fbSave',e);
     try{await new Promise(r=>setTimeout(r,2000));await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
@@ -282,7 +264,7 @@ const LANGS={
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
     noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede paziente',
     noData:'Dati insufficienti',
-    tabDash:'Dashboard',tabAna:'Anagrafica',tabTest:'Test',tabProg:'Programma',
+    tabDash:'Dashboard',tabAna:'Anagrafica',tabTest:'Test',tabProg:'Programma',tabStorico:'Progressi',
     tabSchede:'Allenamento',tabNutri:'Nutrizione',tabLog:'Log',tabStats:'Statistiche',
     secAna:'Dati anagrafici',secClin:'Parametri clinici',secTest:'Test funzionali',
     secLife:'Stile di vita',secProg:'Programma allenamento',secAntropo:'Parametri antropometrici',
@@ -422,7 +404,7 @@ const LANGS={
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
     noApptToday:'No appointments today',noWeightData:'Add measurements in patient profiles',
     noData:'Insufficient data',
-    tabDash:'Dashboard',tabAna:'Profile',tabTest:'Tests',tabProg:'Program',
+    tabDash:'Dashboard',tabAna:'Profile',tabTest:'Tests',tabProg:'Program',tabStorico:'Progress',
     tabSchede:'Training',tabNutri:'Nutrition',tabLog:'Log',tabStats:'Statistics',
     secAna:'Personal data',secClin:'Clinical parameters',secTest:'Functional tests',
     secLife:'Lifestyle',secProg:'Training program',secAntropo:'Anthropometric parameters',
@@ -562,7 +544,7 @@ const LANGS={
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
     noApptToday:"Aucun rendez-vous aujourd'hui",noWeightData:'Ajoutez des mesures dans les fiches patient',
     noData:'Données insuffisantes',
-    tabDash:'Tableau de bord',tabAna:'Profil',tabTest:'Tests',tabProg:'Programme',
+    tabDash:'Tableau de bord',tabAna:'Profil',tabTest:'Tests',tabProg:'Programme',tabStorico:'Progression',
     tabSchede:'Entraînement',tabNutri:'Nutrition',tabLog:'Journal',tabStats:'Statistiques',
     secAna:'Données personnelles',secClin:'Paramètres cliniques',secTest:'Tests fonctionnels',
     secLife:'Style de vie',secProg:"Programme d'entraînement",secAntropo:'Paramètres anthropométriques',
@@ -1174,7 +1156,7 @@ function Dashboard({patients,bookings,T}){
   );
 }
 
-function PatientList({patients,onSelect,onAdd,search,T}){
+function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
   const filtered=useMemo(()=>{
     const q=search.toLowerCase();
     return patients.filter(p=>`${p.nome} ${p.cognome} ${p.id}`.toLowerCase().includes(q));
@@ -1183,7 +1165,7 @@ function PatientList({patients,onSelect,onAdd,search,T}){
     <div style={{animation:'fadeInUp .3s ease'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
         <div><h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{T.patients}</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>{filtered.length} {T.patients.toLowerCase()}</p></div>
-        <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onAdd}>{T.addPatient}</button>
+        <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onNewVal}>+ Nuova Valutazione</button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
         {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:T.profileMed.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
@@ -1238,7 +1220,7 @@ function PatientList({patients,onSelect,onAdd,search,T}){
   );
 }
 
-function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade}){
+function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta}){
   const [tab,setTab]=useState('dash');
   const [showLogModal,setShowLogModal]=useState(false);
   const [showPesoModal,setShowPesoModal]=useState(false);
@@ -1270,7 +1252,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
   };
 
-  const T2=gT();const tabs=[{id:'dash',l:T2.tabDash},{id:'ana',l:T2.tabAna},{id:'test',l:T2.tabTest},{id:'prog',l:T2.tabProg},{id:'schede',l:T2.tabSchede},{id:'nutri',l:T2.tabNutri},{id:'log',l:`${T2.tabLog} (${p.log?.length||0})`},{id:'stats',l:T2.tabStats}];
+  const T2=gT();const tabs=[{id:'dash',l:T2.tabDash},{id:'ana',l:T2.tabAna},{id:'test',l:T2.tabTest},{id:'storico',l:'📈 '+T2.tabStorico},{id:'prog',l:T2.tabProg},{id:'schede',l:T2.tabSchede},{id:'nutri',l:T2.tabNutri},{id:'log',l:`${T2.tabLog} (${p.log?.length||0})`},{id:'stats',l:T2.tabStats}];
 
   const generaPDF=()=>{
     const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
@@ -1393,7 +1375,7 @@ ${(p.progressi||[]).length>1?`
 <div class="section">
   <div class="section-title">Storico peso</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${esc(x.peso)} kg</div><div class="kpi-lbl">${esc(x.data)}</div></div>`).join('')}
+    ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${x.peso} kg</div><div class="kpi-lbl">${x.data}</div></div>`).join('')}
   </div>
 </div>`:''}
 
@@ -1402,11 +1384,10 @@ ${(p.progressi||[]).length>1?`
   <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
 </div>
 </div>${'</body></html>'}`;
-    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const w=window.open(url,'_blank');
-    if(w)w.onload=()=>URL.revokeObjectURL(url);
-    else URL.revokeObjectURL(url);
+    const w=window.open('','_blank');
+    w.document.write(html);
+    w.document.close();
+    // Non auto-stampa — l'utente clicca il bottone manualmente (evita il blocco su iPhone)
   };
 
   return(
@@ -1427,9 +1408,12 @@ ${(p.progressi||[]).length>1?`
             </div>
           </div>
           {/* Riga 2: bottoni azione ben spaziati */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr',gap:8}}>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #334155',background:'transparent',cursor:'pointer',color:C.dim,fontSize:11,fontWeight:600}} onClick={onBack}>
               <span style={{fontSize:18}}>←</span><span>Torna</span>
+            </button>
+            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={onValuta}>
+              <span style={{fontSize:18}}>📋</span><span>Valuta</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
               <span style={{fontSize:18}}>🤖</span><span>AI Coach</span>
@@ -1453,6 +1437,7 @@ ${(p.progressi||[]).length>1?`
             </div>
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
           </div>
+          <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:8,fontWeight:600,fontSize:14,border:'none',cursor:'pointer'}} onClick={onValuta}>📋 Valuta ora</button>
           <button style={{...S.btn('success',true),display:'flex',alignItems:'center',gap:5}} onClick={generaPDF}>📄 Report PDF</button>
           <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button>
             <button onClick={onEdit} style={S.btn('ghost',true)}>✏ {T.edit}</button>
@@ -1642,6 +1627,177 @@ ${(p.progressi||[]).length>1?`
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {tab==='storico'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {(!p.valutazioni||p.valutazioni.length===0)&&(
+            <div style={{...S.card,textAlign:'center',padding:36,color:C.muted}}>
+              <div style={{fontSize:32,marginBottom:8}}>📈</div>
+              <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>Nessuna valutazione registrata</div>
+              <div style={{fontSize:12}}>Completa almeno una valutazione tramite "+ Nuova Valutazione" per vedere lo storico.</div>
+            </div>
+          )}
+          {p.valutazioni&&p.valutazioni.length===1&&(
+            <div style={{...S.card,textAlign:'center',padding:36,color:C.muted}}>
+              <div style={{fontSize:32,marginBottom:8}}>📊</div>
+              <div style={{fontSize:14,fontWeight:600,marginBottom:4}}>Prima valutazione registrata</div>
+              <div style={{fontSize:12}}>Registra una seconda valutazione per vedere il confronto progressi.</div>
+              <div style={{marginTop:12,fontSize:12,color:C.blue}}>Data: {p.valutazioni[0].data}</div>
+            </div>
+          )}
+          {p.valutazioni&&p.valutazioni.length>=2&&(function(){
+            var vs=p.valutazioni;
+            var v1=vs[0];
+            var v2=vs[vs.length-1];
+            var rows=[
+              {l:'Peso',unit:'kg',k:'peso',dir:-1},
+              {l:'BMI',unit:'',k:'bmi',dir:-1},
+              {l:'6MWT',unit:'m',k:'mwtDist',dir:1},
+              {l:'Sit-to-Stand',unit:'rip',k:'stsRip',dir:1},
+              {l:'Push-up',unit:'rip',k:'pushup',dir:1},
+              {l:'Handgrip',unit:'kg',k:'handgrip',dir:1},
+              {l:'FM%',unit:'%',k:'fm',dir:-1},
+              {l:'Score fitness',unit:'/100',k:'score',dir:1},
+              {l:'Profilo',unit:'',k:'profilo',dir:0}
+            ];
+            return(
+              <div style={S.card}>
+                <div style={S.st}>Confronto Prima / Ultima Valutazione</div>
+                <div style={{overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                    <thead>
+                      <tr style={{borderBottom:'2px solid '+C.border}}>
+                        <th style={{textAlign:'left',padding:'6px 8px',color:C.muted,fontWeight:600}}>Parametro</th>
+                        <th style={{textAlign:'center',padding:'6px 8px',color:C.muted,fontWeight:600}}>Prima<br/><span style={{fontSize:10,fontWeight:400}}>{v1.data}</span></th>
+                        <th style={{textAlign:'center',padding:'6px 8px',color:C.muted,fontWeight:600}}>Ultima<br/><span style={{fontSize:10,fontWeight:400}}>{v2.data}</span></th>
+                        <th style={{textAlign:'center',padding:'6px 8px',color:C.muted,fontWeight:600}}>Variazione</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map(function(row){
+                        var val1=v1[row.k]||'';
+                        var val2=v2[row.k]||'';
+                        if(!val1&&!val2)return null;
+                        var deltaStr='—';
+                        var deltaColor=C.muted;
+                        var deltaSymbol='';
+                        if(row.k==='profilo'){
+                          var order={A:1,B:2,C:3};
+                          if(val1&&val2&&val1!==val2){
+                            var improved=(order[val2]||0)>(order[val1]||0);
+                            deltaStr=improved?'Migliorato':'Peggiorato';
+                            deltaColor=improved?C.green:C.red;
+                            deltaSymbol=improved?'↑':'↓';
+                          } else {
+                            deltaStr='=';
+                            deltaColor=C.yellow;
+                          }
+                        } else if(val1&&val2){
+                          var n1=parseFloat(val1);
+                          var n2=parseFloat(val2);
+                          if(!isNaN(n1)&&!isNaN(n2)){
+                            var delta=n2-n1;
+                            if(Math.abs(delta)<0.05){
+                              deltaStr='=';
+                              deltaColor=C.yellow;
+                            } else {
+                              var sign=delta>0?'+':'';
+                              deltaStr=sign+delta.toFixed(1)+(row.unit?' '+row.unit:'');
+                              var isGood=(row.dir===1&&delta>0)||(row.dir===-1&&delta<0);
+                              var isBad=(row.dir===1&&delta<0)||(row.dir===-1&&delta>0);
+                              deltaColor=isGood?C.green:isBad?C.red:C.yellow;
+                              deltaSymbol=delta>0?'↑':'↓';
+                            }
+                          }
+                        }
+                        return(
+                          <tr key={row.l} style={{borderBottom:'1px solid '+C.border}}>
+                            <td style={{padding:'8px',color:C.text,fontWeight:600}}>{row.l}</td>
+                            <td style={{padding:'8px',textAlign:'center',color:C.muted}}>{val1||'—'}{val1&&row.unit?' '+row.unit:''}</td>
+                            <td style={{padding:'8px',textAlign:'center',color:C.strong,fontWeight:700}}>{val2||'—'}{val2&&row.unit?' '+row.unit:''}</td>
+                            <td style={{padding:'8px',textAlign:'center',color:deltaColor,fontWeight:700}}>{deltaSymbol}{deltaSymbol?' ':''}{deltaStr}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+          {p.valutazioni&&p.valutazioni.length>=2&&(function(){
+            var vs=p.valutazioni;
+            var v1=vs[0];
+            var v2=vs[vs.length-1];
+            var badges=[];
+            var weeksBetween=0;
+            if(v1.dataISO&&v2.dataISO){
+              weeksBetween=Math.round((new Date(v2.dataISO)-new Date(v1.dataISO))/(7*24*60*60*1000));
+            }
+            if(v1.peso&&v2.peso){
+              var wDiff=parseFloat(v2.peso)-parseFloat(v1.peso);
+              if(wDiff<0){badges=badges.concat([{icon:'⚖️',text:'Perso '+Math.abs(wDiff).toFixed(1)+' kg'+(weeksBetween>0?' in '+weeksBetween+' settimane':''),color:C.green}]);}
+              else if(wDiff>0){badges=badges.concat([{icon:'⚖️',text:'Aumentato di '+wDiff.toFixed(1)+' kg',color:C.red}]);}
+            }
+            if(v1.mwtDist&&v2.mwtDist){
+              var mDiff=parseFloat(v2.mwtDist)-parseFloat(v1.mwtDist);
+              if(mDiff>0){badges=badges.concat([{icon:'🏃',text:'6MWT migliorato di +'+mDiff.toFixed(0)+' m',color:C.green}]);}
+            }
+            if(v1.stsRip&&v2.stsRip){
+              var sDiff=parseFloat(v2.stsRip)-parseFloat(v1.stsRip);
+              if(sDiff>0){badges=badges.concat([{icon:'🪑',text:'Sit-to-Stand +'+sDiff.toFixed(0)+' ripetizioni',color:C.green}]);}
+            }
+            if(v1.score&&v2.score){
+              var scDiff=parseFloat(v2.score)-parseFloat(v1.score);
+              if(scDiff>0){badges=badges.concat([{icon:'⭐',text:'Score fitness +'+scDiff.toFixed(0)+' punti',color:C.blue}]);}
+            }
+            if(v1.profilo&&v2.profilo&&v1.profilo!==v2.profilo){
+              var order2={A:1,B:2,C:3};
+              if((order2[v2.profilo]||0)>(order2[v1.profilo]||0)){
+                badges=badges.concat([{icon:'🎯',text:'Avanzato da Profilo '+v1.profilo+' a Profilo '+v2.profilo,color:C.purple}]);
+              }
+            }
+            if(badges.length===0)return null;
+            return(
+              <div style={S.card}>
+                <div style={S.st}>Traguardi Raggiunti</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                  {badges.map(function(b,i){
+                    return(
+                      <div key={i} style={{background:b.color+'18',border:'1px solid '+b.color+'40',borderRadius:20,padding:'6px 14px',fontSize:12,fontWeight:600,color:b.color,display:'flex',alignItems:'center',gap:6}}>
+                        {b.icon} {b.text}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+          {p.valutazioni&&p.valutazioni.length>0&&(
+            <div style={S.card}>
+              <div style={S.st}>Storico Valutazioni ({p.valutazioni.length})</div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {p.valutazioni.map(function(v,i){
+                  return(
+                    <div key={v.id||i} style={{background:C.bg,borderRadius:8,padding:'10px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700,color:C.strong}}>Valutazione {i+1} — {v.data}</div>
+                        <div style={{fontSize:11,color:C.muted,marginTop:2}}>
+                          {v.peso?'Peso: '+v.peso+' kg  ':''}
+                          {v.mwtDist?'6MWT: '+v.mwtDist+' m  ':''}
+                          {v.stsRip?'STS: '+v.stsRip+' rip  ':''}
+                          {v.profilo?'Profilo: '+v.profilo:''}
+                        </div>
+                      </div>
+                      {v.score&&<div style={{fontSize:18,fontWeight:800,color:C.blue}}>{v.score}<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/100</span></div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2174,7 +2330,7 @@ function AppInner({user,profile,trialLeft}){
   const [patients,setPatients]=useState(stored?.patients?.length?stored.patients:INIT_PATIENTS);
   const [bookings,setBookings]=useState(stored?.bookings||INIT_BOOKINGS);
   const [exercises,setExercises]=useState(stored?.exercises||INIT_EXERCISES);
-  const [page,setPage]=useState('dash');
+  const [page,setPage]=useState('home');
   const [selectedId,setSelectedId]=useState(null);
   const [editingPatient,setEditingPatient]=useState(null);
   const [isNew,setIsNew]=useState(false);
@@ -2185,6 +2341,7 @@ function AppInner({user,profile,trialLeft}){
   const [isLight,setIsLight]=useState(stored?.isLight||false);
   const [dataReady,setDataReady]=useState(true);
   const [showValutazione,setShowValutazione]=useState(false);
+  const [reevalPatient,setReevalPatient]=useState(null);
   const [showTutorial,setShowTutorial]=useState(false);
   const [showAdmin,setShowAdmin]=useState(false);
   const [showPiani,setShowPiani]=useState(false);
@@ -2268,23 +2425,19 @@ function AppInner({user,profile,trialLeft}){
     if(form.altezza&&(+form.altezza<50||+form.altezza>250))errs.push('Altezza (50-250 cm)');
     if(form.fc&&(+form.fc<30||+form.fc>220))errs.push('FC riposo (30-220 bpm)');
     if(form.sonno&&(+form.sonno<0||+form.sonno>24))errs.push('Sonno (0-24 ore)');
-    if(form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))errs.push('Email non valida');
     if(errs.length)return alert((T.requiredFields||'Campi da correggere')+':\n• '+errs.join('\n• '));
-    // Sanitizza campi testo prima del salvataggio
-    const sanitize=(v)=>typeof v==='string'?v.replace(/<[^>]*>/g,'').trim():v;
-    const cleanForm={...form};
-    ['nome','cognome','patologie','farmaci','allergie','obiettivo','preferenze','notePostura'].forEach(k=>{if(cleanForm[k])cleanForm[k]=sanitize(cleanForm[k]);});
     if(isNew){
       const id=nextPid(patients);
-      const p={...cleanForm,id,progressi:cleanForm.progressi||[],schede:cleanForm.schede||[],log:cleanForm.log||[]};
+      const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
       if(p.peso)p.progressi=[{data:p.dataValutazione||fmtDate(),peso:+p.peso,nota:'Primo accesso'}];
       setPatients(ps=>[...ps,p]);setPage('patients');
     }else{
-      setPatients(ps=>ps.map(p=>p.id===cleanForm.id?cleanForm:p));setSelectedId(cleanForm.id);setPage('detail');
+      setPatients(ps=>ps.map(p=>p.id===form.id?form:p));setSelectedId(form.id);setPage('detail');
     }
   },[isNew,patients,T]);
 
   const navItems=[
+    {id:'home',icon:'🏠',l:'Home'},
     {id:'dash',icon:'⊞',l:T.dashboard},
     {id:'patients',icon:'👥',l:T.patients},
     {id:'calendar',icon:'📅',l:T.calendar},
@@ -2306,7 +2459,7 @@ function AppInner({user,profile,trialLeft}){
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               
               <div>
-                <div style={{textAlign:'center',padding:'8px 0'}}>
+                <div onClick={()=>{setPage('home');setSidebarOpen(false);}} style={{textAlign:'center',padding:'8px 0',cursor:'pointer'}}>
               <div style={{fontSize:16,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               <div style={{fontSize:10,fontWeight:700,color:'#e8c84a',letterSpacing:2,textTransform:'uppercase',marginTop:2}}></div>
             </div>
@@ -2381,7 +2534,7 @@ function AppInner({user,profile,trialLeft}){
           <button aria-label="Apri menu" onClick={function(){if(showValutazione)return;setSidebarOpen(function(v){return!v;});}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
           {isMobile?(
             <>
-              <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',pointerEvents:'none'}}>
+              <div onClick={()=>setPage('home')} style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',cursor:'pointer'}}>
                 <div style={{fontSize:16,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               </div>
               <div style={{marginLeft:'auto',fontSize:12,color:C.muted,flexShrink:0}}>{patients.length} paz.</div>
@@ -2392,7 +2545,7 @@ function AppInner({user,profile,trialLeft}){
                 <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
                 <input aria-label={T.search} style={{...S.inp,paddingLeft:32}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
-              <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',pointerEvents:'none',textAlign:'center',lineHeight:1.2}}>
+              <div onClick={()=>setPage('home')} style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',lineHeight:1.2,cursor:'pointer'}}>
                 <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               </div>
               {syncing&&<span style={{fontSize:11,color:C.blue,fontWeight:600,marginLeft:'auto'}}>☁ Sincronizzazione...</span>}
@@ -2411,23 +2564,57 @@ function AppInner({user,profile,trialLeft}){
           </div>
         )}
         <div style={S.content}>
+          {page==='home'&&(
+            <div style={{animation:'fadeInUp .3s ease',maxWidth:600,margin:'0 auto',padding:isMobile?'20px 0':'40px 0'}}>
+              <div style={{textAlign:'center',marginBottom:32}}>
+                <div style={{fontSize:40,marginBottom:12}}>👋</div>
+                <h1 style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,margin:0}}>{T.welcome}</h1>
+                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>Gestisci pazienti, valutazioni e allenamenti in un unico posto.</p>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                <button onClick={()=>setShowValutazione(true)} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#3b82f620,#10b98115)',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
+                  <span style={{fontSize:28}}>🎯</span>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>Valutazione 20 min</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Crea un nuovo paziente con il wizard guidato</div></div>
+                </button>
+                <button onClick={()=>setPage('patients')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
+                  <span style={{fontSize:28}}>👥</span>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>I miei pazienti</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Vedi la lista completa e le schede</div></div>
+                </button>
+                <button onClick={()=>setPage('dash')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
+                  <span style={{fontSize:28}}>📊</span>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>Dashboard</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Panoramica rapida e statistiche</div></div>
+                </button>
+              </div>
+            </div>
+          )}
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T}/>}
-          {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`⚠️ Eliminare definitivamente ${selected.nome} ${selected.cognome}?\n\nTutti i dati, sedute e progressi di questo paziente verranno persi.\n\nQuesta azione non è reversibile.`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)}/>}
+          {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`⚠️ Eliminare definitivamente ${selected.nome} ${selected.cognome}?\n\nTutti i dati, sedute e progressi di questo paziente verranno persi.\n\nQuesta azione non è reversibile.`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
         </div>
       </main>
       {showValutazione&&<WizardValutazione
+        initialData={reevalPatient?{nome:reevalPatient.nome,cognome:reevalPatient.cognome,sesso:reevalPatient.sesso,ddn:reevalPatient.ddn||''}:null}
         onSave={p=>{
-          const id=nextPid(patients);
-          const np={...p,id,progressi:p.peso?[{data:fmtDate(),peso:+p.peso,nota:'Primo accesso — Valutazione 20 min'}]:[],log:[],schede:[]};
-          setPatients(ps=>[...ps,np]);
-          setShowValutazione(false);
-          setSelectedId(id);setPage('detail');
+          const b2=bmi(+p.peso,+p.altezza);
+          const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+          const sc2=calcScore(p.test,p.sesso,{biaFM:p.bia?.FM});
+          const vEntry={id:Date.now().toString(),data:new Date().toLocaleDateString('it-IT'),dataISO:new Date().toISOString(),peso:p.peso||'',altezza:p.altezza||'',bmi:b2?String(b2):'',mwtDist:p.test?.mwtDist||'',stsRip:p.test?.stsRip||'',rpe:p.test?.mwtRpe||'',pushup:p.test?.pushupRip||'',plank:p.test?.plankSec||'',tug:p.test?.tugSec||'',handgrip:p.test?.handgrip||'',sitReach:p.sitReach||'',fm:p.bia?.FM||'',phaseAngle:p.bia?.PhA||'',ecwTbw:p.bia?.ECW||'',spo2:p.spo2||'',fcRiposo:p.fc||'',profilo:pr2?.code||'',score:sc2?String(sc2.score):'',note:p.test?.noteVal||''};
+          if(reevalPatient){
+            setPatients(ps=>ps.map(x=>x.id===reevalPatient.id?{...x,test:p.test,bia:p.bia,peso:p.peso,altezza:p.altezza,dataValutazione:fmtDate(),valutazioni:(x.valutazioni||[]).concat([vEntry])}:x));
+            setReevalPatient(null);
+            setShowValutazione(false);
+          } else {
+            const id=nextPid(patients);
+            const np={...p,id,valutazioni:[vEntry],progressi:p.peso?[{data:fmtDate(),peso:+p.peso,nota:'Primo accesso — Valutazione 20 min'}]:[],log:[],schede:[]};
+            setPatients(ps=>[...ps,np]);
+            setShowValutazione(false);
+            setSelectedId(id);setPage('detail');
+          }
         }}
-        onClose={()=>setShowValutazione(false)}
+        onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
@@ -2553,13 +2740,13 @@ function ScoreBreakdown({pr,compact}){
   );
 }
 
-function WizardValutazione({onSave,onClose}){
+function WizardValutazione({onSave,onClose,initialData}){
   const T=gT();
   const TOTAL=8;
   const [mode,setMode]=useState(null); // 'base' | 'completa'
   const [step,setStep]=useState(1);
   const [d,setD]=useState({
-    nome:'',cognome:'',ddn:'',sesso:'F',
+    nome:initialData?.nome||'',cognome:initialData?.cognome||'',ddn:initialData?.ddn||'',sesso:initialData?.sesso||'F',
     email:'',telefono:'',professione:'',attvLavorativa:'Sedentario',
     contEmerg:'',medicoBase:'',
     altezza:'',peso:'',vita:'',pa:'',fc:'',
@@ -2658,7 +2845,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 </div></div>
 <footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — Profilo ${pr.code}</span></footer>
 </div>${'</body></html>'}`;
-    const blob=new Blob([html],{type:'text/html;charset=utf-8'});const url=URL.createObjectURL(blob);const w=window.open(url,'_blank');if(w)w.onload=()=>URL.revokeObjectURL(url);else URL.revokeObjectURL(url);
+    const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
 
   const exportCSV=()=>{
@@ -3281,14 +3468,14 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
         {/* Footer */}
         <div style={{padding:isMobile?'12px 16px':'14px 22px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap',position:isMobile?'sticky':'static',bottom:0,background:C.card,zIndex:10}}>
-          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{...S.btn('ghost',true),padding:isMobile?'14px 20px':undefined,minHeight:isMobile?44:undefined}}>{gT().cancel}</button>
+          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button>
           <div style={{display:'flex',gap:8}}>
 
-            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={{...S.btn('ghost',true),padding:isMobile?'14px 24px':undefined,minHeight:isMobile?44:undefined}}>{gT().wPrev}</button>}
+            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
             {step<TOTAL&&<button onClick={()=>{
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
               setStep(s=>s+1);
-            }} style={{...S.btn(),padding:isMobile?'14px 24px':undefined,minHeight:isMobile?44:undefined}}>{gT().wNext}</button>}
+            }} style={S.btn()}>{gT().wNext}</button>}
             {step===TOTAL&&<button onClick={()=>{
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
               const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
@@ -3805,8 +3992,7 @@ function TutorialModal({onClose,isLight}){
           <div style={{display:'inline-flex',alignItems:'center',padding:'3px 12px',borderRadius:100,fontSize:10,fontWeight:700,letterSpacing:.8,textTransform:'uppercase',background:s.bc,color:s.bct,marginBottom:14}}>{s.badge}</div>
           <div style={{fontSize:20,fontWeight:800,color:C.strong,letterSpacing:-0.5,marginBottom:8}}>{s.title}</div>
           <div style={{fontSize:13,color:C.muted,lineHeight:1.7,marginBottom:20,fontWeight:300}}>{s.desc}</div>
-          <div ref={el=>{if(el){el.innerHTML='';const shadow=el.attachShadow?el.attachShadow({mode:'closed'}):el;shadow.innerHTML=s.html;}}}/>
-
+          <div dangerouslySetInnerHTML={{__html:s.html}}/>
         </div>
         {/* Footer */}
         <div style={{padding:'12px 20px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',flexShrink:0,gap:8}}>
