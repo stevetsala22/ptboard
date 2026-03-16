@@ -1605,6 +1605,20 @@ ${(p.progressi||[]).length>1?`
             </div>
           )}
 
+          {/* Qualità del Movimento */}
+          {p.test?.movQuality&&(p.test.movQuality.sqDepth||p.test.movQuality.affondo)&&(
+            <div style={S.card}>
+              <div style={S.st}>🏃 Qualità del Movimento</div>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10}}>
+                {p.test.movQuality.sqDepth&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Squat profondità</div><div style={{fontSize:13,fontWeight:700,color:C.strong}}>{p.test.movQuality.sqDepth==='completa'?'Completa':p.test.movQuality.sqDepth==='parziale'?'Parziale':'Minima'}</div></div>}
+                {p.test.movQuality.sqCompensi&&p.test.movQuality.sqCompensi!=='nessuno'&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Compensi osservati</div><div style={{fontSize:13,fontWeight:700,color:C.yellow}}>{p.test.movQuality.sqCompensi==='talloni'?'Talloni si alzano':p.test.movQuality.sqCompensi==='ginocchia'?'Ginocchia collassano':p.test.movQuality.sqCompensi==='busto'?'Busto cade avanti':p.test.movQuality.sqCompensi==='dolore'?'Dolore riferito':p.test.movQuality.sqCompensi}</div></div>}
+                {p.test.movQuality.sqDolore&&p.test.movQuality.sqDolore!=='no'&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Dolore squat</div><div style={{fontSize:13,fontWeight:700,color:p.test.movQuality.sqDolore==='forte'?C.red:C.yellow}}>{p.test.movQuality.sqDolore.charAt(0).toUpperCase()+p.test.movQuality.sqDolore.slice(1)}</div></div>}
+                {p.test.movQuality.affondo&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Affondo</div><div style={{fontSize:13,fontWeight:700,color:p.test.movQuality.affondo==='ottimo'?C.green:p.test.movQuality.affondo==='buono'?C.yellow:C.red}}>{p.test.movQuality.affondo.charAt(0).toUpperCase()+p.test.movQuality.affondo.slice(1)}</div></div>}
+              </div>
+              {p.test.movQuality.noteMovimento&&<div style={{marginTop:10,fontSize:12,color:C.muted,lineHeight:1.6}}>{p.test.movQuality.noteMovimento}</div>}
+            </div>
+          )}
+
           {/* Note valutazione */}
           {p.test?.noteVal&&<div style={S.card}><div style={S.st}>📝 Note valutazione</div><div style={{fontSize:13,color:C.text,lineHeight:1.7}}>{p.test.noteVal}</div></div>}
         </div>
@@ -2742,8 +2756,7 @@ function ScoreBreakdown({pr,compact}){
 
 function WizardValutazione({onSave,onClose,initialData}){
   const T=gT();
-  const TOTAL=8;
-  const [mode,setMode]=useState(null); // 'base' | 'completa'
+  const [wizardType,setWizardType]=useState(null);
   const [step,setStep]=useState(1);
   const [d,setD]=useState({
     nome:initialData?.nome||'',cognome:initialData?.cognome||'',ddn:initialData?.ddn||'',sesso:initialData?.sesso||'F',
@@ -2770,6 +2783,7 @@ function WizardValutazione({onSave,onClose,initialData}){
     cirBraccio:'',cirCoscia:'',cirPolpaccio:'',
     plicaSott:'',plicaTric:'',plicaIlio:'',massaGrassa:'',
     rpeRiposo:'',noteVal:'',
+    sqDepth:'',sqCompensi:'nessuno',sqDolore:'no',affondo:'',noteMovimento:'',
     biaR:'',biaXc:'',biaPhA:'',biaTBW:'',biaFFM:'',biaFM:'',biaBCM:'',biaECW:'',biaBMR:'',
   });
   const upd=k=>e=>setD(x=>({...x,[k]:e.target.value}));
@@ -2783,6 +2797,17 @@ function WizardValutazione({onSave,onClose,initialData}){
   const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
+
+  const STEPS_BASE=[1,3,4,5,7,8];
+  const STEPS_COMPLETA=[1,2,3,4,5,6,7,8,9];
+  const STEPS_ANA=[1];
+  const stepsArr=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
+  const TOTAL=stepsArr.length;
+  const stepIdx=stepsArr.indexOf(step);
+  const TITLES_BASE=['\u{1F464} Anagrafica & Clinica','\u{1F6B6} 6MWT','\u{1FA91} Sit-to-Stand 30s','\u{1F4AA} Push-up & Plank','\u{1F62E}\u200D\u{1F4A8} RPE & Note','\u{1F4CA} Classificazione & Programma'];
+  const TITLES_COMPLETA=['\u{1F464} Anagrafica & Clinica','\u{1F4CF} Composizione & BIA','\u{1F6B6} 6MWT','\u{1FA91} Sit-to-Stand 30s','\u{1F4AA} Test Fisici','\u{1F3C3} Qualit\u00E0 del Movimento','\u{1F62E}\u200D\u{1F4A8} RPE & Note','\u{1F4CA} Classificazione','\u{1F3C6} Programma 4 Settimane'];
+  const TITLES_ANA=['\u{1F464} Anagrafica & Clinica'];
+  const curTitles=wizardType==='base'?TITLES_BASE:wizardType==='completa'?TITLES_COMPLETA:TITLES_ANA;
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
@@ -2873,21 +2898,69 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
   const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:12};
   const BOX={background:C.card,border:'1px solid '+C.border2,borderRadius:18,width:'min(800px,98vw)',maxHeight:'94vh',display:'flex',flexDirection:'column'};
-  const pct=Math.round(step/TOTAL*100);
+  const pct=TOTAL>0?Math.round((stepIdx+1)/TOTAL*100):0;
   const clr=pr?pr.c:C.blue;
-
-  const stepTitles=['👤 Anagrafica & Clinica','📏 Composizione & BIA','🚶 6MWT','🪑 Sit-to-Stand 30s','💪 Test Fisici','😮‍💨 RPE & Note','📊 Classificazione','🏆 Programma 4 Settimane'];
-  const stepSub=['Anagrafica & clinica','Composizione & BIA','6MWT + Recupero FC','Sit-to-Stand 30s','Test fisici','RPE & note finali','Classificazione automatica','Programma 4 settimane'];
 
   return(
     <div style={OL}>
       <div style={BOX} onClick={function(e){e.stopPropagation();}}>
+        {!wizardType&&(
+          <div style={{padding:isMobile?'24px 16px':'40px 32px',overflowY:'auto',flex:1}}>
+            <div style={{textAlign:'center',marginBottom:40}}>
+              <div style={{fontSize:24,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>Seleziona il tipo di valutazione</div>
+              <div style={{fontSize:14,color:C.muted,marginTop:8}}>Scegli in base al tempo disponibile e al livello del paziente</div>
+            </div>
+            <div style={{display:'flex',gap:24,justifyContent:'center',flexDirection:isMobile?'column':'row',alignItems:'stretch'}}>
+              {/* Card Base */}
+              <div onClick={function(){setWizardType('base');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:32,cursor:'pointer',transition:'all .3s',flex:1,maxWidth:360,display:'flex',flexDirection:'column'}}>
+                <div style={{fontSize:36,marginBottom:12}}>&#9889;</div>
+                <div style={{fontSize:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>Valutazione Base</div>
+                <span style={{background:C.blue+'20',color:C.blue,fontSize:11,borderRadius:100,padding:'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>~10 minuti</span>
+                <div style={{fontSize:12,color:C.muted,lineHeight:1.8,flex:1}}>
+                  {'\u2713 Anagrafica & Clinica\n\u2713 Sit-to-Stand 30s\n\u2713 6 Minute Walk Test\n\u2713 Push-up max\n\u2713 Plank\n\u2713 RPE & Note\n\u2713 Classificazione automatica'.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
+                </div>
+                <button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>Inizia Valutazione Base &#8594;</button>
+              </div>
+              {/* Card Completa */}
+              <div onClick={function(){setWizardType('completa');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:32,cursor:'pointer',transition:'all .3s',flex:1,maxWidth:360,display:'flex',flexDirection:'column'}}>
+                <div style={{fontSize:36,marginBottom:12}}>&#128300;</div>
+                <div style={{fontSize:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>Valutazione Completa</div>
+                <span style={{background:C.purple+'20',color:C.purple,fontSize:11,borderRadius:100,padding:'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>~20 minuti</span>
+                <div style={{fontSize:12,color:C.muted,marginBottom:8}}>Tutto della Base, pi\u00F9:</div>
+                <div style={{fontSize:12,color:C.muted,lineHeight:1.8,flex:1}}>
+                  {'\u2713 Sit and Reach\n\u2713 Squat qualit\u00E0 movimento\n\u2713 Affondo FMS\n\u2713 BIA / Plicometria\n\u2713 SpO2 e Handgrip\n\u2713 Postura e Mobilit\u00E0\n\u2713 Contatto emergenza'.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
+                </div>
+                <button style={{background:C.purple,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>Inizia Valutazione Completa &#8594;</button>
+              </div>
+            </div>
+            {/* Card Anagrafica */}
+            <div onClick={function(){setWizardType('anagrafica');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:'20px 32px',cursor:'pointer',transition:'all .3s',maxWidth:740,margin:'24px auto 0',display:'flex',alignItems:'center',gap:20}}>
+              <div style={{fontSize:36}}>&#128203;</div>
+              <div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                  <div style={{fontSize:18,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>Solo Anagrafica</div>
+                  <span style={{background:C.green+'20',color:C.green,fontSize:11,borderRadius:100,padding:'4px 12px',fontWeight:600}}>~3 minuti</span>
+                </div>
+                <div style={{fontSize:12,color:C.muted}}>Registra il paziente senza test. Aggiungi i test in seguito dalla scheda paziente.</div>
+              </div>
+              <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',whiteSpace:'nowrap'}}>Registra Paziente &#8594;</button>
+            </div>
+            {/* Close button */}
+            <div style={{textAlign:'center',marginTop:32}}>
+              <button onClick={onClose} style={S.btn('ghost',true)}>{gT().cancel}</button>
+            </div>
+          </div>
+        )}
+        {wizardType&&(<>
         {/* Header */}
         <div style={{padding:isMobile?'12px 16px':'18px 22px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:isMobile?8:12,flexShrink:0}}>
           {!isMobile&&<div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:'1px solid '+C.blue+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>&#127919;</div>}
           <div style={{flex:1}}>
-            <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?'Passo '+step+' di '+TOTAL:'Valutazione Paziente'}</div>
-            <div style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?stepTitles[step-1]:'Passo '+step+' di '+TOTAL+' \u00B7 '+stepTitles[step-1]}</div>
+            <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?'Passo '+(stepIdx+1)+' di '+TOTAL:'Valutazione Paziente'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
+              <span style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?curTitles[stepIdx]:'Passo '+(stepIdx+1)+' di '+TOTAL+' \u00B7 '+curTitles[stepIdx]}</span>
+              <span style={{fontSize:11,fontWeight:600,background:(wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green)+'15',color:wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green,padding:'3px 10px',borderRadius:100}}>{wizardType==='base'?'\u26A1 Base':wizardType==='completa'?'\uD83D\uDD2C Completa':'\uD83D\uDCCB Anagrafica'}</span>
+            </div>
           </div>
           <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
         </div>
@@ -2897,21 +2970,21 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         </div>
         {/* Step pills */}
         <div className="wiz-step-pills" style={{display:'flex',padding:'10px 22px',gap:4,flexShrink:0,overflowX:'auto'}}>
-          {stepTitles.map((t,i)=>(
+          {curTitles.map(function(t,i){return(
             <div key={t} style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
-              <div style={{width:22,height:22,borderRadius:'50%',background:i<step-1?C.green:i===step-1?C.blue:C.border2,color:i<=step-1?'#fff':C.muted,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:i<step?'pointer':'default',transition:'all .2s'}}
-                onClick={()=>{if(i<step)setStep(i+1);}}>
-                {i<step-1?'✓':i+1}
+              <div style={{width:22,height:22,borderRadius:'50%',background:i<stepIdx?C.green:i===stepIdx?C.blue:C.border2,color:i<=stepIdx?'#fff':C.muted,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:i<stepIdx+1?'pointer':'default',transition:'all .2s'}}
+                onClick={function(){if(i<=stepIdx)setStep(stepsArr[i]);}}>
+                {i<stepIdx?'\u2713':i+1}
               </div>
-              {i<TOTAL-1&&<div style={{width:20,height:1,background:i<step-1?C.green:C.border2}}/>}
+              {i<TOTAL-1&&<div style={{width:20,height:1,background:i<stepIdx?C.green:C.border2}}/>}
             </div>
-          ))}
+          );})}
         </div>
 
         {/* Body */}
         <div key={'wstep'+step} style={{padding:isMobile?'16px 16px':'20px 24px',flex:1,overflowY:'auto',animation:'fadeInUp .25s ease'}}>
-          <div style={{fontSize:10,color:C.blue,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{stepSub[step-1]}</div>
-          <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{stepTitles[step-1]}</h2>
+          <div style={{fontSize:10,color:C.blue,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{curTitles[stepIdx]}</div>
+          <h2 style={{fontSize:19,fontWeight:800,color:C.strong,marginBottom:16}}>{curTitles[stepIdx]}</h2>
 
           {/* STEP 1 — Anagrafica */}
           {step===1&&<div style={{display:'flex',flexDirection:'column',gap:16}}>
@@ -3343,8 +3416,79 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>
           </div>}
 
-          {/* STEP 6 — RPE & Note */}
+          {/* STEP 6 — Qualità del Movimento */}
           {step===6&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{background:C.cyan+'08',border:'1px solid '+C.cyan+'20',borderRadius:10,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
+              <span style={{fontSize:18}}>🏃</span>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>Valutazione qualitativa del movimento — osserva esecuzione e compensi.</div>
+            </div>
+
+            {/* Squat a corpo libero */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🏋</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Squat a corpo libero</span>
+              </div>
+              <div style={{marginBottom:10}}>
+                <label style={S.label}>Profondità squat</label>
+                <select value={d.sqDepth} onChange={upd('sqDepth')} style={S.sel}>
+                  <option value="">-- Seleziona --</option>
+                  <option value="completa">Completa (coscie parallele o sotto)</option>
+                  <option value="parziale">Parziale (sopra parallela)</option>
+                  <option value="minima">Minima (solo accenno)</option>
+                </select>
+              </div>
+              <div style={{marginBottom:10}}>
+                <label style={S.label}>Compensi osservati</label>
+                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                  {[['nessuno','Nessuno'],['talloni','Talloni si alzano'],['ginocchia','Ginocchia collassano'],['busto','Busto cade avanti'],['dolore','Dolore riferito']].map(function(item){
+                    var k=item[0],l=item[1];
+                    var sel=d.sqCompensi===k;
+                    return(
+                      <button key={k} type="button" onClick={function(){set('sqCompensi',k);}} style={{padding:'6px 12px',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',border:'1px solid '+(sel?C.blue:C.border2),background:sel?C.blue+'20':'transparent',color:sel?C.blue:C.dim}}>
+                        {k==='nessuno'?l+' ✅':l}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div style={{marginBottom:6}}>
+                <label style={S.label}>Dolore durante squat</label>
+                <select value={d.sqDolore} onChange={upd('sqDolore')} style={S.sel}>
+                  <option value="no">No</option>
+                  <option value="lieve">Lieve</option>
+                  <option value="moderato">Moderato</option>
+                  <option value="forte">Forte — stop test</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Affondo in avanti */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🦵</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Affondo in avanti</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— FMS semplificato</span>
+              </div>
+              <div style={{marginBottom:10}}>
+                <label style={S.label}>Esecuzione affondo</label>
+                <select value={d.affondo} onChange={upd('affondo')} style={S.sel}>
+                  <option value="">-- Seleziona --</option>
+                  <option value="ottimo">Ottimo — equilibrio e controllo perfetti</option>
+                  <option value="buono">Buono — lievi compensi</option>
+                  <option value="scarso">Scarso — difficoltà equilibrio</option>
+                  <option value="impossibile">Non eseguito — dolore o limitazione</option>
+                </select>
+              </div>
+              <div>
+                <label style={S.label}>Note movimento</label>
+                <textarea value={d.noteMovimento||''} onChange={upd('noteMovimento')} placeholder="Osservazioni cliniche sul movimento..." style={{...S.ta,minHeight:70,borderRadius:10}}/>
+              </div>
+            </div>
+          </div>}
+
+          {/* STEP 7 — RPE & Note */}
+          {step===7&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
             {/* RPE */}
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
@@ -3383,8 +3527,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>
           </div>}
 
-          {/* STEP 7 — Classificazione */}
-          {step===7&&<div>
+          {/* STEP 8 — Classificazione */}
+          {step===8&&<div>
             {!pr?<div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Inserisci almeno il 6MWT (passo 3) o STS (passo 4) per ottenere la classificazione automatica.</div>
@@ -3403,6 +3547,41 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <div style={{...S.card,marginBottom:16}}>
                 <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>Breakdown componenti score</div>
                 <ScoreBreakdown pr={pr}/>
+              </div>
+              {/* Tabella risultati test */}
+              <div style={{background:C.card,border:'1px solid '+C.border,borderRadius:12,padding:16,marginBottom:16}}>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>Risultati per test</div>
+                <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                  <thead><tr style={{borderBottom:'2px solid '+C.border}}>
+                    <th style={{textAlign:'left',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>Test</th>
+                    <th style={{textAlign:'center',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>Risultato</th>
+                    <th style={{textAlign:'center',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>Livello</th>
+                  </tr></thead>
+                  <tbody>
+                    {(function(){
+                      var rows=[];
+                      if(d.pushupRip){var v=+d.pushupRip;var cl=v<5?C.red:v<15?C.yellow:C.green;var lv=v<5?'Base':v<15?'Intermedio':'Avanzato';var ic=v<5?'🔴':v<15?'🟡':'🟢';rows=rows.concat([{t:'Push-up',r:v+' rip.',cl:cl,lv:lv,ic:ic}]);}
+                      if(d.plankSec){var v2=+d.plankSec;var cl2=v2<20?C.red:v2<60?C.yellow:C.green;var lv2=v2<20?'Base':v2<60?'Intermedio':'Avanzato';var ic2=v2<20?'🔴':v2<60?'🟡':'🟢';rows=rows.concat([{t:'Plank',r:v2+'s',cl:cl2,lv:lv2,ic:ic2}]);}
+                      if(d.stsRip){var v3=+d.stsRip;var cl3=v3<8?C.red:v3<14?C.yellow:C.green;var lv3=v3<8?'Base':v3<14?'Intermedio':'Avanzato';var ic3=v3<8?'🔴':v3<14?'🟡':'🟢';rows=rows.concat([{t:'Sit-to-Stand',r:v3+' rip.',cl:cl3,lv:lv3,ic:ic3}]);}
+                      if(d.mwtDist){var v4=+d.mwtDist;var cl4=v4<300?C.red:v4<500?C.yellow:C.green;var lv4=v4<300?'Base':v4<500?'Intermedio':'Avanzato';var ic4=v4<300?'🔴':v4<500?'🟡':'🟢';rows=rows.concat([{t:'6MWT',r:v4+' m',cl:cl4,lv:lv4,ic:ic4}]);}
+                      if(d.sitReach){var v5=+d.sitReach;var cl5=v5<0?C.red:v5<10?C.yellow:C.green;var lv5=v5<0?'Base':v5<10?'Intermedio':'Avanzato';var ic5=v5<0?'🔴':v5<10?'🟡':'🟢';rows=rows.concat([{t:'Sit & Reach',r:v5+' cm',cl:cl5,lv:lv5,ic:ic5}]);}
+                      if(d.sqDepth){var sq=d.sqDepth;var hasPain=d.sqDolore==='forte'||d.sqDolore==='moderato';var cl6=sq==='minima'||hasPain?C.red:sq==='parziale'?C.yellow:C.green;var lv6=sq==='minima'||hasPain?'Base':sq==='parziale'?'Intermedio':'Avanzato';var ic6=sq==='minima'||hasPain?'🔴':sq==='parziale'?'🟡':'🟢';rows=rows.concat([{t:'Squat',r:sq.charAt(0).toUpperCase()+sq.slice(1),cl:cl6,lv:lv6,ic:ic6}]);}
+                      if(d.affondo){var af=d.affondo;var cl7=af==='impossibile'||af==='scarso'?C.red:af==='buono'?C.yellow:C.green;var lv7=af==='impossibile'||af==='scarso'?'Base':af==='buono'?'Intermedio':'Avanzato';var ic7=af==='impossibile'||af==='scarso'?'🔴':af==='buono'?'🟡':'🟢';rows=rows.concat([{t:'Affondo',r:af.charAt(0).toUpperCase()+af.slice(1),cl:cl7,lv:lv7,ic:ic7}]);}
+                      return rows.map(function(row,i){return(
+                        <tr key={row.t} style={{background:i%2===0?'transparent':C.bg,borderBottom:'1px solid '+C.border}}>
+                          <td style={{padding:'8px',fontWeight:600,color:C.text}}>{row.t}</td>
+                          <td style={{padding:'8px',textAlign:'center',color:C.strong}}>{row.r}</td>
+                          <td style={{padding:'8px',textAlign:'center'}}><span style={{background:row.cl+'20',color:row.cl,borderRadius:6,padding:'2px 8px',fontSize:11,fontWeight:700}}>{row.ic} {row.lv}</span></td>
+                        </tr>
+                      );});
+                    })()}
+                    {pr&&pr.score&&<tr style={{borderTop:'2px solid '+C.border}}>
+                      <td style={{padding:'8px',fontWeight:900,color:C.strong}}>Score finale</td>
+                      <td style={{padding:'8px',textAlign:'center',fontWeight:900,fontSize:16,color:pr.c}}>{pr.score}/100</td>
+                      <td style={{padding:'8px',textAlign:'center'}}><span style={{background:pr.c+'20',color:pr.c,borderRadius:6,padding:'2px 8px',fontSize:11,fontWeight:700}}>{pr.l}</span></td>
+                    </tr>}
+                  </tbody>
+                </table>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:8,marginBottom:16}}>
                 {[['6MWT: '+(d.mwtDist||'—')+' m',+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],['STS: '+(d.stsRip||'—')+' rip.',+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],['BMI: '+(bmiVal||'—')+' — '+bmiLbl,bmiClr],['Peso target: '+(pesoTarget||'—')+' kg',C.blue]].map(function(item){var l=item[0],c=item[1];return(
@@ -3423,8 +3602,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </>}
           </div>}
 
-          {/* STEP 8 — Programma + Export */}
-          {step===8&&<div>
+          {/* STEP 9 — Programma + Export */}
+          {(step===9||(step===8&&wizardType==='base'))&&<div>
             {!prog?<div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>Completa i test funzionali per ricevere il programma automatico.</div>
@@ -3471,27 +3650,29 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button>
           <div style={{display:'flex',gap:8}}>
 
-            {step>1&&<button onClick={()=>setStep(s=>s-1)} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
-            {step<TOTAL&&<button onClick={()=>{
+            {stepIdx>0&&<button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
+            {stepIdx<TOTAL-1&&<button onClick={function(){
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
-              setStep(s=>s+1);
+              setStep(stepsArr[stepIdx+1]);
             }} style={S.btn()}>{gT().wNext}</button>}
-            {step===TOTAL&&<button onClick={()=>{
-              if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti — torna al passo 1.');return;}
-              const p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
+            {stepIdx===TOTAL-1&&<button onClick={function(){
+              if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti \u2014 torna al passo 1.');return;}
+              var p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
                 test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal,
                   pushupRip:d.pushupRip,pushupNote:d.pushupNote,plankSec:d.plankSec,squatRip:d.squatRip,squatNote:d.squatNote,
                   tugSec:d.tugSec,slbDx:d.slbDx,slbSx:d.slbSx,handgrip:d.handgrip||'',fcPost:d.fcPost,fcRecup:d.fcRecup,
                   cirBraccio:d.cirBraccio,cirCoscia:d.cirCoscia,cirPolpaccio:d.cirPolpaccio,plicaSott:d.plicaSott,plicaTric:d.plicaTric,plicaIlio:d.plicaIlio,massaGrassa:d.massaGrassa,
-                  gad7:d.gad7,motivazione:d.motivazione},
+                  gad7:d.gad7,motivazione:d.motivazione,
+                  movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note}:{},
                 nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
               };
               onSave(p);
-            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>✓ Salva &amp; apri scheda</button>}
+            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button>}
           </div>
         </div>
+        </>)}
       </div>
     </div>
   );
