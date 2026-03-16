@@ -205,11 +205,47 @@ input,select,textarea{background:var(--input-bg);color:var(--text)}
 }
 button { transition: all .15s ease; }
 button:active { transform: scale(0.97); }
+nav button:hover { background: var(--card) !important; color: var(--text) !important; }
+.tt{position:relative;display:inline-flex}
+.tt .tp{position:fixed;background:#1e293b;color:#e2e8f0;font-size:11px;font-weight:500;padding:5px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s ease;z-index:99999;border:1px solid #334155;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
 .dot-pulse::after {
   content: '...';
   animation: pulse 1.2s infinite;
 }
 </style>
+<script>
+var ttTimer=null;
+document.addEventListener('mouseover',function(e){
+  var wrap=e.target.closest('.tt');
+  if(!wrap)return;
+  var tp=wrap.querySelector('.tp');
+  if(!tp)return;
+  if(ttTimer)clearTimeout(ttTimer);
+  ttTimer=setTimeout(function(){
+    var rect=wrap.getBoundingClientRect();
+    var tw=tp.offsetWidth||150;
+    var th=tp.offsetHeight||28;
+    var mg=8;
+    var vw=window.innerWidth;
+    var vh=window.innerHeight;
+    var top=rect.bottom+mg;
+    var left=rect.left+rect.width/2-tw/2;
+    if(left+tw>vw-mg)left=vw-tw-mg;
+    if(left<mg)left=mg;
+    if(top+th>vh-mg)top=rect.top-th-mg;
+    tp.style.top=top+'px';
+    tp.style.left=left+'px';
+    tp.style.opacity='1';
+  },800);
+});
+document.addEventListener('mouseout',function(e){
+  var wrap=e.target.closest('.tt');
+  if(!wrap)return;
+  if(ttTimer){clearTimeout(ttTimer);ttTimer=null;}
+  var tp=wrap.querySelector('.tp');
+  if(tp)tp.style.opacity='0';
+});
+</script>
 </head>
 <body>
 <div id="root"></div>
@@ -985,12 +1021,12 @@ const S={
   logosub:{fontSize:10,color:C.muted,marginTop:2,letterSpacing:1,textTransform:'uppercase'},
   nav:{padding:'8px 10px',flex:1,overflowY:'auto'},
   navlbl:{fontSize:10,color:'#1e3a5f',letterSpacing:1.5,textTransform:'uppercase',padding:'10px 6px 4px',fontWeight:700},
-  navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:7,cursor:'pointer',fontSize:13,fontWeight:500,background:a?'#1e293b':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s'}),
+  navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:'11px 14px',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:a?600:500,background:a?C.blue+'15':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s',minHeight:44,borderLeft:a?'3px solid '+C.blue:'3px solid transparent'}),
   main:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'},
   topbar:{height:52,background:C.sidebar,borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',padding:'0 12px',gap:8,flexShrink:0},
   content:{flex:1,overflowY:'auto',padding:isMobile?12:20,paddingBottom:isMobile?80:20},
   btn:(v='primary',sm=false)=>({padding:sm?'5px 10px':'7px 13px',borderRadius:7,border:'none',cursor:'pointer',fontSize:sm?11:12,fontWeight:600,transition:'all .15s',whiteSpace:'nowrap',
-    ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:'1px solid #ef444440'}:v==='success'?{background:'#10b98120',color:C.green,border:'1px solid #10b98140'}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:'1px solid #f59e0b40'}:{background:'transparent',color:C.dim,border:'1px solid '+C.border2})}),
+    ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:'1px solid #ef444440'}:v==='success'?{background:'#10b98120',color:C.green,border:'1px solid #10b98140'}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:'1px solid #f59e0b40'}:{background:C.card,color:C.text,border:'1px solid '+C.border2,transition:'all .2s'})}),
   card:{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?12:18},
   label:{fontSize:11,color:C.muted,textTransform:'uppercase',letterSpacing:.8,fontWeight:600,marginBottom:3,display:'block'},
   inp:{width:'100%',background:C.bg,border:'1px solid '+C.border2,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box'},
@@ -1036,11 +1072,12 @@ function Modal({title,onClose,children,width='520px'}){
   );
 }
 
-function StatCard({label,value,sub,color=C.blue,icon,delay}){
+function StatCard({label,value,sub,color=C.blue,icon,delay,onClick}){
   var numVal=typeof value==='number'?value:parseInt(value,10);
   var isNum=!isNaN(numVal)&&typeof value==='number';
   var ref2=useRef(null);
   var counted=useRef(false);
+  var hoverRef=useRef(null);
   useEffect(function(){
     if(!isNum||counted.current||!ref2.current)return;
     counted.current=true;
@@ -1056,7 +1093,7 @@ function StatCard({label,value,sub,color=C.blue,icon,delay}){
   },[numVal,isNum]);
   var dl=delay||0;
   return(
-    <div style={{...S.kpi(color),background:'linear-gradient(135deg,'+color+'08,'+color+'15)',borderLeft:'3px solid '+color,animation:'fadeInUp .3s ease both',animationDelay:dl+'s'}}>
+    <div ref={hoverRef} onClick={onClick||undefined} onMouseEnter={function(){if(onClick&&hoverRef.current)hoverRef.current.style.borderColor=C.blue;}} onMouseLeave={function(){if(onClick&&hoverRef.current)hoverRef.current.style.borderColor='';}} style={{...S.kpi(color),background:'linear-gradient(135deg,'+color+'08,'+color+'15)',borderLeft:'3px solid '+color,animation:'fadeInUp .3s ease both',animationDelay:dl+'s',cursor:onClick?'pointer':'default',transition:'all .2s'}}>
       {icon&&<div style={{position:'absolute',top:8,right:10,fontSize:32,opacity:0.15,lineHeight:1}}>{icon}</div>}
       <div style={{position:'absolute',top:0,right:0,width:44,height:44,borderRadius:'0 11px 0 44px',background:color+'15'}}/>
       <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:'uppercase',letterSpacing:.8,marginBottom:5}}>{label}</div>
@@ -1090,7 +1127,7 @@ function BarChartComp({data,color=C.blue}){
   return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
 }
 
-function Dashboard({patients,bookings,T}){
+function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
   const today=fmtDate();
   const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
@@ -1102,15 +1139,15 @@ function Dashboard({patients,bookings,T}){
     <div style={{animation:'fadeInUp .3s ease'}}>
       <div style={{marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <div>
-          <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{T.dashboard}</h1>
+          <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{(function(){var h=new Date().getHours();var g=h>=5&&h<12?'Buongiorno':h>=12&&h<18?'Buon pomeriggio':'Buonasera';var n=trainerProfile?.nome||trainerProfile?.displayName||'';return n?g+', '+n+'!':'Dashboard';})()}</h1>
           <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
         </div>
         {patients.length>0&&<button onClick={()=>exportCSV(patients)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📊 Export CSV</button>}
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
-        <StatCard label={T.totalPatients} value={patients.length} color={C.blue} icon="👥" delay={0}/>
-        <StatCard label={T.sessions} value={totSedute} color={C.green} icon="💪" delay={0.05}/>
-        <StatCard label={T.todayLabel} value={todayBookings.length} color={C.purple} icon="📅" delay={0.1}/>
+        <StatCard label={T.totalPatients} value={patients.length} color={C.blue} icon="👥" delay={0} onClick={onNavigate?function(){onNavigate('patients');}:undefined}/>
+        <StatCard label={T.sessions} value={totSedute} color={C.green} icon="💪" delay={0.05} onClick={onNavigate?function(){onNavigate('calendar');}:undefined}/>
+        <StatCard label={T.todayLabel} value={todayBookings.length} color={C.purple} icon="📅" delay={0.1} onClick={onNavigate?function(){onNavigate('calendar');}:undefined}/>
         <StatCard label={nextApptLabel} value={nextApptVal} color={C.cyan} icon="⏰" delay={0.15} sub={nextApptSub}/>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?10:14}}>
@@ -1437,11 +1474,11 @@ ${(p.progressi||[]).length>1?`
             </div>
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
           </div>
-          <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:8,fontWeight:600,fontSize:14,border:'none',cursor:'pointer'}} onClick={onValuta}>📋 Valuta ora</button>
-          <button style={{...S.btn('success',true),display:'flex',alignItems:'center',gap:5}} onClick={generaPDF}>📄 Report PDF</button>
-          <button style={{...S.btn('',true),display:'flex',alignItems:'center',gap:5,background:'#7c3aed',border:'none',color:'#fff'}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button>
-            <button onClick={onEdit} style={S.btn('ghost',true)}>✏ {T.edit}</button>
-          <button style={S.btn('danger',true)} onClick={onDelete}>🗑</button>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onValuta}>📋 Valuta ora</button><span className="tp">Avvia nuova valutazione</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={generaPDF}>📄 Report PDF</button><span className="tp">Scarica report completo</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button><span className="tp">Genera programma con intelligenza artificiale</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onEdit}>✏ {T.edit}</button><span className="tp">Modifica paziente</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onDelete}>🗑</button><span className="tp">Elimina paziente definitivamente</span></div>
         </div>
       )}
 
@@ -2054,14 +2091,14 @@ function CalendarView({patients,bookings,setBookings,T}){
       <h1 style={{fontSize:22,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:16}}>Prenota la tua seduta</h1>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
+          <div className="tt"><button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w-1)}>‹</button><span className="tp">Settimana precedente</span></div>
           <span style={{fontSize:14,fontWeight:700,color:C.strong}}>
             {days[0].toLocaleDateString('it-IT',{day:'2-digit',month:'short'})} — {days[6].toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})}
           </span>
-          <button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w+1)}>›</button>
+          <div className="tt"><button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w+1)}>›</button><span className="tp">Settimana successiva</span></div>
           <button style={{...S.btn('ghost',true),fontSize:11}} onClick={()=>setWeekOffset(0)}>Oggi</button>
         </div>
-        <button style={S.btn()} onClick={()=>setShowModal(true)}>+ Prenota</button>
+        <div className="tt"><button style={S.btn()} onClick={()=>setShowModal(true)}>+ Prenota</button><span className="tp">Prenota una nuova seduta</span></div>
       </div>
       <div style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,overflow:'hidden'}}>
         <div style={{display:'grid',gridTemplateColumns:'60px repeat(7,1fr)',borderBottom:`1px solid ${C.border2}`}}>
@@ -2380,6 +2417,13 @@ function App(){
 }
 
 function AppInner({user,profile,trialLeft}){
+  var trainerProfile=profile;
+  var tpNome=trainerProfile?.nome||trainerProfile?.displayName||'';
+  var tpCognome=trainerProfile?.cognome||'';
+  var tpInitials=(tpNome?tpNome.charAt(0):'')+(tpCognome?tpCognome.charAt(0):'');
+  var greetHour=new Date().getHours();
+  var greetText=greetHour>=5&&greetHour<12?'Buongiorno':greetHour>=12&&greetHour<18?'Buon pomeriggio':'Buonasera';
+  var greetFull=tpNome?(greetText+', '+tpNome):'Benvenuto';
   const stored=load();
   const [patients,setPatients]=useState(stored?.patients?.length?stored.patients:INIT_PATIENTS);
   const [bookings,setBookings]=useState(stored?.bookings||INIT_BOOKINGS);
@@ -2491,11 +2535,11 @@ function AppInner({user,profile,trialLeft}){
   },[isNew,patients,T]);
 
   const navItems=[
-    {id:'home',icon:'🏠',l:'Home'},
-    {id:'dash',icon:'⊞',l:T.dashboard},
-    {id:'patients',icon:'👥',l:T.patients},
-    {id:'calendar',icon:'📅',l:T.calendar},
-    {id:'exercises',icon:'🏋',l:T.exercises},
+    {id:'home',icon:'🏠',l:'Home',tip:'Torna alla home'},
+    {id:'dash',icon:'⊞',l:T.dashboard,tip:'Panoramica pazienti e statistiche'},
+    {id:'patients',icon:'👥',l:T.patients,tip:'Gestisci lista pazienti'},
+    {id:'calendar',icon:'📅',l:T.calendar,tip:'Prenota e gestisci appuntamenti'},
+    {id:'exercises',icon:'🏋',l:T.exercises,tip:'Libreria esercizi'},
   ];
 
   return(
@@ -2525,16 +2569,19 @@ function AppInner({user,profile,trialLeft}){
         <div style={S.nav}>
           <div style={S.navlbl}>Menu</div>
           {navItems.map(n=>(
-            <button key={n.id} style={S.navi(page===n.id||((page==='detail'||page==='form')&&n.id==='patients'))} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}}>
-              <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
-            </button>
+            <div key={n.id} className="tt">
+              <button style={S.navi(page===n.id||((page==='detail'||page==='form')&&n.id==='patients'))} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}}>
+                <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
+              </button>
+              <span className="tp">{n.tip}</span>
+            </div>
           ))}
-          <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
-            <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione 20 min</span>
-          </button>
-          <button style={{...S.navi(false),background:'#a78bfa10',border:'1px solid #a78bfa30',marginTop:4}} onClick={()=>{setShowTutorial(true);setSidebarOpen(false);}}>
-            <span style={{fontSize:14}}>📖</span><span style={{color:'#a78bfa',fontWeight:700}}>{T.tutorial}</span>
-          </button>
+          <div className="tt">
+            <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
+              <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione</span>
+            </button>
+            <span className="tp">Avvia nuova valutazione paziente</span>
+          </div>
           <div style={S.navlbl}>{T.recent}</div>
           {patients.slice(-5).reverse().map(p=>(
             <button key={p.id} style={{...S.navi(selectedId===p.id&&page==='detail'),gap:7}} onClick={()=>{setSelectedId(p.id);setPage('detail');setSidebarOpen(false);}}>
@@ -2544,10 +2591,13 @@ function AppInner({user,profile,trialLeft}){
           ))}
             </div>
         <div style={{borderTop:`1px solid ${C.border2}`,flexShrink:0,paddingBottom:isMobile?'env(safe-area-inset-bottom, 80px)':0}}>
+          <div className="tt">
           <button onClick={()=>setShowParametri(p=>!p)} style={{display:'flex',alignItems:'center',gap:9,width:'100%',padding:'12px 16px',background:'transparent',border:'none',cursor:'pointer',color:showParametri?C.blue:C.dim,fontSize:13,fontWeight:600,transition:'all .15s'}}>
             <span style={{fontSize:14}}>⚙</span><span>{T.settings}</span>
             <span style={{marginLeft:'auto',fontSize:10,color:C.muted}}>{showParametri?'▲':'▼'}</span>
           </button>
+          <span className="tp">Impostazioni account</span>
+          </div>
           {showParametri&&(
             <div style={{padding:'12px 16px 16px',background:C.sidebar,borderTop:`1px solid ${C.border}`}}>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>{T.theme}</div>
@@ -2562,6 +2612,9 @@ function AppInner({user,profile,trialLeft}){
               <button onClick={()=>{setShowParametri(false);setShowLingua(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.border2}`,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,display:'flex',alignItems:'center',gap:8,justifyContent:'center'}}>
                 <span style={{fontSize:16}}>{LANGS[lang].flag}</span><span>{LANGS[lang].name}</span><span style={{marginLeft:'auto',color:C.muted,fontSize:11}}>▶</span>
               </button>
+              <button onClick={()=>{setShowParametri(false);setShowTutorial(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #a78bfa40',background:'#a78bfa10',color:'#a78bfa',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontSize:14}}>📖</span><span>{T.tutorial}</span>
+              </button>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
               <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
@@ -2572,13 +2625,13 @@ function AppInner({user,profile,trialLeft}){
                   {T.admin}
                 </button>
               )}
-              <button onClick={()=>fbAuth.signOut()} style={{width:'100%',padding:'7px',borderRadius:7,border:`1px solid ${C.red}40`,background:C.red+'15',color:C.red,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
-                🚪 {T.logout}
-              </button>
             </div>
           )}
           {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ ⏳ Trial: {trialLeft} {T.trialDays}</div>}
-          <div style={{padding:'6px 16px 10px',fontSize:10,color:C.muted}}>PT Board · {fmtDate()}</div>
+          {tpInitials&&<div style={{padding:'8px 16px',textAlign:'center'}}>
+            <div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto'}}>{tpInitials}</div>
+            <div style={{fontSize:9,color:C.muted,marginTop:4}}>{tpNome}{tpCognome?' '+tpCognome:''}</div>
+          </div>}
         </div>
       </nav>
 
@@ -2588,10 +2641,14 @@ function AppInner({user,profile,trialLeft}){
           <button aria-label="Apri menu" onClick={function(){if(showValutazione)return;setSidebarOpen(function(v){return!v;});}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
           {isMobile?(
             <>
-              <div onClick={()=>setPage('home')} style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',cursor:'pointer'}}>
-                <div style={{fontSize:16,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
+              <div onClick={function(){setPage('home');}} style={{cursor:'pointer',flexShrink:0}}>
+                <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               </div>
-              <div style={{marginLeft:'auto',fontSize:12,color:C.muted,flexShrink:0}}>{patients.length} paz.</div>
+              <div style={{flex:1,textAlign:'center',fontSize:12,color:C.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{greetFull}</div>
+              <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
+                {tpInitials&&<div style={{width:28,height:28,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
+                <div className="tt"><button onClick={function(){fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+              </div>
             </>
           ):(
             <>
@@ -2599,12 +2656,16 @@ function AppInner({user,profile,trialLeft}){
                 <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:C.dim,fontSize:13}}>🔍</span>
                 <input aria-label={T.search} style={{...S.inp,paddingLeft:32}} placeholder={T.search} value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
-              <div onClick={()=>setPage('home')} style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',lineHeight:1.2,cursor:'pointer'}}>
+              <div onClick={function(){setPage('home');}} style={{cursor:'pointer',flexShrink:0}}>
                 <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               </div>
-              {syncing&&<span style={{fontSize:11,color:C.blue,fontWeight:600,marginLeft:'auto'}}>☁ Sincronizzazione...</span>}
-              {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600,marginLeft:'auto'}}>{saveMsg}</span>}
-              <div style={{fontSize:12,color:C.muted,marginLeft:'auto',flexShrink:0}}>{patients.length} pazienti</div>
+              <div style={{flex:1,textAlign:'center',fontSize:13,color:C.muted}}>{greetFull}</div>
+              {syncing&&<span style={{fontSize:11,color:C.blue,fontWeight:600}}>☁ Sincronizzazione...</span>}
+              {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
+              <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                {tpInitials&&<div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
+                <div className="tt"><button onClick={function(){fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+              </div>
             </>
           )}
         </div>
@@ -2641,7 +2702,7 @@ function AppInner({user,profile,trialLeft}){
               </div>
             </div>
           )}
-          {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T}/>}
+          {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
           {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`⚠️ Eliminare definitivamente ${selected.nome} ${selected.cognome}?\n\nTutti i dati, sedute e progressi di questo paziente verranno persi.\n\nQuesta azione non è reversibile.`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
@@ -3687,15 +3748,15 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
         {/* Footer */}
         <div style={{padding:isMobile?'12px 16px':'14px 22px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap',position:isMobile?'sticky':'static',bottom:0,background:C.card,zIndex:10}}>
-          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button>
+          <div className="tt"><button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button><span className="tp">Chiudi senza salvare</span></div>
           <div style={{display:'flex',gap:8}}>
 
-            {stepIdx>0&&<button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{gT().wPrev}</button>}
-            {stepIdx<TOTAL-1&&<button onClick={function(){
+            {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{gT().wPrev}</button><span className="tp">Torna al passo precedente</span></div>}
+            {stepIdx<TOTAL-1&&<div className="tt"><button onClick={function(){
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
               setStep(stepsArr[stepIdx+1]);
-            }} style={S.btn()}>{gT().wNext}</button>}
-            {stepIdx===TOTAL-1&&<button onClick={function(){
+            }} style={S.btn()}>{gT().wNext}</button><span className="tp">Vai al passo successivo</span></div>}
+            {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
               if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti \u2014 torna al passo 1.');return;}
               var p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
@@ -3709,7 +3770,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
               };
               onSave(p);
-            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button>}
+            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button><span className="tp">Salva la valutazione</span></div>}
           </div>
         </div>
         </>)}
@@ -4024,6 +4085,9 @@ function AuthScreen({onProfileReady}){
   const [pw,setPw]=useState('');
   const [pw2,setPw2]=useState('');
   const [nome,setNome]=useState('');
+  const [cognome,setCognome]=useState('');
+  const [telefono,setTelefono]=useState('');
+  const [citta,setCitta]=useState('');
   const [err,setErr]=useState('');
   const [msg,setMsg]=useState('');
   const [loading,setLoading]=useState(false);
@@ -4037,7 +4101,7 @@ function AuthScreen({onProfileReady}){
   };
 
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()){setErr('Inserisci il tuo nome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome});const profile={email,displayName:nome,plan:'trial',trialStart:Date.now(),createdAt:Date.now()};await fbSaveUserProfile(c.user.uid,profile);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString()};await fbSaveUserProfile(c.user.uid,profile);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
@@ -4064,7 +4128,10 @@ function AuthScreen({onProfileReady}){
               <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
             </div>
           )}
-          {mode==='register'&&<input style={inp} placeholder="Il tuo nome" value={nome} onChange={e=>setNome(e.target.value)}/>}
+          {mode==='register'&&<input style={inp} placeholder="Nome *" value={nome} onChange={e=>setNome(e.target.value)}/>}
+          {mode==='register'&&<input style={inp} placeholder="Cognome *" value={cognome} onChange={e=>setCognome(e.target.value)}/>}
+          {mode==='register'&&<input style={inp} placeholder="Telefono (opzionale)" type="tel" value={telefono} onChange={e=>setTelefono(e.target.value)}/>}
+          {mode==='register'&&<input style={inp} placeholder="Città (opzionale)" value={citta} onChange={e=>setCitta(e.target.value)}/>}
           <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
           {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
           {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
