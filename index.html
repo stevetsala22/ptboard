@@ -2033,6 +2033,7 @@ function SchedaModal({exercises,onSave,onClose}){
 function CalendarView({patients,bookings,setBookings,T}){
   const [weekOffset,setWeekOffset]=useState(0);
   const [showModal,setShowModal]=useState(false);
+  const [viewBooking,setViewBooking]=useState(null);
   const [newB,setNewB]=useState({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
 
   const getWeekDays=()=>{
@@ -2050,6 +2051,7 @@ function CalendarView({patients,bookings,setBookings,T}){
 
   return(
     <div>
+      <h1 style={{fontSize:22,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:16}}>Prenota la tua seduta</h1>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
@@ -2081,28 +2083,14 @@ function CalendarView({patients,bookings,setBookings,T}){
               <div style={{padding:'4px 8px',fontSize:11,color:C.muted,borderRight:`1px solid ${C.border2}`,display:'flex',alignItems:'center'}}>{h}</div>
               {days.map((d,di)=>{
                 const dateStr=d.toISOString().slice(0,10);
-                const slot=bookings.filter(b=>b.data===dateStr&&b.ora===h);
+                const slot=bookings.filter(b=>b.data===dateStr&&b.ora&&b.ora.slice(0,2)===h.slice(0,2));
                 return(
                   <div key={di} style={{borderLeft:`1px solid ${C.border}`,padding:3}}>
                     {slot.map(b=>{
                       const pat=patients.find(x=>x.id===b.patientId);
                       return(
                         <div key={b.id} style={{background:C.blue+'25',border:`1px solid ${C.blue}50`,borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
-                          onClick={async()=>{
-                            const pat=patients.find(x=>x.id===b.patientId);
-                            const actions=['📧 Invia promemoria email','🗑 Elimina prenotazione','Annulla'];
-                            const choice=window.confirm(`📧 Inviare promemoria email a ${pat?.nome} per l'appuntamento del ${b.data} alle ${b.ora}?\n\nClicca OK per inviare, Annulla per eliminare la prenotazione.`);
-                            if(choice){
-                              if(pat?.email){
-                                const r=await sendEmail({toEmail:pat.email,toName:`${pat.nome} ${pat.cognome}`,subject:`Promemoria appuntamento PT Board — ${b.data}`,message:`Ciao ${pat.nome},\n\nTi ricordiamo il tuo appuntamento:\n📅 Data: ${b.data}\n⏰ Ora: ${b.ora}\n🏋 Tipo: ${b.tipo}\n⏱ Durata: ${b.durata} minuti\n\n${b.note?`Note: ${b.note}\n\n`:''}A presto!\nIl tuo Personal Trainer`});
-                                alert(r.ok?'✅ Email inviata!':'⚠️ '+r.err);
-                              } else {
-                                alert('⚠️ Nessuna email nel profilo del paziente. Aggiungila in Modifica paziente.');
-                              }
-                            } else {
-                              if(window.confirm(`Eliminare prenotazione di ${pat?.nome}?`)) setBookings(prev=>prev.filter(x=>x.id!==b.id));
-                            }
-                          }}>
+                          onClick={function(){setViewBooking(b);}}>
                           <div style={{fontSize:11,fontWeight:700,color:C.blue,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
                           <div style={{fontSize:10,color:C.muted}}>{b.durata}' · {b.tipo}</div>
                         </div>
@@ -2115,13 +2103,65 @@ function CalendarView({patients,bookings,setBookings,T}){
           ))}
         </div>
       </div>
+      {(function(){
+        var today=new Date();
+        var todayStr=today.toISOString().slice(0,10);
+        var dayBookings=bookings.filter(function(b){return b.data===todayStr;}).sort(function(a,b2){return(a.ora||'').localeCompare(b2.ora||'');});
+        if(dayBookings.length===0)return null;
+        return(
+          <div style={{...S.card,marginTop:14}}>
+            <div style={S.st}>Appuntamenti di oggi ({dayBookings.length})</div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {dayBookings.map(function(b){
+                var pat=patients.find(function(x){return x.id===b.patientId;});
+                return(
+                  <div key={b.id} onClick={function(){setViewBooking(b);}} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:C.bg,borderRadius:8,cursor:'pointer',border:'1px solid '+C.border2}}>
+                    <div style={{fontSize:14,fontWeight:800,color:C.blue,minWidth:50}}>{b.ora||'--:--'}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Paziente sconosciuto'}</div>
+                      <div style={{fontSize:11,color:C.muted}}>{b.tipo} · {b.durata} min</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+      {viewBooking&&(function(){
+        var vb=viewBooking;
+        var pat=patients.find(function(x){return x.id===vb.patientId;});
+        return(
+          <Modal title="Dettaglio Appuntamento" onClose={function(){setViewBooking(null);}}>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:40,height:40,borderRadius:10,background:C.blue+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>👤</div>
+                <div>
+                  <div style={{fontSize:15,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Paziente sconosciuto'}</div>
+                  <div style={{fontSize:12,color:C.muted}}>{pat?.id||''}</div>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                <div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Data</div><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{vb.data}</div></div>
+                <div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Ora</div><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{vb.ora}</div></div>
+                <div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Tipo seduta</div><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{vb.tipo}</div></div>
+                <div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Durata</div><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{vb.durata} min</div></div>
+              </div>
+              {vb.note&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Note</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{vb.note}</div></div>}
+            </div>
+            <div style={{marginTop:20}}>
+              <button onClick={function(){if(window.confirm('Sei sicuro di voler annullare questo appuntamento?')){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);}}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
+            </div>
+          </Modal>
+        );
+      })()}
       {showModal&&(
         <Modal title="Nuova prenotazione" onClose={()=>setShowModal(false)}>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
             <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'}].concat(patients.map(p=>({v:p.id,l:p.nome+' '+p.cognome})))}/>
             <div style={S.grid(2)}>
               <FF label="Data" name="data" type="date" value={newB.data} onChange={e=>setNewB(f=>({...f,data:e.target.value}))}/>
-              <FF label="Ora" name="ora" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))} options={['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00']}/>
+              <FF label="Ora" name="ora" type="time" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))}/>
               <FF label="Durata (min)" name="durata" type="number" value={newB.durata} onChange={e=>setNewB(f=>({...f,durata:+e.target.value}))}/>
               <FF label="Tipo" name="tipo" value={newB.tipo} onChange={e=>setNewB(f=>({...f,tipo:e.target.value}))} options={['PT','Valutazione','Follow-up','Corpo libero','Pesi']}/>
             </div>
