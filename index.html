@@ -132,14 +132,17 @@ Fornisci:
 3. 💪 3 esercizi chiave con serie/reps
 4. 🥗 Consiglio nutrizionale rapido
 5. ⚠️ Precauzioni specifiche per questo paziente`;
-  const token=await fbAuth.currentUser.getIdToken();
-  const res=await fetch('https://europe-west1-YOUR_PROJECT_ID.cloudfunctions.net/aiCoach',{
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-    body:JSON.stringify({prompt})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      messages:[{role:'user',content:prompt}]
+    })
   });
   const data=await res.json();
-  return data.text||'Errore nel generare il programma.';
+  return data.content?.[0]?.text||'Errore nel generare il programma.';
 };
 </script>
 <style>

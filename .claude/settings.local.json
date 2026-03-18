@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l \"C:/Users/User/Downloads/files \\(33\\)/index.html\")",
+      "WebFetch(domain:localhost)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(cd:*)",
+      "Bash(start https://github.com/stevetsala22/ptboard)",
+      "Bash(start \"\" \"C:\\\\Users\\\\User\\\\Downloads\\\\files \\(33\\)\\\\index.html\")",
+      "Bash(find \"c:/Users/User/Downloads/files \\(33\\)\" -type f \\\\\\( -name \"*.env*\" -o -name \"*secret*\" -o -name \"*config*\" \\\\\\))"
+    ]
+  }
+}
