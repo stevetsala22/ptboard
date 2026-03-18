@@ -129,7 +129,7 @@ function askSendEmail({pat,subject,message,trainerProfile}){
 const aiCoach=async(paziente)=>{
   const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
 PROFILO:
-- Nome: ${paziente.nome} ${paziente.cognome}
+- Nome: Paziente (dati anonimizzati)
 - Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
 - Sesso: ${paziente.sesso}
 - Peso: ${paziente.peso} kg | Altezza: ${paziente.altezza} cm
@@ -2679,6 +2679,8 @@ function AppInner({user,profile,trialLeft}){
   const [search,setSearch]=useState('');
   const [saveMsg,setSaveMsg]=useState('');
   const [showParametri,setShowParametri]=useState(false);
+  const [showDeleteAccount,setShowDeleteAccount]=useState(false);
+  const [deleteConfirmText,setDeleteConfirmText]=useState('');
   const [sidebarOpen,setSidebarOpen]=useState(!isMobile);
   const [isLight,setIsLight]=useState(stored?.isLight||false);
   const [dataReady,setDataReady]=useState(true);
@@ -2881,6 +2883,7 @@ function AppInner({user,profile,trialLeft}){
                   {T.admin}
                 </button>
               )}
+              <button onClick={()=>{setDeleteConfirmText('');setShowDeleteAccount(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #ef444440',background:'transparent',color:'#ef4444',fontSize:11,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:4}}>🗑 Elimina account</button>
             </div>
           )}
           {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ ⏳ Trial: {trialLeft} {T.trialDays}</div>}
@@ -2990,6 +2993,27 @@ function AppInner({user,profile,trialLeft}){
       />}
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
+      {showDeleteAccount&&<Modal title="Eliminare definitivamente il tuo account?" onClose={()=>setShowDeleteAccount(false)}>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{fontSize:13,color:C.text,lineHeight:1.6,background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'10px 12px'}}>Tutti i tuoi dati, pazienti, appuntamenti e impostazioni verranno eliminati permanentemente. Questa azione non è reversibile.</div>
+          <div style={{fontSize:12,color:C.muted}}>Scrivi <strong style={{color:C.text}}>ELIMINA</strong> per confermare:</div>
+          <input style={{...S.inp,border:'1px solid #ef444440'}} placeholder="ELIMINA" value={deleteConfirmText} onChange={e=>setDeleteConfirmText(e.target.value)}/>
+          <button disabled={deleteConfirmText!=='ELIMINA'} onClick={async()=>{
+            try{
+              const uid=user.uid;
+              await fbDb.collection('users').doc(uid).collection('appdata').doc('main').delete();
+              await fbDb.collection('users').doc(uid).delete();
+              await fbAuth.currentUser.delete();
+              showToast('Account eliminato','success');
+              sessionStorage.setItem('entered','1');
+              window.location.href='/';
+            }catch(e){
+              showToast('Per sicurezza, esci e rientra prima di eliminare l\'account','error');
+              setShowDeleteAccount(false);
+            }
+          }} style={{...S.btn(),background:'#ef4444',opacity:deleteConfirmText==='ELIMINA'?1:0.4,cursor:deleteConfirmText==='ELIMINA'?'pointer':'not-allowed'}}>🗑 Elimina account definitivamente</button>
+        </div>
+      </Modal>}
       {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile}/>}
       {showLingua&&<LinguaModal onClose={()=>setShowLingua(false)} lang={lang} setLang={setLang}/>}
 
@@ -4345,6 +4369,7 @@ function AuthScreen({onProfileReady}){
   const [cognome,setCognome]=useState('');
   const [telefono,setTelefono]=useState('');
   const [citta,setCitta]=useState('');
+  const [gdpr,setGdpr]=useState(false);
   const [err,setErr]=useState('');
   const [msg,setMsg]=useState('');
   const [loading,setLoading]=useState(false);
@@ -4358,7 +4383,7 @@ function AuthScreen({onProfileReady}){
   };
 
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString()};await fbSaveUserProfile(c.user.uid,profile);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
@@ -4392,10 +4417,14 @@ function AuthScreen({onProfileReady}){
           <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
           {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
           {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
+          {mode==='register'&&<label style={{display:'flex',alignItems:'flex-start',gap:8,fontSize:12,color:'#64748b',marginBottom:12,cursor:'pointer',lineHeight:1.5}}>
+            <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)} style={{marginTop:2,flexShrink:0,accentColor:'#3b82f6'}}/>
+            <span>Accetto la <a href="/privacy.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Privacy Policy</a> e i <a href="/terms.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Termini di Servizio</a></span>
+          </label>}
           {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
           {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
           {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?'Accesso...':'Accedi'}</button>}
-          {mode==='register'&&<button style={btn} onClick={doRegister} disabled={loading}>{loading?'Registrazione...':'Crea account'}</button>}
+          {mode==='register'&&<button style={{...btn,opacity:(loading||!gdpr)?0.5:1,cursor:(loading||!gdpr)?'not-allowed':'pointer'}} onClick={doRegister} disabled={loading||!gdpr}>{loading?'Registrazione...':'Crea account'}</button>}
           {mode==='reset'&&<button style={btn} onClick={doReset} disabled={loading}>{loading?'Invio...':'Invia email di recupero'}</button>}
           {mode==='login'&&<button onClick={()=>{setMode('reset');setErr('');setMsg('');}} style={{width:'100%',background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:12,fontFamily:'inherit',textAlign:'center',padding:'4px 0'}}>Password dimenticata?</button>}
         </div>
