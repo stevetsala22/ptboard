@@ -1,10 +1,27 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  PT Board — personaltrainerboard.com                        ║
+  ║  © 2026 PT Board. Tutti i diritti riservati.                ║
+  ║                                                              ║
+  ║  Questo software è protetto da diritto d'autore.            ║
+  ║  La copia, la riproduzione, la distribuzione o la           ║
+  ║  modifica non autorizzata di questo codice, in tutto        ║
+  ║  o in parte, è severamente vietata e perseguibile           ║
+  ║  a norma di legge (L. 633/1941 e s.m.i.).                  ║
+  ║                                                              ║
+  ║  Unauthorized copying, redistribution or modification        ║
+  ║  of this code is strictly prohibited.                        ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
 <html lang="it">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#3b82f6"/>
 <meta name="description" content="PT Board - La piattaforma all-in-one per Personal Trainer. Valuta, programma e monitora i tuoi clienti in 20 minuti. Provalo gratis 30 giorni."/>
+<meta name="author" content="PT Board"/>
+<meta name="copyright" content="© 2026 PT Board. Tutti i diritti riservati."/>
 <meta name="keywords" content="personal trainer, gestione clienti, software PT, valutazione funzionale, programma allenamento, scheda paziente"/>
 <meta property="og:title" content="PT Board - Il software che ogni Personal Trainer merita"/>
 <meta property="og:description" content="Valuta i tuoi clienti in 20 minuti. Programmi personalizzati automatici. Da 19 euro/mese."/>
@@ -312,6 +329,23 @@ a{color:var(--blue);text-decoration:none}
   .wizard-kpi-row{grid-template-columns:1fr 1fr}
 }
 </style>
+<script>
+// ── PROTEZIONE CODICE ──
+document.addEventListener('contextmenu',function(e){e.preventDefault();});
+document.addEventListener('keydown',function(e){
+  if(e.key==='F12')e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'))e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='J'||e.key==='j'))e.preventDefault();
+  if(e.ctrlKey&&(e.key==='U'||e.key==='u'))e.preventDefault();
+  if(e.ctrlKey&&(e.key==='S'||e.key==='s'))e.preventDefault();
+});
+</script>
+<script>
+console.log('%c⚠️ ATTENZIONE','font-size:24px;color:#ef4444;font-weight:900');
+console.log('%cQuesto software è protetto da copyright © 2026 PT Board.','font-size:14px;color:#f59e0b');
+console.log('%cLa copia o la riproduzione non autorizzata è vietata e perseguibile a norma di legge.','font-size:12px;color:#6b7280');
+console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: ptboard.app@gmail.com','font-size:12px;color:#3b82f6');
+</script>
 </head>
 <body>
 

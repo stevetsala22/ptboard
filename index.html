@@ -1,4 +1,19 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  PT Board — personaltrainerboard.com                        ║
+  ║  © 2026 PT Board. Tutti i diritti riservati.                ║
+  ║                                                              ║
+  ║  Questo software è protetto da diritto d'autore.            ║
+  ║  La copia, la riproduzione, la distribuzione o la           ║
+  ║  modifica non autorizzata di questo codice, in tutto        ║
+  ║  o in parte, è severamente vietata e perseguibile           ║
+  ║  a norma di legge (L. 633/1941 e s.m.i.).                  ║
+  ║                                                              ║
+  ║  Unauthorized copying, redistribution or modification        ║
+  ║  of this code is strictly prohibited.                        ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
 <html lang="it">
 <head>
 <script>
@@ -21,7 +36,9 @@ if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PT Board"/>
-<meta name="description" content="Gestione clienti per Personal Trainer"/>>
+<meta name="description" content="Gestione clienti per Personal Trainer"/>
+<meta name="author" content="PT Board"/>
+<meta name="copyright" content="© 2026 PT Board. Tutti i diritti riservati."/>>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
@@ -262,6 +279,25 @@ document.addEventListener('mouseout',function(e){
   var tp=wrap.querySelector('.tp');
   if(tp)tp.style.opacity='0';
 });
+</script>
+<script>
+// ── PROTEZIONE CODICE ──
+document.addEventListener('contextmenu',function(e){e.preventDefault();});
+document.addEventListener('keydown',function(e){
+  // Blocca F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  if(e.key==='F12')e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'))e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='J'||e.key==='j'))e.preventDefault();
+  if(e.ctrlKey&&(e.key==='U'||e.key==='u'))e.preventDefault();
+  if(e.ctrlKey&&(e.key==='S'||e.key==='s'))e.preventDefault();
+});
+</script>
+<script>
+// Avviso nella console del browser
+console.log('%c⚠️ ATTENZIONE','font-size:24px;color:#ef4444;font-weight:900');
+console.log('%cQuesto software è protetto da copyright © 2026 PT Board.','font-size:14px;color:#f59e0b');
+console.log('%cLa copia o la riproduzione non autorizzata è vietata e perseguibile a norma di legge.','font-size:12px;color:#6b7280');
+console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: ptboard.app@gmail.com','font-size:12px;color:#3b82f6');
 </script>
 </head>
 <body>
