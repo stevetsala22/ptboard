@@ -2884,6 +2884,11 @@ function AppInner({user,profile,trialLeft}){
                 </button>
               )}
               <button onClick={()=>{setDeleteConfirmText('');setShowDeleteAccount(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #ef444440',background:'transparent',color:'#ef4444',fontSize:11,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:4}}>🗑 Elimina account</button>
+              <div style={{textAlign:'center',marginTop:8,paddingTop:8,borderTop:'1px solid '+C.border}}>
+                <span onClick={()=>window.open('/privacy.html','_blank')} style={{fontSize:10,color:C.muted,cursor:'pointer'}}>Privacy</span>
+                <span style={{color:C.dim,margin:'0 6px',fontSize:10}}>·</span>
+                <span onClick={()=>window.open('/terms.html','_blank')} style={{fontSize:10,color:C.muted,cursor:'pointer'}}>Termini</span>
+              </div>
             </div>
           )}
           {trialLeft<=7&&trialLeft>0&&<div style={{margin:'4px 10px 0',padding:'7px 10px',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:8,fontSize:11,color:'#f59e0b',textAlign:'center'}}>⏳ ⏳ Trial: {trialLeft} {T.trialDays}</div>}
