@@ -94,20 +94,19 @@ const fbLoad=async(uid)=>{
 // 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
 // 3. Crea template con variabili: {{to_email}}, {{to_name}}, {{subject}}, {{message}}
 // 4. Sostituisci i valori qui sotto
-const EMAILJS_SERVICE='YOUR_SERVICE_ID';   // ← da EmailJS dashboard
-const EMAILJS_TEMPLATE='YOUR_TEMPLATE_ID'; // ← da EmailJS dashboard
-const EMAILJS_KEY='YOUR_PUBLIC_KEY';       // ← da EmailJS dashboard
-const sendEmail=async({toEmail,toName,subject,message})=>{
+const EMAILJS_SERVICE='service_s4ra456';
+const EMAILJS_TEMPLATE='template_t2l9tuk';
+const EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
+const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
   try{
-    if(EMAILJS_KEY==='YOUR_PUBLIC_KEY') return {ok:false,err:'EmailJS non configurato'};
     emailjs.init(EMAILJS_KEY);
     await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
       to_email:toEmail,
       to_name:toName,
       subject,
       message,
-      from_name:'PT Board',
-      reply_to:'ptboard@gmail.com',
+      from_name:fromName||'PT Board',
+      reply_to:'ptboard.app@gmail.com',
     });
     return {ok:true};
   }catch(e){return {ok:false,err:String(e)};}
@@ -1583,6 +1582,7 @@ ${(p.progressi||[]).length>1?`
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onValuta}>📋 Valuta ora</button><span className="tp">Avvia nuova valutazione</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={generaPDF}>📄 Report PDF</button><span className="tp">Scarica report completo</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button><span className="tp">Genera programma con intelligenza artificiale</span></div>
+          {p.email&&<div className="tt"><a href={'mailto:'+p.email+'?subject=PT Board - '+encodeURIComponent(p.nome+' '+p.cognome)} onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6,textDecoration:'none'}}>📧 Email</a><span className="tp">Invia email al cliente</span></div>}
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onEdit}>✏ {T.edit}</button><span className="tp">Modifica cliente</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onDelete}>🗑</button><span className="tp">Elimina cliente definitivamente</span></div>
         </div>
@@ -2173,12 +2173,13 @@ function SchedaModal({exercises,onSave,onClose}){
 }
 
 // ── CALENDARIO ────────────────────────────────────────────────────────────────
-function CalendarView({patients,bookings,setBookings,T}){
+function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
   const [weekOffset,setWeekOffset]=useState(0);
   const [showModal,setShowModal]=useState(false);
   const [viewBooking,setViewBooking]=useState(null);
   const [newB,setNewB]=useState({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
   const [bTouched,setBTouched]=useState({});
+  const [emailSending,setEmailSending]=useState(false);
   const touchB=n=>setBTouched(t=>({...t,[n]:true}));
   const bErr=field=>{
     if(!bTouched[field])return null;
@@ -2303,7 +2304,19 @@ function CalendarView({patients,bookings,setBookings,T}){
               </div>
               {vb.note&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Note</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{vb.note}</div></div>}
             </div>
-            <div style={{marginTop:20}}>
+            <div style={{marginTop:20,display:'flex',flexDirection:'column',gap:8}}>
+              {pat?.email&&(
+                <button disabled={emailSending} onClick={async function(){
+                  const nomeMittente=(trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':'PT Board');
+                  setEmailSending(true);
+                  const res=await sendEmail({toEmail:pat.email,toName:pat.nome+' '+pat.cognome,subject:'Promemoria appuntamento - '+nomeMittente,message:'Ciao '+pat.nome+', ti ricordo il tuo appuntamento del '+vb.data+' alle '+vb.ora+' ('+vb.tipo+', '+vb.durata+' min).\n\nA presto!',fromName:nomeMittente});
+                  setEmailSending(false);
+                  if(res.ok)showToast('Email inviata a '+pat.email,'success');
+                  else showToast('Errore invio: '+res.err,'error');
+                }} style={{background:C.blue,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:emailSending?'not-allowed':'pointer',opacity:emailSending?0.7:1}}>
+                  {emailSending?'Invio...':'📧 Invia promemoria'}
+                </button>
+              )}
               <button onClick={function(){showConfirmToast('Annullare questo appuntamento? Verrà eliminato tra 5 secondi.',function(){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);});}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
             </div>
           </Modal>
@@ -2866,7 +2879,7 @@ function AppInner({user,profile,trialLeft}){
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
           {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
-          {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T}/>}
+          {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
         </div>
       </main>
