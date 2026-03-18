@@ -1362,16 +1362,19 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
   );
 }
 
-function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta,trainerProfile}){
+function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta,trainerProfile,bookings,onAddBooking,onCompleteBooking}){
   const [tab,setTab]=useState('dash');
-  const [showLogModal,setShowLogModal]=useState(false);
   const [showPesoModal,setShowPesoModal]=useState(false);
   const [showSchedaModal,setShowSchedaModal]=useState(false);
   const [showAI,setShowAI]=useState(false);
   const [aiResult,setAiResult]=useState('');
   const [aiLoading,setAiLoading]=useState(false);
-  const [newLog,setNewLog]=useState({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
   const [newPeso,setNewPeso]=useState({data:fmtDate(),peso:'',nota:''});
+  const [completingId,setCompletingId]=useState(null);
+  const [completingRpe,setCompletingRpe]=useState('');
+  const [completingNote,setCompletingNote]=useState('');
+  const [showBookingModal,setShowBookingModal]=useState(false);
+  const [newSeduta,setNewSeduta]=useState({data:new Date().toISOString().slice(0,10),ora:'09:00',durata:60,tipo:'PT',note:''});
 
   const p=patient;
   const b=bmi(p.peso,p.altezza);
@@ -1381,12 +1384,6 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
 
   const upd=(fn)=>onUpdate({...p,...fn(p)});
 
-  const addLog=()=>{
-    if(!newLog.tipo||!newLog.durata){showToast('Compila tipo e durata','error');return;}
-    const entry={...newLog,id:Date.now(),durata:+newLog.durata,rpe:+newLog.rpe};
-    upd(x=>({log:(x.log||[]).concat([entry])}));
-    setShowLogModal(false);setNewLog({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
-  };
   const addPeso=()=>{
     if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){showToast('Inserisci un peso valido','error');return;}
     const entry={...newPeso,peso:+newPeso.peso};
@@ -1394,7 +1391,10 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
   };
 
-  const T2=gT();const tabs=[{id:'dash',l:T2.tabDash},{id:'ana',l:T2.tabAna},{id:'test',l:T2.tabTest},{id:'storico',l:'📈 '+T2.tabStorico},{id:'prog',l:T2.tabProg},{id:'schede',l:T2.tabSchede},{id:'nutri',l:T2.tabNutri},{id:'log',l:`${T2.tabLog} (${p.log?.length||0})`},{id:'stats',l:T2.tabStats}];
+  const T2=gT();
+  const todayISO=new Date().toISOString().slice(0,10);
+  const prossime=(bookings||[]).filter(b=>b.patientId===p.id&&b.data>=todayISO);
+  const tabs=[{id:'dash',l:T2.tabDash},{id:'ana',l:T2.tabAna},{id:'test',l:T2.tabTest},{id:'storico',l:'📈 '+T2.tabStorico},{id:'prog',l:T2.tabProg},{id:'schede',l:T2.tabSchede},{id:'nutri',l:T2.tabNutri},{id:'sedute',l:`Sedute (${(p.log?.length||0)+prossime.length})`},{id:'stats',l:T2.tabStats}];
 
   const generaPDF=()=>{
     const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
@@ -2011,24 +2011,68 @@ ${(p.progressi||[]).length>1?`
         </div>
       )}
 
-      {tab==='log'&&(
-        <div>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
-            <div style={S.st}>Storico sedute</div>
-            <button style={S.btn('success',true)} onClick={()=>setShowLogModal(true)}>{gT().addSession}</button>
+      {tab==='sedute'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          {/* SEZIONE A — Prossime sedute */}
+          <div>
+            <div style={S.st}>📅 Prossime sedute</div>
+            {(()=>{
+              const future=(bookings||[]).filter(b=>b.patientId===p.id).sort((a,b2)=>(a.data+a.ora).localeCompare(b2.data+b2.ora));
+              if(future.length===0)return <div style={{color:C.muted,fontSize:13,padding:'8px 0'}}>Nessuna seduta programmata</div>;
+              return future.map(b=>{
+                const isPast=b.data<todayISO;
+                const isCompleting=completingId===b.id;
+                return(
+                  <div key={b.id} style={{...S.card,marginBottom:8}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+                      <div>
+                        <span style={{fontWeight:700,color:C.blue,fontSize:13}}>{b.data}</span>
+                        <span style={{color:C.muted,fontSize:12,marginLeft:8}}>{b.ora} · {b.tipo} · {b.durata} min</span>
+                        {isPast&&!b.completed&&<span style={{marginLeft:8,fontSize:11,fontWeight:700,color:C.yellow,background:C.yellow+'20',padding:'2px 7px',borderRadius:10}}>⚠️ Scaduto</span>}
+                      </div>
+                      {b.completed
+                        ?<span style={{fontSize:11,fontWeight:700,color:C.green,background:C.green+'20',padding:'3px 10px',borderRadius:10}}>✅ Completata</span>
+                        :<button style={{...S.btn('success',true),fontSize:11,padding:'4px 10px'}} onClick={()=>{setCompletingId(b.id);setCompletingRpe('');setCompletingNote('');}}>✅ Completa seduta</button>
+                      }
+                    </div>
+                    {isCompleting&&(
+                      <div style={{marginTop:12,display:'flex',flexDirection:'column',gap:8,animation:'fadeInUp .2s ease'}}>
+                        <input type="number" min="0" max="10" style={S.inp} placeholder="Sforzo percepito 0-10 (RPE)" value={completingRpe} onChange={e=>setCompletingRpe(e.target.value)}/>
+                        <textarea style={{...S.ta,minHeight:60}} placeholder="Come è andata?" value={completingNote} onChange={e=>setCompletingNote(e.target.value)}/>
+                        <div style={{display:'flex',gap:8}}>
+                          <button style={S.btn()} onClick={()=>{
+                            const logEntry={id:Date.now(),data:b.data,tipo:b.tipo,durata:+b.durata,rpe:+completingRpe||0,note:completingNote};
+                            onUpdate({...p,log:(p.log||[]).concat([logEntry])});
+                            onCompleteBooking(b.id);
+                            showToast('Seduta registrata!','success');
+                            setCompletingId(null);
+                          }}>Salva</button>
+                          <button style={S.btn('ghost')} onClick={()=>setCompletingId(null)}>Annulla</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
+            <button style={{...S.btn(),width:'100%',marginTop:8}} onClick={()=>{setNewSeduta({data:new Date().toISOString().slice(0,10),ora:'09:00',durata:60,tipo:'PT',note:''});setShowBookingModal(true);}}>+ Prenota seduta</button>
           </div>
-          {(!p.log||p.log.length===0)&&<div style={{...S.card,textAlign:'center',padding:40,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>📋</div>{gT().noLog}</div>}
-          {(p.log||[]).slice().reverse().map(s=>(
-            <div key={s.id} style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:9,padding:'10px 14px',display:'flex',alignItems:'center',gap:12,marginBottom:6}}>
-              <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
-              <span style={{fontSize:12,color:C.muted,minWidth:85}}>{s.data}</span>
-              <span style={{fontSize:13,color:C.strong,flex:1,fontWeight:500}}>{s.tipo}</span>
-              <span style={{fontSize:12,color:C.muted}}>{s.durata} min</span>
-              <span style={S.tag(rpeC(s.rpe))}>{s.rpe} · {rpeL(s.rpe)}</span>
-              <span style={{fontSize:11,color:C.muted,maxWidth:160,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>
-              <button style={{...S.btn('danger',true),padding:'3px 8px'}} onClick={()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)}))}>✕</button>
-            </div>
-          ))}
+          {/* SEZIONE B — Storico sedute */}
+          <div>
+            <div style={S.st}>📋 Storico sedute ({p.log?.length||0})</div>
+            {(!p.log||p.log.length===0)&&<div style={{color:C.muted,fontSize:13}}>Nessuna seduta completata</div>}
+            {(p.log||[]).slice().reverse().map(s=>(
+              <div key={s.id} style={{padding:'10px 12px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
+                <span style={{fontSize:12,color:C.muted,minWidth:80}}>{s.data}</span>
+                <span style={{fontSize:13,fontWeight:700,color:C.strong,flex:1}}>{s.tipo}</span>
+                <span style={{fontSize:12,color:C.muted}}>{s.durata} min</span>
+                <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center'}}>{s.rpe||'—'}</span>
+                {s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
+                <button style={{...S.btn('danger',true),padding:'3px 8px'}} onClick={()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)}))}>✕</button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -2094,17 +2138,24 @@ ${(p.progressi||[]).length>1?`
         </div>
       )}
 
-      {showLogModal&&<Modal title="Aggiungi seduta" onClose={()=>setShowLogModal(false)}>
+      {showBookingModal&&<Modal title="Prenota seduta" onClose={()=>setShowBookingModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          <FF label="Data" name="data" value={newLog.data} onChange={e=>setNewLog(f=>({...f,data:e.target.value}))}/>
-          <FF label="Tipo seduta" name="tipo" value={newLog.tipo} onChange={e=>setNewLog(f=>({...f,tipo:e.target.value}))} options={['Camminata lenta','Camminata svelto','Forza base','Forza intermedia','Forza avanzata','Cardio moderato','Cardio intenso','HIIT','Mobilità/stretching']}/>
-          <FF label="Durata (min)" name="durata" type="number" value={newLog.durata} onChange={e=>setNewLog(f=>({...f,durata:e.target.value}))}/>
-          <FF label="RPE (0-10)" name="rpe" type="number" value={newLog.rpe} onChange={e=>setNewLog(f=>({...f,rpe:e.target.value}))}/>
-          <FF label="Note" name="note" type="textarea" value={newLog.note} onChange={e=>setNewLog(f=>({...f,note:e.target.value}))}/>
+          <FF label="Data" name="data" type="date" value={newSeduta.data} onChange={e=>setNewSeduta(f=>({...f,data:e.target.value}))}/>
+          <FF label="Ora" name="ora" type="time" value={newSeduta.ora} onChange={e=>setNewSeduta(f=>({...f,ora:e.target.value}))}/>
+          <FF label="Tipo seduta" name="tipo" value={newSeduta.tipo} onChange={e=>setNewSeduta(f=>({...f,tipo:e.target.value}))} options={['Camminata lenta','Camminata svelto','Forza base','Forza intermedia','Forza avanzata','Cardio moderato','Cardio intenso','HIIT','Mobilità/stretching']}/>
+          <FF label="Durata (min)" name="durata" type="number" value={newSeduta.durata} onChange={e=>setNewSeduta(f=>({...f,durata:e.target.value}))}/>
+          <FF label="Note" name="note" type="textarea" value={newSeduta.note} onChange={e=>setNewSeduta(f=>({...f,note:e.target.value}))}/>
         </div>
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-          <button style={S.btn('ghost')} onClick={()=>setShowLogModal(false)}>{gT().cancel}</button>
-          <button style={S.btn()} onClick={addLog}>{gT().save}</button>
+          <button style={S.btn('ghost')} onClick={()=>setShowBookingModal(false)}>{gT().cancel}</button>
+          <button style={S.btn()} onClick={async()=>{
+            if(!newSeduta.data||!newSeduta.ora)return showToast('Inserisci data e ora','warning');
+            const b={id:Date.now().toString(),patientId:p.id,patientName:(p.nome||'')+' '+(p.cognome||''),data:newSeduta.data,ora:newSeduta.ora,tipo:newSeduta.tipo,durata:parseInt(newSeduta.durata)||60,note:newSeduta.note,completed:false};
+            await onAddBooking(b);
+            setShowBookingModal(false);
+            setNewSeduta({data:'',ora:'',tipo:'Forza base',durata:'60',note:''});
+            showToast('Seduta prenotata','success');
+          }}>{gT().save}</button>
         </div>
       </Modal>}
 
@@ -2244,9 +2295,9 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
                     {slot.map(b=>{
                       const pat=patients.find(x=>x.id===b.patientId);
                       return(
-                        <div key={b.id} style={{background:C.blue+'25',border:`1px solid ${C.blue}50`,borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
+                        <div key={b.id} style={{background:b.completed?C.green+'25':C.blue+'25',border:`1px solid ${b.completed?C.green+'50':C.blue+'50'}`,borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
                           onClick={function(){setViewBooking(b);}}>
-                          <div style={{fontSize:11,fontWeight:700,color:C.blue,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
+                          <div style={{fontSize:11,fontWeight:700,color:b.completed?C.green:C.blue,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.completed?'✅ ':''}{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
                           <div style={{fontSize:10,color:C.muted}}>{b.durata}' · {b.tipo}</div>
                         </div>
                       );
@@ -2270,10 +2321,10 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
               {dayBookings.map(function(b){
                 var pat=patients.find(function(x){return x.id===b.patientId;});
                 return(
-                  <div key={b.id} onClick={function(){setViewBooking(b);}} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:C.bg,borderRadius:8,cursor:'pointer',border:'1px solid '+C.border2}}>
-                    <div style={{fontSize:14,fontWeight:800,color:C.blue,minWidth:50}}>{b.ora||'--:--'}</div>
+                  <div key={b.id} onClick={function(){setViewBooking(b);}} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:b.completed?C.green+'15':C.bg,borderRadius:8,cursor:'pointer',border:'1px solid '+(b.completed?C.green+'50':C.border2)}}>
+                    <div style={{fontSize:14,fontWeight:800,color:b.completed?C.green:C.blue,minWidth:50}}>{b.ora||'--:--'}</div>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Cliente sconosciuto'}</div>
+                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{b.completed?'✅ ':''}{pat?pat.nome+' '+pat.cognome:'Cliente sconosciuto'}</div>
                       <div style={{fontSize:11,color:C.muted}}>{b.tipo} · {b.durata} min</div>
                     </div>
                   </div>
@@ -2877,7 +2928,7 @@ function AppInner({user,profile,trialLeft}){
           )}
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={async(b)=>{const ref=await db.collection('bookings').add(b);setBookings(bs=>[...bs,{...b,id:ref.id}]);}} onCompleteBooking={(bookingId)=>{db.collection('bookings').doc(bookingId).update({completed:true});setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
