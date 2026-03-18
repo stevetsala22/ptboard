@@ -111,6 +111,16 @@ const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
     return {ok:true};
   }catch(e){return {ok:false,err:String(e)};}
 };
+function askSendEmail({pat,subject,message,trainerProfile}){
+  if(!pat?.email)return;
+  const fromName=trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':'PT Board';
+  const toName=(pat.nome||'')+(pat.cognome?' '+pat.cognome:'');
+  showAskToast('📧 Notificare '+pat.nome+' via email?',async()=>{
+    const r=await sendEmail({toEmail:pat.email,toName,subject,message,fromName});
+    if(r.ok)showToast('Email inviata a '+pat.email,'success');
+    else showToast('Errore invio email','error');
+  });
+}
 // ── AI COACH ─────────────────────────────────────────────────────────────────
 const aiCoach=async(paziente)=>{
   const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
@@ -1046,11 +1056,13 @@ const S={
 let _toastDispatch=null;
 function showToast(msg,type='success',duration=4000){if(_toastDispatch)_toastDispatch({msg,type,duration});}
 function showConfirmToast(msg,action,duration=5000){if(_toastDispatch)_toastDispatch({msg,type:'confirm',action,duration});}
+function showAskToast(msg,onConfirm,duration=8000){if(_toastDispatch)_toastDispatch({msg,type:'ask',action:onConfirm,duration});}
 
 function ToastItem({item,onRemove}){
   const [exiting,setExiting]=React.useState(false);
   const [progress,setProgress]=React.useState(100);
   const isConfirm=item.type==='confirm';
+  const isAsk=item.type==='ask';
   const cancelled=React.useRef(false);
   React.useEffect(()=>{
     const start=Date.now();
@@ -1069,15 +1081,20 @@ function ToastItem({item,onRemove}){
     onRemove(item.id);
     showToast('Azione annullata','success');
   };
-  const bg=item.type==='error'?C.red:item.type==='warning'?'#f59e0b':item.type==='confirm'?'#f59e0b':C.green;
-  const icon=item.type==='error'?'✕':item.type==='warning'?'⚠':'✓';
+  const closeToast=()=>{setExiting(true);setTimeout(()=>onRemove(item.id),300);};
+  const bg=item.type==='error'?C.red:item.type==='warning'?'#f59e0b':item.type==='confirm'?'#f59e0b':isAsk?C.blue:C.green;
+  const icon=item.type==='error'?'✕':item.type==='warning'?'⚠':isAsk?'📧':'✓';
   return(
     <div style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,padding:'12px 16px',boxShadow:'0 8px 32px #0004',minWidth:260,maxWidth:360,animation:exiting?'fadeOut .3s ease forwards':'fadeInUp .3s ease',position:'relative',overflow:'hidden'}}>
       <div style={{display:'flex',alignItems:'center',gap:10}}>
         <div style={{width:28,height:28,borderRadius:'50%',background:bg+'20',border:`1px solid ${bg}40`,display:'flex',alignItems:'center',justifyContent:'center',color:bg,fontWeight:700,fontSize:14,flexShrink:0}}>{icon}</div>
         <div style={{flex:1,fontSize:13,color:C.text,lineHeight:1.4}}>{item.msg}</div>
         {isConfirm&&<button onClick={handleCancel} style={{background:'#ef444420',color:C.red,border:'1px solid #ef444440',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0}}>Annulla</button>}
-        {!isConfirm&&<button onClick={()=>{setExiting(true);setTimeout(()=>onRemove(item.id),300);}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:16,padding:'0 2px',lineHeight:1}}>✕</button>}
+        {isAsk&&<div style={{display:'flex',gap:6,flexShrink:0}}>
+          <button onClick={()=>{cancelled.current=true;closeToast();item.action();}} style={{background:C.blue,color:'#fff',border:'none',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer'}}>Invia</button>
+          <button onClick={()=>{cancelled.current=true;closeToast();}} style={{background:'transparent',color:C.muted,border:`1px solid ${C.border2}`,borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer'}}>No</button>
+        </div>}
+        {!isConfirm&&!isAsk&&<button onClick={closeToast} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:16,padding:'0 2px',lineHeight:1}}>✕</button>}
       </div>
       <div style={{position:'absolute',bottom:0,left:0,height:3,background:bg,width:progress+'%',transition:'width 50ms linear',borderRadius:'0 0 0 12px'}}/>
     </div>
@@ -1557,7 +1574,7 @@ ${(p.progressi||[]).length>1?`
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={onValuta}>
               <span style={{fontSize:18}}>📋</span><span>Valuta</span>
             </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
+            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);askSendEmail({pat:p,subject:'Il tuo programma personalizzato è pronto',message:'Ciao '+p.nome+',\n\nil tuo programma di allenamento personalizzato è stato creato!\n\nNel prossimo incontro lo vedremo insieme nel dettaglio.\n\nA presto!',trainerProfile});}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
               <span style={{fontSize:18}}>🤖</span><span>AI Coach</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={generaPDF}>
@@ -2045,6 +2062,7 @@ ${(p.progressi||[]).length>1?`
                             onUpdate({...p,log:(p.log||[]).concat([logEntry])});
                             onCompleteBooking(b.id);
                             showToast('Seduta registrata!','success');
+                            askSendEmail({pat:p,subject:'Riepilogo seduta',message:'Ciao '+p.nome+',\n\necco il riepilogo della tua seduta del '+b.data+':\n\n💪 Tipo: '+b.tipo+'\n⏱ Durata: '+b.durata+' min\n📊 Intensità (RPE): '+(+completingRpe||0)+'/10\n\nOttimo lavoro! A presto!',trainerProfile});
                             setCompletingId(null);
                           }}>Salva</button>
                           <button style={S.btn('ghost')} onClick={()=>setCompletingId(null)}>Annulla</button>
@@ -2155,6 +2173,7 @@ ${(p.progressi||[]).length>1?`
             setShowBookingModal(false);
             setNewSeduta({data:'',ora:'',tipo:'Forza base',durata:'60',note:''});
             showToast('Seduta prenotata','success');
+            askSendEmail({pat:p,subject:'Conferma prenotazione',message:'Ciao '+p.nome+',\n\nla tua seduta è confermata:\n\n📅 Data: '+newSeduta.data+'\n🕐 Ora: '+newSeduta.ora+'\n💪 Tipo: '+newSeduta.tipo+'\n⏱ Durata: '+(parseInt(newSeduta.durata)||60)+' min\n\nA presto!',trainerProfile});
           }}>{gT().save}</button>
         </div>
       </Modal>}
@@ -2249,10 +2268,13 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
   const hours=['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
 
   const saveBooking=()=>{
-    setBookings(prev=>[...prev,{...newB,id:'B'+Date.now()}]);
+    const bk={...newB,id:'B'+Date.now()};
+    setBookings(prev=>[...prev,bk]);
     setShowModal(false);
     setNewB({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
     setBTouched({});
+    const pat=patients.find(x=>x.id===newB.patientId);
+    if(pat)askSendEmail({pat,subject:'Conferma prenotazione',message:'Ciao '+pat.nome+',\n\nla tua seduta è confermata:\n\n📅 Data: '+newB.data+'\n🕐 Ora: '+newB.ora+'\n💪 Tipo: '+newB.tipo+'\n⏱ Durata: '+newB.durata+' min\n\nA presto!',trainerProfile});
   };
 
   return(
@@ -2368,7 +2390,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
                   {emailSending?'Invio...':'📧 Invia promemoria'}
                 </button>
               )}
-              <button onClick={function(){showConfirmToast('Annullare questo appuntamento? Verrà eliminato tra 5 secondi.',function(){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);});}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
+              <button onClick={function(){showConfirmToast('Annullare questo appuntamento? Verrà eliminato tra 5 secondi.',function(){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);if(pat)askSendEmail({pat,subject:'Appuntamento annullato',message:'Ciao '+pat.nome+',\n\nti informo che il tuo appuntamento del '+vb.data+' alle '+vb.ora+' è stato annullato.\n\nPer riprogrammare, contattami.\n\nA presto!',trainerProfile});});}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
             </div>
           </Modal>
         );
@@ -2952,6 +2974,7 @@ function AppInner({user,profile,trialLeft}){
             setShowValutazione(false);
             setSelectedId(id);setPage('detail');
           }
+          askSendEmail({pat:p,subject:'Valutazione completata',message:'Ciao '+p.nome+',\n\nla tua valutazione è stata completata con successo!\n\nProfilo fitness: '+(pr2?.code||'-')+'\nScore: '+(sc2?.score||'-')+'/100\n\nNel prossimo incontro ti illustrerò il programma personalizzato.\n\nA presto!',trainerProfile});
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
