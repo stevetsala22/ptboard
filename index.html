@@ -18,7 +18,7 @@ if(window.location.pathname==='/'||
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PT Board"/>
-<meta name="description" content="Gestione pazienti per Personal Trainer"/>
+<meta name="description" content="Gestione clienti per Personal Trainer"/>>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
@@ -114,7 +114,7 @@ const sendEmail=async({toEmail,toName,subject,message})=>{
 };
 // ── AI COACH ─────────────────────────────────────────────────────────────────
 const aiCoach=async(paziente)=>{
-  const prompt=`Sei un esperto personal trainer. Analizza questo profilo paziente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
+  const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
 PROFILO:
 - Nome: ${paziente.nome} ${paziente.cognome}
 - Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
@@ -131,7 +131,7 @@ Fornisci:
 2. 📅 Schema settimanale (giorni e tipo di allenamento)
 3. 💪 3 esercizi chiave con serie/reps
 4. 🥗 Consiglio nutrizionale rapido
-5. ⚠️ Precauzioni specifiche per questo paziente`;
+5. ⚠️ Precauzioni specifiche per questo cliente`;
   const res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -281,17 +281,17 @@ const exportCSV=(patients)=>{
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;a.download='pazienti_ptboard_'+fmtDate().replace(/\//g,'-')+'.csv';
+  a.href=url;a.download='clienti_ptboard_'+fmtDate().replace(/\//g,'-')+'.csv';
   a.click();URL.revokeObjectURL(url);
 };
 
 const LANGS={
   it:{flag:'🇮🇹',name:'Italiano',t:{
-    dashboard:'Dashboard',patients:'Pazienti',calendar:'Calendario',exercises:'Esercizi',
+    dashboard:'Dashboard',patients:'Clienti',calendar:'Calendario',exercises:'Esercizi',
     settings:'Parametri',theme:'Tema',dark:'Scuro',light:'Chiaro',account:'Account',
     logout:'Esci',language:'Lingua',
-    addPatient:'+ Nuovo paziente',search:'Cerca paziente...',
-    noPatients:'Non hai ancora pazienti.\nInizia con la Valutazione 20 min.',
+    addPatient:'+ Nuovo cliente',search:'Cerca cliente...',
+    noPatients:'Non hai ancora clienti.\nInizia con la Valutazione 20 min.',
     startVal:'🎯 Inizia Valutazione 20 min',addManual:'+ Aggiungi manualmente',
     save:'Salva',cancel:'Annulla',edit:'Modifica',delete:'Elimina',back:'Indietro',confirm:'Conferma',close:'Chiudi',
     exportPdf:'📄 Esporta PDF',exportCsv:'📊 Esporta Excel',
@@ -299,10 +299,10 @@ const LANGS={
     trialDays:'giorni rimasti',seePlans:'💎 Vedi piani',proPlan:'✅ Piano Pro attivo',
     valutazione:'Valutazione 20 min',tutorial:'Tutorial',recent:'Recenti',
     saved:'✓ Salvato',welcome:'Benvenuto in PT Board!',
-    noResult:'Nessun paziente trovato',admin:'👑 Admin',
-    totalPatients:'Pazienti',sessions:'Sedute',todayLabel:'Oggi',
+    noResult:'Nessun cliente trovato',admin:'👑 Admin',
+    totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
-    noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede paziente',
+    noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede cliente',
     noData:'Dati insufficienti',
     tabDash:'Dashboard',tabAna:'Anagrafica',tabTest:'Test',tabProg:'Programma',tabStorico:'Progressi',
     tabSchede:'Allenamento',tabNutri:'Nutrizione',tabLog:'Log',tabStats:'Statistiche',
@@ -313,7 +313,7 @@ const LANGS={
     secTrainingHistory:'Storico sedute',secWeightHistory:'Storico misurazioni',
     secWeightProgress:'Progressi peso',secTargetFC:'Target FC',secInfoClinica:'Info cliniche',
     secSchede:'Schede allenamento',secNoteVal:'Note valutazione',
-    fSurname:'Cognome',fName:'Nome',fEmail:'Email paziente',fBirth:'Data nascita',fGender:'Sesso',
+    fSurname:'Cognome',fName:'Nome',fEmail:'Email cliente',fBirth:'Data nascita',fGender:'Sesso',
     fHeight:'Altezza (cm)',fWeight:'Peso (kg)',fWaist:'Vita (cm)',fHips:'Fianchi (cm)',
     fPA:'PA riposo',fFC:'FC riposo (bpm)',fBMI:'BMI (auto)',
     fPath:'Patologie',fMeds:'Farmaci',fSymp:'Sintomi da sforzo',
@@ -327,7 +327,7 @@ const LANGS={
     profileCode:'Profilo',
     bmiUnder:'Sottopeso',bmiNormal:'Normopeso',bmiOver:'Sovrappeso',bmiOb1:'Obesità I',bmiOb2:'Obesità II+',
     calTitle:'Calendario appuntamenti',calNew:'+ Nuovo appuntamento',
-    calPat:'Paziente',calDate:'Data',calTime:'Ora',calDur:'Durata (min)',calType:'Tipo',calNote:'Note',
+    calPat:'Cliente',calDate:'Data',calTime:'Ora',calDur:'Durata (min)',calType:'Tipo',calNote:'Note',
     calStatus:'Stato',calConf:'Confermato',calPend:'In attesa',calCanc:'Annullato',
     exTitle:'Libreria Esercizi',exNew:'+ Nuovo esercizio',exName:'Nome',
     exCat:'Categoria',exDesc:'Descrizione / note tecniche',exMuscle:'Muscoli',
@@ -342,7 +342,7 @@ const LANGS={
     weightAdd:'+ Peso',weightDate:'Data misurazione',weightNote:'Nota',
     schedaNew:'+ Nuova scheda',schedaEmpty:'Nessuna scheda.',
     schedaSerie:'serie',schedaRip:'rip',schedaRec:'rec',schedaEsercizi:'esercizi',
-    newPatient:'Nuovo paziente',editPatient:'Modifica',
+    newPatient:'Nuovo cliente',editPatient:'Modifica',
     enterResults:'Inserire risultati test per calcolare il profilo',insertSts:'Inserire 6MWT + STS',
     capVeryLow:'⚠️ Capacità molto bassa',capMod:'📊 Capacità moderata',capGood:'✅ Buona capacità aerobica',
     strVeryLow:'⚠️ Forza molto ridotta',strMod:'📊 Forza moderata',strGood:'✅ Buona forza arti inferiori',
@@ -352,7 +352,7 @@ const LANGS={
     rip:'rip.',gad7Label:'GAD-7 Ansia',sleepLabel:'Sonno',motLabel:'Motivazione',
     slbLabel:'Single Leg Balance',tugLabel:'TUG',fcRecupLabel:'Recupero FC',
     pdfBackToApp:"← Torna all'app",pdfPrint:'🖨️ Stampa / Salva PDF',
-    pdfPatientSheet:'Scheda paziente',pdfGenerated:'Report generato il',
+    pdfPatientSheet:'Scheda cliente',pdfGenerated:'Report generato il',
     pdfActualWeight:'Peso attuale',pdfTargetWeight:'Peso target (BMI 24.9)',
     pdfBirthDate:'Data nascita',pdfGender:'Sesso',pdfHeight:'Altezza',
     pdfWaist:'Vita',pdfHips:'Fianchi',pdfPA:'PA',pdfFCRest:'FC riposo',
@@ -948,7 +948,7 @@ const interpMobAnca=(gradi)=>{
 const interpPARQ=(siCount)=>{
   if(siCount===''||siCount===null||siCount===undefined)return null;const v=+siCount;
   // PAR-Q+ 2020 guidelines
-  if(v===0)return{l:'Rischio basso — clearance OK',c:'#10b981',cons:'Nessuna risposta positiva al PAR-Q. Il paziente può iniziare un programma di attività fisica da lieve a moderata senza clearance medica aggiuntiva. Monitorare sintomi durante esercizio.'};
+  if(v===0)return{l:'Rischio basso — clearance OK',c:'#10b981',cons:'Nessuna risposta positiva al PAR-Q. Il cliente può iniziare un programma di attività fisica da lieve a moderata senza clearance medica aggiuntiva. Monitorare sintomi durante esercizio.'};
   if(v<=2)return{l:'Rischio moderato',c:'#f59e0b',cons:`${v} rispost${v===1?'a':'e'} positiv${v===1?'a':'e'} al PAR-Q. Consigliata clearance medica prima di attività vigorosa (>6 METs). Può procedere con attività leggera-moderata sotto supervisione. Adattare intensità e monitorare PA e FC durante esercizio.`};
   if(v<=4)return{l:'Rischio elevato',c:'#fb923c',cons:`${v} risposte positive al PAR-Q. Clearance medica obbligatoria prima di qualsiasi programma di esercizio. Iniziare solo dopo autorizzazione scritta del medico. Preferire attività supervisionata, bassa intensità, con monitoraggio costante.`};
   return{l:'Rischio alto — clearance medica obbligatoria',c:'#ef4444',cons:`⚠️ ${v} risposte positive al PAR-Q. NON iniziare esercizio senza clearance medica completa (ECG sforzo, visita cardiologica se indicato). Possibili controindicazioni assolute all'esercizio non supervisionato.`};
@@ -1008,7 +1008,7 @@ const INIT_EXERCISES=[
 ];
 
 const INIT_PATIENTS=[
-  {id:'P1',nome:'Marco',cognome:'Rossi',sesso:'M',annoNascita:1985,ddn:'1985-03-12',altezza:'178',peso:'82',vita:'88',fianchi:'96',pa:'130/80',fc:'72',patologie:'Ipertensione lieve',farmaci:'Ramipril 5mg',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'Perdita peso e miglioramento cardiovascolare',preferenze:'No corsa, preferisce camminata',stressPercepito:'Alto',sonno:'6',dataValutazione:'2025-01-15',test:{mwtDist:'220',mwtRpe:'7',mwtSintomi:'Affaticamento',stsRip:'6',stsNote:'Difficoltà a rialzarsi',noteVal:'Paziente decondizionato'},programma:{dataInizio:'2025-01-20',sedute:'3',minCardio:'60',minForza:'40',cardio:'Camminata',forza:'Corpo libero',note:'Avvio graduale'},nutrizione:{kcal:'1600',proteine:'128',carboidrati:'160',grassi:'53',note:'Ridurre sodio',pianoPasti:''},progressi:[{data:'2025-01-15',peso:82,nota:'Inizio'},{data:'2025-02-15',peso:80.5,nota:'Buon progresso'},{data:'2025-03-10',peso:79,nota:'-3kg totali'}],schede:[],log:[{id:1,data:'2025-02-01',tipo:'Cardio',durata:30,rpe:6,note:'Camminata 2km'},{id:2,data:'2025-02-08',tipo:'Forza',durata:40,rpe:5,note:'Circuito corpo libero'}],createdAt:'2025-01-15'},
+  {id:'P1',nome:'Marco',cognome:'Rossi',sesso:'M',annoNascita:1985,ddn:'1985-03-12',altezza:'178',peso:'82',vita:'88',fianchi:'96',pa:'130/80',fc:'72',patologie:'Ipertensione lieve',farmaci:'Ramipril 5mg',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'Perdita peso e miglioramento cardiovascolare',preferenze:'No corsa, preferisce camminata',stressPercepito:'Alto',sonno:'6',dataValutazione:'2025-01-15',test:{mwtDist:'220',mwtRpe:'7',mwtSintomi:'Affaticamento',stsRip:'6',stsNote:'Difficoltà a rialzarsi',noteVal:'Cliente decondizionato'},programma:{dataInizio:'2025-01-20',sedute:'3',minCardio:'60',minForza:'40',cardio:'Camminata',forza:'Corpo libero',note:'Avvio graduale'},nutrizione:{kcal:'1600',proteine:'128',carboidrati:'160',grassi:'53',note:'Ridurre sodio',pianoPasti:''},progressi:[{data:'2025-01-15',peso:82,nota:'Inizio'},{data:'2025-02-15',peso:80.5,nota:'Buon progresso'},{data:'2025-03-10',peso:79,nota:'-3kg totali'}],schede:[],log:[{id:1,data:'2025-02-01',tipo:'Cardio',durata:30,rpe:6,note:'Camminata 2km'},{id:2,data:'2025-02-08',tipo:'Forza',durata:40,rpe:5,note:'Circuito corpo libero'}],createdAt:'2025-01-15'},
   {id:'P2',nome:'Giulia',cognome:'Bianchi',sesso:'F',annoNascita:1992,ddn:'1992-07-24',altezza:'165',peso:'58',vita:'68',fianchi:'92',pa:'115/70',fc:'65',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'Lattosio',attivita:'Attiva',obiettivo:'Tonificazione e forza',preferenze:'Pesi e funzionale',stressPercepito:'Basso',sonno:'8',dataValutazione:'2025-02-01',test:{mwtDist:'580',mwtRpe:'3',mwtSintomi:'Nessuno',stsRip:'22',stsNote:'Ottima tecnica',handgrip:'30',tugSec:'7',noteVal:'Atleta ricreativa'},programma:{dataInizio:'2025-02-05',sedute:'5',minCardio:'120',minForza:'90',cardio:'HIIT + LISS',forza:'Upper/Lower split',note:'Progressione carico'},nutrizione:{kcal:'2000',proteine:'140',carboidrati:'220',grassi:'65',note:'',pianoPasti:''},progressi:[{data:'2025-02-01',peso:58,nota:'Inizio'},{data:'2025-03-01',peso:57.5,nota:'Stabile'}],schede:[],log:[{id:1,data:'2025-02-10',tipo:'Forza',durata:60,rpe:7,note:'Upper body'},{id:2,data:'2025-02-12',tipo:'Cardio',durata:45,rpe:6,note:'HIIT 30/30'},{id:3,data:'2025-02-17',tipo:'Forza',durata:55,rpe:8,note:'Lower body PR squat'}],createdAt:'2025-02-01'},
   {id:'P3',nome:'Antonio',cognome:'Ferrara',sesso:'M',annoNascita:1978,ddn:'1978-11-05',altezza:'175',peso:'90',vita:'98',fianchi:'100',pa:'135/85',fc:'78',patologie:'Diabete tipo 2',farmaci:'Metformina 850mg',sintomiSforzo:'NO',allergie:'',attivita:'Poco attiva',obiettivo:'Controllo glicemia e perdita peso',preferenze:'Niente impatto alto',stressPercepito:'Medio',sonno:'7',dataValutazione:'2025-01-20',test:{mwtDist:'420',mwtRpe:'5',mwtSintomi:'Lieve dispnea',stsRip:'12',stsNote:'Nella norma',handgrip:'38',tugSec:'10',noteVal:'Forma discreta, da migliorare'},programma:{dataInizio:'2025-01-25',sedute:'4',minCardio:'100',minForza:'60',cardio:'Bike e camminata veloce',forza:'Circuit training',note:'Monitorare glicemia pre/post'},nutrizione:{kcal:'1800',proteine:'144',carboidrati:'180',grassi:'60',note:'Basso indice glicemico',pianoPasti:''},progressi:[{data:'2025-01-20',peso:90,nota:'Inizio'},{data:'2025-02-20',peso:88,nota:'-2kg'},{data:'2025-03-10',peso:86.5,nota:'Glicemia migliorata'}],schede:[],log:[{id:1,data:'2025-02-01',tipo:'Cardio',durata:35,rpe:5,note:'Bike 30min'},{id:2,data:'2025-02-05',tipo:'Forza',durata:45,rpe:6,note:'Circuito 3 giri'}],createdAt:'2025-01-20'},
   {id:'P4',nome:'Sara',cognome:'Conti',sesso:'F',annoNascita:1968,ddn:'1968-04-18',altezza:'160',peso:'72',vita:'85',fianchi:'102',pa:'140/90',fc:'80',patologie:'Artrosi ginocchio dx, osteoporosi',farmaci:'Vitamina D, Calcio',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'Mobilità e prevenzione cadute',preferenze:'Esercizi dolci, no salti',stressPercepito:'Alto',sonno:'5.5',dataValutazione:'2025-02-10',test:{mwtDist:'180',mwtRpe:'8',mwtSintomi:'Dolore ginocchio',stsRip:'4',stsNote:'Difficoltà marcata',handgrip:'15',tugSec:'18',noteVal:'Alto rischio cadute, necessita supervisione'},programma:{dataInizio:'2025-02-15',sedute:'3',minCardio:'45',minForza:'30',cardio:'Camminata lenta',forza:'Da seduto',note:'Supervisione costante'},nutrizione:{kcal:'1500',proteine:'110',carboidrati:'150',grassi:'50',note:'Aumentare proteine e calcio',pianoPasti:''},progressi:[{data:'2025-02-10',peso:72,nota:'Inizio'},{data:'2025-03-10',peso:71.5,nota:'Leggero calo'}],schede:[],log:[{id:1,data:'2025-02-20',tipo:'Mobilità',durata:25,rpe:4,note:'Esercizi da seduta'}],createdAt:'2025-02-10'},
@@ -1213,7 +1213,50 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
         <StatCard label={T.todayLabel} value={todayBookings.length} color={C.purple} icon="📅" delay={0.1} onClick={onNavigate?function(){onNavigate('calendar');}:undefined}/>
         <StatCard label={nextApptLabel} value={nextApptVal} color={C.cyan} icon="⏰" delay={0.15} sub={nextApptSub}/>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?10:14}}>
+      {(()=>{
+        const now=new Date();
+        const msDay=86400000;
+        const parseDate=s=>{if(!s)return null;const p=s.split('/');if(p.length===3)return new Date(+p[2],+p[1]-1,+p[0]);return null;};
+        const inRange=(s,daysAgo,daysAgoEnd=0)=>{const d=parseDate(s);if(!d)return false;const diff=(now-d)/msDay;return diff>=daysAgoEnd&&diff<daysAgo;};
+        const active=patients.filter(p=>(p.log||[]).some(l=>inRange(l.data,30)));
+        const totalSedute30=patients.reduce((a,p)=>a+(p.log||[]).filter(l=>inRange(l.data,30)).length,0);
+        const mediaSedute=active.length?+(totalSedute30/active.length).toFixed(1):null;
+        const retention=patients.length?Math.round(active.length/patients.length*100):null;
+        const sedute7=patients.reduce((a,p)=>a+(p.log||[]).filter(l=>inRange(l.data,7)).length,0);
+        const sedute714=patients.reduce((a,p)=>a+(p.log||[]).filter(l=>inRange(l.data,14,7)).length,0);
+        const arrow=sedute7>sedute714?{s:'↑',c:C.green}:sedute7<sedute714?{s:'↓',c:C.red}:{s:'=',c:C.yellow};
+        const prossimi7=bookings.filter(b=>{const d=b.data?new Date(b.data):null;if(!d)return false;const diff=(d-now)/msDay;return diff>=0&&diff<7;}).length;
+        const noData=patients.length===0||patients.every(p=>!(p.log?.length));
+        // Dati grafico ultime 8 settimane
+        const weekData=Array.from({length:8},(_,i)=>{
+          const daysAgo=(7-i)*7;const daysAgoEnd=(7-i-1)*7;
+          const count=patients.reduce((a,p)=>a+(p.log||[]).filter(l=>inRange(l.data,daysAgo,daysAgoEnd)).length,0);
+          const weekStart=new Date(now-(daysAgo-1)*msDay);
+          const label=(weekStart.getDate())+' '+(weekStart.toLocaleString('it-IT',{month:'short'}));
+          return{x:label,y:count};
+        });
+        return(
+          <div style={{...S.card,marginTop:14}}>
+            <div style={S.st}>📊 Metriche Business</div>
+            {noData?(
+              <div style={{textAlign:'center',padding:'24px 0',color:C.muted,fontSize:13}}>📈 Inizia ad aggiungere sedute per vedere le metriche</div>
+            ):(
+              <>
+                <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:isMobile?8:12,marginBottom:16}}>
+                  <StatCard label="Clienti attivi" value={active.length+' / '+patients.length} color={C.blue} icon="👥" delay={0}/>
+                  <StatCard label="Media sedute/mese" value={mediaSedute!==null?mediaSedute:'—'} color={C.green} icon="📋" delay={0.05}/>
+                  <StatCard label="Retention %" value={retention!==null?retention+'%':'—'} color={C.purple} icon="🔄" delay={0.1}/>
+                  <StatCard label="Sedute settimana" value={<span>{sedute7} <span style={{color:arrow.c,fontWeight:800,fontSize:13}}>{arrow.s}</span></span>} color={C.cyan} icon="💪" delay={0.15}/>
+                  <StatCard label="Prossimi 7gg" value={prossimi7} color={C.orange} icon="📅" delay={0.2}/>
+                </div>
+                <div style={S.st}>Sedute per settimana</div>
+                <BarChartComp data={weekData} color={C.blue}/>
+              </>
+            )}
+          </div>
+        );
+      })()}
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?10:14,marginTop:14}}>
         <div style={S.card}>
           <div style={S.st}>{T.appointmentsToday}</div>
           {todayBookings.length===0&&<div style={{textAlign:'center',padding:'20px 0'}}><div style={{fontSize:36,marginBottom:8}}>&#9728;&#65039;</div><div style={{color:C.muted,fontSize:13,lineHeight:1.6}}>Nessun appuntamento oggi.<br/>Goditi la pausa!</div></div>}
@@ -1397,7 +1440,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
 <div class="header">
   <div>
     ${trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;max-width:160px;object-fit:contain;display:block;margin-bottom:${trainerProfile?.nomeStudio?4:8}px"/>${trainerProfile?.nomeStudio?`<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${esc(trainerProfile.nomeStudio)}</div>`:''}`:`<div class="brand">PT Board <small></small></div>`}
-    <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda paziente · ${fmtDate()}</div>
+    <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda cliente · ${fmtDate()}</div>
   </div>
   <div style="text-align:right">
     <div class="patient-name">${esc(p.nome)} ${esc(p.cognome)}</div>
@@ -1492,7 +1535,7 @@ ${(p.progressi||[]).length>1?`
 
   return(
     <div style={{animation:'fadeInUp .3s ease'}}>
-      {/* Header paziente */}
+      {/* Header cliente */}
       {isMobile?(
         <div style={{marginBottom:14}}>
           {/* Riga 1: indietro + nome + profilo */}
@@ -1540,8 +1583,8 @@ ${(p.progressi||[]).length>1?`
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onValuta}>📋 Valuta ora</button><span className="tp">Avvia nuova valutazione</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={generaPDF}>📄 Report PDF</button><span className="tp">Scarica report completo</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button><span className="tp">Genera programma con intelligenza artificiale</span></div>
-          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onEdit}>✏ {T.edit}</button><span className="tp">Modifica paziente</span></div>
-          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onDelete}>🗑</button><span className="tp">Elimina paziente definitivamente</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onEdit}>✏ {T.edit}</button><span className="tp">Modifica cliente</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onDelete}>🗑</button><span className="tp">Elimina cliente definitivamente</span></div>
         </div>
       )}
 
@@ -2041,7 +2084,7 @@ ${(p.progressi||[]).length>1?`
                 📅 Schema settimanale completo<br/>
                 💪 Esercizi con serie e ripetizioni<br/>
                 🥗 Consigli nutrizionali<br/>
-                ⚠️ Precauzioni per il paziente
+                ⚠️ Precauzioni per il cliente
               </div>
               <button onClick={()=>{setShowAI(false);onUpgrade();}} style={{marginTop:8,padding:'12px 28px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#7c3aed,#3b82f6)',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                 💎 Passa al piano Pro
@@ -2139,7 +2182,7 @@ function CalendarView({patients,bookings,setBookings,T}){
   const touchB=n=>setBTouched(t=>({...t,[n]:true}));
   const bErr=field=>{
     if(!bTouched[field])return null;
-    if(field==='patientId'&&!newB.patientId)return'Seleziona un paziente';
+    if(field==='patientId'&&!newB.patientId)return'Seleziona un cliente';
     if(field==='data'&&!newB.data)return'Data obbligatoria';
     if(field==='ora'&&!newB.ora)return'Ora obbligatoria';
     return null;
@@ -2229,7 +2272,7 @@ function CalendarView({patients,bookings,setBookings,T}){
                   <div key={b.id} onClick={function(){setViewBooking(b);}} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:C.bg,borderRadius:8,cursor:'pointer',border:'1px solid '+C.border2}}>
                     <div style={{fontSize:14,fontWeight:800,color:C.blue,minWidth:50}}>{b.ora||'--:--'}</div>
                     <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Paziente sconosciuto'}</div>
+                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Cliente sconosciuto'}</div>
                       <div style={{fontSize:11,color:C.muted}}>{b.tipo} · {b.durata} min</div>
                     </div>
                   </div>
@@ -2248,7 +2291,7 @@ function CalendarView({patients,bookings,setBookings,T}){
               <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <div style={{width:40,height:40,borderRadius:10,background:C.blue+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>👤</div>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Paziente sconosciuto'}</div>
+                  <div style={{fontSize:15,fontWeight:700,color:C.strong}}>{pat?pat.nome+' '+pat.cognome:'Cliente sconosciuto'}</div>
                   <div style={{fontSize:12,color:C.muted}}>{pat?.id||''}</div>
                 </div>
               </div>
@@ -2269,7 +2312,7 @@ function CalendarView({patients,bookings,setBookings,T}){
       {showModal&&(
         <Modal title="Nuova prenotazione" onClose={()=>setShowModal(false)}>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'}].concat(patients.map(p=>({v:p.id,l:p.nome+' '+p.cognome})))} onBlur={()=>touchB('patientId')} error={bErr('patientId')}/>
+            <FF label="Cliente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona cliente --'}].concat(patients.map(p=>({v:p.id,l:p.nome+' '+p.cognome})))} onBlur={()=>touchB('patientId')} error={bErr('patientId')}/>
             <div style={S.grid(2)}>
               <FF label="Data" name="data" type="date" value={newB.data} onChange={e=>setNewB(f=>({...f,data:e.target.value}))} onBlur={()=>touchB('data')} error={bErr('data')}/>
               <FF label="Ora" name="ora" type="time" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))} onBlur={()=>touchB('ora')} error={bErr('ora')}/>
@@ -2282,7 +2325,7 @@ function CalendarView({patients,bookings,setBookings,T}){
             <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{gT().cancel}</button>
             <div className="tt">
               <button style={{...S.btn(),...(!canBook?{opacity:0.5,cursor:'not-allowed'}:{})}} onClick={()=>{if(canBook)saveBooking();else{touchB('patientId');touchB('data');touchB('ora');}}}>Prenota</button>
-              {!canBook&&<span className="tp">Compila paziente, data e ora</span>}
+              {!canBook&&<span className="tp">Compila cliente, data e ora</span>}
             </div>
           </div>
         </Modal>
@@ -2352,7 +2395,7 @@ function ExercisesPage({exercises,setExercises,T}){
   );
 }
 
-// ── FORM PAZIENTE ─────────────────────────────────────────────────────────────
+// ── FORM CLIENTE ─────────────────────────────────────────────────────────────
 function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   const [form,setForm]=useState(initial);
   const [touched,setTouched]=useState({});
@@ -2378,7 +2421,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   return(
     <div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
-        <h1 style={{fontSize:18,fontWeight:800,color:C.strong}}>{isNew?'Nuovo paziente':`Modifica — ${form.nome} ${form.cognome}`}</h1>
+        <h1 style={{fontSize:18,fontWeight:800,color:C.strong}}>{isNew?'Nuovo cliente':`Modifica — ${form.nome} ${form.cognome}`}</h1>
         <div style={{display:'flex',gap:8}}>
           <button style={S.btn('ghost')} onClick={onCancel}>{gT().cancel}</button>
           <div className="tt">
@@ -2404,7 +2447,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
             <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd} required onBlur={()=>touch('cognome')} error={fmtErr('cognome')}/>
             <FF label="Nome *" name="nome" value={form.nome} onChange={upd} required onBlur={()=>touch('nome')} error={fmtErr('nome')}/>
-            <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici" onBlur={()=>touch('email')} error={fmtErr('email')}/>
+            <FF label="Email cliente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici" onBlur={()=>touch('email')} error={fmtErr('email')}/>
             <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA" onBlur={()=>touch('ddn')} error={fmtErr('ddn')}/>
             <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
             <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
@@ -2641,8 +2684,8 @@ function AppInner({user,profile,trialLeft}){
 
   const navItems=[
     {id:'home',icon:'🏠',l:'Home',tip:'Torna alla home'},
-    {id:'dash',icon:'⊞',l:T.dashboard,tip:'Panoramica pazienti e statistiche'},
-    {id:'patients',icon:'👥',l:T.patients,tip:'Gestisci lista pazienti'},
+    {id:'dash',icon:'⊞',l:T.dashboard,tip:'Panoramica clienti e statistiche'},
+    {id:'patients',icon:'👥',l:T.patients,tip:'Gestisci lista clienti'},
     {id:'calendar',icon:'📅',l:T.calendar,tip:'Prenota e gestisci appuntamenti'},
     {id:'exercises',icon:'🏋',l:T.exercises,tip:'Libreria esercizi'},
   ];
@@ -2686,7 +2729,7 @@ function AppInner({user,profile,trialLeft}){
             <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
               <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione</span>
             </button>
-            <span className="tp">Avvia nuova valutazione paziente</span>
+            <span className="tp">Avvia nuova valutazione cliente</span>
           </div>
           <div style={S.navlbl}>{T.recent}</div>
           {patients.slice(-5).reverse().map(p=>(
@@ -2801,16 +2844,16 @@ function AppInner({user,profile,trialLeft}){
               <div style={{textAlign:'center',marginBottom:32}}>
                 <div style={{fontSize:40,marginBottom:12}}>👋</div>
                 <h1 style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,margin:0}}>{T.welcome}</h1>
-                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>Gestisci pazienti, valutazioni e allenamenti in un unico posto.</p>
+                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>Gestisci clienti, valutazioni e allenamenti in un unico posto.</p>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 <button onClick={()=>setShowValutazione(true)} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#3b82f620,#10b98115)',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>🎯</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>Valutazione 20 min</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Crea un nuovo paziente con il wizard guidato</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>Valutazione 20 min</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Crea un nuovo cliente con il wizard guidato</div></div>
                 </button>
                 <button onClick={()=>setPage('patients')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>👥</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>I miei pazienti</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Vedi la lista completa e le schede</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>I miei clienti</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Vedi la lista completa e le schede</div></div>
                 </button>
                 <button onClick={()=>setPage('dash')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>📊</span>
@@ -3095,7 +3138,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
     if(!prog||!pr)return;
     const rows=[
       ['PT Board — Valutazione Base 20 min',''],['Data',fmtDate()],[''],
-      ['PAZIENTE',''],['Cognome',d.cognome],['Nome',d.nome],['Data nascita',d.ddn],['Sesso',d.sesso],
+      ['CLIENTE',''],['Cognome',d.cognome],['Nome',d.nome],['Data nascita',d.ddn],['Sesso',d.sesso],
       ['Altezza cm',d.altezza],['Peso kg',d.peso],['Vita cm',d.vita],['PA',d.pa],['FC riposo bpm',d.fc],
       ['FC max bpm',fcMax||''],['BMI',bmiVal||''],['Categoria BMI',bmiLbl],['Peso target kg',pesoTarget||''],
       ['Patologie',d.patologie],['Farmaci',d.farmaci],['Attività',d.attivita],['Obiettivo',d.obiettivo],[''],
@@ -3126,7 +3169,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
           <div style={{padding:isMobile?'24px 16px':'40px 32px',overflowY:'auto',flex:1}}>
             <div style={{textAlign:'center',marginBottom:40}}>
               <div style={{fontSize:24,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>Seleziona il tipo di valutazione</div>
-              <div style={{fontSize:14,color:C.muted,marginTop:8}}>Scegli in base al tempo disponibile e al livello del paziente</div>
+              <div style={{fontSize:14,color:C.muted,marginTop:8}}>Scegli in base al tempo disponibile e al livello del cliente</div>
             </div>
             <div style={{display:'flex',gap:24,justifyContent:'center',flexDirection:isMobile?'column':'row',alignItems:'stretch'}}>
               {/* Card Base */}
@@ -3159,9 +3202,9 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   <div style={{fontSize:18,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>Solo Anagrafica</div>
                   <span style={{background:C.green+'20',color:C.green,fontSize:11,borderRadius:100,padding:'4px 12px',fontWeight:600}}>~3 minuti</span>
                 </div>
-                <div style={{fontSize:12,color:C.muted}}>Registra il paziente senza test. Aggiungi i test in seguito dalla scheda paziente.</div>
+                <div style={{fontSize:12,color:C.muted}}>Registra il cliente senza test. Aggiungi i test in seguito dalla scheda cliente.</div>
               </div>
-              <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',whiteSpace:'nowrap'}}>Registra Paziente &#8594;</button>
+              <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',whiteSpace:'nowrap'}}>Registra Cliente &#8594;</button>
             </div>
             {/* Close button */}
             <div style={{textAlign:'center',marginTop:32}}>
@@ -3174,7 +3217,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
         <div style={{padding:isMobile?'12px 16px':'18px 22px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:isMobile?8:12,flexShrink:0}}>
           {!isMobile&&<div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:'1px solid '+C.blue+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>&#127919;</div>}
           <div style={{flex:1}}>
-            <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?'Passo '+(stepIdx+1)+' di '+TOTAL:'Valutazione Paziente'}</div>
+            <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?'Passo '+(stepIdx+1)+' di '+TOTAL:'Valutazione Cliente'}</div>
             <div style={{display:'flex',alignItems:'center',gap:6}}>
               <span style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?curTitles[stepIdx]:'Passo '+(stepIdx+1)+' di '+TOTAL+' \u00B7 '+curTitles[stepIdx]}</span>
               <span style={{fontSize:11,fontWeight:600,background:(wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green)+'15',color:wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green,padding:'3px 10px',borderRadius:100}}>{wizardType==='base'?'\u26A1 Base':wizardType==='completa'?'\uD83D\uDD2C Completa':'\uD83D\uDCCB Anagrafica'}</span>
@@ -3921,7 +3964,7 @@ function PaywallScreen({user,profile,blocked}){
         <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:16,padding:28,marginBottom:20}}>
           <div style={{fontSize:13,color:'#3b82f6',fontWeight:700,marginBottom:6}}>PT Board Pro</div>
           <div style={{fontSize:36,fontWeight:900,color:'#f8fafc',marginBottom:4}}>€19<span style={{fontSize:16,color:'#64748b'}}>/mese</span></div>
-          <div style={{fontSize:12,color:'#64748b',marginBottom:20}}>Pazienti illimitati · Sync cloud · Aggiornamenti inclusi</div>
+          <div style={{fontSize:12,color:'#64748b',marginBottom:20}}>Clienti illimitati · Sync cloud · Aggiornamenti inclusi</div>
           <a href={PAYPAL_PRO} target="_blank" style={{display:'block',padding:'14px',borderRadius:10,background:'#3b82f6',color:'#fff',fontSize:15,fontWeight:700,textDecoration:'none',marginBottom:10}}>
             💳 Paga con PayPal · Apple Pay · Google Pay
           </a>
@@ -3979,11 +4022,11 @@ function PianiModal({onClose,profile}){
       sub:'30 giorni di prova',
       color:'#64748b',
       features:[
-        '✅ Fino a 5 pazienti',
+        '✅ Fino a 5 clienti',
         '✅ Valutazione 20 min',
         '✅ Calendario appuntamenti',
         '✅ Sync cloud',
-        '❌ Pazienti illimitati',
+        '❌ Clienti illimitati',
         '❌ Export PDF',
         '❌ Aggiornamenti prioritari',
       ],
@@ -3998,7 +4041,7 @@ function PianiModal({onClose,profile}){
       color:'#3b82f6',
       badge:'⭐ Più popolare',
       features:[
-        '✅ Pazienti illimitati',
+        '✅ Clienti illimitati',
         '✅ Valutazione 20 min completa',
         '✅ Calendario + promemoria',
         '✅ Sync cloud multi-dispositivo',
@@ -4229,7 +4272,7 @@ function AuthScreen({onProfileReady}){
       <div style={{width:'100%',maxWidth:400}}>
         <div style={{textAlign:'center',marginBottom:32}}>
           <div style={{fontSize:32,fontWeight:900,color:'#3b82f6',marginBottom:6}}>PT Board</div>
-          <div style={{fontSize:13,color:'#64748b'}}>Gestione pazienti per Personal Trainer</div>
+          <div style={{fontSize:13,color:'#64748b'}}>Gestione clienti per Personal Trainer</div>
         </div>
         <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:28}}>
           {mode!=='reset'&&(
@@ -4266,18 +4309,18 @@ function AuthScreen({onProfileReady}){
 }
 
 const TSTEPS=[
-  {label:'Benvenuto',time:'1 min',bc:'#3b82f630',bct:'#60a5fa',badge:'Introduzione',title:'Benvenuto in PT Board 👋',desc:'Il tuo strumento completo per gestire pazienti, valutazioni, allenamenti e molto altro. Ecco le 5 cose più importanti da sapere.',
+  {label:'Benvenuto',time:'1 min',bc:'#3b82f630',bct:'#60a5fa',badge:'Introduzione',title:'Benvenuto in PT Board 👋',desc:'Il tuo strumento completo per gestire clienti, valutazioni, allenamenti e molto altro. Ecco le 5 cose più importanti da sapere.',
   html:`<div style="display:flex;flex-direction:column;gap:10px">
-    ${[['🥇','Valutazione 20 min','Il cuore dell\'app. Inizia sempre da qui con ogni nuovo paziente — anagrafica, test, profilo e programma pronto in un clic.','#3b82f6'],['🥈','Scheda paziente','Dopo la valutazione trovi tutto: log sedute, peso, programma, nutrizione, AI Coach e report PDF.','#10b981'],['🥉','Calendario','Prenota appuntamenti e invia promemoria email automatici ai pazienti.','#f59e0b'],['4️⃣','AI Coach','Nella scheda paziente — genera un programma personalizzato con l\'AI in pochi secondi.','#7c3aed'],['5️⃣','Dashboard','Panoramica rapida: pazienti del giorno, appuntamenti, progressi peso.','#64748b']].map(([n,t,d,c])=>`
+    ${[['🥇','Valutazione 20 min','Il cuore dell\'app. Inizia sempre da qui con ogni nuovo cliente — anagrafica, test, profilo e programma pronto in un clic.','#3b82f6'],['🥈','Scheda cliente','Dopo la valutazione trovi tutto: log sedute, peso, programma, nutrizione, AI Coach e report PDF.','#10b981'],['🥉','Calendario','Prenota appuntamenti e invia promemoria email automatici ai clienti.','#f59e0b'],['4️⃣','AI Coach','Nella scheda cliente — genera un programma personalizzato con l\'AI in pochi secondi.','#7c3aed'],['5️⃣','Dashboard','Panoramica rapida: clienti del giorno, appuntamenti, progressi peso.','#64748b']].map(([n,t,d,c])=>`
     <div style="display:flex;gap:12px;align-items:flex-start;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
       <div style="font-size:22px;flex-shrink:0">${n}</div>
       <div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">${t}</div><div style="font-size:11px;color:#94a3b8;line-height:1.6">${d}</div></div>
     </div>`).join('')}
   </div>`},
 
-  {label:'🎯 Valutazione 20 min',time:'Funzione principale',bc:'#fb923c30',bct:'#fb923c',badge:'⭐ Più importante',title:'Inizia sempre da qui',desc:'La Valutazione 20 min è il flusso principale. In 6 passi guidati crei il profilo completo del paziente con programma pronto.',
+  {label:'🎯 Valutazione 20 min',time:'Funzione principale',bc:'#fb923c30',bct:'#fb923c',badge:'⭐ Più importante',title:'Inizia sempre da qui',desc:'La Valutazione 20 min è il flusso principale. In 6 passi guidati crei il profilo completo del cliente con programma pronto.',
   html:`<div style="display:flex;flex-direction:column;gap:8px">
-    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il paziente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Forma Bassa / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
+    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il cliente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Forma Bassa / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
     <div style="display:flex;gap:10px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:11px 14px">
       <div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${n}</div>
       <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b;margin-top:1px">${d}</div></div>
@@ -4288,7 +4331,7 @@ const TSTEPS=[
     </div>
   </div>`},
 
-  {label:'📋 Scheda paziente',time:'Uso quotidiano',bc:'#10b98130',bct:'#2dd4bf',badge:'Uso quotidiano',title:'La scheda paziente — tutto in un posto',desc:'Dopo la valutazione ogni paziente ha una scheda completa con 8 sezioni. Accedici dalla lista Pazienti.',
+  {label:'📋 Scheda cliente',time:'Uso quotidiano',bc:'#10b98130',bct:'#2dd4bf',badge:'Uso quotidiano',title:'La scheda cliente — tutto in un posto',desc:'Dopo la valutazione ogni cliente ha una scheda completa con 8 sezioni. Accedici dalla lista Clienti.',
   html:`<div style="display:flex;flex-direction:column;gap:8px">
     ${[['⊞','Dashboard','KPI principali: peso, BMI, profilo, sedute'],['👤','Anagrafica','Dati clinici, patologie, farmaci'],['🏃','Test','Risultati 6MWT e Sit-to-Stand con storico'],['📅','Programma','4 settimane pronte — modifica se vuoi'],['💪','Allenamento','Log sedute: tipo, durata, RPE, note'],['🥗','Nutrizione','Kcal, macros, piano pasti personalizzato'],['📊','Log','Storico completo di tutte le sedute'],['📈','Statistiche','Grafici peso e performance nel tempo']].map(([ic,t,d])=>`
     <div style="display:flex;gap:10px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px">
@@ -4300,11 +4343,11 @@ const TSTEPS=[
     </div>
   </div>`},
 
-  {label:'📅 Calendario & Email',time:'Appuntamenti',bc:'#f59e0b30',bct:'#fbbf24',badge:'Gestione agenda',title:'Calendario e promemoria automatici',desc:'Prenota appuntamenti e invia promemoria email ai pazienti con un tocco. Configura EmailJS una volta sola.',
+  {label:'📅 Calendario & Email',time:'Appuntamenti',bc:'#f59e0b30',bct:'#fbbf24',badge:'Gestione agenda',title:'Calendario e promemoria automatici',desc:'Prenota appuntamenti e invia promemoria email ai clienti con un tocco. Configura EmailJS una volta sola.',
   html:`<div style="display:flex;flex-direction:column;gap:12px">
     <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:10px">Come prenotare</div>
-      ${[['1','Vai su 📅 Calendario nel menu'],['2','Tocca + Prenota in alto a destra'],['3','Scegli paziente, data, ora e tipo seduta'],['4','Salva — appare subito nel calendario']].map(([n,t])=>`
+      ${[['1','Vai su 📅 Calendario nel menu'],['2','Tocca + Prenota in alto a destra'],['3','Scegli cliente, data, ora e tipo seduta'],['4','Salva — appare subito nel calendario']].map(([n,t])=>`
       <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
         <div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div>
         <div style="font-size:12px;color:#e2e8f0">${t}</div>
@@ -4312,8 +4355,8 @@ const TSTEPS=[
     </div>
     <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:10px">📧 Promemoria email automatici</div>
-      <div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:8px">Tocca un appuntamento nel calendario → scegli <strong style="color:#fff">Invia promemoria</strong> → il paziente riceve l'email automaticamente da PT Board.</div>
-      <div style="background:#10b98112;border:1px solid #10b98130;border-radius:7px;padding:9px 12px;font-size:11px;color:#6ee7b7">💡 Aggiungi l'email del paziente nella sua anagrafica per attivare i promemoria</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:8px">Tocca un appuntamento nel calendario → scegli <strong style="color:#fff">Invia promemoria</strong> → il cliente riceve l'email automaticamente da PT Board.</div>
+      <div style="background:#10b98112;border:1px solid #10b98130;border-radius:7px;padding:9px 12px;font-size:11px;color:#6ee7b7">💡 Aggiungi l'email del cliente nella sua anagrafica per attivare i promemoria</div>
     </div>
   </div>`},
 
@@ -4321,8 +4364,8 @@ const TSTEPS=[
   html:`<div style="display:flex;flex-direction:column;gap:12px">
     <div style="background:#7c3aed15;border:2px solid #7c3aed40;border-radius:12px;padding:16px">
       <div style="font-size:13px;font-weight:800;color:#c4b5fd;margin-bottom:8px">🤖 AI Coach</div>
-      <div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:10px">Apri la scheda di un paziente → tocca il pulsante viola <strong style="color:#c4b5fd">🤖 AI Coach</strong> → ricevi in 5 secondi:</div>
-      ${[['🎯','Obiettivo prioritario personalizzato'],['📅','Schema settimanale completo'],['💪','3 esercizi chiave con serie e reps'],['🥗','Consiglio nutrizionale rapido'],['⚠️','Precauzioni specifiche per quel paziente']].map(([ic,t])=>`
+      <div style="font-size:12px;color:#94a3b8;line-height:1.7;margin-bottom:10px">Apri la scheda di un cliente → tocca il pulsante viola <strong style="color:#c4b5fd">🤖 AI Coach</strong> → ricevi in 5 secondi:</div>
+      ${[['🎯','Obiettivo prioritario personalizzato'],['📅','Schema settimanale completo'],['💪','3 esercizi chiave con serie e reps'],['🥗','Consiglio nutrizionale rapido'],['⚠️','Precauzioni specifiche per quel cliente']].map(([ic,t])=>`
       <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center">
         <span style="font-size:14px">${ic}</span>
         <div style="font-size:11px;color:#e2e8f0">${t}</div>
@@ -4343,13 +4386,13 @@ const TSTEPS=[
     </div>
   </div>`},
 
-  {label:'✅ Pronto!',time:'Fine',bc:'#10b98130',bct:'#2dd4bf',badge:'Completato',title:'Sei pronto per usare PT Board! 🎉',desc:'Hai visto tutto quello che ti serve. Inizia subito con il tuo primo paziente.',
+  {label:'✅ Pronto!',time:'Fine',bc:'#10b98130',bct:'#2dd4bf',badge:'Completato',title:'Sei pronto per usare PT Board! 🎉',desc:'Hai visto tutto quello che ti serve. Inizia subito con il tuo primo cliente.',
   html:`<div style="text-align:center;padding:8px 0 16px">
     <div style="font-size:56px;margin-bottom:16px">🚀</div>
     <div style="font-size:16px;font-weight:800;color:#f8fafc;margin-bottom:6px">Da dove iniziare?</div>
     <div style="font-size:13px;color:#64748b;margin-bottom:20px">Segui questi 3 passi e sei operativo in 5 minuti</div>
     <div style="display:flex;flex-direction:column;gap:8px;max-width:380px;margin:0 auto 20px">
-      ${[['1','🎯','Clicca "Valutazione 20 min" nel menu','Crea il tuo primo paziente con il wizard'],['2','📋','Apri la scheda paziente','Esplora le 8 tab e aggiungi sedute'],['3','🤖','Prova AI Coach','Genera un programma in 5 secondi']].map(([n,ic,t,d])=>`
+      ${[['1','🎯','Clicca "Valutazione 20 min" nel menu','Crea il tuo primo cliente con il wizard'],['2','📋','Apri la scheda cliente','Esplora le 8 tab e aggiungi sedute'],['3','🤖','Prova AI Coach','Genera un programma in 5 secondi']].map(([n,ic,t,d])=>`
       <div style="display:flex;gap:12px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px;text-align:left">
         <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div>
         <div><div style="font-size:13px;font-weight:700;color:#fff">${ic} ${t}</div><div style="font-size:11px;color:#64748b;margin-top:2px">${d}</div></div>
