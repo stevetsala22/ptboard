@@ -113,10 +113,11 @@ const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
 };
 function askSendEmail({pat,subject,message,trainerProfile}){
   if(!pat?.email)return;
-  const fromName=trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':'PT Board';
+  const fromName=trainerProfile?.nomeStudio||(trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':null)||'PT Board';
   const toName=(pat.nome||'')+(pat.cognome?' '+pat.cognome:'');
+  const finalMsg=message.replace(/\[nomeMittente\]/g,fromName);
   showAskToast('📧 Notificare '+pat.nome+' via email?',async()=>{
-    const r=await sendEmail({toEmail:pat.email,toName,subject,message,fromName});
+    const r=await sendEmail({toEmail:pat.email,toName,subject,message:finalMsg,fromName});
     if(r.ok)showToast('Email inviata a '+pat.email,'success');
     else showToast('Errore invio email','error');
   });
@@ -991,6 +992,7 @@ const interpAlcol=(livello)=>{
 const rpeC=(r)=>r<=3?C.green:r<=6?C.yellow:r<=8?C.orange:C.red;
 const rpeL=(r)=>r<=3?'Leggero':r<=6?'Moderato':r<=8?'Intenso':'Massimale';
 const fmtDate=()=>new Date().toLocaleDateString('it-IT');
+const fmtDateIT=(d)=>{if(!d)return d;const mesi=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];let dt;if(/^\d{4}-\d{2}-\d{2}/.test(d)){const[y,m,g]=d.split('-');dt=new Date(+y,+m-1,+g);}else if(/^\d{2}\/\d{2}\/\d{4}/.test(d)){const[g,m,y]=d.split('/');dt=new Date(+y,+m-1,+g);}else return d;if(isNaN(dt))return d;return dt.getDate()+' '+mesi[dt.getMonth()]+' '+dt.getFullYear();};
 const nextPid=(ps)=>{
   const n=ps.map(p=>parseInt(p.id.replace('P',''))).filter(Boolean);
   return 'P'+String((n.length?Math.max.apply(null,n):0)+1).padStart(3,'0');
@@ -1574,7 +1576,7 @@ ${(p.progressi||[]).length>1?`
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={onValuta}>
               <span style={{fontSize:18}}>📋</span><span>Valuta</span>
             </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);askSendEmail({pat:p,subject:'Il tuo programma personalizzato è pronto',message:'Ciao '+p.nome+',\n\nil tuo programma di allenamento personalizzato è stato creato!\n\nNel prossimo incontro lo vedremo insieme nel dettaglio.\n\nA presto!',trainerProfile});}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
+            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);askSendEmail({pat:p,subject:'Il tuo programma personalizzato è pronto',message:'Ciao '+p.nome+',\n\nil tuo programma di allenamento personalizzato è pronto!\n\nNe parliamo nel dettaglio al prossimo incontro.\n\n[nomeMittente]',trainerProfile});}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
               <span style={{fontSize:18}}>🤖</span><span>AI Coach</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={generaPDF}>
@@ -2062,7 +2064,7 @@ ${(p.progressi||[]).length>1?`
                             onUpdate({...p,log:(p.log||[]).concat([logEntry])});
                             onCompleteBooking(b.id);
                             showToast('Seduta registrata!','success');
-                            askSendEmail({pat:p,subject:'Riepilogo seduta',message:'Ciao '+p.nome+',\n\necco il riepilogo della tua seduta del '+b.data+':\n\n💪 Tipo: '+b.tipo+'\n⏱ Durata: '+b.durata+' min\n📊 Intensità (RPE): '+(+completingRpe||0)+'/10\n\nOttimo lavoro! A presto!',trainerProfile});
+                            askSendEmail({pat:p,subject:'Riepilogo seduta',message:'Ciao '+p.nome+',\n\nottimo lavoro oggi!\n\nEcco il riepilogo della seduta:\n📅 '+fmtDateIT(b.data)+'\n💪 '+b.tipo+' — '+b.durata+' minuti\n📊 Intensità: '+(+completingRpe||0)+'/10\n\nContinua così! Alla prossima.\n\n[nomeMittente]',trainerProfile});
                             setCompletingId(null);
                           }}>Salva</button>
                           <button style={S.btn('ghost')} onClick={()=>setCompletingId(null)}>Annulla</button>
@@ -2173,7 +2175,7 @@ ${(p.progressi||[]).length>1?`
             setShowBookingModal(false);
             setNewSeduta({data:'',ora:'',tipo:'Forza base',durata:'60',note:''});
             showToast('Seduta prenotata','success');
-            askSendEmail({pat:p,subject:'Conferma prenotazione',message:'Ciao '+p.nome+',\n\nla tua seduta è confermata:\n\n📅 Data: '+newSeduta.data+'\n🕐 Ora: '+newSeduta.ora+'\n💪 Tipo: '+newSeduta.tipo+'\n⏱ Durata: '+(parseInt(newSeduta.durata)||60)+' min\n\nA presto!',trainerProfile});
+            askSendEmail({pat:p,subject:'Conferma prenotazione',message:'Ciao '+p.nome+',\n\nla tua seduta è confermata!\n\n📅 '+fmtDateIT(newSeduta.data)+'\n🕐 Ore '+newSeduta.ora+'\n💪 '+newSeduta.tipo+' — '+(parseInt(newSeduta.durata)||60)+' minuti\n\nTi aspetto! Se hai bisogno di spostare o annullare, contattami.\n\n[nomeMittente]',trainerProfile});
           }}>{gT().save}</button>
         </div>
       </Modal>}
@@ -2274,7 +2276,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
     setNewB({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
     setBTouched({});
     const pat=patients.find(x=>x.id===newB.patientId);
-    if(pat)askSendEmail({pat,subject:'Conferma prenotazione',message:'Ciao '+pat.nome+',\n\nla tua seduta è confermata:\n\n📅 Data: '+newB.data+'\n🕐 Ora: '+newB.ora+'\n💪 Tipo: '+newB.tipo+'\n⏱ Durata: '+newB.durata+' min\n\nA presto!',trainerProfile});
+    if(pat)askSendEmail({pat,subject:'Conferma prenotazione',message:'Ciao '+pat.nome+',\n\nla tua seduta è confermata!\n\n📅 '+fmtDateIT(newB.data)+'\n🕐 Ore '+newB.ora+'\n💪 '+newB.tipo+' — '+newB.durata+' minuti\n\nTi aspetto! Se hai bisogno di spostare o annullare, contattami.\n\n[nomeMittente]',trainerProfile});
   };
 
   return(
@@ -2380,9 +2382,9 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
             <div style={{marginTop:20,display:'flex',flexDirection:'column',gap:8}}>
               {pat?.email&&(
                 <button disabled={emailSending} onClick={async function(){
-                  const nomeMittente=(trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':'PT Board');
+                  const nomeMittente=trainerProfile?.nomeStudio||(trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':null)||'PT Board';
                   setEmailSending(true);
-                  const res=await sendEmail({toEmail:pat.email,toName:pat.nome+' '+pat.cognome,subject:'Promemoria appuntamento - '+nomeMittente,message:'Ciao '+pat.nome+', ti ricordo il tuo appuntamento del '+vb.data+' alle '+vb.ora+' ('+vb.tipo+', '+vb.durata+' min).\n\nA presto!',fromName:nomeMittente});
+                  const res=await sendEmail({toEmail:pat.email,toName:pat.nome+' '+pat.cognome,subject:'Promemoria appuntamento - '+nomeMittente,message:'Ciao '+pat.nome+',\n\nti ricordo il tuo appuntamento:\n\n📅 '+fmtDateIT(vb.data)+'\n🕐 Ore '+vb.ora+'\n💪 '+vb.tipo+' — '+vb.durata+' minuti\n\nA presto!\n\n'+nomeMittente,fromName:nomeMittente});
                   setEmailSending(false);
                   if(res.ok)showToast('Email inviata a '+pat.email,'success');
                   else showToast('Errore invio: '+res.err,'error');
@@ -2390,7 +2392,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
                   {emailSending?'Invio...':'📧 Invia promemoria'}
                 </button>
               )}
-              <button onClick={function(){showConfirmToast('Annullare questo appuntamento? Verrà eliminato tra 5 secondi.',function(){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);if(pat)askSendEmail({pat,subject:'Appuntamento annullato',message:'Ciao '+pat.nome+',\n\nti informo che il tuo appuntamento del '+vb.data+' alle '+vb.ora+' è stato annullato.\n\nPer riprogrammare, contattami.\n\nA presto!',trainerProfile});});}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
+              <button onClick={function(){showConfirmToast('Annullare questo appuntamento? Verrà eliminato tra 5 secondi.',function(){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);if(pat)askSendEmail({pat,subject:'Appuntamento annullato',message:'Ciao '+pat.nome+',\n\nil tuo appuntamento del '+fmtDateIT(vb.data)+' alle '+vb.ora+' è stato annullato.\n\nContattami per riprogrammare quando vuoi.\n\n[nomeMittente]',trainerProfile});});}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
             </div>
           </Modal>
         );
@@ -2974,7 +2976,7 @@ function AppInner({user,profile,trialLeft}){
             setShowValutazione(false);
             setSelectedId(id);setPage('detail');
           }
-          askSendEmail({pat:p,subject:'Valutazione completata',message:'Ciao '+p.nome+',\n\nla tua valutazione è stata completata con successo!\n\nProfilo fitness: '+(pr2?.code||'-')+'\nScore: '+(sc2?.score||'-')+'/100\n\nNel prossimo incontro ti illustrerò il programma personalizzato.\n\nA presto!',trainerProfile});
+          askSendEmail({pat:p,subject:'Valutazione completata',message:'Ciao '+p.nome+',\n\nla tua valutazione è stata completata!\n\n📊 Profilo fitness: '+(pr2?.code||'-')+'\n⭐ Score: '+(sc2?.score||'-')+'/100\n\nNel prossimo incontro vedremo insieme il programma personalizzato.\n\n[nomeMittente]',trainerProfile});
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
