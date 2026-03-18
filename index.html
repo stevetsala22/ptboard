@@ -203,6 +203,10 @@ input,select,textarea{background:var(--input-bg);color:var(--text)}
   0%,100% { opacity:1; }
   50%      { opacity:0.6; }
 }
+@keyframes fadeOut {
+  from { opacity:1; transform:translateY(0); }
+  to   { opacity:0; transform:translateY(8px); }
+}
 button { transition: all .15s ease; }
 button:active { transform: scale(0.97); }
 nav button:hover { background: var(--card) !important; color: var(--text) !important; }
@@ -1039,6 +1043,62 @@ const S={
   row:{display:'flex',alignItems:'center',gap:12,padding:'8px 12px',background:C.bg,borderRadius:8,marginBottom:5},
 };
 
+// ── TOAST SYSTEM ──────────────────────────────────────────────────────────────
+let _toastDispatch=null;
+function showToast(msg,type='success',duration=4000){if(_toastDispatch)_toastDispatch({msg,type,duration});}
+function showConfirmToast(msg,action,duration=5000){if(_toastDispatch)_toastDispatch({msg,type:'confirm',action,duration});}
+
+function ToastItem({item,onRemove}){
+  const [exiting,setExiting]=React.useState(false);
+  const [progress,setProgress]=React.useState(100);
+  const isConfirm=item.type==='confirm';
+  const cancelled=React.useRef(false);
+  React.useEffect(()=>{
+    const start=Date.now();
+    const total=item.duration;
+    const tick=setInterval(()=>{const elapsed=Date.now()-start;setProgress(Math.max(0,100-(elapsed/total)*100));},50);
+    const timer=setTimeout(()=>{
+      clearInterval(tick);
+      if(isConfirm&&!cancelled.current)item.action();
+      setExiting(true);
+      setTimeout(()=>onRemove(item.id),300);
+    },total);
+    return()=>{clearInterval(tick);clearTimeout(timer);};
+  },[]);
+  const handleCancel=()=>{
+    cancelled.current=true;
+    onRemove(item.id);
+    showToast('Azione annullata','success');
+  };
+  const bg=item.type==='error'?C.red:item.type==='warning'?'#f59e0b':item.type==='confirm'?'#f59e0b':C.green;
+  const icon=item.type==='error'?'✕':item.type==='warning'?'⚠':'✓';
+  return(
+    <div style={{background:C.card,border:`1px solid ${C.border2}`,borderRadius:12,padding:'12px 16px',boxShadow:'0 8px 32px #0004',minWidth:260,maxWidth:360,animation:exiting?'fadeOut .3s ease forwards':'fadeInUp .3s ease',position:'relative',overflow:'hidden'}}>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:28,height:28,borderRadius:'50%',background:bg+'20',border:`1px solid ${bg}40`,display:'flex',alignItems:'center',justifyContent:'center',color:bg,fontWeight:700,fontSize:14,flexShrink:0}}>{icon}</div>
+        <div style={{flex:1,fontSize:13,color:C.text,lineHeight:1.4}}>{item.msg}</div>
+        {isConfirm&&<button onClick={handleCancel} style={{background:'#ef444420',color:C.red,border:'1px solid #ef444440',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0}}>Annulla</button>}
+        {!isConfirm&&<button onClick={()=>{setExiting(true);setTimeout(()=>onRemove(item.id),300);}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:16,padding:'0 2px',lineHeight:1}}>✕</button>}
+      </div>
+      <div style={{position:'absolute',bottom:0,left:0,height:3,background:bg,width:progress+'%',transition:'width 50ms linear',borderRadius:'0 0 0 12px'}}/>
+    </div>
+  );
+}
+
+function ToastContainer(){
+  const [toasts,setToasts]=React.useState([]);
+  _toastDispatch=React.useCallback((item)=>{setToasts(t=>[...t,{...item,id:Date.now()+Math.random()}]);},[]);
+  const remove=React.useCallback((id)=>setToasts(t=>t.filter(x=>x.id!==id)),[]);
+  if(!toasts.length)return null;
+  return ReactDOM.createPortal(
+    <div style={{position:'fixed',bottom:24,left:'50%',transform:'translateX(-50%)',zIndex:9999,display:'flex',flexDirection:'column',gap:8,alignItems:'center',pointerEvents:'none'}}>
+      {toasts.map(t=><div key={t.id} style={{pointerEvents:'all'}}><ToastItem item={t} onRemove={remove}/></div>)}
+    </div>,
+    document.body
+  );
+}
+// ── END TOAST SYSTEM ───────────────────────────────────────────────────────────
+
 function Avatar({nome='?',cognome='?',size=34,foto=''}){
   const initials=`${nome[0]||''}${cognome[0]||''}`.toUpperCase();
   const hue=(nome.charCodeAt(0)+cognome.charCodeAt(0))*7%360;
@@ -1046,14 +1106,16 @@ function Avatar({nome='?',cognome='?',size=34,foto=''}){
   return <div style={{width:size,height:size,borderRadius:'50%',background:'hsl('+hue+',50%,22%)',border:'2px solid hsl('+hue+',50%,38%)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.33,fontWeight:700,color:'hsl('+hue+',60%,72%)',flexShrink:0}}>{initials}</div>;
 }
 
-function FF({label,name,value,onChange,type='text',options,placeholder,span,rows,required}){
+function FF({label,name,value,onChange,type='text',options,placeholder,span,rows,required,error,onBlur}){
   const id='ff-'+name;
+  const errStyle=error?{border:'1px solid #ef4444'}:{};
   return(
     <div style={{gridColumn:span?`span ${span}`:undefined}}>
       <label htmlFor={id} style={S.label}>{label}</label>
-      {options?<select id={id} aria-label={label} style={S.sel} name={name} value={value||''} onChange={onChange}>{options.map(o=><option key={o.v||o} value={o.v||o}>{o.l||o}</option>)}</select>
-      :type==='textarea'?<textarea id={id} aria-label={label} style={{...S.ta,minHeight:rows?rows*22:68}} name={name} value={value||''} onChange={onChange} placeholder={placeholder} aria-required={required}/>
-      :<input id={id} aria-label={label} style={S.inp} type={type} name={name} value={value||''} onChange={onChange} placeholder={placeholder} aria-required={required}/>}
+      {options?<select id={id} aria-label={label} style={{...S.sel,...errStyle}} name={name} value={value||''} onChange={onChange} onBlur={onBlur}>{options.map(o=><option key={o.v||o} value={o.v||o}>{o.l||o}</option>)}</select>
+      :type==='textarea'?<textarea id={id} aria-label={label} style={{...S.ta,minHeight:rows?rows*22:68,...errStyle}} name={name} value={value||''} onChange={onChange} onBlur={onBlur} placeholder={placeholder} aria-required={required}/>
+      :<input id={id} aria-label={label} style={{...S.inp,...errStyle}} type={type} name={name} value={value||''} onChange={onChange} onBlur={onBlur} placeholder={placeholder} aria-required={required}/>}
+      {error&&<div style={{fontSize:11,color:'#ef4444',marginTop:4,animation:'fadeIn .2s ease'}}>{error}</div>}
     </div>
   );
 }
@@ -1258,7 +1320,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
   );
 }
 
-function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta}){
+function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta,trainerProfile}){
   const [tab,setTab]=useState('dash');
   const [showLogModal,setShowLogModal]=useState(false);
   const [showPesoModal,setShowPesoModal]=useState(false);
@@ -1278,13 +1340,13 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const upd=(fn)=>onUpdate({...p,...fn(p)});
 
   const addLog=()=>{
-    if(!newLog.tipo||!newLog.durata){alert('Compila tipo e durata');return;}
+    if(!newLog.tipo||!newLog.durata){showToast('Compila tipo e durata','error');return;}
     const entry={...newLog,id:Date.now(),durata:+newLog.durata,rpe:+newLog.rpe};
     upd(x=>({log:(x.log||[]).concat([entry])}));
     setShowLogModal(false);setNewLog({data:fmtDate(),tipo:'',durata:'',rpe:'',note:''});
   };
   const addPeso=()=>{
-    if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){alert('Inserisci un peso valido');return;}
+    if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){showToast('Inserisci un peso valido','error');return;}
     const entry={...newPeso,peso:+newPeso.peso};
     upd(x=>({progressi:(x.progressi||[]).concat([entry]).sort((a,b2)=>a.data.localeCompare(b2.data))}));
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
@@ -1334,7 +1396,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
 
 <div class="header">
   <div>
-    <div class="brand">PT Board <small></small></div>
+    ${trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;max-width:160px;object-fit:contain;display:block;margin-bottom:${trainerProfile?.nomeStudio?4:8}px"/>${trainerProfile?.nomeStudio?`<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${esc(trainerProfile.nomeStudio)}</div>`:''}`:`<div class="brand">PT Board <small></small></div>`}
     <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda paziente · ${fmtDate()}</div>
   </div>
   <div style="text-align:right">
@@ -1418,7 +1480,7 @@ ${(p.progressi||[]).length>1?`
 </div>`:''}
 
 <div class="footer">
-  <span>PT Board  · Report generato il ${fmtDate()}</span>
+  <span>${trainerProfile?.nomeStudio?esc(trainerProfile.nomeStudio):'PT Board'} · Report generato il ${fmtDate()}</span>
   <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
 </div>
 </div>${'</body></html>'}`;
@@ -2073,6 +2135,16 @@ function CalendarView({patients,bookings,setBookings,T}){
   const [showModal,setShowModal]=useState(false);
   const [viewBooking,setViewBooking]=useState(null);
   const [newB,setNewB]=useState({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
+  const [bTouched,setBTouched]=useState({});
+  const touchB=n=>setBTouched(t=>({...t,[n]:true}));
+  const bErr=field=>{
+    if(!bTouched[field])return null;
+    if(field==='patientId'&&!newB.patientId)return'Seleziona un paziente';
+    if(field==='data'&&!newB.data)return'Data obbligatoria';
+    if(field==='ora'&&!newB.ora)return'Ora obbligatoria';
+    return null;
+  };
+  const canBook=newB.patientId&&newB.data&&newB.ora;
 
   const getWeekDays=()=>{
     const d=new Date();d.setDate(d.getDate()-d.getDay()+1+weekOffset*7);
@@ -2085,6 +2157,7 @@ function CalendarView({patients,bookings,setBookings,T}){
     setBookings(prev=>[...prev,{...newB,id:'B'+Date.now()}]);
     setShowModal(false);
     setNewB({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
+    setBTouched({});
   };
 
   return(
@@ -2188,7 +2261,7 @@ function CalendarView({patients,bookings,setBookings,T}){
               {vb.note&&<div style={{background:C.bg,borderRadius:8,padding:'10px 12px'}}><div style={{fontSize:10,color:C.muted,marginBottom:3}}>Note</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{vb.note}</div></div>}
             </div>
             <div style={{marginTop:20}}>
-              <button onClick={function(){if(window.confirm('Sei sicuro di voler annullare questo appuntamento?')){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);}}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
+              <button onClick={function(){showConfirmToast('Annullare questo appuntamento? Verrà eliminato tra 5 secondi.',function(){setBookings(function(prev){return prev.filter(function(x){return x.id!==vb.id;});});setViewBooking(null);});}} style={{background:C.red,color:'#fff',width:'100%',padding:12,borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer'}}>Annulla appuntamento</button>
             </div>
           </Modal>
         );
@@ -2196,10 +2269,10 @@ function CalendarView({patients,bookings,setBookings,T}){
       {showModal&&(
         <Modal title="Nuova prenotazione" onClose={()=>setShowModal(false)}>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'}].concat(patients.map(p=>({v:p.id,l:p.nome+' '+p.cognome})))}/>
+            <FF label="Paziente" name="patientId" value={newB.patientId} onChange={e=>setNewB(f=>({...f,patientId:e.target.value}))} options={[{v:'',l:'-- Seleziona paziente --'}].concat(patients.map(p=>({v:p.id,l:p.nome+' '+p.cognome})))} onBlur={()=>touchB('patientId')} error={bErr('patientId')}/>
             <div style={S.grid(2)}>
-              <FF label="Data" name="data" type="date" value={newB.data} onChange={e=>setNewB(f=>({...f,data:e.target.value}))}/>
-              <FF label="Ora" name="ora" type="time" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))}/>
+              <FF label="Data" name="data" type="date" value={newB.data} onChange={e=>setNewB(f=>({...f,data:e.target.value}))} onBlur={()=>touchB('data')} error={bErr('data')}/>
+              <FF label="Ora" name="ora" type="time" value={newB.ora} onChange={e=>setNewB(f=>({...f,ora:e.target.value}))} onBlur={()=>touchB('ora')} error={bErr('ora')}/>
               <FF label="Durata (min)" name="durata" type="number" value={newB.durata} onChange={e=>setNewB(f=>({...f,durata:+e.target.value}))}/>
               <FF label="Tipo" name="tipo" value={newB.tipo} onChange={e=>setNewB(f=>({...f,tipo:e.target.value}))} options={['PT','Valutazione','Follow-up','Corpo libero','Pesi']}/>
             </div>
@@ -2207,7 +2280,10 @@ function CalendarView({patients,bookings,setBookings,T}){
           </div>
           <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
             <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{gT().cancel}</button>
-            <button style={S.btn()} onClick={saveBooking}>Prenota</button>
+            <div className="tt">
+              <button style={{...S.btn(),...(!canBook?{opacity:0.5,cursor:'not-allowed'}:{})}} onClick={()=>{if(canBook)saveBooking();else{touchB('patientId');touchB('data');touchB('ora');}}}>Prenota</button>
+              {!canBook&&<span className="tp">Compila paziente, data e ora</span>}
+            </div>
           </div>
         </Modal>
       )}
@@ -2279,19 +2355,36 @@ function ExercisesPage({exercises,setExercises,T}){
 // ── FORM PAZIENTE ─────────────────────────────────────────────────────────────
 function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   const [form,setForm]=useState(initial);
+  const [touched,setTouched]=useState({});
+  const touch=n=>setTouched(t=>({...t,[n]:true}));
   const b=bmi(form.peso,form.altezza);
   const pr=profilo(form.test?.mwtDist,form.test?.stsRip,form.sesso,form.test,{biaFM:form.bia?.FM});
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   const updT=e=>setForm(f=>({...f,test:{...f.test,[e.target.name]:e.target.value}}));
   const updP=e=>setForm(f=>({...f,programma:{...f.programma,[e.target.name]:e.target.value}}));
   const updN=e=>setForm(f=>({...f,nutrizione:{...f.nutrizione,[e.target.name]:e.target.value}}));
+  const fmtErr=(field)=>{
+    if(!touched[field])return null;
+    if(field==='cognome'&&!form.cognome?.trim())return'Campo obbligatorio';
+    if(field==='nome'&&!form.nome?.trim())return'Campo obbligatorio';
+    if(field==='peso'&&form.peso){const v=+form.peso;if(isNaN(v)||v<=0||v>=500)return'Inserisci un peso valido (1-500 kg)';}
+    if(field==='altezza'&&form.altezza){const v=+form.altezza;if(isNaN(v)||v<=50||v>=300)return'Inserisci un\'altezza valida (50-300 cm)';}
+    if(field==='email'&&form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))return'Email non valida';
+    if(field==='ddn'&&form.ddn){const p=form.ddn.split('/');if(p.length===3&&p[2]?.length===4){const d=new Date(+p[2],+p[1]-1,+p[0]);if(d>new Date())return'Data non valida';}}
+    if(field==='fc'&&form.fc){const v=+form.fc;if(isNaN(v)||v<20||v>250)return'Valore FC non realistico';}
+    return null;
+  };
+  const canSave=form.cognome?.trim()&&form.nome?.trim();
   return(
     <div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
         <h1 style={{fontSize:18,fontWeight:800,color:C.strong}}>{isNew?'Nuovo paziente':`Modifica — ${form.nome} ${form.cognome}`}</h1>
         <div style={{display:'flex',gap:8}}>
           <button style={S.btn('ghost')} onClick={onCancel}>{gT().cancel}</button>
-          <button style={S.btn()} onClick={()=>onSave(form)}>✓ Salva</button>
+          <div className="tt">
+            <button style={{...S.btn(),...(!canSave?{opacity:0.5,cursor:'not-allowed'}:{})}} onClick={()=>{if(canSave)onSave(form);else{touch('cognome');touch('nome');}}} >✓ Salva</button>
+            {!canSave&&<span className="tp">Compila i campi obbligatori</span>}
+          </div>
         </div>
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:14}}>
@@ -2309,10 +2402,10 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
             <input id="foto-upload-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const max=150;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);setForm(f=>({...f,foto:canvas.toDataURL('image/jpeg',0.7)}));};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
           </div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd} required/>
-            <FF label="Nome *" name="nome" value={form.nome} onChange={upd} required/>
-            <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici"/>
-            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA"/>
+            <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd} required onBlur={()=>touch('cognome')} error={fmtErr('cognome')}/>
+            <FF label="Nome *" name="nome" value={form.nome} onChange={upd} required onBlur={()=>touch('nome')} error={fmtErr('nome')}/>
+            <FF label="Email paziente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici" onBlur={()=>touch('email')} error={fmtErr('email')}/>
+            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA" onBlur={()=>touch('ddn')} error={fmtErr('ddn')}/>
             <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
             <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
           </div>
@@ -2320,13 +2413,13 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
         <div style={S.card}>
           <div style={S.st}>Parametri antropometrici</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Altezza (cm)" name="altezza" type="number" value={form.altezza} onChange={upd}/>
-            <FF label="Peso (kg)" name="peso" type="number" value={form.peso} onChange={upd}/>
+            <FF label="Altezza (cm)" name="altezza" type="number" value={form.altezza} onChange={upd} onBlur={()=>touch('altezza')} error={fmtErr('altezza')}/>
+            <FF label="Peso (kg)" name="peso" type="number" value={form.peso} onChange={upd} onBlur={()=>touch('peso')} error={fmtErr('peso')}/>
             <div><label style={S.label}>BMI (auto)</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${C.border2}`,fontSize:13}}>{b?<span style={{color:bmiCat(b).c,fontWeight:700}}>{b} — {bmiCat(b).l}</span>:<span style={{color:C.muted}}>—</span>}</div></div>
             <FF label="Vita (cm)" name="vita" type="number" value={form.vita} onChange={upd}/>
             <FF label="Fianchi (cm)" name="fianchi" type="number" value={form.fianchi} onChange={upd}/>
             <FF label="PA riposo" name="pa" value={form.pa} onChange={upd}/>
-            <FF label="FC riposo (bpm)" name="fc" type="number" value={form.fc} onChange={upd}/>
+            <FF label="FC riposo (bpm)" name="fc" type="number" value={form.fc} onChange={upd} onBlur={()=>touch('fc')} error={fmtErr('fc')}/>
           </div>
         </div>
         <div style={S.card}>
@@ -2535,7 +2628,7 @@ function AppInner({user,profile,trialLeft}){
     if(form.altezza&&(+form.altezza<50||+form.altezza>250))errs.push('Altezza (50-250 cm)');
     if(form.fc&&(+form.fc<30||+form.fc>220))errs.push('FC riposo (30-220 bpm)');
     if(form.sonno&&(+form.sonno<0||+form.sonno>24))errs.push('Sonno (0-24 ore)');
-    if(errs.length)return alert((T.requiredFields||'Campi da correggere')+':\n• '+errs.join('\n• '));
+    if(errs.length){showToast((T.requiredFields||'Campi da correggere')+': '+errs.join(', '),'error');return;}
     if(isNew){
       const id=nextPid(patients);
       const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
@@ -2556,6 +2649,7 @@ function AppInner({user,profile,trialLeft}){
 
   return(
     <div style={S.app}>
+      <ToastContainer/>
       {/* Overlay per chiudere sidebar su mobile */}
       {sidebarOpen&&isMobile&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000070',zIndex:50}}/>}
 
@@ -2627,6 +2721,17 @@ function AppInner({user,profile,trialLeft}){
               <button onClick={()=>{setShowParametri(false);setShowTutorial(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #a78bfa40',background:'#a78bfa10',color:'#a78bfa',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                 <span style={{fontSize:14}}>📖</span><span>{T.tutorial}</span>
               </button>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:8,marginTop:4}}>Il tuo brand</div>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+                <div title="Clicca per caricare logo" onClick={()=>document.getElementById('logo-upload-input').click()} style={{width:60,height:60,borderRadius:8,border:`2px dashed ${C.border2}`,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:C.bg,flexShrink:0,overflow:'hidden'}}>
+                  {trainerProfile?.logo?<img src={trainerProfile.logo} alt="logo" style={{width:'100%',height:'100%',objectFit:'contain'}}/>:<span style={{fontSize:22}}>🏷️</span>}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <input placeholder="Nome studio" value={trainerProfile?.nomeStudio||''} onChange={async e=>{const v=e.target.value;await fbSaveUserProfile(user.uid,{nomeStudio:v});setProfile(p=>({...p,nomeStudio:v}));}} style={{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:6,padding:'5px 8px',color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:4}}/>
+                  {trainerProfile?.logo&&<button onClick={async()=>{await fbSaveUserProfile(user.uid,{logo:''});setProfile(p=>({...p,logo:''}));}} style={{fontSize:10,color:'#ef4444',background:'transparent',border:'none',cursor:'pointer',padding:0}}>✕ Rimuovi logo</button>}
+                </div>
+              </div>
+              <input id="logo-upload-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=async()=>{const max=120;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const b64=canvas.toDataURL('image/jpeg',0.8);await fbSaveUserProfile(user.uid,{logo:b64});setProfile(p=>({...p,logo:b64}));};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
               <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
@@ -2716,7 +2821,7 @@ function AppInner({user,profile,trialLeft}){
           )}
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{if(window.confirm(`⚠️ Eliminare definitivamente ${selected.nome} ${selected.cognome}?\n\nTutti i dati, sedute e progressi di questo paziente verranno persi.\n\nQuesta azione non è reversibile.`)){setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients')}}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
@@ -3307,7 +3412,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 <button type="button" style={{...S.btn('ghost'),fontSize:12,width:'100%'}}
                   onClick={()=>{
                     const peso=+d.peso,alt=+d.altezza,age=eta||30,m=d.sesso==='M';
-                    if(!peso||!alt)return alert('Inserire altezza e peso nel passo 1');
+                    if(!peso||!alt){showToast('Inserire altezza e peso nel passo 1','error');return;}
                     const bmiV=peso/((alt/100)**2);
                     const fmPct=m
                       ?(1.20*bmiV)+(0.23*age)-16.2
@@ -3765,11 +3870,11 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 
             {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{gT().wPrev}</button><span className="tp">Torna al passo precedente</span></div>}
             {stepIdx<TOTAL-1&&<div className="tt"><button onClick={function(){
-              if(step===1&&(!d.nome.trim()||!d.cognome.trim())){alert('Inserisci nome e cognome per continuare.');return;}
+              if(step===1&&(!d.nome.trim()||!d.cognome.trim())){showToast('Inserisci nome e cognome per continuare.','error');return;}
               setStep(stepsArr[stepIdx+1]);
             }} style={S.btn()}>{gT().wNext}</button><span className="tp">Vai al passo successivo</span></div>}
             {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
-              if(!d.nome.trim()||!d.cognome.trim()){alert('Dati incompleti \u2014 torna al passo 1.');return;}
+              if(!d.nome.trim()||!d.cognome.trim()){showToast('Dati incompleti — torna al passo 1.','error');return;}
               var p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
                 test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal,
