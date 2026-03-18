@@ -70,6 +70,13 @@ firebase.initializeApp({
 });
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
+fbDb.enableIndexedDbPersistence().catch(function(err){
+  if(err.code==='failed-precondition'){
+    console.warn('Persistenza offline: più tab aperte, solo una può usarla');
+  }else if(err.code==='unimplemented'){
+    console.warn('Persistenza offline non supportata da questo browser');
+  }
+});
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=30;
