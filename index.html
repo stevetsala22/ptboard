@@ -51,45 +51,45 @@ firebase.initializeApp({
   messagingSenderId:"223801010947",
   appId:"1:223801010947:web:9c3f887243609bcdad9736"
 });
-const fbAuth=firebase.auth();
-const fbDb=firebase.firestore();
+var fbAuth=firebase.auth();
+var fbDb=firebase.firestore();
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
-const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
-const TRIAL_DAYS=30;
-const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
-const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
+var ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
+var TRIAL_DAYS=30;
+var PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
+var PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
-const fbSaveUserProfile=async(uid,data)=>{
+var fbSaveUserProfile=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
 };
-const fbGetUserProfile=async(uid)=>{
-  try{const d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
+var fbGetUserProfile=async(uid)=>{
+  try{var d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
 };
-const fbGetAllUsers=async()=>{
-  try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
+var fbGetAllUsers=async()=>{
+  try{var s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
 };
-const isTrialExpired=(profile)=>{
+var isTrialExpired=function(profile){
   if(!profile) return false;
   if(profile.plan==='pro'||profile.plan==='admin') return false;
   if(!profile.trialStart) return false;
-  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  var days=(Date.now()-profile.trialStart)/(1000*60*60*24);
   return days>TRIAL_DAYS;
 };
-const trialDaysLeft=(profile)=>{
-  if(!profile?.trialStart) return TRIAL_DAYS;
-  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
+var trialDaysLeft=function(profile){
+  if(!profile||!profile.trialStart) return TRIAL_DAYS;
+  var used=(Date.now()-profile.trialStart)/(1000*60*60*24);
   return Math.max(0,Math.ceil(TRIAL_DAYS-used));
 };
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
-const fbSave=async(uid,data)=>{
+var fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
   catch(e){console.warn('fbSave',e);
     try{await new Promise(r=>setTimeout(r,2000));await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
     catch(e2){console.warn('fbSave retry failed',e2);}
   }
 };
-const fbLoad=async(uid)=>{
-  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
+var fbLoad=async(uid)=>{
+  try{var d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
   catch(e){console.warn('fbLoad',e);return null;}
 };
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
@@ -97,10 +97,10 @@ const fbLoad=async(uid)=>{
 // 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
 // 3. Crea template con variabili: {{to_email}}, {{to_name}}, {{subject}}, {{message}}
 // 4. Sostituisci i valori qui sotto
-const EMAILJS_SERVICE='service_s4ra456';
-const EMAILJS_TEMPLATE='template_t2l9tuk';
-const EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
-const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
+var EMAILJS_SERVICE='service_s4ra456';
+var EMAILJS_TEMPLATE='template_t2l9tuk';
+var EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
+var sendEmail=async({toEmail,toName,subject,message,fromName})=>{
   try{
     emailjs.init(EMAILJS_KEY);
     await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
@@ -126,8 +126,8 @@ function askSendEmail({pat,subject,message,trainerProfile}){
   });
 }
 // ── AI COACH ─────────────────────────────────────────────────────────────────
-const aiCoach=async(paziente)=>{
-  const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
+var aiCoach=async(paziente)=>{
+  var prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
 PROFILO:
 - Nome: Paziente (dati anonimizzati)
 - Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
