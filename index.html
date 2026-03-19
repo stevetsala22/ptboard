@@ -64,13 +64,7 @@ firebase.initializeApp({
 });
 var fbAuth=firebase.auth();
 var fbDb=firebase.firestore();
-fbDb.enableIndexedDbPersistence().catch(function(err){
-  if(err.code==='failed-precondition'){
-    console.warn('Persistenza offline: più tab aperte, solo una può usarla');
-  }else if(err.code==='unimplemented'){
-    console.warn('Persistenza offline non supportata da questo browser');
-  }
-});
+// Persistenza offline non disponibile in questa versione Firebase
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 var ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 var TRIAL_DAYS=30;
