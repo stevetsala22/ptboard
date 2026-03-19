@@ -854,6 +854,77 @@ const profilo=(mwt,sts,sesso,test,extra)=>{
   const r=calcScore(t,sesso||'M',extra);
   return r;
 };
+const calcNutrizione=(p)=>{
+  if(!p)return null;
+  // STEP 1 — BMR
+  var bmr;
+  if(p.bia?.FM&&p.peso){
+    var ffm=(+p.peso)*(1-(+p.bia.FM)/100);
+    bmr=370+(21.6*ffm);
+  }else{
+    var eta=p.annoNascita?(new Date().getFullYear()-p.annoNascita):null;
+    if(!eta||!p.peso||!p.altezza)return null;
+    if(p.sesso==='M')bmr=(10*(+p.peso))+(6.25*(+p.altezza))-(5*eta)+5;
+    else bmr=(10*(+p.peso))+(6.25*(+p.altezza))-(5*eta)-161;
+  }
+  if(p.patologie){var pat0=p.patologie.toLowerCase();if(pat0.includes('tiroidea')||pat0.includes('ipotiroidismo'))bmr*=0.90;}
+  if(p.fumo==='Fumatore regolare')bmr+=200;else if(p.fumo==='Fumatore occasionale')bmr+=100;
+  // STEP 2 — TDEE
+  var fattori={'Sedentaria':1.2,'Poco attiva':1.375,'Moderata':1.55,'Attiva':1.725,'Molto attiva':1.9};
+  var fattore=fattori[p.attivita]||1.4;
+  var tdee=bmr*fattore;
+  // STEP 3 — Calorie target
+  var obiettivoMap={'Perdere peso':0.80,'Aumentare massa':1.15,'Resistenza':1.05,'Forza':1.10,'Salute':1.0,'Riabilitazione':1.0,'Performance':1.10,'Benessere':1.0};
+  var molt=obiettivoMap[p.obiettivo]||1.0;
+  var kcal=Math.round(tdee*molt);
+  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')kcal=Math.round(kcal*1.05);
+  // STEP 4 — Macros
+  var protMap={'Perdere peso':2.0,'Aumentare massa':2.0,'Resistenza':1.6,'Forza':2.0,'Salute':1.4,'Riabilitazione':1.6,'Performance':1.8,'Benessere':1.4};
+  var protPerKg=protMap[p.obiettivo]||1.6;
+  var pesoCalcolo=+p.peso;
+  var bmiVal=p.altezza&&p.peso?(+p.peso)/((+p.altezza/100)**2):null;
+  if(bmiVal&&bmiVal>30)pesoCalcolo=24.9*((+p.altezza/100)**2);
+  var proteine=Math.round(protPerKg*pesoCalcolo);
+  var kcalProt=proteine*4;
+  var grassiPct={'Perdere peso':0.25,'Aumentare massa':0.25,'Resistenza':0.25,'Forza':0.30,'Salute':0.30,'Riabilitazione':0.30,'Performance':0.25,'Benessere':0.30};
+  var pctG=grassiPct[p.obiettivo]||0.28;
+  if(p.patologie){var pat1=p.patologie.toLowerCase();if(pat1.includes('dislipidemia')||pat1.includes('cardiopatia'))pctG=0.20;}
+  var grassi=Math.round((kcal*pctG)/9);
+  var kcalGrassi=grassi*9;
+  var carboidrati=Math.round((kcal-kcalProt-kcalGrassi)/4);
+  if(carboidrati<0)carboidrati=0;
+  if(p.patologie){
+    var pat2=p.patologie.toLowerCase();
+    if(pat2.includes('diabete tipo 2')){var maxCarbo=Math.round((kcal*0.40)/4);if(carboidrati>maxCarbo){var diff=carboidrati-maxCarbo;carboidrati=maxCarbo;grassi+=Math.round((diff*4)/9);}}
+    if(pat2.includes('diabete tipo 1')){if(carboidrati<130)carboidrati=130;}
+  }
+  // STEP 5 — Note
+  var note=[];
+  if(+p.sonno<6)note.push('Sonno ridotto (<6h): aumentare proteine e attenzione al recupero');
+  if(p.patologie){
+    var pat3=p.patologie.toLowerCase();
+    if(pat3.includes('ipertensione'))note.push('Ipertensione: sodio < 2g/giorno, aumentare potassio (frutta, verdura)');
+    if(pat3.includes('diabete tipo 2'))note.push('Diabete T2: carboidrati a basso indice glicemico, evitare zuccheri semplici');
+    if(pat3.includes('diabete tipo 1'))note.push('Diabete T1: carboidrati stabili e prevedibili, minimo 130g/giorno');
+    if(pat3.includes('dislipidemia'))note.push('Dislipidemia: grassi saturi < 7%, preferire omega-3, aumentare fibre');
+    if(pat3.includes('cardiopatia'))note.push('Cardiopatia: grassi saturi < 7%, sodio < 1.5g, dieta mediterranea');
+    if(pat3.includes('osteoporosi'))note.push('Osteoporosi: calcio 1200mg/giorno, vitamina D, proteine adeguate');
+    if(pat3.includes('artrosi')||pat3.includes('artrite'))note.push('Artrosi/artrite: alimenti anti-infiammatori (omega-3, curcuma, verdure)');
+    if(pat3.includes('depressione')||pat3.includes('ansia'))note.push('Benessere mentale: omega-3, triptofano (tacchino, semi), limitare caffeina');
+    if(pat3.includes('obesita'))note.push('Obesità: deficit calorico moderato, proteine calcolate su peso ideale');
+    if(pat3.includes('tiroidea'))note.push('Patologia tiroidea: monitorare metabolismo, aggiustare kcal con il medico');
+  }
+  if(p.allergie){
+    var all=p.allergie.toLowerCase();
+    if(all.includes('lattosio'))note.push('Intolleranza lattosio: sostituire con alternative vegetali o lactose-free');
+    if(all.includes('glutine')||all.includes('celiachia'))note.push('Celiachia: evitare frumento/orzo/segale, usare riso, mais, quinoa, patate');
+    if(all.includes('nichel'))note.push('Allergia nichel: limitare pomodoro, cacao, legumi secchi, frutta secca');
+  }
+  if(p.alcol&&(p.alcol.includes('8-14')||p.alcol.includes('>14')))note.push('Consumo alcol elevato: attenzione alle calorie vuote (~7 kcal/g)');
+  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')note.push('Stress elevato: kcal leggermente aumentate per compensare il cortisolo');
+  note.push('⚠️ Suggerimenti nutrizionali generici — per un piano personalizzato rivolgersi a un nutrizionista');
+  return{kcal,proteine,carboidrati,grassi,note:note.join('\n')};
+};
 const interpPushup=(rip,sesso)=>{if(!rip)return null;const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}else{if(r<7)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<15)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}};
 const interpPlank=(sec)=>{if(!sec)return null;const s=+sec;if(s<30)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con plank sulle ginocchia 3×15s'};if(s<60)return{l:gT().base,c:'#f59e0b',cons:'Progressione a 45s poi 60s'};if(s<120)return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti laterale e dinamico'};return{l:gT().excellent,c:'#3b82f6',cons:'Core molto stabile — esercizi avanzati'};};
 const interpSquat=(rip)=>{if(!rip)return null;const r=+rip;if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Squat assistito e mobilità anca'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Tecnica prima del carico'};if(r<30)return{l:gT().good,c:'#10b981',cons:'Aggiungi carico progressivo'};return{l:gT().excellent,c:'#3b82f6',cons:'Varianti avanzate — pistol squat'};};
@@ -2073,6 +2144,10 @@ ${(p.progressi||[]).length>1?`
 
       {tab==='nutri'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:2}}>
+            <button style={{...S.btn(),fontSize:12}} onClick={()=>{var nutCalc=calcNutrizione(p);if(nutCalc){onUpdate({...p,nutrizione:{...p.nutrizione,kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note}});showToast('Macros ricalcolati in base ai dati del cliente','success');}else{showToast('Dati insufficienti per il calcolo (servono peso, altezza, età e sesso)','warning');}}}>🔄 Ricalcola macros</button>
+            <span style={{fontSize:11,color:C.muted}}>{'Calcolato con '+(p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor')+' · '+(p.obiettivo||'nessun obiettivo')}</span>
+          </div>
           <div style={S.grid(4)}>
             <StatCard label="Kcal/giorno" value={p.nutrizione?.kcal||'—'} color={C.orange}/>
             <StatCard label="Proteine (g)" value={p.nutrizione?.proteine||'—'} color={C.blue}/>
@@ -4101,7 +4176,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   gad7:d.gad7,motivazione:d.motivazione,
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note}:{},
-                nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
+                nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:(prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{});})(),
               };
               onSave(p);
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button><span className="tp">Salva la valutazione</span></div>}
