@@ -164,6 +164,20 @@ Fornisci:
   const data=await res.json();
   return data.content?.[0]?.text||'Errore nel generare il programma.';
 };
+// ── EXPORT GLOBALI per Babel ─────────────────────────────────────────────────
+window.fbAuth=fbAuth;
+window.fbDb=fbDb;
+window.ADMIN_EMAIL=ADMIN_EMAIL;
+window.PAYPAL_PRO=PAYPAL_PRO;
+window.PAYPAL_STUDIO=PAYPAL_STUDIO;
+window.fbSaveUserProfile=fbSaveUserProfile;
+window.fbGetUserProfile=fbGetUserProfile;
+window.fbGetAllUsers=fbGetAllUsers;
+window.fbSave=fbSave;
+window.fbLoad=fbLoad;
+window.sendEmail=sendEmail;
+window.askSendEmail=askSendEmail;
+window.aiCoach=aiCoach;
 </script>
 <style>
 :root{
