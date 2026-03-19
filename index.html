@@ -80,6 +80,7 @@ fbDb.enableIndexedDbPersistence().catch(function(err){
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=30;
+window.TRIAL_DAYS=TRIAL_DAYS;
 const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
 const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
@@ -92,20 +93,6 @@ const fbGetUserProfile=async(uid)=>{
 const fbGetAllUsers=async()=>{
   try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
 };
-const isTrialExpired=(profile)=>{
-  if(!profile) return false;
-  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
-  if(!profile.trialStart) return false;
-  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
-  return days>TRIAL_DAYS;
-};
-const trialDaysLeft=(profile)=>{
-  if(!profile?.trialStart) return TRIAL_DAYS;
-  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
-  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
-};
-window.isTrialExpired=isTrialExpired;
-window.trialDaysLeft=trialDaysLeft;
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
 const fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
@@ -313,6 +300,19 @@ console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: pt
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
+const TRIAL_DAYS=window.TRIAL_DAYS||30;
+const isTrialExpired=(profile)=>{
+  if(!profile) return false;
+  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
+  if(!profile.trialStart) return false;
+  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return days>TRIAL_DAYS;
+};
+const trialDaysLeft=(profile)=>{
+  if(!profile?.trialStart) return TRIAL_DAYS;
+  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
+};
 
 const SK='fitmanager_v4';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
