@@ -104,6 +104,8 @@ const trialDaysLeft=(profile)=>{
   const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
   return Math.max(0,Math.ceil(TRIAL_DAYS-used));
 };
+window.isTrialExpired=isTrialExpired;
+window.trialDaysLeft=trialDaysLeft;
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
 const fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
