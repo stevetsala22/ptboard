@@ -1,17 +1,26 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  PT Board — personaltrainerboard.com                        ║
+  ║  © 2026 PT Board. Tutti i diritti riservati.                ║
+  ║                                                              ║
+  ║  Questo software è protetto da diritto d'autore.            ║
+  ║  La copia, la riproduzione, la distribuzione o la           ║
+  ║  modifica non autorizzata di questo codice, in tutto        ║
+  ║  o in parte, è severamente vietata e perseguibile           ║
+  ║  a norma di legge (L. 633/1941 e s.m.i.).                  ║
+  ║                                                              ║
+  ║  Unauthorized copying, redistribution or modification        ║
+  ║  of this code is strictly prohibited.                        ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
 <html lang="it">
 <head>
 <script>
 if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
   var came=sessionStorage.getItem('entered');
   if(!came&&!document.referrer.includes('personaltrainerboard.com')){
-    sessionStorage.setItem('entered','1');
-    fetch('/landing.html').then(function(r){return r.text();}).then(function(html){
-      document.open();
-      document.write(html);
-      document.close();
-      history.replaceState(null,'','/');
-    });
+    window.location.replace('/landing.html');
   }
 }
 </script>
@@ -21,7 +30,9 @@ if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="PT Board"/>
-<meta name="description" content="Gestione clienti per Personal Trainer"/>>
+<meta name="description" content="Gestione clienti per Personal Trainer"/>
+<meta name="author" content="PT Board"/>
+<meta name="copyright" content="© 2026 PT Board. Tutti i diritti riservati."/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
@@ -51,45 +62,41 @@ firebase.initializeApp({
   messagingSenderId:"223801010947",
   appId:"1:223801010947:web:9c3f887243609bcdad9736"
 });
-var fbAuth=firebase.auth();
-var fbDb=firebase.firestore();
+const fbAuth=firebase.auth();
+const fbDb=firebase.firestore();
+fbDb.enableIndexedDbPersistence().catch(function(err){
+  if(err.code==='failed-precondition'){
+    console.warn('Persistenza offline: più tab aperte, solo una può usarla');
+  }else if(err.code==='unimplemented'){
+    console.warn('Persistenza offline non supportata da questo browser');
+  }
+});
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
-var ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
-var TRIAL_DAYS=30;
-var PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
-var PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
+const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
+const TRIAL_DAYS=30;
+window.TRIAL_DAYS=TRIAL_DAYS;
+const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
+const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
-var fbSaveUserProfile=async(uid,data)=>{
+const fbSaveUserProfile=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
 };
-var fbGetUserProfile=async(uid)=>{
-  try{var d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
+const fbGetUserProfile=async(uid)=>{
+  try{const d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
 };
-var fbGetAllUsers=async()=>{
-  try{var s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
-};
-var isTrialExpired=function(profile){
-  if(!profile) return false;
-  if(profile.plan==='pro'||profile.plan==='admin') return false;
-  if(!profile.trialStart) return false;
-  var days=(Date.now()-profile.trialStart)/(1000*60*60*24);
-  return days>TRIAL_DAYS;
-};
-var trialDaysLeft=function(profile){
-  if(!profile||!profile.trialStart) return TRIAL_DAYS;
-  var used=(Date.now()-profile.trialStart)/(1000*60*60*24);
-  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
+const fbGetAllUsers=async()=>{
+  try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
 };
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
-var fbSave=async(uid,data)=>{
+const fbSave=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
   catch(e){console.warn('fbSave',e);
     try{await new Promise(r=>setTimeout(r,2000));await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
     catch(e2){console.warn('fbSave retry failed',e2);}
   }
 };
-var fbLoad=async(uid)=>{
-  try{var d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
+const fbLoad=async(uid)=>{
+  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
   catch(e){console.warn('fbLoad',e);return null;}
 };
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
@@ -97,10 +104,10 @@ var fbLoad=async(uid)=>{
 // 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
 // 3. Crea template con variabili: {{to_email}}, {{to_name}}, {{subject}}, {{message}}
 // 4. Sostituisci i valori qui sotto
-var EMAILJS_SERVICE='service_s4ra456';
-var EMAILJS_TEMPLATE='template_t2l9tuk';
-var EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
-var sendEmail=async({toEmail,toName,subject,message,fromName})=>{
+const EMAILJS_SERVICE='service_s4ra456';
+const EMAILJS_TEMPLATE='template_t2l9tuk';
+const EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
+const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
   try{
     emailjs.init(EMAILJS_KEY);
     await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
@@ -126,8 +133,8 @@ function askSendEmail({pat,subject,message,trainerProfile}){
   });
 }
 // ── AI COACH ─────────────────────────────────────────────────────────────────
-var aiCoach=async(paziente)=>{
-  var prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
+const aiCoach=async(paziente)=>{
+  const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
 PROFILO:
 - Nome: Paziente (dati anonimizzati)
 - Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
@@ -263,11 +270,65 @@ document.addEventListener('mouseout',function(e){
   if(tp)tp.style.opacity='0';
 });
 </script>
+<script>
+// ── PROTEZIONE CODICE ──
+document.addEventListener('contextmenu',function(e){e.preventDefault();});
+document.addEventListener('keydown',function(e){
+  // Blocca F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  if(e.key==='F12')e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'))e.preventDefault();
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='J'||e.key==='j'))e.preventDefault();
+  if(e.ctrlKey&&(e.key==='U'||e.key==='u'))e.preventDefault();
+  if(e.ctrlKey&&(e.key==='S'||e.key==='s'))e.preventDefault();
+});
+</script>
+<script>
+// Avviso nella console del browser
+console.log('%c⚠️ ATTENZIONE','font-size:24px;color:#ef4444;font-weight:900');
+console.log('%cQuesto software è protetto da copyright © 2026 PT Board.','font-size:14px;color:#f59e0b');
+console.log('%cLa copia o la riproduzione non autorizzata è vietata e perseguibile a norma di legge.','font-size:12px;color:#6b7280');
+console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: ptboard.app@gmail.com','font-size:12px;color:#3b82f6');
+</script>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <div id="loading-fallback" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#07090f;gap:16px">
+    <div style="font-size:32px;font-weight:900;color:#3b82f6">PT Board</div>
+    <div style="width:36px;height:36px;border:3px solid #334155;border-top:3px solid #3b82f6;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <div id="loading-error" style="display:none;text-align:center;max-width:340px">
+      <div style="font-size:14px;color:#ef4444;margin-bottom:8px">Errore nel caricamento dell'app</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:16px">Potrebbe essere un problema temporaneo di rete. Prova a ricaricare la pagina.</div>
+      <button onclick="window.location.reload()" style="padding:10px 24px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">Ricarica</button>
+    </div>
+  </div>
+</div>
+<script>
+// Se dopo 10s React non ha ancora renderizzato, mostra errore
+setTimeout(function(){
+  var fb=document.getElementById('loading-fallback');
+  if(fb){
+    var err=document.getElementById('loading-error');
+    if(err) err.style.display='block';
+  }
+},10000);
+</script>
 <script type="text/babel" data-presets="react">
+(function(){
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
+const TRIAL_DAYS=window.TRIAL_DAYS||30;
+const isTrialExpired=(profile)=>{
+  if(!profile) return false;
+  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
+  if(!profile.trialStart) return false;
+  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return days>TRIAL_DAYS;
+};
+const trialDaysLeft=(profile)=>{
+  if(!profile?.trialStart) return TRIAL_DAYS;
+  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
+};
 
 const SK='fitmanager_v4';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
@@ -811,6 +872,77 @@ const profilo=(mwt,sts,sesso,test,extra)=>{
   const r=calcScore(t,sesso||'M',extra);
   return r;
 };
+const calcNutrizione=(p)=>{
+  if(!p)return null;
+  // STEP 1 — BMR
+  var bmr;
+  if(p.bia?.FM&&p.peso){
+    var ffm=(+p.peso)*(1-(+p.bia.FM)/100);
+    bmr=370+(21.6*ffm);
+  }else{
+    var eta=p.annoNascita?(new Date().getFullYear()-p.annoNascita):null;
+    if(!eta||!p.peso||!p.altezza)return null;
+    if(p.sesso==='M')bmr=(10*(+p.peso))+(6.25*(+p.altezza))-(5*eta)+5;
+    else bmr=(10*(+p.peso))+(6.25*(+p.altezza))-(5*eta)-161;
+  }
+  if(p.patologie){var pat0=p.patologie.toLowerCase();if(pat0.includes('tiroidea')||pat0.includes('ipotiroidismo'))bmr*=0.90;}
+  if(p.fumo==='Fumatore regolare')bmr+=200;else if(p.fumo==='Fumatore occasionale')bmr+=100;
+  // STEP 2 — TDEE
+  var fattori={'Sedentaria':1.2,'Poco attiva':1.375,'Moderata':1.55,'Attiva':1.725,'Molto attiva':1.9};
+  var fattore=fattori[p.attivita]||1.4;
+  var tdee=bmr*fattore;
+  // STEP 3 — Calorie target
+  var obiettivoMap={'Perdere peso':0.80,'Aumentare massa':1.15,'Resistenza':1.05,'Forza':1.10,'Salute':1.0,'Riabilitazione':1.0,'Performance':1.10,'Benessere':1.0};
+  var molt=obiettivoMap[p.obiettivo]||1.0;
+  var kcal=Math.round(tdee*molt);
+  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')kcal=Math.round(kcal*1.05);
+  // STEP 4 — Macros
+  var protMap={'Perdere peso':2.0,'Aumentare massa':2.0,'Resistenza':1.6,'Forza':2.0,'Salute':1.4,'Riabilitazione':1.6,'Performance':1.8,'Benessere':1.4};
+  var protPerKg=protMap[p.obiettivo]||1.6;
+  var pesoCalcolo=+p.peso;
+  var bmiVal=p.altezza&&p.peso?(+p.peso)/((+p.altezza/100)**2):null;
+  if(bmiVal&&bmiVal>30)pesoCalcolo=24.9*((+p.altezza/100)**2);
+  var proteine=Math.round(protPerKg*pesoCalcolo);
+  var kcalProt=proteine*4;
+  var grassiPct={'Perdere peso':0.25,'Aumentare massa':0.25,'Resistenza':0.25,'Forza':0.30,'Salute':0.30,'Riabilitazione':0.30,'Performance':0.25,'Benessere':0.30};
+  var pctG=grassiPct[p.obiettivo]||0.28;
+  if(p.patologie){var pat1=p.patologie.toLowerCase();if(pat1.includes('dislipidemia')||pat1.includes('cardiopatia'))pctG=0.20;}
+  var grassi=Math.round((kcal*pctG)/9);
+  var kcalGrassi=grassi*9;
+  var carboidrati=Math.round((kcal-kcalProt-kcalGrassi)/4);
+  if(carboidrati<0)carboidrati=0;
+  if(p.patologie){
+    var pat2=p.patologie.toLowerCase();
+    if(pat2.includes('diabete tipo 2')){var maxCarbo=Math.round((kcal*0.40)/4);if(carboidrati>maxCarbo){var diff=carboidrati-maxCarbo;carboidrati=maxCarbo;grassi+=Math.round((diff*4)/9);}}
+    if(pat2.includes('diabete tipo 1')){if(carboidrati<130)carboidrati=130;}
+  }
+  // STEP 5 — Note
+  var note=[];
+  if(+p.sonno<6)note.push('Sonno ridotto (<6h): aumentare proteine e attenzione al recupero');
+  if(p.patologie){
+    var pat3=p.patologie.toLowerCase();
+    if(pat3.includes('ipertensione'))note.push('Ipertensione: sodio < 2g/giorno, aumentare potassio (frutta, verdura)');
+    if(pat3.includes('diabete tipo 2'))note.push('Diabete T2: carboidrati a basso indice glicemico, evitare zuccheri semplici');
+    if(pat3.includes('diabete tipo 1'))note.push('Diabete T1: carboidrati stabili e prevedibili, minimo 130g/giorno');
+    if(pat3.includes('dislipidemia'))note.push('Dislipidemia: grassi saturi < 7%, preferire omega-3, aumentare fibre');
+    if(pat3.includes('cardiopatia'))note.push('Cardiopatia: grassi saturi < 7%, sodio < 1.5g, dieta mediterranea');
+    if(pat3.includes('osteoporosi'))note.push('Osteoporosi: calcio 1200mg/giorno, vitamina D, proteine adeguate');
+    if(pat3.includes('artrosi')||pat3.includes('artrite'))note.push('Artrosi/artrite: alimenti anti-infiammatori (omega-3, curcuma, verdure)');
+    if(pat3.includes('depressione')||pat3.includes('ansia'))note.push('Benessere mentale: omega-3, triptofano (tacchino, semi), limitare caffeina');
+    if(pat3.includes('obesita'))note.push('Obesità: deficit calorico moderato, proteine calcolate su peso ideale');
+    if(pat3.includes('tiroidea'))note.push('Patologia tiroidea: monitorare metabolismo, aggiustare kcal con il medico');
+  }
+  if(p.allergie){
+    var all=p.allergie.toLowerCase();
+    if(all.includes('lattosio'))note.push('Intolleranza lattosio: sostituire con alternative vegetali o lactose-free');
+    if(all.includes('glutine')||all.includes('celiachia'))note.push('Celiachia: evitare frumento/orzo/segale, usare riso, mais, quinoa, patate');
+    if(all.includes('nichel'))note.push('Allergia nichel: limitare pomodoro, cacao, legumi secchi, frutta secca');
+  }
+  if(p.alcol&&(p.alcol.includes('8-14')||p.alcol.includes('>14')))note.push('Consumo alcol elevato: attenzione alle calorie vuote (~7 kcal/g)');
+  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')note.push('Stress elevato: kcal leggermente aumentate per compensare il cortisolo');
+  note.push('⚠️ Suggerimenti nutrizionali generici — per un piano personalizzato rivolgersi a un nutrizionista');
+  return{kcal,proteine,carboidrati,grassi,note:note.join('\n')};
+};
 const interpPushup=(rip,sesso)=>{if(!rip)return null;const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}else{if(r<7)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<15)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}};
 const interpPlank=(sec)=>{if(!sec)return null;const s=+sec;if(s<30)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con plank sulle ginocchia 3×15s'};if(s<60)return{l:gT().base,c:'#f59e0b',cons:'Progressione a 45s poi 60s'};if(s<120)return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti laterale e dinamico'};return{l:gT().excellent,c:'#3b82f6',cons:'Core molto stabile — esercizi avanzati'};};
 const interpSquat=(rip)=>{if(!rip)return null;const r=+rip;if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Squat assistito e mobilità anca'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Tecnica prima del carico'};if(r<30)return{l:gT().good,c:'#10b981',cons:'Aggiungi carico progressivo'};return{l:gT().excellent,c:'#3b82f6',cons:'Varianti avanzate — pistol squat'};};
@@ -1021,13 +1153,7 @@ const INIT_EXERCISES=[
   {id:'E15',nome:'Lat Machine',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata alla lat machine'},
 ];
 
-const INIT_PATIENTS=[
-  {id:'P1',nome:'Marco',cognome:'Rossi',sesso:'M',annoNascita:1985,ddn:'1985-03-12',altezza:'178',peso:'82',vita:'88',fianchi:'96',pa:'130/80',fc:'72',patologie:'Ipertensione lieve',farmaci:'Ramipril 5mg',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'Perdita peso e miglioramento cardiovascolare',preferenze:'No corsa, preferisce camminata',stressPercepito:'Alto',sonno:'6',dataValutazione:'2025-01-15',test:{mwtDist:'220',mwtRpe:'7',mwtSintomi:'Affaticamento',stsRip:'6',stsNote:'Difficoltà a rialzarsi',noteVal:'Cliente decondizionato'},programma:{dataInizio:'2025-01-20',sedute:'3',minCardio:'60',minForza:'40',cardio:'Camminata',forza:'Corpo libero',note:'Avvio graduale'},nutrizione:{kcal:'1600',proteine:'128',carboidrati:'160',grassi:'53',note:'Ridurre sodio',pianoPasti:''},progressi:[{data:'2025-01-15',peso:82,nota:'Inizio'},{data:'2025-02-15',peso:80.5,nota:'Buon progresso'},{data:'2025-03-10',peso:79,nota:'-3kg totali'}],schede:[],log:[{id:1,data:'2025-02-01',tipo:'Cardio',durata:30,rpe:6,note:'Camminata 2km'},{id:2,data:'2025-02-08',tipo:'Forza',durata:40,rpe:5,note:'Circuito corpo libero'}],createdAt:'2025-01-15'},
-  {id:'P2',nome:'Giulia',cognome:'Bianchi',sesso:'F',annoNascita:1992,ddn:'1992-07-24',altezza:'165',peso:'58',vita:'68',fianchi:'92',pa:'115/70',fc:'65',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'Lattosio',attivita:'Attiva',obiettivo:'Tonificazione e forza',preferenze:'Pesi e funzionale',stressPercepito:'Basso',sonno:'8',dataValutazione:'2025-02-01',test:{mwtDist:'580',mwtRpe:'3',mwtSintomi:'Nessuno',stsRip:'22',stsNote:'Ottima tecnica',handgrip:'30',tugSec:'7',noteVal:'Atleta ricreativa'},programma:{dataInizio:'2025-02-05',sedute:'5',minCardio:'120',minForza:'90',cardio:'HIIT + LISS',forza:'Upper/Lower split',note:'Progressione carico'},nutrizione:{kcal:'2000',proteine:'140',carboidrati:'220',grassi:'65',note:'',pianoPasti:''},progressi:[{data:'2025-02-01',peso:58,nota:'Inizio'},{data:'2025-03-01',peso:57.5,nota:'Stabile'}],schede:[],log:[{id:1,data:'2025-02-10',tipo:'Forza',durata:60,rpe:7,note:'Upper body'},{id:2,data:'2025-02-12',tipo:'Cardio',durata:45,rpe:6,note:'HIIT 30/30'},{id:3,data:'2025-02-17',tipo:'Forza',durata:55,rpe:8,note:'Lower body PR squat'}],createdAt:'2025-02-01'},
-  {id:'P3',nome:'Antonio',cognome:'Ferrara',sesso:'M',annoNascita:1978,ddn:'1978-11-05',altezza:'175',peso:'90',vita:'98',fianchi:'100',pa:'135/85',fc:'78',patologie:'Diabete tipo 2',farmaci:'Metformina 850mg',sintomiSforzo:'NO',allergie:'',attivita:'Poco attiva',obiettivo:'Controllo glicemia e perdita peso',preferenze:'Niente impatto alto',stressPercepito:'Medio',sonno:'7',dataValutazione:'2025-01-20',test:{mwtDist:'420',mwtRpe:'5',mwtSintomi:'Lieve dispnea',stsRip:'12',stsNote:'Nella norma',handgrip:'38',tugSec:'10',noteVal:'Forma discreta, da migliorare'},programma:{dataInizio:'2025-01-25',sedute:'4',minCardio:'100',minForza:'60',cardio:'Bike e camminata veloce',forza:'Circuit training',note:'Monitorare glicemia pre/post'},nutrizione:{kcal:'1800',proteine:'144',carboidrati:'180',grassi:'60',note:'Basso indice glicemico',pianoPasti:''},progressi:[{data:'2025-01-20',peso:90,nota:'Inizio'},{data:'2025-02-20',peso:88,nota:'-2kg'},{data:'2025-03-10',peso:86.5,nota:'Glicemia migliorata'}],schede:[],log:[{id:1,data:'2025-02-01',tipo:'Cardio',durata:35,rpe:5,note:'Bike 30min'},{id:2,data:'2025-02-05',tipo:'Forza',durata:45,rpe:6,note:'Circuito 3 giri'}],createdAt:'2025-01-20'},
-  {id:'P4',nome:'Sara',cognome:'Conti',sesso:'F',annoNascita:1968,ddn:'1968-04-18',altezza:'160',peso:'72',vita:'85',fianchi:'102',pa:'140/90',fc:'80',patologie:'Artrosi ginocchio dx, osteoporosi',farmaci:'Vitamina D, Calcio',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'Mobilità e prevenzione cadute',preferenze:'Esercizi dolci, no salti',stressPercepito:'Alto',sonno:'5.5',dataValutazione:'2025-02-10',test:{mwtDist:'180',mwtRpe:'8',mwtSintomi:'Dolore ginocchio',stsRip:'4',stsNote:'Difficoltà marcata',handgrip:'15',tugSec:'18',noteVal:'Alto rischio cadute, necessita supervisione'},programma:{dataInizio:'2025-02-15',sedute:'3',minCardio:'45',minForza:'30',cardio:'Camminata lenta',forza:'Da seduto',note:'Supervisione costante'},nutrizione:{kcal:'1500',proteine:'110',carboidrati:'150',grassi:'50',note:'Aumentare proteine e calcio',pianoPasti:''},progressi:[{data:'2025-02-10',peso:72,nota:'Inizio'},{data:'2025-03-10',peso:71.5,nota:'Leggero calo'}],schede:[],log:[{id:1,data:'2025-02-20',tipo:'Mobilità',durata:25,rpe:4,note:'Esercizi da seduta'}],createdAt:'2025-02-10'},
-  {id:'P5',nome:'Luca',cognome:'Moretti',sesso:'M',annoNascita:1995,ddn:'1995-09-30',altezza:'182',peso:'76',vita:'78',fianchi:'90',pa:'120/75',fc:'60',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Molto attiva',obiettivo:'Ipertrofia e performance sportiva',preferenze:'Palestra, pesi liberi',stressPercepito:'Basso',sonno:'8',dataValutazione:'2025-03-01',test:{},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[{data:'2025-03-01',peso:76,nota:'Inizio'}],schede:[],log:[],createdAt:'2025-03-01'},
-];
+const INIT_PATIENTS=[];
 const INIT_BOOKINGS=[];
 
 let isMobile=window.innerWidth<=768;
@@ -1587,7 +1713,7 @@ ${(p.progressi||[]).length>1?`
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={onValuta}>
               <span style={{fontSize:18}}>📋</span><span>Valuta</span>
             </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);askSendEmail({pat:p,subject:'Il tuo programma personalizzato è pronto',message:'Il tuo programma di allenamento personalizzato è pronto!\n\nNe parliamo nel dettaglio al prossimo incontro.\n\n[nomeMittente]',trainerProfile});}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>
+            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={()=>{showToast('🤖 AI Coach — Disponibile a breve! Stiamo preparando questa funzionalità.','warning');}}>
               <span style={{fontSize:18}}>🤖</span><span>AI Coach</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={generaPDF}>
@@ -1614,7 +1740,7 @@ ${(p.progressi||[]).length>1?`
           </div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onValuta}>📋 Valuta ora</button><span className="tp">Avvia nuova valutazione</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={generaPDF}>📄 Report PDF</button><span className="tp">Scarica report completo</span></div>
-          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={async()=>{setShowAI(true);setAiResult('');setAiLoading(true);try{const r=await aiCoach(p);setAiResult(r);}catch(e){setAiResult('❌ Errore: '+e.message);}finally{setAiLoading(false);}}}>🤖 AI Coach</button><span className="tp">Genera programma con intelligenza artificiale</span></div>
+          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={()=>{showToast('🤖 AI Coach — Disponibile a breve! Stiamo preparando questa funzionalità.','warning');}}>🤖 AI Coach</button><span className="tp">Genera programma con intelligenza artificiale</span></div>
           {p.telefono&&<div className="tt"><a href={'https://wa.me/'+p.telefono.replace(/[\s\-\(\)\+]/g,'')+'?text='+encodeURIComponent('Ciao '+p.nome+'! Ti scrivo da PT Board.')} target="_blank" rel="noreferrer" onMouseEnter={function(e){e.currentTarget.style.borderColor='#25D366';e.currentTarget.style.color='#25D366';}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6,textDecoration:'none'}}>💬 WhatsApp</a><span className="tp">Scrivi su WhatsApp</span></div>}
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onEdit}>✏ {T.edit}</button><span className="tp">Modifica cliente</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onDelete}>🗑</button><span className="tp">Elimina cliente definitivamente</span></div>
@@ -2036,6 +2162,10 @@ ${(p.progressi||[]).length>1?`
 
       {tab==='nutri'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:2}}>
+            <button style={{...S.btn(),fontSize:12}} onClick={()=>{var nutCalc=calcNutrizione(p);if(nutCalc){onUpdate({...p,nutrizione:{...p.nutrizione,kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note}});showToast('Macros ricalcolati in base ai dati del cliente','success');}else{showToast('Dati insufficienti per il calcolo (servono peso, altezza, età e sesso)','warning');}}}>🔄 Ricalcola macros</button>
+            <span style={{fontSize:11,color:C.muted}}>{'Calcolato con '+(p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor')+' · '+(p.obiettivo||'nessun obiettivo')}</span>
+          </div>
           <div style={S.grid(4)}>
             <StatCard label="Kcal/giorno" value={p.nutrizione?.kcal||'—'} color={C.orange}/>
             <StatCard label="Proteine (g)" value={p.nutrizione?.proteine||'—'} color={C.blue}/>
@@ -4064,7 +4194,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   gad7:d.gad7,motivazione:d.motivazione,
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note}:{},
-                nutrizione:prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{},
+                nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:(prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{});})(),
               };
               onSave(p);
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button><span className="tp">Salva la valutazione</span></div>}
@@ -4133,7 +4263,7 @@ function LinguaModal({onClose,lang,setLang}){
             const sel=lang===l.k;
             return(
               <div key={l.k} onClick={()=>{setLang(l.k);setLangStore(l.k);onClose();}}
-                style={{background:'#0f1623',border:'2px solid '+sel?'#3b82f6':'#1e2d47',borderRadius:16,padding:'20px 16px',cursor:'pointer',textAlign:'center',position:'relative',transition:'border-color .15s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                style={{background:'#0f1623',border:'2px solid '+(sel?'#3b82f6':'#1e2d47'),borderRadius:16,padding:'20px 16px',cursor:'pointer',textAlign:'center',position:'relative',transition:'border-color .15s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
                 {sel&&<div style={{position:'absolute',top:10,right:12,background:'#3b82f6',color:'#fff',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20}}>✓ Attiva</div>}
                 <div style={{fontSize:36}}>{l.flag}</div>
                 <div style={{fontSize:15,fontWeight:700,color:sel?'#f8fafc':'#94a3b8'}}>{l.nome}</div>
@@ -4234,7 +4364,7 @@ function PianiModal({onClose,profile}){
           {piani.map(p=>(
             <div key={p.id} style={{
               background:'#0f1623',
-              border:'2px solid '+p.id==='pro'?p.color:'#1e2d47',
+              border:'2px solid '+(p.id==='pro'?p.color:'#1e2d47'),
               borderRadius:16,
               padding:22,
               position:'relative',
@@ -4571,7 +4701,7 @@ function TutorialModal({onClose,isLight}){
         {/* Step pills */}
         <div style={{display:'flex',padding:'10px 20px',gap:3,flexShrink:0,overflowX:'auto',borderBottom:'1px solid '+C.border}}>
           {TSTEPS.map((x,i)=>(
-            <div key={x} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+            <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
               <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
               {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
             </div>
@@ -4601,6 +4731,7 @@ function TutorialModal({onClose,isLight}){
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
+})();
 </script>
 </body>
 </html>
