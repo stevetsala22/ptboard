@@ -62,8 +62,8 @@ firebase.initializeApp({
   messagingSenderId:"223801010947",
   appId:"1:223801010947:web:9c3f887243609bcdad9736"
 });
-const fbAuth=firebase.auth();
-const fbDb=firebase.firestore();
+var fbAuth=firebase.auth();
+var fbDb=firebase.firestore();
 fbDb.enableIndexedDbPersistence().catch(function(err){
   if(err.code==='failed-precondition'){
     console.warn('Persistenza offline: più tab aperte, solo una può usarla');
@@ -72,31 +72,30 @@ fbDb.enableIndexedDbPersistence().catch(function(err){
   }
 });
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
-const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
-const TRIAL_DAYS=30;
-window.TRIAL_DAYS=TRIAL_DAYS;
-const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
-const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
+var ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
+var TRIAL_DAYS=30;
+var PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
+var PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
-const fbSaveUserProfile=async(uid,data)=>{
+var fbSaveUserProfile=async function(uid,data){
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
 };
-const fbGetUserProfile=async(uid)=>{
-  try{const d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
+var fbGetUserProfile=async function(uid){
+  try{var d=await fbDb.collection('users').doc(uid).get();return d.exists?d.data():null;}catch(e){return null;}
 };
-const fbGetAllUsers=async()=>{
-  try{const s=await fbDb.collection('users').get();return s.docs.map(d=>({id:d.id,...d.data()}));}catch(e){return[];}
+var fbGetAllUsers=async function(){
+  try{var s=await fbDb.collection('users').get();return s.docs.map(function(d){return Object.assign({id:d.id},d.data());});}catch(e){return[];}
 };
 // ── APP DATA FUNCTIONS ────────────────────────────────────────────────────────
-const fbSave=async(uid,data)=>{
+var fbSave=async function(uid,data){
   try{await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
   catch(e){console.warn('fbSave',e);
-    try{await new Promise(r=>setTimeout(r,2000));await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
+    try{await new Promise(function(r){setTimeout(r,2000);});await fbDb.collection('users').doc(uid).collection('appdata').doc('main').set(data,{merge:true});}
     catch(e2){console.warn('fbSave retry failed',e2);}
   }
 };
-const fbLoad=async(uid)=>{
-  try{const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
+var fbLoad=async function(uid){
+  try{var d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();return d.exists?d.data():null;}
   catch(e){console.warn('fbLoad',e);return null;}
 };
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
@@ -104,10 +103,11 @@ const fbLoad=async(uid)=>{
 // 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
 // 3. Crea template con variabili: {{to_email}}, {{to_name}}, {{subject}}, {{message}}
 // 4. Sostituisci i valori qui sotto
-const EMAILJS_SERVICE='service_s4ra456';
-const EMAILJS_TEMPLATE='template_t2l9tuk';
-const EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
-const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
+var EMAILJS_SERVICE='service_s4ra456';
+var EMAILJS_TEMPLATE='template_t2l9tuk';
+var EMAILJS_KEY='_xdMhjPLNbA_bpkv5';
+var sendEmail=async function(params){
+  var toEmail=params.toEmail,toName=params.toName,subject=params.subject,message=params.message,fromName=params.fromName;
   try{
     emailjs.init(EMAILJS_KEY);
     await emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{
@@ -121,38 +121,23 @@ const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
     return {ok:true};
   }catch(e){return {ok:false,err:String(e)};}
 };
-function askSendEmail({pat,subject,message,trainerProfile}){
-  if(!pat?.email)return;
-  const fromName=trainerProfile?.nomeStudio||(trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':null)||'PT Board';
-  const toName=(pat.nome||'')+(pat.cognome?' '+pat.cognome:'');
-  const finalMsg=message.replace(/\[nomeMittente\]/g,fromName);
-  showAskToast('📧 Notificare '+pat.nome+' via email?',async()=>{
-    const r=await sendEmail({toEmail:pat.email,toName,subject,message:finalMsg,fromName});
-    if(r.ok)showToast('Email inviata a '+pat.email,'success');
-    else showToast('Errore invio email','error');
+function askSendEmail(opts){
+  var pat=opts.pat,subject=opts.subject,message=opts.message,trainerProfile=opts.trainerProfile;
+  if(!pat||!pat.email)return;
+  var fromName=(trainerProfile&&trainerProfile.nomeStudio)||((trainerProfile&&trainerProfile.nome)?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':null)||'PT Board';
+  var toName=(pat.nome||'')+(pat.cognome?' '+pat.cognome:'');
+  var finalMsg=message.replace(/\[nomeMittente\]/g,fromName);
+  window.showAskToast('📧 Notificare '+pat.nome+' via email?',async function(){
+    var r=await sendEmail({toEmail:pat.email,toName:toName,subject:subject,message:finalMsg,fromName:fromName});
+    if(r.ok)window.showToast('Email inviata a '+pat.email,'success');
+    else window.showToast('Errore invio email','error');
   });
 }
 // ── AI COACH ─────────────────────────────────────────────────────────────────
-const aiCoach=async(paziente)=>{
-  const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
-PROFILO:
-- Nome: Paziente (dati anonimizzati)
-- Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
-- Sesso: ${paziente.sesso}
-- Peso: ${paziente.peso} kg | Altezza: ${paziente.altezza} cm
-- BMI: ${paziente.altezza&&paziente.peso?(paziente.peso/(paziente.altezza/100)**2).toFixed(1):'-'}
-- Attività attuale: ${paziente.attivita}
-- Obiettivo: ${paziente.obiettivo||'non specificato'}
-- Patologie: ${paziente.patologie||'nessuna'}
-- Test MWT: ${paziente.test?.mwtDist||'-'} m | STS: ${paziente.test?.stsRip||'-'} ripetizioni
-- Stress percepito: ${paziente.stressPercepito} | Sonno: ${paziente.sonno||'-'} ore
-Fornisci:
-1. 🎯 Obiettivo prioritario (2 righe)
-2. 📅 Schema settimanale (giorni e tipo di allenamento)
-3. 💪 3 esercizi chiave con serie/reps
-4. 🥗 Consiglio nutrizionale rapido
-5. ⚠️ Precauzioni specifiche per questo cliente`;
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+var aiCoach=async function(paziente){
+  var test=paziente.test||{};
+  var prompt='Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.\nPROFILO:\n- Nome: Paziente (dati anonimizzati)\n- Età: '+(paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-')+' anni\n- Sesso: '+paziente.sesso+'\n- Peso: '+paziente.peso+' kg | Altezza: '+paziente.altezza+' cm\n- BMI: '+(paziente.altezza&&paziente.peso?(paziente.peso/Math.pow(paziente.altezza/100,2)).toFixed(1):'-')+'\n- Attività attuale: '+paziente.attivita+'\n- Obiettivo: '+(paziente.obiettivo||'non specificato')+'\n- Patologie: '+(paziente.patologie||'nessuna')+'\n- Test MWT: '+(test.mwtDist||'-')+' m | STS: '+(test.stsRip||'-')+' ripetizioni\n- Stress percepito: '+paziente.stressPercepito+' | Sonno: '+(paziente.sonno||'-')+' ore\nFornisci:\n1. Obiettivo prioritario (2 righe)\n2. Schema settimanale (giorni e tipo di allenamento)\n3. 3 esercizi chiave con serie/reps\n4. Consiglio nutrizionale rapido\n5. Precauzioni specifiche per questo cliente';
+  var res=await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -161,8 +146,8 @@ Fornisci:
       messages:[{role:'user',content:prompt}]
     })
   });
-  const data=await res.json();
-  return data.content?.[0]?.text||'Errore nel generare il programma.';
+  var data=await res.json();
+  return (data.content&&data.content[0]&&data.content[0].text)||'Errore nel generare il programma.';
 };
 </script>
 <style>
@@ -1188,6 +1173,7 @@ let _toastDispatch=null;
 function showToast(msg,type='success',duration=4000){if(_toastDispatch)_toastDispatch({msg,type,duration});}
 function showConfirmToast(msg,action,duration=5000){if(_toastDispatch)_toastDispatch({msg,type:'confirm',action,duration});}
 function showAskToast(msg,onConfirm,duration=8000){if(_toastDispatch)_toastDispatch({msg,type:'ask',action:onConfirm,duration});}
+window.showToast=showToast;window.showConfirmToast=showConfirmToast;window.showAskToast=showAskToast;
 
 function ToastItem({item,onRemove}){
   const [exiting,setExiting]=React.useState(false);
