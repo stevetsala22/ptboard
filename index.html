@@ -20,12 +20,18 @@
 if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
   var came=sessionStorage.getItem('entered');
   if(!came&&!document.referrer.includes('personaltrainerboard.com')){
-    sessionStorage.setItem('entered','1');
-    fetch('/landing.html').then(function(r){return r.text();}).then(function(html){
+    fetch('/landing.html').then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.text();
+    }).then(function(html){
+      sessionStorage.setItem('entered','1');
       document.open();
       document.write(html);
       document.close();
       history.replaceState(null,'','/');
+    }).catch(function(e){
+      console.warn('Landing redirect failed:',e);
+      sessionStorage.setItem('entered','1');
     });
   }
 }
