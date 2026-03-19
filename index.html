@@ -74,6 +74,18 @@ fbDb.enableIndexedDbPersistence().catch(function(err){
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 var ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 var TRIAL_DAYS=30;
+var isTrialExpired=function(profile){
+  if(!profile) return false;
+  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
+  if(!profile.trialStart) return false;
+  var days=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return days>TRIAL_DAYS;
+};
+var trialDaysLeft=function(profile){
+  if(!profile||!profile.trialStart) return TRIAL_DAYS;
+  var used=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
+};
 var PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
 var PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
@@ -299,21 +311,7 @@ setTimeout(function(){
 },10000);
 </script>
 <script type="text/babel" data-presets="react">
-(function(){
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
-const TRIAL_DAYS=window.TRIAL_DAYS||30;
-const isTrialExpired=(profile)=>{
-  if(!profile) return false;
-  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
-  if(!profile.trialStart) return false;
-  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
-  return days>TRIAL_DAYS;
-};
-const trialDaysLeft=(profile)=>{
-  if(!profile?.trialStart) return TRIAL_DAYS;
-  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
-  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
-};
 
 const SK='fitmanager_v4';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
@@ -1173,7 +1171,6 @@ let _toastDispatch=null;
 function showToast(msg,type='success',duration=4000){if(_toastDispatch)_toastDispatch({msg,type,duration});}
 function showConfirmToast(msg,action,duration=5000){if(_toastDispatch)_toastDispatch({msg,type:'confirm',action,duration});}
 function showAskToast(msg,onConfirm,duration=8000){if(_toastDispatch)_toastDispatch({msg,type:'ask',action:onConfirm,duration});}
-window.showToast=showToast;window.showConfirmToast=showConfirmToast;window.showAskToast=showAskToast;
 
 function ToastItem({item,onRemove}){
   const [exiting,setExiting]=React.useState(false);
@@ -4717,7 +4714,6 @@ function TutorialModal({onClose,isLight}){
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
-})();
 </script>
 </body>
 </html>
