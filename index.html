@@ -330,7 +330,6 @@ setTimeout(function(){
 </script>
 <script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
-const TRIAL_DAYS=window.TRIAL_DAYS||30;
 const isTrialExpired=(profile)=>{
   if(!profile) return false;
   if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
