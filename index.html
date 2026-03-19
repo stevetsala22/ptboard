@@ -291,7 +291,28 @@ console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: pt
 </script>
 </head>
 <body>
-<div id="root"></div>
+<div id="root">
+  <div id="loading-fallback" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#07090f;gap:16px">
+    <div style="font-size:32px;font-weight:900;color:#3b82f6">PT Board</div>
+    <div style="width:36px;height:36px;border:3px solid #334155;border-top:3px solid #3b82f6;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <div id="loading-error" style="display:none;text-align:center;max-width:340px">
+      <div style="font-size:14px;color:#ef4444;margin-bottom:8px">Errore nel caricamento dell'app</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:16px">Potrebbe essere un problema temporaneo di rete. Prova a ricaricare la pagina.</div>
+      <button onclick="window.location.reload()" style="padding:10px 24px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">Ricarica</button>
+    </div>
+  </div>
+</div>
+<script>
+// Se dopo 10s React non ha ancora renderizzato, mostra errore
+setTimeout(function(){
+  var fb=document.getElementById('loading-fallback');
+  if(fb){
+    var err=document.getElementById('loading-error');
+    if(err) err.style.display='block';
+  }
+},10000);
+</script>
 <script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
 const TRIAL_DAYS=window.TRIAL_DAYS||30;
@@ -4241,7 +4262,7 @@ function LinguaModal({onClose,lang,setLang}){
             const sel=lang===l.k;
             return(
               <div key={l.k} onClick={()=>{setLang(l.k);setLangStore(l.k);onClose();}}
-                style={{background:'#0f1623',border:'2px solid '+sel?'#3b82f6':'#1e2d47',borderRadius:16,padding:'20px 16px',cursor:'pointer',textAlign:'center',position:'relative',transition:'border-color .15s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                style={{background:'#0f1623',border:'2px solid '+(sel?'#3b82f6':'#1e2d47'),borderRadius:16,padding:'20px 16px',cursor:'pointer',textAlign:'center',position:'relative',transition:'border-color .15s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
                 {sel&&<div style={{position:'absolute',top:10,right:12,background:'#3b82f6',color:'#fff',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20}}>✓ Attiva</div>}
                 <div style={{fontSize:36}}>{l.flag}</div>
                 <div style={{fontSize:15,fontWeight:700,color:sel?'#f8fafc':'#94a3b8'}}>{l.nome}</div>
@@ -4342,7 +4363,7 @@ function PianiModal({onClose,profile}){
           {piani.map(p=>(
             <div key={p.id} style={{
               background:'#0f1623',
-              border:'2px solid '+p.id==='pro'?p.color:'#1e2d47',
+              border:'2px solid '+(p.id==='pro'?p.color:'#1e2d47'),
               borderRadius:16,
               padding:22,
               position:'relative',
@@ -4679,7 +4700,7 @@ function TutorialModal({onClose,isLight}){
         {/* Step pills */}
         <div style={{display:'flex',padding:'10px 20px',gap:3,flexShrink:0,overflowX:'auto',borderBottom:'1px solid '+C.border}}>
           {TSTEPS.map((x,i)=>(
-            <div key={x} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+            <div key={i} style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
               <div onClick={()=>setCur(i)} style={{width:22,height:22,borderRadius:'50%',background:i<cur?C.green:i===cur?C.blue:C.border2,color:i<=cur?'#fff':C.muted,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'all .2s',flexShrink:0}}>{i<cur?'✓':i+1}</div>
               {i<total-1&&<div style={{width:14,height:1,background:i<cur?C.green:C.border2,flexShrink:0}}/>}
             </div>
