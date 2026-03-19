@@ -268,6 +268,32 @@ document.addEventListener('mouseout',function(e){
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
+// ── GLOBALS DA WINDOW ────────────────────────────────────────────────────────
+var fbAuth=window.fbAuth;
+var fbDb=window.fbDb;
+var fbSave=window.fbSave;
+var fbLoad=window.fbLoad;
+var fbSaveUserProfile=window.fbSaveUserProfile;
+var fbGetUserProfile=window.fbGetUserProfile;
+var fbGetAllUsers=window.fbGetAllUsers;
+var ADMIN_EMAIL=window.ADMIN_EMAIL;
+var PAYPAL_PRO=window.PAYPAL_PRO;
+var PAYPAL_STUDIO=window.PAYPAL_STUDIO;
+var sendEmail=window.sendEmail;
+var askSendEmail=window.askSendEmail;
+var aiCoach=window.aiCoach;
+const isTrialExpired=(profile)=>{
+  if(!profile) return false;
+  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
+  if(!profile.trialStart) return false;
+  const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return days>TRIAL_DAYS;
+};
+const trialDaysLeft=(profile)=>{
+  if(!profile?.trialStart) return TRIAL_DAYS;
+  const used=(Date.now()-profile.trialStart)/(1000*60*60*24);
+  return Math.max(0,Math.ceil(TRIAL_DAYS-used));
+};
 
 const SK='fitmanager_v4';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
