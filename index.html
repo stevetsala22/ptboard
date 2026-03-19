@@ -262,37 +262,12 @@ document.addEventListener('mouseout',function(e){
   var tp=wrap.querySelector('.tp');
   if(tp)tp.style.opacity='0';
 });
-// ── EXPOSE GLOBALS TO WINDOW (per Babel scope) ──────────────────────────────
-window.fbAuth=fbAuth;window.fbDb=fbDb;window.fbSave=fbSave;window.fbLoad=fbLoad;
-window.fbSaveUserProfile=fbSaveUserProfile;window.fbGetUserProfile=fbGetUserProfile;
-window.fbGetAllUsers=fbGetAllUsers;window.ADMIN_EMAIL=ADMIN_EMAIL;
-window.PAYPAL_PRO=PAYPAL_PRO;window.PAYPAL_STUDIO=PAYPAL_STUDIO;
-window.TRIAL_DAYS=TRIAL_DAYS;window.isTrialExpired=isTrialExpired;
-window.trialDaysLeft=trialDaysLeft;window.sendEmail=sendEmail;
-window.askSendEmail=askSendEmail;window.aiCoach=aiCoach;
 </script>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
-// ── GLOBALS DA WINDOW ────────────────────────────────────────────────────────
-var fbAuth=window.fbAuth;
-var fbDb=window.fbDb;
-var fbSave=window.fbSave;
-var fbLoad=window.fbLoad;
-var fbSaveUserProfile=window.fbSaveUserProfile;
-var fbGetUserProfile=window.fbGetUserProfile;
-var fbGetAllUsers=window.fbGetAllUsers;
-var ADMIN_EMAIL=window.ADMIN_EMAIL;
-var PAYPAL_PRO=window.PAYPAL_PRO;
-var PAYPAL_STUDIO=window.PAYPAL_STUDIO;
-var sendEmail=window.sendEmail;
-var askSendEmail=window.askSendEmail;
-var aiCoach=window.aiCoach;
-var TRIAL_DAYS=window.TRIAL_DAYS;
-var isTrialExpired=window.isTrialExpired;
-var trialDaysLeft=window.trialDaysLeft;
 
 const SK='fitmanager_v4';
 const load=()=>{try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch{return null}};
