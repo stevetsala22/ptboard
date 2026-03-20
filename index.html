@@ -1044,10 +1044,40 @@ const generaSchedaAuto=(p,profiloCalc,exerciseLib)=>{
   else if(ob.includes('forza')||ob.includes('tonificaz')){tipoScheda='Forza';catFiltro=['Forza'];}
   else if(ob.includes('ipertrofia')||ob.includes('massa')||ob.includes('aumento')){tipoScheda='Ipertrofia';catFiltro=['Forza'];}
   else if(ob.includes('mobilità')||ob.includes('cadute')||ob.includes('riabilit')){tipoScheda='Mobilità e funzionale';catFiltro=['Core','Mobilità','Funzionale'];}
+  // Nomi professionali
+  var nomiScheda={'Circuit Training':'Circuito Metabolico','Full Body':'Full Body Conditioning','Forza':'Forza Funzionale','Ipertrofia':'Ipertrofia Progressiva','Mobilità e funzionale':'Mobilità e Recupero'};
+  // Esercizi a tempo vs ripetizioni
+  var exTempo={'Plank':1,'Dead Bug':1,'Cat-cow':1,'Stretching quadricipite':1,'Hip opener':1,'Mobilità spalle':1,'Single leg balance':1};
+  // Classificazione esercizi: composto / isolamento / core
+  var exComposti={'Squat':1,'Box Squat':1,'Panca piana':1,'Stacco':1,'Military press':1,'Trazioni':1,'Rematore':1};
+  var exCore={'Plank':1,'Dead Bug':1,'Crunch':1};
+  // Equivalenze (non mettere insieme)
+  var equivalenti=[['Squat','Box Squat'],['Push-up','Wall Push-up'],['Affondi','Walking Lunge']];
+  // Note per esercizio
+  var noteEsercizi={'Squat':'Schiena dritta, ginocchia in linea con le punte','Push-up':'Corpo rigido, petto sfiora il suolo','Wall Push-up':'Per principianti, mani alla larghezza spalle','Plank':'Addome contratto, non inarcare la schiena','Affondi':'Passo lungo, ginocchio posteriore verso il suolo','Rematore':'Schiena parallela al suolo, gomiti stretti','Crunch':'Sollevare solo le spalle, non tirare il collo','Dead Bug':'Lombare sempre a contatto col suolo','Box Squat':'Seduto controllato, esplosivo in salita','Panca piana':'Piedi a terra, arco naturale lombare','Stacco':'Barra vicina al corpo, spingere col pavimento','Military press':'Core attivo, non inarcare la schiena','Trazioni':'Partenza da braccio disteso, mento sopra la sbarra','Curl':'Gomiti fermi, non oscillare il busto','Jumping Jack':'Atterraggio morbido, ritmo costante','Mountain Climber':'Bacino basso, ginocchia verso il petto','Burpee':'Movimento fluido, petto a terra','Lat machine':'Tirare verso il petto, scapole addotte','Leg curl':'Movimento controllato, non usare slancio','Alzate laterali':'Gomiti leggermente flessi, non superare le spalle','Croci':'Gomiti leggermente flessi, apertura controllata','Tricipiti':'Gomiti fermi, estensione completa','Curl manubri':'Gomiti fermi, non oscillare il busto','Cat-cow':'Respirazione lenta, arco completo','Stretching quadricipite':'Tallone verso il gluteo, ginocchia vicine','Hip opener':'Apertura graduale, senza forzare','Mobilità spalle':'Cerchi ampi, velocità controllata','Single leg balance':'Sguardo fisso, core attivo','Calf raise':'Salita lenta, discesa controllata','Cyclette':'Resistenza moderata, cadenza costante','Camminata':'Postura eretta, passo regolare','Romanian Deadlift':'Schiena neutra, sentire allungamento femorali','Ponte Glutei':'Stringere i glutei in alto, discesa lenta','Hip Hinge':'Cerniera anca, schiena neutra'};
+  // Filtra equivalenti in base al profilo
+  var exclNomi={};
+  equivalenti.forEach(function(gruppo){
+    if(gruppo.includes('Squat')&&gruppo.includes('Box Squat')){if(pr.code==='A')exclNomi['Squat']=1;else exclNomi['Box Squat']=1;}
+    if(gruppo.includes('Push-up')&&gruppo.includes('Wall Push-up')){if(pr.code==='A')exclNomi['Push-up']=1;else exclNomi['Wall Push-up']=1;}
+  });
   // B) Seleziona esercizi
   var exLib=(exerciseLib||[]);
   var exFiltrati=exLib.filter(function(e){return catFiltro.some(function(c){return e.cat===c;});});
-  var exScelti=exFiltrati.length>=5?exFiltrati.slice(0,Math.min(8,exFiltrati.length)):exLib.slice(0,Math.min(8,exLib.length));
+  // Rimuovi equivalenti dalla libreria
+  var usedGroups={};
+  var exFiltNoEquiv=exFiltrati.filter(function(e){
+    var nome=e.nome;
+    if(exclNomi[nome])return false;
+    for(var g=0;g<equivalenti.length;g++){
+      if(equivalenti[g].includes(nome)){
+        if(usedGroups[g])return false;
+        usedGroups[g]=true;
+      }
+    }
+    return true;
+  });
+  var exScelti=exFiltNoEquiv.length>=5?exFiltNoEquiv.slice(0,Math.min(8,exFiltNoEquiv.length)):exLib.filter(function(e){return !exclNomi[e.nome];}).slice(0,Math.min(8,exLib.length));
   var defaultEx={
     'Full Body':['Squat','Push-up','Plank','Affondi','Rematore','Crunch'],
     'Circuit Training':['Jumping Jack','Squat','Push-up','Mountain Climber','Plank','Burpee'],
@@ -1057,30 +1087,91 @@ const generaSchedaAuto=(p,profiloCalc,exerciseLib)=>{
   };
   var useDefault=exScelti.length<5;
   var nomiDefault=defaultEx[tipoScheda]||defaultEx['Full Body'];
-  // C) Serie, rip, recupero
-  var serie,reps,rec,noteEx='';
-  if(tipoScheda==='Circuit Training'){serie=3;reps='30s';rec=30;noteEx='Circuit: 3 giri × 30s lavoro, recupero 30s tra esercizi';}
-  else if(tipoScheda==='Mobilità e funzionale'){serie=2;reps='30s';rec=30;noteEx='Tenuta 30s per esercizio';}
-  else if(pr.code==='A'){serie=2;reps='8-10';rec=90;}
-  else if(pr.code==='C'){serie=4;reps='8-12';rec=60;}
-  else{serie=3;reps='10-12';rec=75;}
-  // D) Costruisci scheda
-  var esercizi=[];
+  // Filtra equivalenti anche dai default
   if(useDefault){
-    nomiDefault.forEach(function(nome){
-      esercizi.push({eId:nome,serie:serie,reps:reps,rec:rec,note:''});
+    var usedG2={};
+    nomiDefault=nomiDefault.filter(function(nome){
+      if(exclNomi[nome])return false;
+      for(var g=0;g<equivalenti.length;g++){
+        if(equivalenti[g].includes(nome)){
+          if(usedG2[g])return false;
+          usedG2[g]=true;
+        }
+      }
+      return true;
+    });
+  }
+  // Funzione per calcolare serie/reps/rec per un esercizio
+  var getParams=function(nome){
+    var isTempo=!!exTempo[nome];
+    var isComposto=!!exComposti[nome];
+    var isCore=!!exCore[nome];
+    var s,r,rc,nota=noteEsercizi[nome]||'';
+    if(tipoScheda==='Circuit Training'){
+      var giri=pr.code==='A'?2:pr.code==='C'?4:3;
+      var recEx=pr.code==='A'?30:pr.code==='C'?15:20;
+      if(isTempo){r=pr.code==='A'?'20s':pr.code==='C'?'40s':'30s';}
+      else{r=pr.code==='A'?12:pr.code==='C'?20:15;}
+      return{serie:giri,reps:r,rec:recEx,note:nota};
+    }
+    if(tipoScheda==='Mobilità e funzionale'){
+      r=pr.code==='A'?'20s':'30s';
+      if(!isTempo){r=pr.code==='A'?'20s':'30s';} // mobilità: tutto a tempo
+      return{serie:2,reps:r,rec:pr.code==='A'?30:20,note:nota};
+    }
+    // Forza / Ipertrofia / Full Body
+    if(isCore){
+      if(isTempo){
+        r=pr.code==='A'?'20s':pr.code==='C'?'45s':'30s';
+      }else{
+        r=pr.code==='A'?12:pr.code==='C'?20:15;
+      }
+      s=pr.code==='A'?2:3;
+      rc=pr.code==='C'?30:45;
+    }else if(isComposto){
+      if(pr.code==='A'){s=2;r=10;rc=90;}
+      else if(pr.code==='C'){s=4;r=8;rc=90;}
+      else{s=3;r=10;rc=75;}
+    }else{
+      // isolamento
+      if(pr.code==='A'){s=2;r=12;rc=60;}
+      else if(pr.code==='C'){s=3;r=15;rc=45;}
+      else{s=3;r=12;rc=60;}
+      // tempo-based isolation (non dovrebbe capitare, ma gestisci)
+      if(isTempo){r=pr.code==='A'?'20s':pr.code==='C'?'40s':'30s';}
+    }
+    return{serie:s,reps:r,rec:rc,note:nota};
+  };
+  // C) Costruisci scheda
+  var esercizi=[];
+  var noteScheda='';
+  if(useDefault){
+    nomiDefault.forEach(function(nome,idx){
+      var params=getParams(nome);
+      var exNote=params.note;
+      if(tipoScheda==='Circuit Training'&&idx===0){
+        var recGiri=pr.code==='A'?'90s':pr.code==='C'?'45s':'60s';
+        exNote=(exNote?exNote+'. ':'')+'Circuito: esegui tutti gli esercizi di fila, poi riposa '+recGiri+' tra un giro e l\'altro';
+      }
+      esercizi.push({eId:nome,serie:params.serie,reps:params.reps,rec:params.rec,note:exNote});
     });
   }else{
-    exScelti.forEach(function(ex){
-      esercizi.push({eId:ex.id,serie:serie,reps:reps,rec:rec,note:''});
+    exScelti.forEach(function(ex,idx){
+      var params=getParams(ex.nome);
+      var exNote=params.note;
+      if(tipoScheda==='Circuit Training'&&idx===0){
+        var recGiri=pr.code==='A'?'90s':pr.code==='C'?'45s':'60s';
+        exNote=(exNote?exNote+'. ':'')+'Circuito: esegui tutti gli esercizi di fila, poi riposa '+recGiri+' tra un giro e l\'altro';
+      }
+      esercizi.push({eId:ex.id,serie:params.serie,reps:params.reps,rec:params.rec,note:exNote});
     });
   }
   return{
-    nome:tipoScheda+' — Auto',
+    nome:(nomiScheda[tipoScheda]||tipoScheda),
     tipo:tipoScheda,
     data:fmtDate(),
     esercizi:esercizi,
-    note:noteEx
+    note:noteScheda
   };
 };
 
