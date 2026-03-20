@@ -1512,7 +1512,8 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
 }
 
 function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta,trainerProfile,bookings,onAddBooking,onCompleteBooking}){
-  const [tab,setTab]=useState('dash');
+  const [tab,setTab]=useState('panoramica');
+  const [openSections,setOpenSections]=useState({ana:true,test:false,prog:false});
   const [showPesoModal,setShowPesoModal]=useState(false);
   const [showSchedaModal,setShowSchedaModal]=useState(false);
   const [showAI,setShowAI]=useState(false);
@@ -1551,7 +1552,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const T2=gT();
   const todayISO=new Date().toISOString().slice(0,10);
   const prossime=(bookings||[]).filter(b=>b.patientId===p.id&&b.data>=todayISO);
-  const tabs=[{id:'dash',l:T2.tabDash},{id:'ana',l:T2.tabAna},{id:'test',l:T2.tabTest},{id:'storico',l:'📈 '+T2.tabStorico},{id:'prog',l:T2.tabProg},{id:'schede',l:T2.tabSchede},{id:'nutri',l:T2.tabNutri},{id:'sedute',l:`Sedute (${(p.log?.length||0)+prossime.length})`},{id:'stats',l:T2.tabStats}];
+  const tabs=[{id:'panoramica',l:'Panoramica'},{id:'profilo',l:'Profilo'},{id:'programma',l:'Programma'},{id:'sedute',l:'Sedute ('+((p.log?.length||0)+prossime.length)+')'},{id:'nutri',l:'Nutrizione'}];
 
   const generaPDF=()=>{
     const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
@@ -1753,7 +1754,7 @@ ${(p.progressi||[]).length>1?`
         {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn(tab===t.id?'primary':'ghost',true),borderRadius:6,border:'none',whiteSpace:'nowrap',fontSize:isMobile?12:12,padding:isMobile?'6px 12px':'5px 12px',flexShrink:0}}>{t.l}</button>)}
       </div>
 
-      {tab==='dash'&&(
+      {tab==='panoramica'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           <div style={S.grid(4)}>
             <StatCard label="Peso" value={`${p.peso} kg`} color={C.blue}/>
@@ -1790,29 +1791,65 @@ ${(p.progressi||[]).length>1?`
               ))}
             </div>
           </div>
+          {/* Statistiche (ex tab stats) */}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+            <div style={S.st}>Progressi peso</div>
+            <button style={S.btn('',true)} onClick={()=>setShowPesoModal(true)}>+ Misurazione</button>
+          </div>
+          <div style={S.card}><LineChartComp data={(p.progressi||[]).map(x=>({x:x.data.slice(0,5),y:x.peso}))} color={C.blue}/></div>
+          <div style={S.grid(2)}>
+            <div style={S.card}><div style={S.st}>RPE sedute</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.rpe}))} color={C.orange}/></div>
+            <div style={S.card}><div style={S.st}>Durata sedute (min)</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.durata}))} color={C.green}/></div>
+          </div>
+          <div style={S.card}>
+            <div style={S.st}>Storico misurazioni</div>
+            {(p.progressi||[]).map((x,i)=>(
+              <div key={x.data+'-'+i} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'6px 0',borderBottom:`1px solid ${C.border}`}}>
+                <span style={{color:C.muted}}>{x.data}</span>
+                <span style={{color:C.blue,fontWeight:700}}>{x.peso} kg</span>
+                <span style={{color:C.muted}}>{x.nota}</span>
+                <button style={{...S.btn('danger',true),padding:'2px 7px',fontSize:11}} onClick={()=>upd(x2=>({progressi:x2.progressi.filter((_,ii)=>ii!==i)}))}>✕</button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {tab==='ana'&&(
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          {[
-            {title:T2.secAna,fields:[['ID',p.id],['Cognome',p.cognome],['Nome',p.nome],['D.d.N.',p.ddn],['Sesso',p.sesso],['Anno nascita',p.annoNascita]]},
-            {title:'Parametri antropometrici',fields:[['Altezza',`${p.altezza} cm`],['Peso',`${p.peso} kg`],['BMI',`${b} — ${bl}`],['Vita',`${p.vita} cm`],['Fianchi',`${p.fianchi} cm`],['PA',p.pa],['FC',`${p.fc} bpm`]]},
-            {title:'Clinica',fields:[['Patologie',p.patologie],['Farmaci',p.farmaci],['Sintomi',p.sintomiSforzo],['Allergie',p.allergie]]},
-            {title:'Stile di vita',fields:[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Preferenze',p.preferenze],['Stress',p.stressPercepito],['Sonno',p.sonno]]},
-          ].map(({title,fields})=>(
-            <div key={title} style={S.card}>
-              <div style={S.st}>{title}</div>
-              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:'10px 20px'}}>
-                {fields.map(([k,v])=><div key={k}><div style={S.label}>{k}</div><div style={{fontSize:13,color:C.text,padding:'4px 0'}}>{v||'—'}</div></div>)}
+      {tab==='profilo'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+          {/* Sezione A: Anagrafica e contatti */}
+          <div onClick={()=>setOpenSections(s=>({...s,ana:!s.ana}))} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
+            <span style={{fontSize:14,fontWeight:700,color:C.strong}}>Anagrafica e contatti</span>
+            <span style={{fontSize:12,color:C.muted}}>{openSections.ana?'▲':'▼'}</span>
+          </div>
+          {openSections.ana&&(
+            <div style={{animation:'fadeInUp .2s ease',marginBottom:8}}>
+              <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                {[
+                  {title:T2.secAna,fields:[['ID',p.id],['Cognome',p.cognome],['Nome',p.nome],['D.d.N.',p.ddn],['Sesso',p.sesso],['Anno nascita',p.annoNascita]]},
+                  {title:'Parametri antropometrici',fields:[['Altezza',`${p.altezza} cm`],['Peso',`${p.peso} kg`],['BMI',`${b} — ${bl}`],['Vita',`${p.vita} cm`],['Fianchi',`${p.fianchi} cm`],['PA',p.pa],['FC',`${p.fc} bpm`]]},
+                  {title:'Clinica',fields:[['Patologie',p.patologie],['Farmaci',p.farmaci],['Sintomi',p.sintomiSforzo],['Allergie',p.allergie]]},
+                  {title:'Stile di vita',fields:[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Preferenze',p.preferenze],['Stress',p.stressPercepito],['Sonno',p.sonno]]},
+                ].map(({title,fields})=>(
+                  <div key={title} style={S.card}>
+                    <div style={S.st}>{title}</div>
+                    <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:'10px 20px'}}>
+                      {fields.map(([k,v])=><div key={k}><div style={S.label}>{k}</div><div style={{fontSize:13,color:C.text,padding:'4px 0'}}>{v||'—'}</div></div>)}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {tab==='test'&&(
-        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          {/* Sezione B: Test funzionali e profilo fitness */}
+          <div onClick={()=>setOpenSections(s=>({...s,test:!s.test}))} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
+            <span style={{fontSize:14,fontWeight:700,color:C.strong}}>Test funzionali e profilo fitness</span>
+            <span style={{fontSize:12,color:C.muted}}>{openSections.test?'▲':'▼'}</span>
+          </div>
+          {openSections.test&&(
+            <div style={{animation:'fadeInUp .2s ease',marginBottom:8}}>
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
           {/* Profilo risultante */}
           <div style={{...S.card,border:'2px solid '+(pr?.c||C.border2)+'40',background:(pr?.c||C.border2)+'08'}}>
             <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:pr?12:0}}>
@@ -1924,30 +1961,17 @@ ${(p.progressi||[]).length>1?`
 
           {/* Note valutazione */}
           {p.test?.noteVal&&<div style={S.card}><div style={S.st}>📝 Note valutazione</div><div style={{fontSize:13,color:C.text,lineHeight:1.7}}>{p.test.noteVal}</div></div>}
-        </div>
-      )}
-
-      {tab==='prog'&&(
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          <div style={S.grid(4)}>
-            <StatCard label="Data inizio" value={p.programma?.dataInizio||'—'} color={C.blue}/>
-            <StatCard label="Sedute/sett." value={p.programma?.sedute||'—'} color={C.purple}/>
-            <StatCard label="Min cardio/sett." value={`${p.programma?.minCardio||0} min`} color={C.green}/>
-            <StatCard label="Min forza/sett." value={`${p.programma?.minForza||0} min`} color={C.orange}/>
-          </div>
-          <div style={S.card}>
-            <div style={S.st}>Contenuto sedute</div>
-            {[['Cardio',p.programma?.cardio,C.cyan],['Forza',p.programma?.forza,C.green],['Note',p.programma?.note,C.yellow]].map(([k,v,c])=>(
-              <div key={k} style={{display:'flex',gap:10,marginBottom:12}}>
-                <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
-                <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{v||'—'}</div></div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+          )}
 
-      {tab==='storico'&&(
+          {/* Sezione C: Progressi e valutazioni */}
+          <div onClick={()=>setOpenSections(s=>({...s,prog:!s.prog}))} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
+            <span style={{fontSize:14,fontWeight:700,color:C.strong}}>Progressi e valutazioni</span>
+            <span style={{fontSize:12,color:C.muted}}>{openSections.prog?'▲':'▼'}</span>
+          </div>
+          {openSections.prog&&(
+            <div style={{animation:'fadeInUp .2s ease',marginBottom:8}}>
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           {(!p.valutazioni||p.valutazioni.length===0)&&(
             <div style={{...S.card,textAlign:'center',padding:36,color:C.muted}}>
@@ -2116,10 +2140,31 @@ ${(p.progressi||[]).length>1?`
             </div>
           )}
         </div>
+            </div>
+          )}
+        </div>
       )}
 
-      {tab==='schede'&&(
-        <div>
+      {tab==='programma'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {/* Piano settimanale (ex tab prog) */}
+          <div style={S.grid(4)}>
+            <StatCard label="Data inizio" value={p.programma?.dataInizio||'—'} color={C.blue}/>
+            <StatCard label="Sedute/sett." value={p.programma?.sedute||'—'} color={C.purple}/>
+            <StatCard label="Min cardio/sett." value={`${p.programma?.minCardio||0} min`} color={C.green}/>
+            <StatCard label="Min forza/sett." value={`${p.programma?.minForza||0} min`} color={C.orange}/>
+          </div>
+          <div style={S.card}>
+            <div style={S.st}>Contenuto sedute</div>
+            {[['Cardio',p.programma?.cardio,C.cyan],['Forza',p.programma?.forza,C.green],['Note',p.programma?.note,C.yellow]].map(([k,v,c])=>(
+              <div key={k} style={{display:'flex',gap:10,marginBottom:12}}>
+                <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
+                <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{v||'—'}</div></div>
+              </div>
+            ))}
+          </div>
+          {/* Schede allenamento (ex tab schede) */}
+          <div style={{marginTop:20}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
             <div style={S.st}>Schede allenamento</div>
             <button style={S.btn('',true)} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
@@ -2158,6 +2203,7 @@ ${(p.progressi||[]).length>1?`
               {scheda.note&&<div style={{marginTop:8,fontSize:12,color:C.muted,fontStyle:'italic'}}>{scheda.note}</div>}
             </div>
           ))}
+          </div>
         </div>
       )}
 
@@ -2238,31 +2284,6 @@ ${(p.progressi||[]).length>1?`
                 <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center'}}>{s.rpe||'—'}</span>
                 {s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
                 <button style={{...S.btn('danger',true),padding:'3px 8px'}} onClick={()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)}))}>✕</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {tab==='stats'&&(
-        <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
-            <div style={S.st}>Progressi peso</div>
-            <button style={S.btn('',true)} onClick={()=>setShowPesoModal(true)}>+ Misurazione</button>
-          </div>
-          <div style={S.card}><LineChartComp data={(p.progressi||[]).map(x=>({x:x.data.slice(0,5),y:x.peso}))} color={C.blue}/></div>
-          <div style={S.grid(2)}>
-            <div style={S.card}><div style={S.st}>RPE sedute</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.rpe}))} color={C.orange}/></div>
-            <div style={S.card}><div style={S.st}>Durata sedute (min)</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.durata}))} color={C.green}/></div>
-          </div>
-          <div style={S.card}>
-            <div style={S.st}>Storico misurazioni</div>
-            {(p.progressi||[]).map((x,i)=>(
-              <div key={x.data+'-'+i} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'6px 0',borderBottom:`1px solid ${C.border}`}}>
-                <span style={{color:C.muted}}>{x.data}</span>
-                <span style={{color:C.blue,fontWeight:700}}>{x.peso} kg</span>
-                <span style={{color:C.muted}}>{x.nota}</span>
-                <button style={{...S.btn('danger',true),padding:'2px 7px',fontSize:11}} onClick={()=>upd(x2=>({progressi:x2.progressi.filter((_,ii)=>ii!==i)}))}>✕</button>
               </div>
             ))}
           </div>
