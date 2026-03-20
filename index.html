@@ -132,6 +132,7 @@ function askSendEmail(opts){
   var fromName=(trainerProfile&&trainerProfile.nomeStudio)||((trainerProfile&&trainerProfile.nome)?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':null)||'PT Board';
   var toName=(pat.nome||'')+(pat.cognome?' '+pat.cognome:'');
   var finalMsg=message.replace(/\[nomeMittente\]/g,fromName);
+  if(trainerProfile&&trainerProfile.emailSignature)finalMsg+='\n\n'+trainerProfile.emailSignature;
   window.showAskToast('📧 Notificare '+pat.nome+' via email?',async function(){
     var r=await sendEmail({toEmail:pat.email,toName:toName,subject:subject,message:finalMsg,fromName:fromName});
     if(r.ok)window.showToast('Email inviata a '+pat.email,'success');
@@ -761,6 +762,7 @@ const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
 const setLangStore=(l)=>localStorage.setItem('ptboard_lang',l);
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
 
+var _primaryColor='#3b82f6';
 const C={
   get bg(){return'var(--bg)'},
   get sidebar(){return'var(--sidebar)'},
@@ -771,7 +773,7 @@ const C={
   get muted(){return'var(--muted)'},
   get dim(){return'var(--dim)'},
   get strong(){return'var(--strong)'},
-  blue:'#3b82f6',green:'#10b981',yellow:'#f59e0b',red:'#ef4444',purple:'#8b5cf6',
+  get blue(){return _primaryColor},green:'#10b981',yellow:'#f59e0b',red:'#ef4444',purple:'#8b5cf6',
   cyan:'#06b6d4',orange:'#f97316',pink:'#ec4899',teal:'#14b8a6',
 };
 
@@ -1772,9 +1774,11 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const generaSchedaPDF=(scheda)=>{
     const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
     const dataOggi=fmtDateIT(new Date().toISOString().slice(0,10));
-    const logoHtml=trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;object-fit:contain"/>${trainerProfile.nomeStudio?`<div style="font-size:12px;color:#64748b;margin-top:4px">${trainerProfile.nomeStudio}</div>`:''}` :`<div style="font-size:22px;font-weight:900;color:#3b82f6">PT Board</div>`;
-    const righe=(scheda.esercizi||[]).map((ex,ei)=>{const eInfo=exercises.find(e=>e.id===ex.eId);const nome=eInfo?.nome||ex.eId||'';const bg=ei%2===0?'#f8fafc':'#ffffff';return`<tr style="background:${bg}"><td style="width:40px;text-align:center;font-weight:700;color:#3b82f6;padding:10px 12px;border-bottom:1px solid #e2e8f0">${ei+1}</td><td style="font-weight:600;padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${nome}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.serie||'—'}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.reps||'—'}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.rec?ex.rec+'s':'—'}</td><td style="font-size:12px;color:#64748b;font-style:italic;padding:10px 12px;border-bottom:1px solid #e2e8f0">${ex.note||''}</td></tr>`;}).join('');
-    const html=`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>${scheda.nome} — ${p.nome} ${p.cognome}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid #3b82f6"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">🖨️ Stampa / Salva PDF</button></div><div style="max-width:800px;margin:0 auto;padding:40px"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:20px;margin-bottom:24px"><div>${logoHtml}</div><div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">${p.nome} ${p.cognome}</div><div style="font-size:14px;color:#64748b;margin-top:4px">${scheda.nome}</div><div style="font-size:13px;color:#94a3b8;margin-top:2px">Generata il ${dataOggi}</div></div></div>${(scheda.esercizi||[]).length===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">Questa scheda non ha ancora esercizi.</div>':`<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#3b82f6"><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px;width:40px">#</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Esercizio</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Serie</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Ripetizioni</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Recupero</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Note</th></tr></thead><tbody>${righe}</tbody></table>`}<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">${nomeStudio} · Generata il ${dataOggi}</div><div style="font-size:10px;color:#94a3b8">${p.nome} ${p.cognome}</div></div></div></body></html>`;
+    const sC=trainerProfile?.primaryColor||'#3b82f6';
+    const logoHtml=trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;object-fit:contain"/>${trainerProfile.nomeStudio?`<div style="font-size:12px;color:#64748b;margin-top:4px">${trainerProfile.nomeStudio}</div>`:''}` :`<div style="font-size:22px;font-weight:900;color:${sC}">PT Board</div>`;
+    const sSig=trainerProfile?.emailSignature?`<div style="background:#f8fafc;border-radius:6px;padding:10px 14px;font-size:11px;color:#64748b;line-height:1.6;white-space:pre-wrap;margin-bottom:12px;border-left:3px solid ${sC}">${esc(trainerProfile.emailSignature)}</div>`:'';
+    const righe=(scheda.esercizi||[]).map((ex,ei)=>{const eInfo=exercises.find(e=>e.id===ex.eId);const nome=eInfo?.nome||ex.eId||'';const bg=ei%2===0?'#f8fafc':'#ffffff';return`<tr style="background:${bg}"><td style="width:40px;text-align:center;font-weight:700;color:${sC};padding:10px 12px;border-bottom:1px solid #e2e8f0">${ei+1}</td><td style="font-weight:600;padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${nome}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.serie||'—'}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.reps||'—'}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.rec?ex.rec+'s':'—'}</td><td style="font-size:12px;color:#64748b;font-style:italic;padding:10px 12px;border-bottom:1px solid #e2e8f0">${ex.note||''}</td></tr>`;}).join('');
+    const html=`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>${scheda.nome} — ${p.nome} ${p.cognome}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid ${sC}"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">← Torna all'app</button><button onclick="window.print()" style="background:${sC};color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">🖨️ Stampa / Salva PDF</button></div><div style="max-width:800px;margin:0 auto;padding:40px"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid ${sC};padding-bottom:20px;margin-bottom:24px"><div>${logoHtml}</div><div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">${p.nome} ${p.cognome}</div><div style="font-size:14px;color:#64748b;margin-top:4px">${scheda.nome}</div><div style="font-size:13px;color:#94a3b8;margin-top:2px">Generata il ${dataOggi}</div></div></div>${(scheda.esercizi||[]).length===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">Questa scheda non ha ancora esercizi.</div>':`<table style="width:100%;border-collapse:collapse"><thead><tr style="background:${sC}"><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px;width:40px">#</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Esercizio</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Serie</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Ripetizioni</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Recupero</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Note</th></tr></thead><tbody>${righe}</tbody></table>`}${sSig}<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">${nomeStudio} · Generata il ${dataOggi}</div><div style="font-size:10px;color:#94a3b8">${p.nome} ${p.cognome}</div></div></div></body></html>`;
     const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
 
@@ -1796,25 +1800,27 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const {l:bl2}=bmiCat(b2);
     const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
     const pesoTarget=p.altezza?(24.9*(p.altezza/100)**2).toFixed(1):null;
+    const pdfC=trainerProfile?.primaryColor||'#3b82f6';
+    const pdfSig=trainerProfile?.emailSignature?`<div style="background:#f8fafc;border-radius:6px;padding:10px 14px;font-size:11px;color:#64748b;line-height:1.6;white-space:pre-wrap;margin-bottom:12px;border-left:3px solid ${pdfC}">${esc(trainerProfile.emailSignature)}</div>`:'';
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Report – ${esc(p.nome)} ${esc(p.cognome)}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff;font-size:13px}
   .page{max-width:800px;margin:0 auto;padding:40px}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:20px;margin-bottom:28px}
-  .brand{font-size:22px;font-weight:900;color:#3b82f6;letter-spacing:-0.5px}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid ${pdfC};padding-bottom:20px;margin-bottom:28px}
+  .brand{font-size:22px;font-weight:900;color:${pdfC};letter-spacing:-0.5px}
   .brand small{display:block;font-size:10px;font-weight:500;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
   .patient-name{font-size:20px;font-weight:800;color:#1e293b}
   .patient-meta{font-size:11px;color:#64748b;margin-top:4px}
   .section{margin-bottom:24px}
-  .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#3b82f6;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #e2e8f0}
+  .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:${pdfC};margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #e2e8f0}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .row{display:flex;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:6px}
   .row-label{color:#64748b;font-size:12px}
   .row-value{font-weight:600;color:#1e293b;font-size:12px}
   .kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;text-align:center}
-  .kpi-val{font-size:22px;font-weight:900;color:#3b82f6}
+  .kpi-val{font-size:22px;font-weight:900;color:${pdfC}}
   .kpi-lbl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
   .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
   .badge-a{background:#fee2e2;color:#ef4444}
@@ -1827,12 +1833,12 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}
   .no-print{text-align:center;padding:16px;}
 </style></head><body>
-<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div>
+<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid ${pdfC};"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:${pdfC};color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div>
 <div class="page">
 
 <div class="header">
   <div>
-    ${trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;max-width:160px;object-fit:contain;display:block;margin-bottom:${trainerProfile?.nomeStudio?4:8}px"/>${trainerProfile?.nomeStudio?`<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${esc(trainerProfile.nomeStudio)}</div>`:''}`:`<div class="brand">PT Board <small></small></div>`}
+    ${trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;max-width:160px;object-fit:contain;display:block;margin-bottom:${trainerProfile?.nomeStudio?4:8}px"/>${trainerProfile?.nomeStudio?`<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${esc(trainerProfile.nomeStudio)}</div>`:''}`:`<div style="font-size:22px;font-weight:900;color:${pdfC};letter-spacing:-0.5px">PT Board</div>`}
     <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda cliente · ${fmtDate()}</div>
   </div>
   <div style="text-align:right">
@@ -1915,6 +1921,7 @@ ${(p.progressi||[]).length>1?`
   </div>
 </div>`:''}
 
+${pdfSig}
 <div class="footer">
   <span>${trainerProfile?.nomeStudio?esc(trainerProfile.nomeStudio):'PT Board'} · Report generato il ${fmtDate()}</span>
   <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
@@ -3214,6 +3221,7 @@ function App(){
   const loadProfile=async(u)=>{
     if(!u){setProfile(null);return;}
     const p=await fbGetUserProfile(u.uid);
+    if(p?.primaryColor)_primaryColor=p.primaryColor;
     setProfile(p);
   };
 
@@ -3457,6 +3465,16 @@ function AppInner({user,profile,trialLeft}){
                 </div>
               </div>
               <input id="logo-upload-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=async()=>{const max=120;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const b64=canvas.toDataURL('image/jpeg',0.8);await fbSaveUserProfile(user.uid,{logo:b64});setProfile(p=>({...p,logo:b64}));};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6,marginTop:8}}>Colore primario</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+                {[['#3b82f6','Blu'],['#10b981','Verde'],['#8b5cf6','Viola'],['#ef4444','Rosso'],['#f97316','Arancione'],['#06b6d4','Ciano'],['#ec4899','Rosa'],['#f59e0b','Giallo']].map(([hex,name])=>(
+                  <div key={hex} title={name} onClick={async()=>{_primaryColor=hex;await fbSaveUserProfile(user.uid,{primaryColor:hex});setProfile(pr2=>({...pr2,primaryColor:hex}));}} style={{width:24,height:24,borderRadius:'50%',background:hex,cursor:'pointer',border:(trainerProfile?.primaryColor||'#3b82f6')===hex?'2px solid #fff':'2px solid transparent',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:(trainerProfile?.primaryColor||'#3b82f6')===hex?'0 0 0 1px '+hex:'none'}}>
+                    {(trainerProfile?.primaryColor||'#3b82f6')===hex&&<span style={{fontSize:12,color:'#fff',fontWeight:700}}>✓</span>}
+                  </div>
+                ))}
+              </div>
+              <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Firma email</div>
+              <textarea placeholder={"Es: A presto! — Coach Marco\nPalestra FitLife, Via Roma 1, Milano\nTel: +39 333 1234567"} value={trainerProfile?.emailSignature||''} onChange={async e=>{const v=e.target.value;await fbSaveUserProfile(user.uid,{emailSignature:v});setProfile(pr2=>({...pr2,emailSignature:v}));}} rows={3} style={{width:'100%',background:C.bg,border:'1px solid '+C.border2,borderRadius:6,padding:'6px 8px',color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',resize:'vertical',marginBottom:12,minHeight:60}}/>
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
               <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
