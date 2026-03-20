@@ -848,6 +848,15 @@ const profilo=(mwt,sts,sesso,test,extra)=>{
   const r=calcScore(t,sesso||'M',extra);
   return r;
 };
+// ── CALCOLO NUTRIZIONE AUTOMATICO ────────────────────────────────────────────
+// Fonti scientifiche:
+// - BMR: Mifflin-St Jeor (Mifflin et al., 1990) — validata come la più accurata (Frankenfield et al., 2005)
+// - BMR con BIA: Katch-McArdle (Katch & McArdle, 1973)
+// - TDEE: Moltiplicatori attività da FAO/WHO/UNU (2001)
+// - Proteine: ISSN Position Stand on Protein and Exercise (Jäger et al., 2017) — 1.4-2.0 g/kg
+// - Carboidrati diabete T2: ADA Standards of Medical Care in Diabetes (2023)
+// - Grassi cardiovascolari: AHA/ACC Guideline on Lifestyle Management (2013)
+// NOTA: Suggerimenti nutrizionali generici. Per un piano personalizzato rivolgersi a un nutrizionista.
 const calcNutrizione=(p)=>{
   if(!p)return null;
   // STEP 1 — BMR
@@ -919,6 +928,162 @@ const calcNutrizione=(p)=>{
   note.push('⚠️ Suggerimenti nutrizionali generici — per un piano personalizzato rivolgersi a un nutrizionista');
   return{kcal,proteine,carboidrati,grassi,note:note.join('\n')};
 };
+
+// ── GENERAZIONE AUTOMATICA PROGRAMMA (rule-based) ────────────────────────────
+// Fonti scientifiche:
+// - ACSM Guidelines for Exercise Testing and Prescription, 11th Ed. (2021)
+// - WHO Guidelines on Physical Activity and Sedentary Behaviour (2020)
+// - Target FC: Formula di Karvonen, % FC max (Tanaka et al., 2001)
+// - Adattamenti patologie: ACSM's Exercise Management for Persons With Chronic Diseases and Disabilities, 4th Ed.
+// - Beta-bloccanti e FC: ACSM Position Stand on Exercise and Hypertension (2004)
+// NOTA: Questi sono suggerimenti generici basati su linee guida. Il trainer deve personalizzare.
+const generaProgrammaAuto=(p,profiloCalc)=>{
+  if(!p.peso||!p.altezza||!p.attivita){return null;}
+  var pr=profiloCalc||{code:'B'};
+  var eta=p.annoNascita?(new Date().getFullYear()-p.annoNascita):null;
+  var fcMax=eta?(208-0.7*eta):null; // Tanaka formula
+  var pat=(p.patologie||'').toLowerCase();
+  var farm=(p.farmaci||'').toLowerCase();
+  var pref=(p.preferenze||'').toLowerCase();
+  var haCardio=pat.includes('cardiopatia');
+  var haIpert=pat.includes('ipertensione');
+  var haDiabete=pat.includes('diabete');
+  var haArtrosi=pat.includes('artrosi');
+  var haOsteo=pat.includes('osteoporosi');
+  var haGrave=haCardio||haDiabete||haArtrosi;
+  var haBeta=farm.includes('beta-bloccant')||farm.includes('betabloccant');
+  // A) Sedute/settimana
+  var sedMin,sedMax;
+  if(pr.code==='A'||p.attivita==='Sedentaria'){sedMin=2;sedMax=3;}
+  else if(pr.code==='C'||(p.attivita==='Attiva'||p.attivita==='Molto attiva')){sedMin=4;sedMax=5;}
+  else{sedMin=3;sedMax=4;}
+  if(haGrave){sedMin=Math.max(2,sedMin-1);sedMax=Math.max(2,sedMax-1);}
+  if(eta&&eta>65){sedMax=Math.min(3,sedMax);sedMin=Math.min(sedMin,sedMax);}
+  var sedute=sedMin===sedMax?String(sedMin):sedMin+'-'+sedMax;
+  // B) Minuti cardio/settimana
+  var cMin,cMax,cIntensita;
+  if(pr.code==='A'){cMin=60;cMax=90;cIntensita='bassa';}
+  else if(pr.code==='C'){cMin=120;cMax=180;cIntensita='varia';}
+  else{cMin=90;cMax=120;cIntensita='moderata';}
+  if(haCardio||haIpert){cMax=Math.min(90,cMax);cMin=Math.min(cMin,cMax);cIntensita='bassa';}
+  var minCardio=cMin===cMax?String(cMin):cMin+'-'+cMax;
+  // C) Minuti forza/settimana
+  var fMin,fMax,fTipo;
+  if(pr.code==='A'){fMin=30;fMax=45;fTipo='corpo libero, elastici';}
+  else if(pr.code==='C'){fMin=75;fMax=120;fTipo='pesi liberi, progressione';}
+  else{fMin=45;fMax=75;fTipo='pesi leggeri, macchine';}
+  var minForza=fMin===fMax?String(fMin):fMin+'-'+fMax;
+  var forzaExtra='';
+  if(haArtrosi||haOsteo)forzaExtra=' Solo esercizi senza impatto.';
+  // D) Descrizione cardio
+  var cardioDesc='';
+  var fcRange='';
+  if(fcMax){
+    var fcLow,fcHigh;
+    if(pr.code==='A'){fcLow=Math.round(fcMax*0.50);fcHigh=Math.round(fcMax*0.60);}
+    else if(pr.code==='C'){fcLow=Math.round(fcMax*0.70);fcHigh=Math.round(fcMax*0.85);}
+    else{fcLow=Math.round(fcMax*0.60);fcHigh=Math.round(fcMax*0.70);}
+    fcRange=' Target FC: '+fcLow+'-'+fcHigh+' bpm ('+Math.round(fcLow/fcMax*100)+'-'+Math.round(fcHigh/fcMax*100)+'% FC max).';
+  }
+  var cardioAlt=pref.includes('no corsa');
+  if(pr.code==='A'||p.attivita==='Sedentaria'){
+    cardioDesc='Camminata 20-30 min a ritmo lento, '+sedute+'x/settimana.'+fcRange;
+  }else if(pr.code==='C'||(p.attivita==='Attiva'||p.attivita==='Molto attiva')){
+    var tipo=cardioAlt?'bike/ellittica':'corsa';
+    cardioDesc='Alternare HIIT 20 min (30s/30s) e LISS 40 min ('+tipo+'), '+sedute+'x/settimana.'+fcRange;
+  }else{
+    var tipo2=cardioAlt?'bike 20 min':'camminata veloce 30 min';
+    cardioDesc=tipo2.charAt(0).toUpperCase()+tipo2.slice(1)+' o bike 20 min, '+sedute+'x/settimana.'+fcRange;
+  }
+  if(haCardio||haIpert)cardioDesc='Camminata a ritmo moderato, intensità bassa. Evitare sforzi massimali.'+fcRange;
+  // E) Descrizione forza
+  var forzaDesc='';
+  if(pr.code==='A'){
+    forzaDesc='Circuito corpo libero: squat assistito, wall push-up, sedia. 2 serie × 8-10 rip. Recupero 90s.';
+  }else if(pr.code==='C'){
+    forzaDesc='Push/Pull/Legs o Upper/Lower. 4 serie × 8-12 rip. Progressione periodizzata. Recupero 60s.';
+  }else{
+    forzaDesc='Upper/Lower split. 3 serie × 10-12 rip. Progressione carico settimanale. Recupero 60-90s.';
+  }
+  if(eta&&eta>65)forzaDesc='Esercizi da seduto o con supporto. Focus equilibrio e prevenzione cadute. 2 serie × 10 rip. Recupero 90s.';
+  if(haArtrosi&&pat.includes('ginocchio'))forzaDesc+=' Evitare squat profondo. Preferire leg press, estensioni, esercizi in scarico.';
+  forzaDesc+=forzaExtra;
+  // F) Note
+  var noteArr=[];
+  if(haDiabete)noteArr.push('Monitorare glicemia pre/post allenamento per diabete.');
+  if(haBeta)noteArr.push('Beta-bloccanti: FC non affidabile come indicatore di sforzo, usare scala RPE (Borg 6-20).');
+  if(haCardio)noteArr.push('Cardiopatia: monitorare sintomi, evitare manovre di Valsalva.');
+  if(haIpert)noteArr.push('Ipertensione: evitare esercizi isometrici prolungati e respirazione bloccata.');
+  if(haArtrosi)noteArr.push('Artrosi: riscaldamento prolungato (10 min), movimenti controllati, no impatto.');
+  if(haOsteo)noteArr.push('Osteoporosi: esercizi di equilibrio, evitare flessioni spinali eccessive.');
+  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')noteArr.push('Stress elevato: includere 10 min stretching/respirazione a fine seduta.');
+  if(p.sonno&&+p.sonno<6)noteArr.push('Sonno < 6h: evitare allenamenti intensi, preferire moderata intensità fino a miglioramento sonno.');
+  var domani=new Date();domani.setDate(domani.getDate()+1);
+  var dataInizio=domani.toLocaleDateString('it-IT');
+  return{dataInizio:dataInizio,sedute:sedute,minCardio:String(Math.round((cMin+cMax)/2)),minForza:String(Math.round((fMin+fMax)/2)),cardio:cardioDesc,forza:forzaDesc,note:noteArr.join('\n')};
+};
+
+// ── GENERAZIONE AUTOMATICA SCHEDA (rule-based) ──────────────────────────────
+// Fonti scientifiche:
+// - NSCA Essentials of Strength Training and Conditioning, 4th Ed. (2016)
+// - Serie/rip principianti: Rhea et al., "A meta-analysis of periodized vs nonperiodized programs" (2004)
+// - Recuperi: de Salles et al., "Rest interval between sets in strength training" (2009)
+// - Progressione: American College of Sports Medicine Position Stand on Progression Models (2009)
+// - Mobilità/anziani: ACSM Guidelines for older adults + CDC recommendations
+// NOTA: Scheda base da personalizzare. Non sostituisce il giudizio professionale del trainer.
+const generaSchedaAuto=(p,profiloCalc,exerciseLib)=>{
+  var pr=profiloCalc||{code:'B'};
+  if(!pr.code)return null;
+  var obiettivi=(p.obiettivi||[]);
+  var obiettivoPrimario=obiettivi.length>0?obiettivi[0].tipo:(p.obiettivo||'');
+  var ob=obiettivoPrimario.toLowerCase();
+  // A) Tipo scheda
+  var tipoScheda='Full Body';
+  var catFiltro=['Forza','Core'];
+  if(ob.includes('peso')||ob.includes('dimagri')||ob.includes('glicemia')||ob.includes('fm%')||ob.includes('ridurre')){tipoScheda='Circuit Training';catFiltro=['Forza','Cardio','Core'];}
+  else if(ob.includes('forza')||ob.includes('tonificaz')){tipoScheda='Forza';catFiltro=['Forza'];}
+  else if(ob.includes('ipertrofia')||ob.includes('massa')||ob.includes('aumento')){tipoScheda='Ipertrofia';catFiltro=['Forza'];}
+  else if(ob.includes('mobilità')||ob.includes('cadute')||ob.includes('riabilit')){tipoScheda='Mobilità e funzionale';catFiltro=['Core','Mobilità','Funzionale'];}
+  // B) Seleziona esercizi
+  var exLib=(exerciseLib||[]);
+  var exFiltrati=exLib.filter(function(e){return catFiltro.some(function(c){return e.cat===c;});});
+  var exScelti=exFiltrati.length>=5?exFiltrati.slice(0,Math.min(8,exFiltrati.length)):exLib.slice(0,Math.min(8,exLib.length));
+  var defaultEx={
+    'Full Body':['Squat','Push-up','Plank','Affondi','Rematore','Crunch'],
+    'Circuit Training':['Jumping Jack','Squat','Push-up','Mountain Climber','Plank','Burpee'],
+    'Forza':['Squat','Panca piana','Stacco','Military press','Trazioni','Curl'],
+    'Ipertrofia':['Panca piana','Croci','Squat','Leg curl','Lat machine','Curl manubri','Tricipiti','Alzate laterali'],
+    'Mobilità e funzionale':['Cat-cow','Stretching quadricipite','Hip opener','Mobilità spalle','Single leg balance','Calf raise']
+  };
+  var useDefault=exScelti.length<5;
+  var nomiDefault=defaultEx[tipoScheda]||defaultEx['Full Body'];
+  // C) Serie, rip, recupero
+  var serie,reps,rec,noteEx='';
+  if(tipoScheda==='Circuit Training'){serie=3;reps='30s';rec=30;noteEx='Circuit: 3 giri × 30s lavoro, recupero 30s tra esercizi';}
+  else if(tipoScheda==='Mobilità e funzionale'){serie=2;reps='30s';rec=30;noteEx='Tenuta 30s per esercizio';}
+  else if(pr.code==='A'){serie=2;reps='8-10';rec=90;}
+  else if(pr.code==='C'){serie=4;reps='8-12';rec=60;}
+  else{serie=3;reps='10-12';rec=75;}
+  // D) Costruisci scheda
+  var esercizi=[];
+  if(useDefault){
+    nomiDefault.forEach(function(nome){
+      esercizi.push({eId:nome,serie:serie,reps:reps,rec:rec,note:''});
+    });
+  }else{
+    exScelti.forEach(function(ex){
+      esercizi.push({eId:ex.id,serie:serie,reps:reps,rec:rec,note:''});
+    });
+  }
+  return{
+    nome:tipoScheda+' — Auto',
+    tipo:tipoScheda,
+    data:fmtDate(),
+    esercizi:esercizi,
+    note:noteEx
+  };
+};
+
 const interpPushup=(rip,sesso)=>{if(!rip)return null;const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}else{if(r<7)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<15)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}};
 const interpPlank=(sec)=>{if(!sec)return null;const s=+sec;if(s<30)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con plank sulle ginocchia 3×15s'};if(s<60)return{l:gT().base,c:'#f59e0b',cons:'Progressione a 45s poi 60s'};if(s<120)return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti laterale e dinamico'};return{l:gT().excellent,c:'#3b82f6',cons:'Core molto stabile — esercizi avanzati'};};
 const interpSquat=(rip)=>{if(!rip)return null;const r=+rip;if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Squat assistito e mobilità anca'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Tecnica prima del carico'};if(r<30)return{l:gT().good,c:'#10b981',cons:'Aggiungi carico progressivo'};return{l:gT().excellent,c:'#3b82f6',cons:'Varianti avanzate — pistol squat'};};
@@ -1500,6 +1665,10 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [completingNote,setCompletingNote]=useState('');
   const [showBookingModal,setShowBookingModal]=useState(false);
   const [newSeduta,setNewSeduta]=useState({data:new Date().toISOString().slice(0,10),ora:'09:00',durata:60,tipo:'PT',note:''});
+  const [showObjForm,setShowObjForm]=useState(false);
+  const [newObj,setNewObj]=useState({tipo:'Perdita peso',valoreAttuale:'',valoreObiettivo:'',deadline:''});
+  const [showGenDisclaimer,setShowGenDisclaimer]=useState(false);
+  const [showSchedaDisclaimer,setShowSchedaDisclaimer]=useState(false);
 
   const p=patient;
   const b=bmi(p.peso,p.altezza);
@@ -2122,6 +2291,119 @@ ${(p.progressi||[]).length>1?`
 
       {tab==='programma'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {/* ── FUNZIONALITÀ 1: Obiettivi con barra di progresso ── */}
+          <div style={S.card}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <div style={S.st}>🎯 Obiettivi</div>
+              <button style={S.btn('',true)} onClick={()=>{
+                var tipo='Perdita peso';var valAtt='';
+                if(p.peso)valAtt=String(p.peso);
+                setNewObj({tipo:tipo,valoreAttuale:valAtt,valoreObiettivo:'',deadline:''});
+                setShowObjForm(true);
+              }}>+ Aggiungi obiettivo</button>
+            </div>
+            {showObjForm&&(
+              <div style={{background:C.bg,borderRadius:10,padding:14,marginBottom:14,border:'1px solid '+C.border2}}>
+                <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 1fr 1fr',gap:10,marginBottom:10}}>
+                  <div><label style={S.label}>Tipo obiettivo</label><select style={S.sel} value={newObj.tipo} onChange={e=>{
+                    var t=e.target.value;var va='';
+                    if(t==='Perdita peso'&&p.peso)va=String(p.peso);
+                    else if(t==='Migliorare 6MWT'&&p.test?.mwtDist)va=String(p.test.mwtDist);
+                    else if(t==='Migliorare STS'&&p.test?.stsRip)va=String(p.test.stsRip);
+                    else if(t==='Ridurre FM%'&&p.bia?.FM)va=String(p.bia.FM);
+                    else if(t==='Aumento massa'&&p.peso)va=String(p.peso);
+                    setNewObj(f=>({...f,tipo:t,valoreAttuale:va}));
+                  }}>{['Perdita peso','Aumento massa','Migliorare 6MWT','Migliorare STS','Ridurre FM%','Altro'].map(o=><option key={o} value={o}>{o}</option>)}</select></div>
+                  <div><label style={S.label}>Valore attuale</label><input style={S.inp} type="number" value={newObj.valoreAttuale} onChange={e=>setNewObj(f=>({...f,valoreAttuale:e.target.value}))}/></div>
+                  <div><label style={S.label}>Valore obiettivo</label><input style={S.inp} type="number" value={newObj.valoreObiettivo} onChange={e=>setNewObj(f=>({...f,valoreObiettivo:e.target.value}))}/></div>
+                  <div><label style={S.label}>Deadline</label><input style={S.inp} type="date" value={newObj.deadline} onChange={e=>setNewObj(f=>({...f,deadline:e.target.value}))}/></div>
+                </div>
+                <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
+                  <button style={S.btn('ghost',true)} onClick={()=>setShowObjForm(false)}>Annulla</button>
+                  <button style={S.btn('primary',true)} onClick={()=>{
+                    if(!newObj.valoreAttuale||!newObj.valoreObiettivo){showToast('Compila valore attuale e obiettivo','warning');return;}
+                    var obj={id:'OBJ'+Date.now(),tipo:newObj.tipo,valoreIniziale:+newObj.valoreAttuale,valoreObiettivo:+newObj.valoreObiettivo,deadline:newObj.deadline,dataCreazione:fmtDate()};
+                    upd(x=>({obiettivi:(x.obiettivi||[]).concat([obj])}));
+                    setShowObjForm(false);showToast('Obiettivo aggiunto','success');
+                  }}>Salva</button>
+                </div>
+              </div>
+            )}
+            {(!p.obiettivi||p.obiettivi.length===0)&&!showObjForm&&<div style={{textAlign:'center',padding:20,color:C.muted,fontSize:13}}>Nessun obiettivo impostato</div>}
+            {(p.obiettivi||[]).map(obj=>{
+              var icone={'Perdita peso':'⚖️','Aumento massa':'💪','Migliorare 6MWT':'🏃','Migliorare STS':'🪑','Ridurre FM%':'📊','Altro':'🎯'};
+              var icon=icone[obj.tipo]||'🎯';
+              var unita={'Perdita peso':'kg','Aumento massa':'kg','Migliorare 6MWT':'m','Migliorare STS':'rip','Ridurre FM%':'%','Altro':''};
+              var unit=unita[obj.tipo]||'';
+              // Calcola valore attuale aggiornato
+              var valAttuale=obj.valoreIniziale;
+              if(obj.tipo==='Perdita peso'||obj.tipo==='Aumento massa'){
+                var lastProg=(p.progressi||[]).filter(pr2=>pr2.peso).slice(-1)[0];
+                if(lastProg)valAttuale=+lastProg.peso;
+                else if(p.peso)valAttuale=+p.peso;
+              }else if(obj.tipo==='Migliorare 6MWT'){
+                if(p.test?.mwtDist)valAttuale=+p.test.mwtDist;
+              }else if(obj.tipo==='Migliorare STS'){
+                if(p.test?.stsRip)valAttuale=+p.test.stsRip;
+              }else if(obj.tipo==='Ridurre FM%'){
+                if(p.bia?.FM)valAttuale=+p.bia.FM;
+              }
+              // Calcola progresso
+              var isDecrease=obj.tipo==='Perdita peso'||obj.tipo==='Ridurre FM%';
+              var pct=0;
+              if(isDecrease){
+                var denom=obj.valoreIniziale-obj.valoreObiettivo;
+                if(denom!==0)pct=((obj.valoreIniziale-valAttuale)/denom)*100;
+              }else{
+                var denom2=obj.valoreObiettivo-obj.valoreIniziale;
+                if(denom2!==0)pct=((valAttuale-obj.valoreIniziale)/denom2)*100;
+              }
+              pct=Math.max(0,Math.min(100,Math.round(pct)));
+              var barColor=pct>=60?C.green:pct>=30?C.yellow:C.red;
+              // Calcola ritmo e avviso
+              var ritmoStr='';var avviso=false;
+              if(obj.deadline){
+                var dlDate=new Date(obj.deadline);var now2=new Date();
+                var weeksLeft=Math.max(0.1,(dlDate-now2)/(7*24*60*60*1000));
+                var remaining=isDecrease?(valAttuale-obj.valoreObiettivo):(obj.valoreObiettivo-valAttuale);
+                if(remaining>0){
+                  var ritmo=(remaining/weeksLeft).toFixed(1);
+                  var unitSett=unit==='kg'?'kg/sett.':unit==='m'?'m/sett.':unit==='rip'?'rip/sett.':unit==='%'?'%/sett.':'/sett.';
+                  ritmoStr='Ritmo: '+ritmo+' '+unitSett;
+                  if(obj.tipo==='Perdita peso'&&+ritmo>1)avviso=true;
+                  if(obj.tipo==='Aumento massa'&&+ritmo>0.5)avviso=true;
+                  if(obj.tipo==='Ridurre FM%'&&+ritmo>0.5)avviso=true;
+                }else{ritmoStr='Obiettivo raggiunto!';}
+              }
+              var dlLabel=obj.deadline?new Date(obj.deadline).toLocaleDateString('it-IT'):'—';
+              return(
+                <div key={obj.id} style={{background:C.bg,borderRadius:10,padding:'10px 14px',marginBottom:8,display:'flex',alignItems:'flex-start',gap:10}}>
+                  <div style={{fontSize:22,lineHeight:1,marginTop:2}}>{icon}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{obj.tipo}: {valAttuale} {unit} → {obj.valoreObiettivo} {unit}</div>
+                    <div style={{background:C.border,borderRadius:4,height:8,overflow:'hidden',marginTop:6,marginBottom:4}}>
+                      <div style={{height:'100%',borderRadius:4,background:barColor,width:pct+'%',transition:'width 0.5s ease'}}/>
+                    </div>
+                    <div style={{fontSize:11,color:C.muted}}>{pct}% completato{ritmoStr?' · '+ritmoStr:''} · Deadline: {dlLabel}</div>
+                    {avviso&&<div style={{fontSize:11,color:C.yellow,marginTop:4}}>⚠️ Obiettivo ambizioso, valuta di estendere la deadline</div>}
+                  </div>
+                  <button style={{background:'transparent',border:'none',color:C.muted,cursor:'pointer',fontSize:14,padding:4}} onClick={()=>upd(x=>({obiettivi:(x.obiettivi||[]).filter(o=>o.id!==obj.id)}))}>✕</button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── FUNZIONALITÀ 2: Genera programma ── */}
+          <button style={{background:'linear-gradient(135deg,'+C.blue+'20,'+C.green+'15)',border:'1px solid '+C.blue+'40',color:C.blue,fontWeight:700,padding:'10px 20px',borderRadius:10,width:'100%',cursor:'pointer',fontSize:13,fontFamily:'inherit'}} onClick={()=>{
+            if(!p.peso||!p.altezza||!p.attivita){showToast('Dati insufficienti — compila anagrafica e stile di vita','warning');return;}
+            var result=generaProgrammaAuto(p,pr);
+            if(!result){showToast('Dati insufficienti per generare il programma','warning');return;}
+            upd(x=>({programma:{...x.programma,dataInizio:result.dataInizio,sedute:result.sedute,minCardio:result.minCardio,minForza:result.minForza,cardio:result.cardio,forza:result.forza,note:result.note}}));
+            setShowGenDisclaimer(true);
+            showToast('Programma generato! Puoi modificarlo prima di salvare.','success');
+          }}>⚡ Genera programma</button>
+          {showGenDisclaimer&&<div style={{background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:10,padding:'10px 14px',fontSize:12,color:'#f59e0b',marginTop:0}}>⚠️ Programma generato secondo le linee guida ACSM, NSCA e WHO. Verifica e personalizza in base alla tua esperienza professionale prima di assegnarlo al cliente.</div>}
+
           {/* Piano settimanale (ex tab prog) */}
           <div style={S.grid(4)}>
             <StatCard label="Data inizio" value={p.programma?.dataInizio||'—'} color={C.blue}/>
@@ -2134,7 +2416,7 @@ ${(p.progressi||[]).length>1?`
             {[['Cardio',p.programma?.cardio,C.cyan],['Forza',p.programma?.forza,C.green],['Note',p.programma?.note,C.yellow]].map(([k,v,c])=>(
               <div key={k} style={{display:'flex',gap:10,marginBottom:12}}>
                 <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
-                <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{v||'—'}</div></div>
+                <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6,whiteSpace:'pre-wrap'}}>{v||'—'}</div></div>
               </div>
             ))}
           </div>
@@ -2142,8 +2424,19 @@ ${(p.progressi||[]).length>1?`
           <div style={{marginTop:20}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
             <div style={S.st}>Schede allenamento</div>
-            <button style={S.btn('',true)} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
+            <div style={{display:'flex',gap:8}}>
+              <button style={{background:'linear-gradient(135deg,'+C.blue+'20,'+C.green+'15)',border:'1px solid '+C.blue+'40',color:C.blue,fontWeight:700,padding:'5px 10px',borderRadius:7,cursor:'pointer',fontSize:11,fontFamily:'inherit'}} onClick={()=>{
+                if(!pr||!pr.code){showToast('Dati insufficienti — esegui prima una valutazione','warning');return;}
+                var scheda=generaSchedaAuto(p,pr,exercises);
+                if(!scheda){showToast('Impossibile generare la scheda','warning');return;}
+                upd(x=>({schede:(x.schede||[]).concat([scheda])}));
+                setShowSchedaDisclaimer(true);
+                showToast('Scheda generata! Puoi modificarla.','success');
+              }}>⚡ Genera scheda</button>
+              <button style={S.btn('',true)} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
+            </div>
           </div>
+          {showSchedaDisclaimer&&<div style={{background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:10,padding:'10px 14px',fontSize:12,color:'#f59e0b',marginBottom:12}}>⚠️ Programma generato secondo le linee guida ACSM, NSCA e WHO. Verifica e personalizza in base alla tua esperienza professionale prima di assegnarlo al cliente.</div>}
           {(!p.schede||p.schede.length===0)&&<div style={{...S.card,textAlign:'center',padding:36,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>📋</div>Nessuna scheda. Clicca "+ Nuova scheda" per creare.</div>}
           {p.schede?.map((scheda,si)=>(
             <div key={si} style={{...S.card,marginBottom:12}}>
@@ -2897,7 +3190,7 @@ function AppInner({user,profile,trialLeft}){
 
   const selected=patients.find(p=>p.id===selectedId);
 
-  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
+  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],obiettivi:[],log:[],createdAt:fmtDate()});
 
   const handleSave=useCallback((form)=>{
     const errs=[];
