@@ -157,12 +157,12 @@ var aiCoach=async function(paziente){
 </script>
 <style>
 :root{
-  --bg:#0a0f1e;--sidebar:#070c18;--card:#111827;--border:#1f2937;--border2:#374151;
-  --text:#e2e8f0;--muted:#6b7280;--dim:#4b5563;--input-bg:#0a0f1e;--strong:#f9fafb;
+  --bg:#0a0f1e;--sidebar:#070c18;--card:#111827;--border:#1e293b;--border2:#475569;
+  --text:#f1f5f9;--muted:#94a3b8;--dim:#64748b;--input-bg:#0a0f1e;--strong:#f9fafb;
 }
 :root.light{
   --bg:#f8fafc;--sidebar:#f1f5f9;--card:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
-  --text:#1e293b;--muted:#64748b;--dim:#94a3b8;--input-bg:#ffffff;--strong:#0f172a;
+  --text:#0f172a;--muted:#475569;--dim:#64748b;--input-bg:#ffffff;--strong:#0f172a;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body,#root{height:100%;overflow:hidden;background:var(--bg);transition:background .3s}
@@ -1140,13 +1140,13 @@ const S={
   logo:{fontSize:16,fontWeight:800,color:C.strong,letterSpacing:-0.5},
   logosub:{fontSize:10,color:C.muted,marginTop:2,letterSpacing:1,textTransform:'uppercase'},
   nav:{padding:'8px 10px',flex:1,overflowY:'auto'},
-  navlbl:{fontSize:10,color:'#1e3a5f',letterSpacing:1.5,textTransform:'uppercase',padding:'10px 6px 4px',fontWeight:700},
+  navlbl:{fontSize:10,color:C.muted,letterSpacing:1.5,textTransform:'uppercase',padding:'10px 6px 4px',fontWeight:700},
   navi:(a)=>({display:'flex',alignItems:'center',gap:10,padding:'11px 14px',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:a?600:500,background:a?C.blue+'15':'transparent',color:a?C.blue:C.dim,border:'none',width:'100%',textAlign:'left',transition:'all .15s',minHeight:44,borderLeft:a?'3px solid '+C.blue:'3px solid transparent'}),
   main:{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'},
   topbar:{height:52,background:C.sidebar,borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',padding:'0 12px',gap:8,flexShrink:0},
   content:{flex:1,overflowY:'auto',padding:isMobile?12:20,paddingBottom:isMobile?80:20},
   btn:(v='primary',sm=false)=>({padding:sm?'5px 10px':'7px 13px',borderRadius:7,border:'none',cursor:'pointer',fontSize:sm?11:12,fontWeight:600,transition:'all .15s',whiteSpace:'nowrap',
-    ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:'1px solid #ef444440'}:v==='success'?{background:'#10b98120',color:C.green,border:'1px solid #10b98140'}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:'1px solid #f59e0b40'}:{background:C.card,color:C.text,border:'1px solid '+C.border2,transition:'all .2s'})}),
+    ...(v==='primary'?{background:C.blue,color:C.strong}:v==='danger'?{background:'#ef444420',color:C.red,border:'1px solid #ef444440'}:v==='success'?{background:'#10b98120',color:C.green,border:'1px solid #10b98140'}:v==='warning'?{background:'#f59e0b20',color:C.yellow,border:'1px solid #f59e0b40'}:{background:C.card,color:C.strong,border:'1px solid '+C.border2,transition:'all .2s'})}),
   card:{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?12:18},
   label:{fontSize:11,color:C.muted,textTransform:'uppercase',letterSpacing:.8,fontWeight:600,marginBottom:3,display:'block'},
   inp:{width:'100%',background:C.bg,border:'1px solid '+C.border2,borderRadius:7,padding:isMobile?'11px 13px':'8px 11px',color:C.text,fontSize:isMobile?15:13,outline:'none',boxSizing:'border-box'},
