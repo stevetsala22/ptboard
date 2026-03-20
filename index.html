@@ -70,15 +70,8 @@ firebase.initializeApp({
   messagingSenderId:"223801010947",
   appId:"1:223801010947:web:9c3f887243609bcdad9736"
 });
-const fbAuth=firebase.auth();
-const fbDb=firebase.firestore();
-fbDb.enableIndexedDbPersistence().catch(function(err){
-  if(err.code==='failed-precondition'){
-    console.warn('Persistenza offline: più tab aperte, solo una può usarla');
-  }else if(err.code==='unimplemented'){
-    console.warn('Persistenza offline non supportata da questo browser');
-  }
-});
+var fbAuth=firebase.auth();
+var fbDb=firebase.firestore();
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=30;
