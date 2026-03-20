@@ -1760,6 +1760,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [newObj,setNewObj]=useState({tipo:'Perdita peso',valoreAttuale:'',valoreObiettivo:'',deadline:''});
   const [showGenDisclaimer,setShowGenDisclaimer]=useState(false);
   const [showSchedaDisclaimer,setShowSchedaDisclaimer]=useState(false);
+  const [editSchedaIdx,setEditSchedaIdx]=useState(null);
 
   const p=patient;
   const b=bmi(p.peso,p.altezza);
@@ -2533,10 +2534,11 @@ ${(p.progressi||[]).length>1?`
             <div key={si} style={{...S.card,marginBottom:12}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
                 <div>
-                  <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
+                  <div style={{fontSize:14,fontWeight:700,color:C.strong,cursor:'pointer'}} onClick={()=>setEditSchedaIdx(si)}>{scheda.nome}</div>
                   <div style={{fontSize:11,color:C.muted}}>{scheda.tipo} · {scheda.data} · {scheda.esercizi?.length||0} esercizi</div>
                 </div>
                 <div style={{display:'flex',gap:6}}>
+                  <button style={{...S.btn('ghost',true),fontSize:11,padding:'3px 7px'}} onClick={()=>setEditSchedaIdx(si)}>✏️ Modifica</button>
                   <button style={{...S.btn('ghost',true),fontSize:11,padding:'3px 7px'}} onClick={()=>generaSchedaPDF(scheda)}>📄 PDF</button>
                   <button style={S.btn('danger',true)} onClick={()=>upd(x=>({schede:x.schede.filter((_,i)=>i!==si)}))}>✕ Elimina</button>
                 </div>
@@ -2721,6 +2723,8 @@ ${(p.progressi||[]).length>1?`
       </Modal>}
 
       {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)}/>}
+
+      {editSchedaIdx!==null&&p.schede?.[editSchedaIdx]&&<EditSchedaModal exercises={exercises} scheda={p.schede[editSchedaIdx]} onSave={(updated)=>{upd(x=>({schede:x.schede.map((s,i)=>i===editSchedaIdx?updated:s)}));setEditSchedaIdx(null);showToast('Scheda aggiornata','success');}} onClose={()=>setEditSchedaIdx(null)}/>}
     </div>
   );
 }
@@ -2767,6 +2771,64 @@ function SchedaModal({exercises,onSave,onClose}){
       <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
         <button style={S.btn('ghost')} onClick={onClose}>{gT().cancel}</button>
         <button style={S.btn()} onClick={()=>form.nome&&onSave(form)}>Salva scheda</button>
+      </div>
+    </Modal>
+  );
+}
+
+function EditSchedaModal({exercises,scheda,onSave,onClose}){
+  const [form,setForm]=useState(()=>({nome:scheda.nome||'',tipo:scheda.tipo||'Forza',data:scheda.data||fmtDate(),esercizi:(scheda.esercizi||[]).map(ex=>({...ex})),note:scheda.note||''}));
+  const [addEx,setAddEx]=useState({eId:'',serie:3,reps:12,peso:'',rec:60,note:''});
+  const updField=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
+  const updEx=(idx,field,val)=>setForm(f=>({...f,esercizi:f.esercizi.map((ex,i)=>i===idx?{...ex,[field]:val}:ex)}));
+  const removeEx=(idx)=>setForm(f=>({...f,esercizi:f.esercizi.filter((_,i)=>i!==idx)}));
+  const moveEx=(idx,dir)=>setForm(f=>{var es=[...f.esercizi];if(idx+dir<0||idx+dir>=es.length)return f;var tmp=es[idx];es[idx]=es[idx+dir];es[idx+dir]=tmp;return{...f,esercizi:es};});
+  return(
+    <Modal title="Modifica scheda" onClose={onClose} width="700px">
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 1fr',gap:12,marginBottom:16}}>
+        <FF label="Nome scheda" name="nome" value={form.nome} onChange={updField}/>
+        <FF label="Tipo" name="tipo" value={form.tipo} onChange={updField} options={['Forza','Cardio','Funzionale','Mobilità','Full Body','Upper','Lower','HIIT','Circuit Training']}/>
+        <FF label="Data" name="data" value={form.data} onChange={updField}/>
+      </div>
+      <div style={{marginBottom:14}}>
+        <div style={S.st}>Esercizi ({form.esercizi.length})</div>
+        {form.esercizi.map((ex,i)=>{
+          const info=exercises.find(e=>e.id===ex.eId);
+          const nomeDisplay=info?.nome||ex.eId||'';
+          return(
+            <div key={i} style={{background:C.bg,borderRadius:8,border:'1px solid '+C.border2,padding:isMobile?8:10,marginBottom:6}}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'2fr 1fr 1fr 1fr 1fr auto',gap:8,alignItems:'end'}}>
+                <div><label style={S.label}>Esercizio</label><select style={S.sel} value={ex.eId} onChange={e=>updEx(i,'eId',e.target.value)}><option value="">—</option>{exercises.map(e2=><option key={e2.id} value={e2.id}>{e2.nome} ({e2.cat})</option>)}{!info&&ex.eId?<option value={ex.eId}>{ex.eId}</option>:null}</select></div>
+                <div><label style={S.label}>Serie</label><input style={S.inp} type="number" value={ex.serie} onChange={e=>updEx(i,'serie',e.target.value)}/></div>
+                <div><label style={S.label}>Rip.</label><input style={S.inp} value={ex.reps} onChange={e=>updEx(i,'reps',e.target.value)}/></div>
+                <div><label style={S.label}>Peso kg</label><input style={S.inp} value={ex.peso||''} onChange={e=>updEx(i,'peso',e.target.value)}/></div>
+                <div><label style={S.label}>Rec. (s)</label><input style={S.inp} type="number" value={ex.rec} onChange={e=>updEx(i,'rec',e.target.value)}/></div>
+                <div style={{display:'flex',gap:4,alignItems:'flex-end',paddingBottom:2}}>
+                  <button style={{...S.btn('ghost',true),padding:'4px 6px',fontSize:11}} onClick={()=>moveEx(i,-1)} title="Sposta su">↑</button>
+                  <button style={{...S.btn('ghost',true),padding:'4px 6px',fontSize:11}} onClick={()=>moveEx(i,1)} title="Sposta giù">↓</button>
+                  <button style={{...S.btn('danger',true),padding:'4px 6px'}} onClick={()=>removeEx(i)}>✕</button>
+                </div>
+              </div>
+              <div style={{marginTop:6}}><label style={S.label}>Note</label><input style={S.inp} value={ex.note||''} onChange={e=>updEx(i,'note',e.target.value)} placeholder="Note esercizio"/></div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{...S.card,marginBottom:14}}>
+        <div style={S.st}>Aggiungi esercizio</div>
+        <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'2fr 1fr 1fr 1fr 1fr',gap:8,alignItems:'end'}}>
+          <FF label="Esercizio" name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:'-- Scegli --'}].concat(exercises.map(e=>({v:e.id,l:e.nome+' ('+e.cat+')'})))}/>
+          <FF label="Serie" name="serie" type="number" value={addEx.serie} onChange={e=>setAddEx(f=>({...f,serie:+e.target.value}))}/>
+          <FF label="Rip." name="reps" type="number" value={addEx.reps} onChange={e=>setAddEx(f=>({...f,reps:+e.target.value}))}/>
+          <FF label="Peso kg" name="peso" value={addEx.peso} onChange={e=>setAddEx(f=>({...f,peso:e.target.value}))}/>
+          <FF label="Rec. (s)" name="rec" type="number" value={addEx.rec} onChange={e=>setAddEx(f=>({...f,rec:+e.target.value}))}/>
+        </div>
+        <button style={{...S.btn('success',true),marginTop:8}} onClick={()=>{if(addEx.eId){setForm(f=>({...f,esercizi:[...f.esercizi,{...addEx}]}));setAddEx({eId:'',serie:3,reps:12,peso:'',rec:60,note:''})}}}>+ Aggiungi</button>
+      </div>
+      <FF label="Note scheda" name="note" type="textarea" value={form.note} onChange={updField}/>
+      <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+        <button style={S.btn('ghost')} onClick={onClose}>{gT().cancel}</button>
+        <button style={S.btn()} onClick={()=>{if(!form.nome){showToast('Inserisci un nome per la scheda','warning');return;}onSave(form);}}>Salva modifiche</button>
       </div>
     </Modal>
   );
