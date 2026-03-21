@@ -1511,7 +1511,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
   );
 }
 
-function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta,trainerProfile,bookings,onAddBooking,onCompleteBooking}){
+function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUpgrade,onValuta,trainerProfile,bookings,onAddBooking,onCompleteBooking,onDeleteBooking}){
   const [tab,setTab]=useState('panoramica');
   const [openSections,setOpenSections]=useState({ana:true,test:false,prog:false});
   const [showPesoModal,setShowPesoModal]=useState(false);
@@ -1525,6 +1525,10 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [completingNote,setCompletingNote]=useState('');
   const [showBookingModal,setShowBookingModal]=useState(false);
   const [newSeduta,setNewSeduta]=useState({data:new Date().toISOString().slice(0,10),ora:'09:00',durata:60,tipo:'PT',note:''});
+  const [openProssime,setOpenProssime]=useState(false);
+  const [openStorico,setOpenStorico]=useState(false);
+  const [openSchede,setOpenSchede]=useState(false);
+  const [expandedScheda,setExpandedScheda]=useState(null);
 
   const p=patient;
   const b=bmi(p.peso,p.altezza);
@@ -2163,46 +2167,60 @@ ${(p.progressi||[]).length>1?`
               </div>
             ))}
           </div>
-          {/* Schede allenamento (ex tab schede) */}
+          {/* Schede allenamento (accordion) */}
           <div style={{marginTop:20}}>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
-            <div style={S.st}>Schede allenamento</div>
-            <button style={S.btn('',true)} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
-          </div>
-          {(!p.schede||p.schede.length===0)&&<div style={{...S.card,textAlign:'center',padding:36,color:C.muted}}><div style={{fontSize:28,marginBottom:8}}>📋</div>Nessuna scheda. Clicca "+ Nuova scheda" per creare.</div>}
-          {p.schede?.map((scheda,si)=>(
-            <div key={si} style={{...S.card,marginBottom:12}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <div>
-                  <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
-                  <div style={{fontSize:11,color:C.muted}}>{scheda.tipo} · {scheda.data} · {scheda.esercizi?.length||0} esercizi</div>
-                </div>
-                <div style={{display:'flex',gap:6}}>
-                  <button style={{...S.btn('ghost',true),fontSize:11,padding:'3px 7px'}} onClick={()=>generaSchedaPDF(scheda)}>📄 PDF</button>
-                  <button style={S.btn('danger',true)} onClick={()=>upd(x=>({schede:x.schede.filter((_,i)=>i!==si)}))}>✕ Elimina</button>
-                </div>
+            <div onClick={()=>setOpenSchede(v=>!v)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span>📋</span>
+                <span style={{fontSize:13,fontWeight:700,color:C.strong}}>Schede allenamento</span>
+                <span style={{background:C.orange+'20',color:C.orange,fontSize:11,padding:'2px 8px',borderRadius:10}}>{p.schede?.length||0}</span>
               </div>
-              {scheda.esercizi?.map((ex,ei)=>{
-                const eInfo=exercises.find(e=>e.id===ex.eId);
-                return(
-                  <div key={ei} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:6}}>
-                    <div style={{width:26,height:26,borderRadius:6,background:C.blue+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:C.blue}}>{ei+1}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:13,color:C.strong,fontWeight:600}}>{eInfo?.nome||ex.eId}</div>
-                      <div style={{fontSize:11,color:C.muted}}>{eInfo?.muscoli}</div>
+              <span style={{fontSize:12,color:C.muted}}>{openSchede?'▲':'▼'}</span>
+            </div>
+            {openSchede&&<div>
+              <div style={{display:'flex',gap:8,marginBottom:10}}>
+                <button style={{...S.btn(),fontSize:12}} onClick={()=>setShowAI(true)}>⚡ Genera scheda</button>
+                <button style={{...S.btn('',true),fontSize:12}} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
+              </div>
+              {(!p.schede||p.schede.length===0)&&<div style={{color:C.muted,fontSize:13,padding:'8px 0',textAlign:'center'}}>Nessuna scheda. Clicca "+ Nuova scheda" per creare.</div>}
+              {p.schede?.map((scheda,si)=>{
+                const isExp=expandedScheda===si;
+                return <div key={si}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 12px',background:C.bg,border:'1px solid '+C.border2,borderRadius:8,marginBottom:4}}>
+                    <div style={{flex:1,cursor:'pointer'}} onClick={()=>setExpandedScheda(si===expandedScheda?null:si)}>
+                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
+                      <div style={{fontSize:11,color:C.muted}}>{scheda.tipo} · {scheda.data} · {scheda.esercizi?.length||0} esercizi</div>
                     </div>
-                    <div style={{display:'flex',gap:14,fontSize:12,color:C.muted}}>
-                      <span><b style={{color:C.text}}>{ex.serie}</b> serie</span>
-                      <span><b style={{color:C.text}}>{ex.reps}</b> rip</span>
-                      {ex.peso&&<span><b style={{color:C.text}}>{ex.peso}</b> kg</span>}
-                      <span>rec <b style={{color:C.text}}>{ex.rec}s</b></span>
+                    <div style={{display:'flex',gap:4}}>
+                      <button style={{fontSize:11,padding:'3px 7px',background:C.blue+'15',color:C.blue,border:'none',borderRadius:6,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowSchedaModal(true)}>✏️ Modifica</button>
+                      <button style={{fontSize:11,padding:'3px 7px',background:C.green+'15',color:C.green,border:'none',borderRadius:6,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>generaSchedaPDF(scheda)}>📄 PDF</button>
+                      <button style={{fontSize:11,padding:'3px 7px',background:'#ef444420',color:C.red,border:'none',borderRadius:6,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>showConfirmToast('Eliminare la scheda "'+scheda.nome+'"?',()=>upd(x=>({schede:x.schede.filter((_,i)=>i!==si)})))}>✕ Elimina</button>
                     </div>
                   </div>
-                );
+                  {isExp&&<div style={{padding:'4px 12px 10px',marginBottom:6}}>
+                    {scheda.esercizi?.map((ex,ei)=>{
+                      const eInfo=exercises.find(e=>e.id===ex.eId);
+                      return(
+                        <div key={ei} style={{...S.row,border:'1px solid '+C.border2,borderRadius:8,marginBottom:4}}>
+                          <div style={{width:24,height:24,borderRadius:6,background:C.blue+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:C.blue}}>{ei+1}</div>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:13,color:C.strong,fontWeight:600}}>{eInfo?.nome||ex.eId}</div>
+                            <div style={{fontSize:11,color:C.muted}}>{eInfo?.muscoli}</div>
+                          </div>
+                          <div style={{display:'flex',gap:14,fontSize:12,color:C.muted}}>
+                            <span><b style={{color:C.text}}>{ex.serie}</b> serie</span>
+                            <span><b style={{color:C.text}}>{ex.reps}</b> rip</span>
+                            {ex.peso&&<span><b style={{color:C.text}}>{ex.peso}</b> kg</span>}
+                            <span>rec <b style={{color:C.text}}>{ex.rec}s</b></span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {scheda.note&&<div style={{marginTop:6,fontSize:12,color:C.muted,fontStyle:'italic'}}>{scheda.note}</div>}
+                  </div>}
+                </div>;
               })}
-              {scheda.note&&<div style={{marginTop:8,fontSize:12,color:C.muted,fontStyle:'italic'}}>{scheda.note}</div>}
-            </div>
-          ))}
+            </div>}
           </div>
         </div>
       )}
@@ -2226,30 +2244,42 @@ ${(p.progressi||[]).length>1?`
 
       {tab==='sedute'&&(
         <div style={{display:'flex',flexDirection:'column',gap:16}}>
-          {/* SEZIONE A — Prossime sedute */}
-          <div>
-            <div style={S.st}>📅 Prossime sedute</div>
-            {(()=>{
-              const future=(bookings||[]).filter(b=>b.patientId===p.id).sort((a,b2)=>(a.data+a.ora).localeCompare(b2.data+b2.ora));
-              if(future.length===0)return <div style={{color:C.muted,fontSize:13,padding:'8px 0'}}>Nessuna seduta programmata</div>;
-              return future.map(b=>{
-                const isPast=b.data<todayISO;
-                const isCompleting=completingId===b.id;
-                return(
-                  <div key={b.id} style={{...S.card,marginBottom:8}}>
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
-                      <div>
-                        <span style={{fontWeight:700,color:C.blue,fontSize:13}}>{b.data}</span>
-                        <span style={{color:C.muted,fontSize:12,marginLeft:8}}>{b.ora} · {b.tipo} · {b.durata} min</span>
-                        {isPast&&!b.completed&&<span style={{marginLeft:8,fontSize:11,fontWeight:700,color:C.yellow,background:C.yellow+'20',padding:'2px 7px',borderRadius:10}}>⚠️ Scaduto</span>}
+          {/* SEZIONE A — Prossime sedute (accordion) */}
+          {(()=>{
+            const future=(bookings||[]).filter(b=>b.patientId===p.id).sort((a,b2)=>(a.data+a.ora).localeCompare(b2.data+b2.ora));
+            const scadute=future.filter(b=>b.data<todayISO&&!b.completed).length;
+            return <div>
+              <div onClick={()=>setOpenProssime(v=>!v)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span>📅</span>
+                  <span style={{fontSize:13,fontWeight:700,color:C.strong}}>Prossime sedute</span>
+                  <span style={{background:C.blue+'20',color:C.blue,fontSize:11,padding:'2px 8px',borderRadius:10}}>{future.length}</span>
+                  {scadute>0&&<span style={{background:'#f59e0b15',color:'#f59e0b',fontSize:10,padding:'2px 8px',borderRadius:10}}>{scadute} scadute</span>}
+                </div>
+                <span style={{fontSize:12,color:C.muted}}>{openProssime?'▲':'▼'}</span>
+              </div>
+              {openProssime&&<div>
+                {future.length===0&&<div style={{color:C.muted,fontSize:13,padding:'8px 0'}}>Nessuna seduta programmata</div>}
+                {future.map(b=>{
+                  const isPast=b.data<todayISO;
+                  const isCompleting=completingId===b.id;
+                  return <div key={b.id}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:C.card,border:'1px solid '+C.border2,borderRadius:8,marginBottom:3}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{fontWeight:700,color:C.blue,fontSize:12,minWidth:75}}>{b.data}</span>
+                        <span style={{color:C.muted,fontSize:12}}>{b.ora} · {b.tipo} · {b.durata} min</span>
+                        {isPast&&!b.completed&&<span style={{fontSize:11,fontWeight:700,color:C.yellow,background:C.yellow+'20',padding:'2px 7px',borderRadius:10}}>Scaduto</span>}
                       </div>
-                      {b.completed
-                        ?<span style={{fontSize:11,fontWeight:700,color:C.green,background:C.green+'20',padding:'3px 10px',borderRadius:10}}>✅ Completata</span>
-                        :<button style={{...S.btn('success',true),fontSize:11,padding:'4px 10px'}} onClick={()=>{setCompletingId(b.id);setCompletingRpe('');setCompletingNote('');}}>✅ Completa seduta</button>
-                      }
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        {b.completed
+                          ?<span style={{fontSize:11,fontWeight:700,color:C.green,background:C.green+'20',padding:'3px 10px',borderRadius:10}}>✅ Completata</span>
+                          :<button style={{...S.btn('success',true),fontSize:11,padding:'4px 10px'}} onClick={()=>{setCompletingId(b.id);setCompletingRpe('');setCompletingNote('');}}>Completa</button>
+                        }
+                        <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+b.data+'?',()=>onDeleteBooking(b.id))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit'}}>✕</button>
+                      </div>
                     </div>
                     {isCompleting&&(
-                      <div style={{marginTop:12,display:'flex',flexDirection:'column',gap:8,animation:'fadeInUp .2s ease'}}>
+                      <div style={{marginTop:4,marginBottom:6,padding:'8px 12px',display:'flex',flexDirection:'column',gap:8,animation:'fadeInUp .2s ease'}}>
                         <input type="number" min="0" max="10" style={S.inp} placeholder="Sforzo percepito 0-10 (RPE)" value={completingRpe} onChange={e=>setCompletingRpe(e.target.value)}/>
                         <textarea style={{...S.ta,minHeight:60}} placeholder="Come è andata?" value={completingNote} onChange={e=>setCompletingNote(e.target.value)}/>
                         <div style={{display:'flex',gap:8}}>
@@ -2265,27 +2295,36 @@ ${(p.progressi||[]).length>1?`
                         </div>
                       </div>
                     )}
-                  </div>
-                );
-              });
-            })()}
-            <button style={{...S.btn(),width:'100%',marginTop:8}} onClick={()=>{setNewSeduta({data:new Date().toISOString().slice(0,10),ora:'09:00',durata:60,tipo:'PT',note:''});setShowBookingModal(true);}}>+ Prenota seduta</button>
-          </div>
-          {/* SEZIONE B — Storico sedute */}
+                  </div>;
+                })}
+                <button style={{...S.btn(),width:'100%',marginTop:8}} onClick={()=>{setNewSeduta({data:new Date().toISOString().slice(0,10),ora:'09:00',durata:60,tipo:'PT',note:''});setShowBookingModal(true);}}>+ Prenota seduta</button>
+              </div>}
+            </div>;
+          })()}
+          {/* SEZIONE B — Storico sedute (accordion) */}
           <div>
-            <div style={S.st}>📋 Storico sedute ({p.log?.length||0})</div>
-            {(!p.log||p.log.length===0)&&<div style={{color:C.muted,fontSize:13}}>Nessuna seduta completata</div>}
-            {(p.log||[]).slice().reverse().map(s=>(
-              <div key={s.id} style={{padding:'10px 12px',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:10}}>
-                <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
-                <span style={{fontSize:12,color:C.muted,minWidth:80}}>{s.data}</span>
-                <span style={{fontSize:13,fontWeight:700,color:C.strong,flex:1}}>{s.tipo}</span>
-                <span style={{fontSize:12,color:C.muted}}>{s.durata} min</span>
-                <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center'}}>{s.rpe||'—'}</span>
-                {s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
-                <button style={{...S.btn('danger',true),padding:'3px 8px'}} onClick={()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)}))}>✕</button>
+            <div onClick={()=>setOpenStorico(v=>!v)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span>📋</span>
+                <span style={{fontSize:13,fontWeight:700,color:C.strong}}>Storico sedute</span>
+                <span style={{background:C.green+'20',color:C.green,fontSize:11,padding:'2px 8px',borderRadius:10}}>{p.log?.length||0}</span>
               </div>
-            ))}
+              <span style={{fontSize:12,color:C.muted}}>{openStorico?'▲':'▼'}</span>
+            </div>
+            {openStorico&&<div>
+              {(!p.log||p.log.length===0)&&<div style={{color:C.muted,fontSize:13}}>Nessuna seduta completata</div>}
+              {(p.log||[]).slice().reverse().map(s=>(
+                <div key={s.id} style={{padding:'6px 10px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:10,fontSize:12}}>
+                  <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
+                  <span style={{color:C.muted,minWidth:80}}>{s.data}</span>
+                  <span style={{fontSize:13,fontWeight:700,color:C.strong,flex:1}}>{s.tipo}</span>
+                  <span style={{color:C.muted}}>{s.durata} min</span>
+                  <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center'}}>{s.rpe||'—'}</span>
+                  {s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
+                  <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+s.data+'?',()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)})))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit'}}>✕</button>
+                </div>
+              ))}
+            </div>}
           </div>
         </div>
       )}
@@ -3131,7 +3170,7 @@ function AppInner({user,profile,trialLeft}){
           )}
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
