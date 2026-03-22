@@ -2954,6 +2954,13 @@ function App(){
     try{
       const unsub=fbAuth.onAuthStateChanged(async u=>{
         if(!done){done=true;clearTimeout(timeout);}
+        if(u){
+          var lastUid=localStorage.getItem('ptboard_uid');
+          if(lastUid&&lastUid!==u.uid){
+            localStorage.removeItem('fitmanager_v4');
+          }
+          localStorage.setItem('ptboard_uid',u.uid);
+        }
         setUser(u);
         await loadProfile(u);
         if(u){const p=await fbGetUserProfile(u.uid);if(p)checkOnboardingEmails(u.uid,p);}
@@ -3227,7 +3234,7 @@ function AppInner({user,profile,trialLeft}){
               <div style={{flex:1,textAlign:'center',fontSize:12,color:C.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{tpNome||'PT Board'}</div>
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {tpInitials&&<div style={{width:28,height:28,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={function(){fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={function(){localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
               </div>
             </>
           ):(
@@ -3244,7 +3251,7 @@ function AppInner({user,profile,trialLeft}){
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
               <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
                 {tpInitials&&<div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={function(){fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={function(){localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
               </div>
             </>
           )}
@@ -4412,7 +4419,7 @@ function PaywallScreen({user,profile,blocked}){
           </a>
           <div style={{fontSize:11,color:'#475569'}}>Dopo il pagamento contatta <strong style={{color:'#94a3b8'}}>stevetsala22@gmail.com</strong><br/>per attivare il tuo account</div>
         </div>
-        <button onClick={()=>fbAuth.signOut()} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>Esci dall'account ({user?.email})</button>
+        <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>Esci dall'account ({user?.email})</button>
       </div>
     </div>
   );
