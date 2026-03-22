@@ -3005,7 +3005,7 @@ function App(){
   const loadProfile=async(u)=>{
     if(!u){setProfile(null);return;}
     const p=await fbGetUserProfile(u.uid);
-    if(p&&(p.plan==='pro'||p.plan==='team')&&p.planExpiresAt&&new Date(p.planExpiresAt)<new Date()){
+    if(p&&p.email!==ADMIN_EMAIL&&(p.plan==='pro'||p.plan==='team')&&p.planExpiresAt&&p.planExpiresAt!==''&&new Date(p.planExpiresAt)<new Date()){
       await fbDb.collection('users').doc(u.uid).update({plan:'blocked',planExpiredAt:new Date().toISOString()});
       p.plan='blocked';
       p.planExpiredAt=new Date().toISOString();
@@ -3329,6 +3329,19 @@ function AppInner({user,profile,trialLeft}){
             <div style={{background:'linear-gradient(90deg,'+C.blue+'15,'+C.blue+'08)',borderBottom:'1px solid '+C.blue+'20',padding:'8px 16px',textAlign:'center'}}>
               <span style={{fontSize:13,fontWeight:600,color:urgent?C.red:C.blue}}>{urgent?'Il trial scade tra '+daysLeft+' giorni!':'Trial gratuito: '+daysLeft+' giorni rimasti'}</span>
               {' '}<button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',color:urgent?C.red:C.blue,fontWeight:700,cursor:'pointer',textDecoration:'underline',fontSize:13}}>Vedi piani →</button>
+            </div>
+          );
+        })()}
+        {/* Pro/Team expiry banner */}
+        {user&&trainerProfile&&trainerProfile.email!==ADMIN_EMAIL&&(trainerProfile.plan==='pro'||trainerProfile.plan==='team')&&trainerProfile.planExpiresAt&&trainerProfile.planExpiresAt!==''&&(function(){
+          var daysLeft=Math.max(0,Math.ceil((new Date(trainerProfile.planExpiresAt)-Date.now())/(1000*60*60*24)));
+          var planLabel=trainerProfile.plan==='pro'?'Pro':'Team';
+          var expireDate=new Date(trainerProfile.planExpiresAt).toLocaleDateString('it-IT');
+          var urgent=daysLeft<7;
+          return(
+            <div style={{background:urgent?'linear-gradient(90deg,#ef444415,#ef444408)':'linear-gradient(90deg,#10b98115,#10b98108)',borderBottom:'1px solid '+(urgent?'#ef444420':'#10b98120'),padding:'8px 16px',textAlign:'center'}}>
+              <span style={{fontSize:13,fontWeight:600,color:urgent?'#ef4444':'#10b981'}}>{urgent?'Il tuo piano scade tra '+daysLeft+' giorni — rinnova ora':'Piano '+planLabel+' attivo — scade il '+expireDate}</span>
+              {urgent&&' '}{urgent&&<button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',color:'#ef4444',fontWeight:700,cursor:'pointer',textDecoration:'underline',fontSize:13}}>Rinnova →</button>}
             </div>
           );
         })()}
@@ -4635,16 +4648,20 @@ function AdminModal({onClose}){
     fbGetAllUsers().then(u=>{setUsers(u);setLoading(false);});
   },[]);
 
-  const setPlan=async(uid,plan)=>{
+  const setPlan=async(uid,plan,duration)=>{
     try{
       var updateData={plan:plan};
       if(plan==='pro'||plan==='team'){
-        updateData.planExpiresAt=new Date(Date.now()+33*24*60*60*1000).toISOString();
-      }else if(plan==='trial'||plan==='blocked'){
-        updateData.planExpiresAt=firebase.firestore.FieldValue.delete();
+        var dur=duration||'monthly';
+        var expiryDays=dur==='yearly'?370:33;
+        updateData.planType=plan+(dur==='yearly'?'Yearly':'Monthly');
+        updateData.planExpiresAt=new Date(Date.now()+expiryDays*24*60*60*1000).toISOString();
+      }else{
+        updateData.planType='';
+        updateData.planExpiresAt='';
       }
       await fbDb.collection('users').doc(uid).update(updateData);
-      setUsers(us=>us.map(u=>u.id===uid?{...u,plan:plan,planExpiresAt:updateData.planExpiresAt instanceof Object?undefined:(plan==='pro'||plan==='team'?updateData.planExpiresAt:u.planExpiresAt)}:u));
+      setUsers(us=>us.map(u=>u.id===uid?{...u,plan:plan,planType:updateData.planType,planExpiresAt:updateData.planExpiresAt||undefined}:u));
       setMsg('✓ Piano aggiornato');
       setTimeout(()=>setMsg(''),2000);
     }catch(e){
@@ -4706,19 +4723,43 @@ function AdminModal({onClose}){
                         {u.plan||'trial'}
                       </span>
                     </td>
-                    <td style={{padding:'10px 12px',color:isTrialExpired(u)&&u.plan!=='pro'&&u.plan!=='team'?'#ef4444':'#10b981',fontWeight:600}}>
-                      {(u.plan==='pro'||u.plan==='team')?(u.planExpiresAt?Math.max(0,Math.ceil((new Date(u.planExpiresAt)-Date.now())/(1000*60*60*24)))+'g':'∞'):isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
+                    <td style={{padding:'10px 12px',fontWeight:600,color:(function(){
+                      if(u.plan==='blocked') return '#ef4444';
+                      if(u.plan==='pro'||u.plan==='team'){
+                        if(!u.planExpiresAt||u.planExpiresAt==='') return '#10b981';
+                        var daysR=Math.ceil((new Date(u.planExpiresAt)-Date.now())/(1000*60*60*24));
+                        return daysR<3?'#ef4444':daysR<=7?'#f59e0b':'#10b981';
+                      }
+                      return isTrialExpired(u)?'#ef4444':'#10b981';
+                    })()}}>
+                      {(function(){
+                        if(u.plan==='blocked') return 'Scaduto';
+                        if(u.plan==='pro'||u.plan==='team'){
+                          if(!u.planExpiresAt||u.planExpiresAt==='') return '∞';
+                          var daysR=Math.max(0,Math.ceil((new Date(u.planExpiresAt)-Date.now())/(1000*60*60*24)));
+                          return daysR+'g';
+                        }
+                        return isTrialExpired(u)?'Scaduto':trialDaysLeft(u)+'g';
+                      })()}
                     </td>
                     <td style={{padding:'10px 12px',color:'#475569',whiteSpace:'nowrap'}}>
                       {u.createdAt?new Date(u.createdAt).toLocaleDateString('it-IT'):'—'}
                     </td>
-                    <td style={{padding:'10px 12px'}}>
-                      <select style={sel} value={u.plan||'trial'} onChange={e=>setPlan(u.id,e.target.value)}>
+                    <td style={{padding:'10px 12px',display:'flex',gap:6,alignItems:'center'}}>
+                      <select style={sel} value={u.plan||'trial'} onChange={e=>{
+                        var newPlan=e.target.value;
+                        var dur=(newPlan==='pro'||newPlan==='team')?(u.planType&&u.planType.includes('Yearly')?'yearly':'monthly'):null;
+                        setPlan(u.id,newPlan,dur);
+                      }}>
                         <option value="trial">Trial</option>
                         <option value="pro">✅ Pro</option>
                         <option value="team">👥 Team</option>
                         <option value="blocked">🚫 Bloccato</option>
                       </select>
+                      {(u.plan==='pro'||u.plan==='team')&&<select style={sel} value={u.planType&&u.planType.includes('Yearly')?'yearly':'monthly'} onChange={e=>setPlan(u.id,u.plan,e.target.value)}>
+                        <option value="monthly">Mensile</option>
+                        <option value="yearly">Annuale</option>
+                      </select>}
                     </td>
                   </tr>
                 ))}
