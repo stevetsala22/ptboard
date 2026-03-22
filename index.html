@@ -360,6 +360,60 @@ const exportCSV=(patients)=>{
   a.click();URL.revokeObjectURL(url);
 };
 
+// ── PDF LISTA CLIENTI ─────────────────────────────────────────────────────
+const exportPDFLista=(patients,trainerProfile)=>{
+  const pdfC=trainerProfile?.primaryColor||'#3b82f6';
+  const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
+  const logoHtml=trainerProfile?.logo?'<img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;object-fit:contain"/>':'<div style="font-size:22px;font-weight:900;color:'+pdfC+'">PT Board</div>';
+  const dataOggi=new Date().toLocaleDateString('it-IT');
+  const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
+  const righe=patients.map((p,i)=>{
+    const b=p.peso&&p.altezza?(p.peso/(p.altezza/100)**2).toFixed(1):'—';
+    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+    const bg=i%2===0?'#f8fafc':'#ffffff';
+    return '<tr style="background:'+bg+'">'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;font-weight:600">'+esc(p.nome)+' '+esc(p.cognome)+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.sesso||'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b">'+(p.peso?p.peso+' kg':'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b">'+b+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;text-align:center">'+(pr?'<span style="background:'+(pr.c)+'20;color:'+pr.c+';padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px">'+pr.code+'</span>':'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.obiettivo||'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.patologie||'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;text-align:center">'+(p.log?.length||0)+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.dataValutazione||'—')+'</td>'+
+    '</tr>';
+  }).join('');
+  const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Lista Clienti — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
+    '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid '+pdfC+'">'+
+    '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">← Torna all\'app</button>'+
+    '<button onclick="window.print()" style="background:'+pdfC+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">🖨️ Stampa / Salva PDF</button>'+
+    '</div>'+
+    '<div style="max-width:1100px;margin:0 auto;padding:40px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid '+pdfC+';padding-bottom:20px;margin-bottom:24px">'+
+    '<div>'+logoHtml+'<div style="font-size:11px;color:#64748b;margin-top:8px">Lista clienti — '+dataOggi+'</div></div>'+
+    '<div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">'+patients.length+' Clienti</div><div style="font-size:13px;color:#64748b;margin-top:4px">'+totSedute+' sedute totali</div></div>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse">'+
+    '<thead><tr style="background:'+pdfC+'">'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Cliente</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Sesso</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Peso</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">BMI</th>'+
+    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Profilo</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Obiettivo</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Patologie</th>'+
+    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Sedute</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Ultima val.</th>'+
+    '</tr></thead>'+
+    '<tbody>'+righe+'</tbody>'+
+    '</table>'+
+    '<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">'+nomeStudio+' · Lista clienti generata il '+dataOggi+'</div><div style="font-size:10px;color:#94a3b8">'+patients.length+' clienti</div></div>'+
+    '</div></body></html>';
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+};
+
 const LANGS={
   it:{flag:'🇮🇹',name:'Italiano',t:{
     dashboard:'Dashboard',patients:'Clienti',calendar:'Calendario',exercises:'Esercizi',
@@ -1353,7 +1407,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
           <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{(function(){var h=new Date().getHours();var g=h>=5&&h<12?'Buongiorno':h>=12&&h<18?'Buon pomeriggio':'Buonasera';var n=trainerProfile?.nome||trainerProfile?.displayName||'';return n?g+', '+n+'!':'Dashboard';})()}</h1>
           <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
         </div>
-        {patients.length>0&&<button onClick={()=>exportCSV(patients)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📊 Export CSV</button>}
+        {patients.length>0&&<button onClick={()=>exportPDFLista(patients,trainerProfile)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📄 Export PDF</button>}
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
         <StatCard label={T.totalPatients} value={patients.length} color={C.blue} icon="👥" delay={0} onClick={onNavigate?function(){onNavigate('patients');}:undefined}/>
