@@ -3266,7 +3266,7 @@ function AppInner({user,profile,trialLeft}){
           var urgent=daysLeft<3;
           return(
             <div style={{background:'linear-gradient(90deg,'+C.blue+'15,'+C.blue+'08)',borderBottom:'1px solid '+C.blue+'20',padding:'8px 16px',textAlign:'center'}}>
-              <span style={{fontSize:13,fontWeight:600,color:urgent?C.red:C.blue}}>{urgent?'⚠️ Il trial scade tra '+daysLeft+' giorni!':'🎁 Trial gratuito: '+daysLeft+' giorni rimasti'}</span>
+              <span style={{fontSize:13,fontWeight:600,color:urgent?C.red:C.blue}}>{urgent?'⚠️ Il trial scade tra '+daysLeft+' giorni!':'Trial gratuito: '+daysLeft+' giorni rimasti'}</span>
               {' '}<button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',color:urgent?C.red:C.blue,fontWeight:700,cursor:'pointer',textDecoration:'underline',fontSize:13}}>Vedi piani →</button>
             </div>
           );
@@ -4452,7 +4452,7 @@ function TrialBlockScreen({user}){
         <div style={{fontSize:28,fontWeight:900,color:C.strong}}>Il tuo periodo di prova è terminato</div>
         <div style={{fontSize:15,color:C.muted,marginTop:8,marginBottom:30}}>Scegli un piano per continuare a usare PT Board</div>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:16,maxWidth:800,margin:'0 auto'}}>
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:16,maxWidth:700,margin:'0 auto'}}>
         {planEntries.map(([key,plan])=>{
           const isRecommended=key==='proYearly';
           return(
@@ -4524,7 +4524,7 @@ function PianiModal({onClose,profile,user}){
           <button onClick={onClose} style={{position:'absolute',right:20,top:20,background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
           <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>Scegli il tuo piano</div>
           <div style={{fontSize:13,color:'#64748b',marginBottom:20}}>
-            {isPro?'✅ Piano Pro attivo':isTeam?'✅ Piano Team attivo':`⏳ Hai ancora ${trialDaysLeft(profile)} giorni di prova gratuita`}
+            {isPro?'✅ Piano Pro attivo':isTeam?'✅ Piano Team attivo':`Hai ancora ${trialDaysLeft(profile)} giorni di prova gratuita`}
           </div>
         </div>
         {(isPro||isTeam)?(
@@ -4534,7 +4534,7 @@ function PianiModal({onClose,profile,user}){
             <div style={{fontSize:13,color:'#64748b',marginTop:8}}>Grazie per il supporto!</div>
           </div>
         ):(
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:16,padding:'0 24px 28px'}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:16,padding:'0 24px 28px',maxWidth:700,margin:'0 auto'}}>
             {planEntries.map(([key,plan])=>{
               const isRecommended=key==='proYearly';
               return(
