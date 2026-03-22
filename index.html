@@ -16,6 +16,36 @@
 -->
 <html lang="it">
 <head>
+<script>
+(function(){
+  var consent = localStorage.getItem('ptboard_cookies_consent');
+  if(consent === 'necessary') {
+    window['ga-disable-G-EXPPE8PWMT'] = true;
+  }
+  if(!consent) {
+    window.addEventListener('DOMContentLoaded', function(){
+      var banner = document.createElement('div');
+      banner.id = 'cookie-banner';
+      banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#0f172a;border-top:1px solid #1e293b;padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:16px;z-index:99999;flex-wrap:wrap;font-family:system-ui,sans-serif';
+      banner.innerHTML = '<div style="flex:1;min-width:240px;font-size:13px;color:#94a3b8;line-height:1.6">Utilizziamo cookie analitici per migliorare il servizio. <a href="/privacy.html" target="_blank" style="color:#3b82f6;text-decoration:underline">Privacy Policy</a></div>'
+        + '<div style="display:flex;gap:8px;flex-shrink:0">'
+        + '<button id="cookie-necessary" style="padding:10px 20px;border-radius:8px;border:1px solid #334155;background:transparent;color:#94a3b8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Solo necessari</button>'
+        + '<button id="cookie-accept" style="padding:10px 20px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">Accetta tutti</button>'
+        + '</div>';
+      document.body.appendChild(banner);
+      document.getElementById('cookie-accept').onclick = function(){
+        localStorage.setItem('ptboard_cookies_consent', 'all');
+        banner.remove();
+      };
+      document.getElementById('cookie-necessary').onclick = function(){
+        localStorage.setItem('ptboard_cookies_consent', 'necessary');
+        window['ga-disable-G-EXPPE8PWMT'] = true;
+        banner.remove();
+      };
+    });
+  }
+})();
+</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXPPE8PWMT"></script>
 <script>
 window.dataLayer=window.dataLayer||[];
