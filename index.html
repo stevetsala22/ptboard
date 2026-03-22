@@ -269,7 +269,9 @@ var openLemonCheckout=function(planUrl, planType, uid){
     eventHandler: function(event){
       if(event.event==='Checkout.Success'){
         var plan=planType.includes('team')?'team':'pro';
-        fbDb.collection('users').doc(uid).update({plan:plan,planType:planType,planActivatedAt:new Date().toISOString()}).then(function(){
+        var expiryDays=planType.toLowerCase().includes('yearly')?370:33;
+        var planExpiresAt=new Date(Date.now()+expiryDays*24*60*60*1000).toISOString();
+        fbDb.collection('users').doc(uid).update({plan:plan,planType:planType,planActivatedAt:new Date().toISOString(),planExpiresAt:planExpiresAt}).then(function(){
           console.log('Piano attivato:',plan);
           showToast('Piano '+plan.toUpperCase()+' attivato! Benvenuto!','success');
           window.location.reload();
@@ -3003,6 +3005,11 @@ function App(){
   const loadProfile=async(u)=>{
     if(!u){setProfile(null);return;}
     const p=await fbGetUserProfile(u.uid);
+    if(p&&(p.plan==='pro'||p.plan==='team')&&p.planExpiresAt&&new Date(p.planExpiresAt)<new Date()){
+      await fbDb.collection('users').doc(u.uid).update({plan:'blocked',planExpiredAt:new Date().toISOString()});
+      p.plan='blocked';
+      p.planExpiredAt=new Date().toISOString();
+    }
     setProfile(p);
   };
 
@@ -4477,8 +4484,8 @@ function PaywallScreen({user,profile,blocked}){
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
       <div style={{width:'100%',maxWidth:420,textAlign:'center'}}>
         <div style={{fontSize:40,marginBottom:12}}>🚫</div>
-        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>Account sospeso</div>
-        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>Il tuo account è stato sospeso. Contatta il supporto.</div>
+        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>{profile?.planExpiredAt?'Abbonamento scaduto':'Account sospeso'}</div>
+        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>{profile?.planExpiredAt?'Il tuo abbonamento è scaduto. Rinnova per continuare.':'Il tuo account è stato sospeso. Contatta il supporto.'}</div>
         <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>Esci dall'account ({user?.email})</button>
       </div>
     </div>
@@ -4579,13 +4586,14 @@ function PianiModal({onClose,profile,user}){
           <button onClick={onClose} style={{position:'absolute',right:20,top:20,background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
           <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>Scegli il tuo piano</div>
           <div style={{fontSize:13,color:'#64748b',marginBottom:20}}>
-            {isPro?'✅ Piano Pro attivo':isTeam?'✅ Piano Team attivo':`Hai ancora ${trialDaysLeft(profile)} giorni di prova gratuita`}
+            {isPro?('✅ Piano Pro attivo'+(profile?.planExpiresAt?' — scade il '+new Date(profile.planExpiresAt).toLocaleDateString('it-IT'):'')):isTeam?('✅ Piano Team attivo'+(profile?.planExpiresAt?' — scade il '+new Date(profile.planExpiresAt).toLocaleDateString('it-IT'):'')):`Hai ancora ${trialDaysLeft(profile)} giorni di prova gratuita`}
           </div>
         </div>
         {(isPro||isTeam)?(
           <div style={{padding:'20px 24px 28px',textAlign:'center'}}>
             <div style={{fontSize:48,marginBottom:12}}>✅</div>
             <div style={{fontSize:18,fontWeight:700,color:'#10b981'}}>{isPro?'Piano Pro attivo':'Piano Team attivo'}</div>
+            {profile?.planExpiresAt&&<div style={{fontSize:13,color:'#94a3b8',marginTop:6}}>Scade il {new Date(profile.planExpiresAt).toLocaleDateString('it-IT')}</div>}
             <div style={{fontSize:13,color:'#64748b',marginTop:8}}>Grazie per il supporto!</div>
           </div>
         ):(
@@ -4629,8 +4637,14 @@ function AdminModal({onClose}){
 
   const setPlan=async(uid,plan)=>{
     try{
-      await fbDb.collection('users').doc(uid).update({plan});
-      setUsers(us=>us.map(u=>u.id===uid?{...u,plan}:u));
+      var updateData={plan:plan};
+      if(plan==='pro'||plan==='team'){
+        updateData.planExpiresAt=new Date(Date.now()+33*24*60*60*1000).toISOString();
+      }else if(plan==='trial'||plan==='blocked'){
+        updateData.planExpiresAt=firebase.firestore.FieldValue.delete();
+      }
+      await fbDb.collection('users').doc(uid).update(updateData);
+      setUsers(us=>us.map(u=>u.id===uid?{...u,plan:plan,planExpiresAt:updateData.planExpiresAt instanceof Object?undefined:(plan==='pro'||plan==='team'?updateData.planExpiresAt:u.planExpiresAt)}:u));
       setMsg('✓ Piano aggiornato');
       setTimeout(()=>setMsg(''),2000);
     }catch(e){
@@ -4693,7 +4707,7 @@ function AdminModal({onClose}){
                       </span>
                     </td>
                     <td style={{padding:'10px 12px',color:isTrialExpired(u)&&u.plan!=='pro'&&u.plan!=='team'?'#ef4444':'#10b981',fontWeight:600}}>
-                      {u.plan==='pro'||u.plan==='team'?'∞':isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
+                      {(u.plan==='pro'||u.plan==='team')?(u.planExpiresAt?Math.max(0,Math.ceil((new Date(u.planExpiresAt)-Date.now())/(1000*60*60*24)))+'g':'∞'):isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
                     </td>
                     <td style={{padding:'10px 12px',color:'#475569',whiteSpace:'nowrap'}}>
                       {u.createdAt?new Date(u.createdAt).toLocaleDateString('it-IT'):'—'}
