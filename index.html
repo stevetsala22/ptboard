@@ -81,10 +81,14 @@ var fbAuth=firebase.auth();
 var fbDb=firebase.firestore();
 // ── ADMIN CONFIG ──────────────────────────────────────────────────────────────
 const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
-const TRIAL_DAYS=30;
+const TRIAL_DAYS=15;
 window.TRIAL_DAYS=TRIAL_DAYS;
-const PAYPAL_PRO='https://www.paypal.com/paypalme/SteveGiscard/19';
-const PAYPAL_STUDIO='https://www.paypal.com/paypalme/SteveGiscard/49';
+const PLANS={
+  proMonthly:{name:'Pro Mensile',price:'9,99',period:'/mese',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/871f65c8-d1af-4985-80cf-eeb1bdbdcd38'},
+  proYearly:{name:'Pro Annuale',price:'7,99',period:'/mese',yearly:'95,88€/anno',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/93a74fa1-9f3d-4e24-972f-bc53a978572e',badge:'Risparmia 20%'},
+  teamMonthly:{name:'Team Mensile',price:'19,99',period:'/mese',sub:'Fino a 3 PT',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/70c3ccdf-79d6-48ad-8f97-730be4242d80'},
+  teamYearly:{name:'Team Annuale',price:'15,99',period:'/mese',yearly:'191,88€/anno',sub:'Fino a 3 PT',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/fc6ddc56-199a-4ba9-ba35-03ba1cb415c9',badge:'Risparmia 20%'}
+};
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
 const fbSaveUserProfile=async(uid,data)=>{
   try{await fbDb.collection('users').doc(uid).set(data,{merge:true});}catch(e){console.warn(e);}
@@ -376,10 +380,10 @@ setTimeout(function(){
 <script type="text/babel" data-presets="react">
 (function(){
 const {useState,useMemo,useEffect,useRef,useCallback}=React;
-const TRIAL_DAYS=window.TRIAL_DAYS||30;
+const TRIAL_DAYS=window.TRIAL_DAYS||15;
 const isTrialExpired=(profile)=>{
   if(!profile) return false;
-  if(profile.plan==='pro'||profile.plan==='studio'||profile.plan==='admin') return false;
+  if(profile.plan==='pro'||profile.plan==='team'||profile.plan==='admin') return false;
   if(!profile.trialStart) return false;
   const days=(Date.now()-profile.trialStart)/(1000*60*60*24);
   return days>TRIAL_DAYS;
@@ -607,7 +611,7 @@ const LANGS={
     pwAlreadyPro:'✅ Sei già su Piano Pro — grazie!',
     pwCompare:'💪 Mindflex €49/m · Trainerize €35/m · PT Board Pro solo €19/m',
     planStarter:'Starter',planPro:'Pro',planStudio:'Studio',
-    planFree:'Gratis',planTrial:'30 giorni di prova',planMonth:'/mese',
+    planFree:'Gratis',planTrial:'15 giorni di prova',planMonth:'/mese',
     planActivate:'Attiva Pro',planActive:'✅ Attivo',planContact:'Contattaci',planCurrent:'Piano attuale',
     planMonthly:'Fatturazione mensile · Cancella quando vuoi',planFitness:'Ideale per centri fitness',
     authLogin:'Accedi a PT Board',authEmail:'Email',authPwd:'Password',
@@ -3199,7 +3203,7 @@ function AppInner({user,profile,trialLeft}){
               <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
               <div style={{fontSize:11,color:C.text,marginBottom:8,wordBreak:'break-all'}}>{user?.email}</div>
               <button onClick={()=>setShowPiani(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #10b98140',background:'#10b98115',color:'#10b981',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
-                {profile?.plan==='pro'?T.proPlan:T.seePlans}
+                {profile?.plan==='pro'?T.proPlan:profile?.plan==='team'?'Piano Team':T.seePlans}
               </button>
               {user?.email===ADMIN_EMAIL&&(
                 <button onClick={()=>setShowAdmin(true)} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>
@@ -3256,6 +3260,17 @@ function AppInner({user,profile,trialLeft}){
             </>
           )}
         </div>
+        {/* Trial countdown banner */}
+        {user&&trainerProfile&&trainerProfile.email!==ADMIN_EMAIL&&trainerProfile.plan!=='pro'&&trainerProfile.plan!=='team'&&!isTrialExpired(trainerProfile)&&(function(){
+          var daysLeft=trialDaysLeft(trainerProfile);
+          var urgent=daysLeft<3;
+          return(
+            <div style={{background:'linear-gradient(90deg,'+C.blue+'15,'+C.blue+'08)',borderBottom:'1px solid '+C.blue+'20',padding:'8px 16px',textAlign:'center'}}>
+              <span style={{fontSize:13,fontWeight:600,color:urgent?C.red:C.blue}}>{urgent?'⚠️ Il trial scade tra '+daysLeft+' giorni!':'🎁 Trial gratuito: '+daysLeft+' giorni rimasti'}</span>
+              {' '}<button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',color:urgent?C.red:C.blue,fontWeight:700,cursor:'pointer',textDecoration:'underline',fontSize:13}}>Vedi piani →</button>
+            </div>
+          );
+        })()}
         {/* Barra ricerca mobile sotto topbar */}
         {isMobile&&(
           <div style={{padding:'8px 12px',background:C.sidebar,borderBottom:`1px solid ${C.border}`}}>
@@ -3342,7 +3357,7 @@ function AppInner({user,profile,trialLeft}){
           }} style={{...S.btn(),background:'#ef4444',opacity:deleteConfirmText==='ELIMINA'?1:0.4,cursor:deleteConfirmText==='ELIMINA'?'pointer':'not-allowed'}}>🗑 Elimina account definitivamente</button>
         </div>
       </Modal>}
-      {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile}/>}
+      {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile} user={user}/>}
       {showLingua&&<LinguaModal onClose={()=>setShowLingua(false)} lang={lang} setLang={setLang}/>}
 
     </div>
@@ -4404,23 +4419,60 @@ class ErrorBoundary extends React.Component{
 }
 
 function PaywallScreen({user,profile,blocked}){
-  return(
+  if(blocked) return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
       <div style={{width:'100%',maxWidth:420,textAlign:'center'}}>
-        <div style={{fontSize:40,marginBottom:12}}>{blocked?'🚫':'⏰'}</div>
-        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>{blocked?'Account sospeso':'Periodo di prova terminato'}</div>
-        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>{blocked?'Il tuo account è stato sospeso. Contatta il supporto.':'Il tuo trial gratuito di 30 giorni è scaduto.'}<br/>Attiva PT Board Pro per continuare.</div>
-        <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:16,padding:28,marginBottom:20}}>
-          <div style={{fontSize:13,color:'#3b82f6',fontWeight:700,marginBottom:6}}>PT Board Pro</div>
-          <div style={{fontSize:36,fontWeight:900,color:'#f8fafc',marginBottom:4}}>€19<span style={{fontSize:16,color:'#64748b'}}>/mese</span></div>
-          <div style={{fontSize:12,color:'#64748b',marginBottom:20}}>Clienti illimitati · Sync cloud · Aggiornamenti inclusi</div>
-          <a href={PAYPAL_PRO} target="_blank" style={{display:'block',padding:'14px',borderRadius:10,background:'#3b82f6',color:'#fff',fontSize:15,fontWeight:700,textDecoration:'none',marginBottom:10}}>
-            💳 Paga con PayPal · Apple Pay · Google Pay
-          </a>
-          <div style={{fontSize:11,color:'#475569'}}>Dopo il pagamento contatta <strong style={{color:'#94a3b8'}}>stevetsala22@gmail.com</strong><br/>per attivare il tuo account</div>
-        </div>
+        <div style={{fontSize:40,marginBottom:12}}>🚫</div>
+        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>Account sospeso</div>
+        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>Il tuo account è stato sospeso. Contatta il supporto.</div>
         <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>Esci dall'account ({user?.email})</button>
       </div>
+    </div>
+  );
+  return <TrialBlockScreen user={user}/>;
+}
+
+function TrialBlockScreen({user}){
+  const features=['Clienti illimitati','Tutte le funzionalità','PDF con il tuo logo','Supporto email'];
+  const planEntries=Object.entries(PLANS);
+
+  useEffect(()=>{
+    if(!user) return;
+    const iv=setInterval(async()=>{
+      const p=await fbGetUserProfile(user.uid);
+      if(p&&(p.plan==='pro'||p.plan==='team')){window.location.reload();}
+    },30000);
+    return()=>clearInterval(iv);
+  },[user]);
+
+  return(
+    <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:C.bg,zIndex:9999,overflow:'auto',padding:'40px 20px'}}>
+      <div style={{textAlign:'center',marginBottom:30}}>
+        <div style={{fontSize:28,fontWeight:900,color:'#3b82f6',marginBottom:16}}>PT Board</div>
+        <div style={{fontSize:28,fontWeight:900,color:C.strong}}>Il tuo periodo di prova è terminato</div>
+        <div style={{fontSize:15,color:C.muted,marginTop:8,marginBottom:30}}>Scegli un piano per continuare a usare PT Board</div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:16,maxWidth:800,margin:'0 auto'}}>
+        {planEntries.map(([key,plan])=>{
+          const isRecommended=key==='proYearly';
+          return(
+            <div key={key} style={{background:C.card,border:isRecommended?'2px solid '+C.blue:'1px solid '+C.border2,borderRadius:16,padding:20,position:'relative'}}>
+              {isRecommended&&<div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:C.blue,color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>Consigliato</div>}
+              {plan.badge&&<div style={{position:'absolute',top:-10,right:10,background:C.blue,color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>{plan.badge}</div>}
+              <div style={{fontSize:16,fontWeight:700,color:C.strong}}>{plan.name}</div>
+              {plan.sub&&<div style={{fontSize:12,color:C.muted}}>{plan.sub}</div>}
+              <div style={{marginTop:8}}><span style={{fontSize:32,fontWeight:900,color:C.blue}}>{plan.price}€</span><span style={{fontSize:14,color:C.muted}}>{plan.period}</span></div>
+              {plan.yearly&&<div style={{fontSize:12,color:C.muted}}>{plan.yearly}</div>}
+              <div style={{marginTop:12,marginBottom:12}}>
+                {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
+              </div>
+              <button onClick={()=>window.open(plan.url+'?checkout[email]='+encodeURIComponent(user.email),'_blank')} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:20}}>Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.app@gmail.com</div>
+      <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{fontSize:12,background:'transparent',color:'#ef4444',border:'none',cursor:'pointer',marginTop:20,display:'block',margin:'20px auto'}}>Esci</button>
     </div>
   );
 }
@@ -4459,137 +4511,51 @@ function LinguaModal({onClose,lang,setLang}){
   );
 }
 
-function PianiModal({onClose,profile}){
+function PianiModal({onClose,profile,user}){
   const isPro=profile?.plan==='pro';
-  const daysLeft=trialDaysLeft(profile);
-
-  const piani=[
-    {
-      id:'starter',
-      nome:'Starter',
-      prezzo:'Gratis',
-      sub:'30 giorni di prova',
-      color:'#64748b',
-      features:[
-        '✅ Fino a 5 clienti',
-        '✅ Valutazione 20 min',
-        '✅ Calendario appuntamenti',
-        '✅ Sync cloud',
-        '❌ Clienti illimitati',
-        '❌ Export PDF',
-        '❌ Aggiornamenti prioritari',
-      ],
-      cta:'Piano attuale',
-      disabled:true,
-    },
-    {
-      id:'pro',
-      nome:'Pro',
-      prezzo:'€19',
-      sub:'/mese',
-      color:'#3b82f6',
-      badge:'⭐ Più popolare',
-      features:[
-        '✅ Clienti illimitati',
-        '✅ Valutazione 20 min completa',
-        '✅ Calendario + promemoria',
-        '✅ Sync cloud multi-dispositivo',
-        '✅ Export PDF schede',
-        '✅ Aggiornamenti inclusi',
-        '✅ Supporto prioritario',
-      ],
-      cta:isPro?'✅ Attivo':'Attiva Pro',
-      link:PAYPAL_PRO,
-    },
-    {
-      id:'studio',
-      nome:'Studio',
-      prezzo:'€49',
-      sub:'/mese',
-      color:'#f59e0b',
-      badge:'🏆 Per palestre',
-      features:[
-        '✅ Tutto di Pro',
-        '✅ Fino a 5 PT nel team',
-        '✅ Dashboard condivisa',
-        '✅ Report mensili automatici',
-        '✅ Branding personalizzato',
-        '✅ Onboarding dedicato',
-        '✅ Account manager',
-      ],
-      cta:'Contattaci',
-      link:PAYPAL_STUDIO,
-    },
-  ];
+  const isTeam=profile?.plan==='team';
+  const features=['Clienti illimitati','Tutte le funzionalità','PDF con il tuo logo','Supporto email'];
+  const planEntries=Object.entries(PLANS);
 
   return(
     <div style={{position:'fixed',inset:0,background:'#000000c0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16,overflowY:'auto'}}>
       <div style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:20,width:'min(860px,95vw)',maxHeight:'95vh',overflowY:'auto'}}>
-
-        {/* Header */}
         <div style={{padding:'24px 28px 0',textAlign:'center',position:'relative'}}>
           <button onClick={onClose} style={{position:'absolute',right:20,top:20,background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
           <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>Scegli il tuo piano</div>
-          <div style={{fontSize:13,color:'#64748b',marginBottom:4}}>
-            {isPro
-              ? '✅ Sei già su Piano Pro — grazie per il supporto!'
-              : `⏳ Hai ancora ${daysLeft} giorni di prova gratuita`}
-          </div>
-          {/* Competitor comparison banner */}
-          <div style={{display:'inline-block',background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'6px 14px',fontSize:11,color:'#10b981',margin:'12px 0 20px'}}>
-            💪 Mindflex €49/m · Trainerize €35/m · PT Distinction €99/m — PT Board Pro solo €19/m
+          <div style={{fontSize:13,color:'#64748b',marginBottom:20}}>
+            {isPro?'✅ Piano Pro attivo':isTeam?'✅ Piano Team attivo':`⏳ Hai ancora ${trialDaysLeft(profile)} giorni di prova gratuita`}
           </div>
         </div>
-
-        {/* Cards */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:16,padding:'0 24px 28px'}}>
-          {piani.map(p=>(
-            <div key={p.id} style={{
-              background:'#0f1623',
-              border:'2px solid '+(p.id==='pro'?p.color:'#1e2d47'),
-              borderRadius:16,
-              padding:22,
-              position:'relative',
-              display:'flex',flexDirection:'column',
-            }}>
-              {p.badge&&(
-                <div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:p.color,color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>
-                  {p.badge}
+        {(isPro||isTeam)?(
+          <div style={{padding:'20px 24px 28px',textAlign:'center'}}>
+            <div style={{fontSize:48,marginBottom:12}}>✅</div>
+            <div style={{fontSize:18,fontWeight:700,color:'#10b981'}}>{isPro?'Piano Pro attivo':'Piano Team attivo'}</div>
+            <div style={{fontSize:13,color:'#64748b',marginTop:8}}>Grazie per il supporto!</div>
+          </div>
+        ):(
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:16,padding:'0 24px 28px'}}>
+            {planEntries.map(([key,plan])=>{
+              const isRecommended=key==='proYearly';
+              return(
+                <div key={key} style={{background:'#0f1623',border:isRecommended?'2px solid #3b82f6':'1px solid #1e2d47',borderRadius:16,padding:20,position:'relative',display:'flex',flexDirection:'column'}}>
+                  {isRecommended&&<div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>Consigliato</div>}
+                  {plan.badge&&<div style={{position:'absolute',top:-10,right:10,background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>{plan.badge}</div>}
+                  <div style={{fontSize:16,fontWeight:700,color:'#f8fafc'}}>{plan.name}</div>
+                  {plan.sub&&<div style={{fontSize:12,color:'#64748b'}}>{plan.sub}</div>}
+                  <div style={{marginTop:8}}><span style={{fontSize:32,fontWeight:900,color:'#3b82f6'}}>{plan.price}€</span><span style={{fontSize:14,color:'#64748b'}}>{plan.period}</span></div>
+                  {plan.yearly&&<div style={{fontSize:12,color:'#64748b'}}>{plan.yearly}</div>}
+                  <div style={{flex:1,marginTop:12,marginBottom:12}}>
+                    {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
+                  </div>
+                  <button onClick={()=>window.open(plan.url+'?checkout[email]='+encodeURIComponent(user?.email||''),'_blank')} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
                 </div>
-              )}
-
-              <div style={{fontSize:13,fontWeight:700,color:p.color,marginBottom:4}}>{p.nome}</div>
-              <div style={{display:'flex',alignItems:'baseline',gap:3,marginBottom:2}}>
-                <span style={{fontSize:32,fontWeight:900,color:'#f8fafc'}}>{p.prezzo}</span>
-                <span style={{fontSize:13,color:'#64748b'}}>{p.sub}</span>
-              </div>
-              <div style={{fontSize:11,color:'#475569',marginBottom:16,paddingBottom:16,borderBottom:'1px solid #1e2d47'}}>
-                {p.id==='starter'&&`Trial: ${daysLeft} giorni rimasti`}
-                {p.id==='pro'&&'Fatturazione mensile · Cancella quando vuoi'}
-                {p.id==='studio'&&'Ideal per centri fitness e palestre'}
-              </div>
-
-              <div style={{flex:1,display:'flex',flexDirection:'column',gap:7,marginBottom:20}}>
-                {p.features.map((f,i)=>(
-                  <div key={f} style={{fontSize:12,color:f.startsWith('❌')?'#475569':'#cbd5e1'}}>{f}</div>
-                ))}
-              </div>
-
-              {p.disabled
-                ? <div style={{padding:'10px',borderRadius:9,border:'1px solid #334155',color:'#475569',fontSize:13,fontWeight:600,textAlign:'center'}}>{p.cta}</div>
-                : isPro&&p.id==='pro'
-                  ? <div style={{padding:'10px',borderRadius:9,background:'#10b98120',border:'1px solid #10b98140',color:'#10b981',fontSize:13,fontWeight:700,textAlign:'center'}}>✅ Attivo</div>
-                  : <a href={p.link} target="_blank" style={{display:'block',padding:'11px',borderRadius:9,background:p.color,color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',textDecoration:'none',cursor:'pointer'}}>
-                      {p.cta}
-                    </a>
-              }
-            </div>
-          ))}
-        </div>
-
-        {/* Footer note */}
+              );
+            })}
+          </div>
+        )}
         <div style={{padding:'0 24px 20px',textAlign:'center',fontSize:11,color:'#334155'}}>
-          Dopo il pagamento invia email a <span style={{color:'#64748b'}}>stevetsala22@gmail.com</span> per attivare il tuo account entro 24h 🔒
+          Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.app@gmail.com
         </div>
       </div>
     </div>
@@ -4612,7 +4578,7 @@ function AdminModal({onClose}){
     setTimeout(()=>setMsg(''),2000);
   };
 
-  const planColor={trial:'#f59e0b',pro:'#10b981',blocked:'#ef4444'};
+  const planColor={trial:'#f59e0b',pro:'#10b981',team:'#8b5cf6',blocked:'#ef4444'};
   const sel={padding:'5px 8px',borderRadius:6,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:12,fontFamily:'inherit',cursor:'pointer'};
 
   return(
@@ -4630,8 +4596,8 @@ function AdminModal({onClose}){
             {[
               ['Totale',users.length,'#3b82f6'],
               ['Trial attivi',users.filter(u=>u.plan==='trial'&&!isTrialExpired(u)).length,'#f59e0b'],
-              ['Pro',users.filter(u=>u.plan==='pro').length,'#10b981'],
-              ['Scaduti',users.filter(u=>isTrialExpired(u)&&u.plan!=='pro').length,'#ef4444'],
+              ['Pro/Team',users.filter(u=>u.plan==='pro'||u.plan==='team').length,'#10b981'],
+              ['Scaduti',users.filter(u=>isTrialExpired(u)&&u.plan!=='pro'&&u.plan!=='team').length,'#ef4444'],
             ].map(([l,v,c])=>(
               <div key={l} style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:10,padding:'12px 14px',textAlign:'center'}}>
                 <div style={{fontSize:10,color:'#64748b',marginBottom:4,textTransform:'uppercase',letterSpacing:.5}}>{l}</div>
@@ -4664,8 +4630,8 @@ function AdminModal({onClose}){
                         {u.plan||'trial'}
                       </span>
                     </td>
-                    <td style={{padding:'10px 12px',color:isTrialExpired(u)&&u.plan!=='pro'?'#ef4444':'#10b981',fontWeight:600}}>
-                      {u.plan==='pro'?'∞':isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
+                    <td style={{padding:'10px 12px',color:isTrialExpired(u)&&u.plan!=='pro'&&u.plan!=='team'?'#ef4444':'#10b981',fontWeight:600}}>
+                      {u.plan==='pro'||u.plan==='team'?'∞':isTrialExpired(u)?'Scaduto':`${trialDaysLeft(u)}g`}
                     </td>
                     <td style={{padding:'10px 12px',color:'#475569',whiteSpace:'nowrap'}}>
                       {u.createdAt?new Date(u.createdAt).toLocaleDateString('it-IT'):'—'}
@@ -4674,6 +4640,7 @@ function AdminModal({onClose}){
                       <select style={sel} value={u.plan||'trial'} onChange={e=>setPlan(u.id,e.target.value)}>
                         <option value="trial">Trial</option>
                         <option value="pro">✅ Pro</option>
+                        <option value="team">👥 Team</option>
                         <option value="blocked">🚫 Bloccato</option>
                       </select>
                     </td>
