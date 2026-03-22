@@ -1554,7 +1554,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
               </div>
               <div style={{display:'flex',gap:isMobile?10:18,alignItems:'center',flexShrink:0}}>
                 {b>0&&<div style={{textAlign:'center'}}><div style={{fontSize:isMobile?15:16,fontWeight:800,color:C.strong}}>{b}</div><div style={{fontSize:10,color:bc,fontWeight:600}}>BMI</div></div>}
-                {pr&&<span style={{...S.tag(pr.c,pr.bg),fontSize:isMobile?13:11,padding:isMobile?'4px 12px':'2px 9px'}}>{pr.code}</span>}
+                {pr&&<span style={{...S.tag(pr.c,pr.bg),fontSize:isMobile?13:11,padding:isMobile?'4px 12px':'2px 9px'}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span>}
                 {!isMobile&&<div style={{textAlign:'center'}}><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{p.log?.length||0}</div><div style={{fontSize:10,color:C.muted}}>sedute</div></div>}
               </div>
             </div>
@@ -1660,7 +1660,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   <div style="text-align:right">
     <div class="patient-name">${esc(p.nome)} ${esc(p.cognome)}</div>
     <div class="patient-meta">${esc(p.id)} · Valutazione: ${esc(p.dataValutazione)||'—'}</div>
-    ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">Profilo ${pr2.code} – ${pr2.l.split('–')[1]?.trim()||''}</span>`:''}
+    ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">${pr2.code==='A'?'Forma Bassa':pr2.code==='B'?'Forma Media':'Buona Forma'}</span>`:''}
   </div>
 </div>
 
@@ -1761,7 +1761,7 @@ ${(p.progressi||[]).length>1?`
               <div style={{fontSize:17,fontWeight:800,color:C.strong,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nome} {p.cognome}</div>
               <div style={{fontSize:11,color:C.muted,marginTop:2,display:'flex',alignItems:'center',gap:6}}>
                 <span>{p.id}</span>
-                {pr&&<span style={S.tag(pr.c,pr.bg)}>Profilo {pr.code}</span>}
+                {pr&&<span style={S.tag(pr.c,pr.bg)}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span>}
               </div>
             </div>
           </div>
@@ -1794,7 +1794,7 @@ ${(p.progressi||[]).length>1?`
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
               <h1 style={{fontSize:18,fontWeight:800,color:C.strong,margin:0}}>{p.nome} {p.cognome}</h1>
-              {pr&&<span style={S.tag(pr.c,pr.bg)}>Profilo {pr.code}</span>}
+              {pr&&<span style={S.tag(pr.c,pr.bg)}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span>}
             </div>
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
           </div>
@@ -1911,7 +1911,7 @@ ${(p.progressi||[]).length>1?`
           {/* Profilo risultante */}
           <div style={{...S.card,border:'2px solid '+(pr?.c||C.border2)+'40',background:(pr?.c||C.border2)+'08'}}>
             <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:pr?12:0}}>
-              {pr?<React.Fragment><span style={{fontSize:40,fontWeight:900,color:pr.c}}>{pr.code}</span><div style={{flex:1}}>
+              {pr?<React.Fragment><span style={{fontSize:22,fontWeight:900,color:pr.c}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span><div style={{flex:1}}>
                 <div style={{display:'flex',alignItems:'baseline',gap:8}}><div style={{fontSize:16,fontWeight:700,color:C.strong}}>{pr.l}</div><div style={{fontSize:20,fontWeight:900,color:pr.c}}>{pr.score}/100</div></div>
                 <div style={{fontSize:12,color:C.muted,marginTop:3}}>Score pesato multi-componente · {p.dataValutazione}</div>
               </div></React.Fragment>
@@ -2155,7 +2155,7 @@ ${(p.progressi||[]).length>1?`
             if(v1.profilo&&v2.profilo&&v1.profilo!==v2.profilo){
               var order2={A:1,B:2,C:3};
               if((order2[v2.profilo]||0)>(order2[v1.profilo]||0)){
-                badges=badges.concat([{icon:'🎯',text:'Avanzato da Profilo '+v1.profilo+' a Profilo '+v2.profilo,color:C.purple}]);
+                badges=badges.concat([{icon:'🎯',text:'Avanzato da '+(v1.profilo==='A'?'Forma Bassa':v1.profilo==='B'?'Forma Media':'Buona Forma')+' a '+(v2.profilo==='A'?'Forma Bassa':v2.profilo==='B'?'Forma Media':'Buona Forma'),color:C.purple}]);
               }
             }
             if(badges.length===0)return null;
@@ -2187,7 +2187,7 @@ ${(p.progressi||[]).length>1?`
                           {v.peso?'Peso: '+v.peso+' kg  ':''}
                           {v.mwtDist?'6MWT: '+v.mwtDist+' m  ':''}
                           {v.stsRip?'STS: '+v.stsRip+' rip  ':''}
-                          {v.profilo?'Profilo: '+v.profilo:''}
+                          {v.profilo?''+(v.profilo==='A'?'Forma Bassa':v.profilo==='B'?'Forma Media':'Buona Forma'):''}
                         </div>
                       </div>
                       {v.score&&<div style={{fontSize:18,fontWeight:800,color:C.blue}}>{v.score}<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/100</span></div>}
@@ -3248,7 +3248,7 @@ function AppInner({user,profile,trialLeft}){
             setShowValutazione(false);
             setSelectedId(id);setPage('detail');
           }
-          askSendEmail({pat:p,subject:'Valutazione completata',message:'La tua valutazione è stata completata!\n\n📊 Profilo fitness: '+(pr2?.code||'-')+'\n⭐ Score: '+(sc2?.score||'-')+'/100\n\nNel prossimo incontro vedremo insieme il programma personalizzato.\n\n[nomeMittente]',trainerProfile});
+          askSendEmail({pat:p,subject:'Valutazione completata',message:'La tua valutazione è stata completata!\n\n📊 Profilo fitness: '+(pr2?.code==='A'?'Forma Bassa':pr2?.code==='B'?'Forma Media':pr2?.code==='C'?'Buona Forma':'-')+'\n⭐ Score: '+(sc2?.score||'-')+'/100\n\nNel prossimo incontro vedremo insieme il programma personalizzato.\n\n[nomeMittente]',trainerProfile});
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
@@ -3477,7 +3477,7 @@ footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:fle
   <div style="text-align:right"><div style="font-size:20px;font-weight:800">${esc(d.nome)} ${esc(d.cognome)}</div><div style="font-size:11px;color:#64748b">${esc(d.ddn)||''} · ${esc(d.sesso)}</div></div>
 </div>
 <div class="profilo ${pr.code}">
-  <div style="font-size:60px;font-weight:900;color:${pr.c};line-height:1">${pr.code}</div>
+  <div style="font-size:28px;font-weight:900;color:${pr.c};line-height:1">${pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</div>
   <div style="font-size:16px;font-weight:700;margin-top:6px">${pr.l}</div>
   <div style="font-size:12px;color:#475569;margin-top:4px">${prog.desc}</div>
 </div>
@@ -3511,7 +3511,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
   <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
   <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
 </div></div>
-<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — Profilo ${pr.code}</span></footer>
+<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — ${pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span></footer>
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
@@ -3526,7 +3526,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
       ['Patologie',d.patologie],['Farmaci',d.farmaci],['Attività',d.attivita],['Obiettivo',d.obiettivo],[''],
       ['TEST FUNZIONALI',''],['6MWT Distanza m',d.mwtDist],['6MWT RPE',d.mwtRpe],['6MWT Sintomi',d.mwtSintomi],
       ['STS 30s Ripetizioni',d.stsRip],['Note STS',d.stsNote],['RPE riposo',d.rpeRiposo],['Note valutazione',d.noteVal],[''],
-      ['PROFILO',''],['Codice',pr.code],['Descrizione',pr.l],[''],
+      ['PROFILO',''],['Classificazione',pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'],['Descrizione',pr.l],[''],
       ['PROGRAMMA 4 SETTIMANE',''],['Nome',prog.nome],['Sedute/sett',prog.sedute],['Min cardio/sett',prog.minCardio],['Min forza/sett',prog.minForza],[''],
       ['SETTIMANA','CARDIO','FORZA','NOTE'],
       ...prog.settimane.map(w=>[`Settimana ${w.num}`,w.cardio,w.forza,w.note]),[''],
@@ -3969,7 +3969,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>
             {/* Preview profilo */}
             {d.mwtDist&&d.stsRip&&pr&&<div style={{background:pr.bg,border:'2px solid '+pr.c+'40',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
-              <div style={{fontSize:36,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code}</div>
+              <div style={{fontSize:18,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{pr.l}</div>
                 <div style={{fontSize:12,color:C.muted,marginTop:2}}>Score: {pr.score}/100 — profilo determinabile</div>
@@ -4178,7 +4178,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
             </div>:<>
               <div style={{background:pr.bg,border:'2px solid '+pr.c+'50',borderRadius:16,padding:28,textAlign:'center',marginBottom:18}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,marginBottom:12}}>
-                  <div style={{fontSize:64,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code}</div>
+                  <div style={{fontSize:28,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</div>
                   <div style={{textAlign:'left'}}>
                     <div style={{fontSize:36,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.score}<span style={{fontSize:16,fontWeight:600}}>/100</span></div>
                     <div style={{fontSize:15,fontWeight:700,color:C.strong,marginTop:4}}>{pr.l}</div>
@@ -4237,7 +4237,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                 <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>Criteri di classificazione</div>
                 {[['A',C.red,'Score < 40','Avvio molto graduale — priorita sicurezza'],['B',C.yellow,'Score 40-69','Progressione moderata e controllata'],['C',C.green,'Score >= 70','Progressione intensa — focus composizione']].map(function(item){var p2=item[0],c2=item[1],v=item[2],desc=item[3];return(
                   <div key={p2} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+C.border}}>
-                    <div style={{width:28,height:28,borderRadius:8,background:c2+'20',border:'1px solid '+c2+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c2,flexShrink:0}}>{p2}</div>
+                    <div style={{width:28,height:28,borderRadius:8,background:c2+'20',border:'1px solid '+c2+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c2,flexShrink:0}}>{p2==='A'?'1':p2==='B'?'2':'3'}</div>
                     <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{p2==='A'?'Forma Bassa':p2==='B'?'Forma Media':'Buona Forma'} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
                   </div>
                 );})}
@@ -4707,7 +4707,7 @@ const TSTEPS=[
 
   {label:'🎯 Valutazione 20 min',time:'Funzione principale',bc:'#fb923c30',bct:'#fb923c',badge:'⭐ Più importante',title:'Inizia sempre da qui',desc:'La Valutazione 20 min è il flusso principale. In 6 passi guidati crei il profilo completo del cliente con programma pronto.',
   html:`<div style="display:flex;flex-direction:column;gap:8px">
-    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il cliente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Forma Bassa / B / C','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
+    ${[['1','Anagrafica & Clinica','Nome, peso, altezza, patologie — BMI e FC max automatici','~5 min','#3b82f6'],['2','🚶 6 Minute Walk Test','Il cliente cammina 6 minuti — inserisci distanza e RPE','~8 min','#3b82f6'],['3','🪑 Sit-to-Stand 30s','Alzate in 30 secondi — valuta forza arti inferiori','~3 min','#3b82f6'],['4','😮‍💨 RPE & Note cliniche','Stato percepito post-test + note','~2 min','#3b82f6'],['5','📊 Classificazione Fitness','Classificazione automatica in base ai test','istantaneo','#f59e0b'],['6','🏆 Programma 4 settimane','Cardio + forza + nutrizione pronti per il profilo — export PDF/Excel','subito','#10b981']].map(([n,t,d,tm,c])=>`
     <div style="display:flex;gap:10px;align-items:center;background:#1e293b;border:1px solid #334155;border-radius:10px;padding:11px 14px">
       <div style="width:26px;height:26px;border-radius:50%;background:${c};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${n}</div>
       <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#f8fafc">${t}</div><div style="font-size:11px;color:#64748b;margin-top:1px">${d}</div></div>
