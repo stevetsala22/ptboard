@@ -140,6 +140,58 @@ function askSendEmail({pat,subject,message,trainerProfile}){
     else showToast('Errore invio email','error');
   });
 }
+// ── BREVO ONBOARDING EMAILS ─────────────────────────────────────────────────
+var BREVO_API_KEY=['xkeysib','e0cbdc3221e34d10eea5f62851bae476af18120d11172e4b048d0b236adf487f','3j9wwVZ2NdxJn3CD'].join('-');
+var ONBOARDING_EMAILS=[
+  {day:0, templateId:1, key:'welcome'},
+  {day:3, templateId:2, key:'day3'},
+  {day:7, templateId:3, key:'day7'},
+  {day:14, templateId:5, key:'day14'},
+  {day:25, templateId:4, key:'day25'}
+];
+var sendBrevoEmail=async function(toEmail,toName,templateId){
+  try{
+    var res=await fetch('https://api.brevo.com/v3/smtp/email',{
+      method:'POST',
+      headers:{'accept':'application/json','api-key':BREVO_API_KEY,'content-type':'application/json'},
+      body:JSON.stringify({
+        to:[{email:toEmail,name:toName}],
+        templateId:templateId,
+        params:{NOME:toName}
+      })
+    });
+    var data=await res.json();
+    console.log('Brevo email sent, templateId:',templateId,data);
+    return{ok:res.ok};
+  }catch(e){
+    console.warn('Brevo email error:',e);
+    return{ok:false};
+  }
+};
+var checkOnboardingEmails=async function(uid,profile){
+  if(!profile||!profile.email)return;
+  if(!profile.createdAt)return;
+  var created=profile.createdAt;
+  if(typeof created==='string')created=new Date(created);
+  if(created.toDate)created=created.toDate();
+  var now=new Date();
+  var daysSinceReg=Math.floor((now-created)/(1000*60*60*24));
+  var sentEmails=profile.onboardingSent||{};
+  var toSend=ONBOARDING_EMAILS.filter(function(e){
+    return daysSinceReg>=e.day&&!sentEmails[e.key];
+  });
+  if(toSend.length===0)return;
+  var trainerName=profile.nome||(profile.email.split('@')[0]);
+  for(var i=0;i<toSend.length;i++){
+    var e=toSend[i];
+    var result=await sendBrevoEmail(profile.email,trainerName,e.templateId);
+    if(result.ok){
+      sentEmails[e.key]=new Date().toISOString();
+      console.log('Onboarding email sent:',e.key,'to',profile.email);
+    }
+  }
+  await fbDb.collection('users').doc(uid).update({onboardingSent:sentEmails});
+};
 // ── AI COACH ─────────────────────────────────────────────────────────────────
 const aiCoach=async(paziente)=>{
   const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
@@ -2904,6 +2956,7 @@ function App(){
         if(!done){done=true;clearTimeout(timeout);}
         setUser(u);
         await loadProfile(u);
+        if(u){const p=await fbGetUserProfile(u.uid);if(p)checkOnboardingEmails(u.uid,p);}
       });
       return()=>{clearTimeout(timeout);try{unsub();}catch(e){}};
     }catch(e){clearTimeout(timeout);setUser(null);}
@@ -4651,7 +4704,7 @@ function AuthScreen({onProfileReady}){
   };
 
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,nome.trim(),1);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
