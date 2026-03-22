@@ -4467,7 +4467,7 @@ function TrialBlockScreen({user}){
                 {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
               </div>
               <button onClick={()=>window.open(plan.url+'?checkout[email]='+encodeURIComponent(user.email),'_blank')} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
-              {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.app@gmail.com per attivare i loro account.</div>}
+              {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
             </div>
           );
         })}
@@ -4550,7 +4550,7 @@ function PianiModal({onClose,profile,user}){
                     {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
                   </div>
                   <button onClick={()=>window.open(plan.url+'?checkout[email]='+encodeURIComponent(user?.email||''),'_blank')} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
-                  {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.app@gmail.com per attivare i loro account.</div>}
+                  {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
                 </div>
               );
             })}
