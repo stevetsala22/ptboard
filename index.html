@@ -50,6 +50,7 @@ if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.9/babel.min.js"></script>
@@ -227,6 +228,29 @@ Fornisci:
   });
   const data=await res.json();
   return data.content?.[0]?.text||'Errore nel generare il programma.';
+};
+var openLemonCheckout=function(planUrl, planType, uid){
+  if(!window.createLemonSqueezy){
+    window.open(planUrl,'_blank');
+    return;
+  }
+  window.createLemonSqueezy();
+  window.LemonSqueezy.Setup({
+    eventHandler: function(event){
+      if(event.event==='Checkout.Success'){
+        var plan=planType.includes('team')?'team':'pro';
+        fbDb.collection('users').doc(uid).update({plan:plan,planType:planType,planActivatedAt:new Date().toISOString()}).then(function(){
+          console.log('Piano attivato:',plan);
+          showToast('Piano '+plan.toUpperCase()+' attivato! Benvenuto!','success');
+          window.location.reload();
+        }).catch(function(e){
+          console.warn('Errore attivazione piano:',e);
+          showToast('Pagamento ricevuto! Il piano si attiverà a breve.','success');
+        });
+      }
+    }
+  });
+  window.LemonSqueezy.Url.Open(planUrl);
 };
 </script>
 <style>
@@ -4466,7 +4490,7 @@ function TrialBlockScreen({user}){
               <div style={{marginTop:12,marginBottom:12}}>
                 {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
               </div>
-              <button onClick={()=>window.open(plan.url+'?checkout[email]='+encodeURIComponent(user.email),'_blank')} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
+              <button onClick={()=>openLemonCheckout(plan.url+'?checkout[email]='+encodeURIComponent(user.email)+'&checkout[custom][uid]='+encodeURIComponent(user.uid), key, user.uid)} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
               {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
             </div>
           );
@@ -4549,7 +4573,7 @@ function PianiModal({onClose,profile,user}){
                   <div style={{flex:1,marginTop:12,marginBottom:12}}>
                     {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
                   </div>
-                  <button onClick={()=>window.open(plan.url+'?checkout[email]='+encodeURIComponent(user?.email||''),'_blank')} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
+                  <button onClick={()=>openLemonCheckout(plan.url+'?checkout[email]='+encodeURIComponent(user?.email||'')+'&checkout[custom][uid]='+encodeURIComponent(user?.uid||''), key, user?.uid||'')} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
                   {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
                 </div>
               );
