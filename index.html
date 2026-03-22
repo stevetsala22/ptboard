@@ -2983,7 +2983,7 @@ function App(){
 
   if(!user) return <AuthScreen onProfileReady={p=>setProfile(p)}/>;
   if(profile?.plan==='blocked') return <PaywallScreen user={user} profile={profile} blocked/>;
-  if(isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
+  if(profile?.email!==ADMIN_EMAIL&&isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
   return <AppInner user={user} profile={profile} trialLeft={trialDaysLeft(profile)}/>;
 }
 
