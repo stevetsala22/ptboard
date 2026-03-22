@@ -128,7 +128,7 @@ const sendEmail=async({toEmail,toName,subject,message,fromName})=>{
       subject,
       message,
       from_name:fromName||'PT Board',
-      reply_to:'ptboard.app@gmail.com',
+      reply_to:'ptboard.info@gmail.com',
     });
     return {ok:true};
   }catch(e){return {ok:false,err:String(e)};}
@@ -351,7 +351,7 @@ document.addEventListener('keydown',function(e){
 console.log('%c⚠️ ATTENZIONE','font-size:24px;color:#ef4444;font-weight:900');
 console.log('%cQuesto software è protetto da copyright © 2026 PT Board.','font-size:14px;color:#f59e0b');
 console.log('%cLa copia o la riproduzione non autorizzata è vietata e perseguibile a norma di legge.','font-size:12px;color:#6b7280');
-console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: ptboard.app@gmail.com','font-size:12px;color:#3b82f6');
+console.log('%cSe sei uno sviluppatore interessato a collaborare, contattaci: ptboard.info@gmail.com','font-size:12px;color:#3b82f6');
 </script>
 </head>
 <body>
@@ -4472,7 +4472,7 @@ function TrialBlockScreen({user}){
           );
         })}
       </div>
-      <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:20}}>Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.app@gmail.com</div>
+      <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:20}}>Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.info@gmail.com</div>
       <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{fontSize:12,background:'transparent',color:'#ef4444',border:'none',cursor:'pointer',marginTop:20,display:'block',margin:'20px auto'}}>Esci</button>
     </div>
   );
@@ -4557,7 +4557,7 @@ function PianiModal({onClose,profile,user}){
           </div>
         )}
         <div style={{padding:'0 24px 20px',textAlign:'center',fontSize:11,color:'#334155'}}>
-          Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.app@gmail.com
+          Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.info@gmail.com
         </div>
       </div>
     </div>
