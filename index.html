@@ -2983,7 +2983,7 @@ function App(){
 
   if(!user) return <AuthScreen onProfileReady={p=>setProfile(p)}/>;
   if(profile?.plan==='blocked') return <PaywallScreen user={user} profile={profile} blocked/>;
-  if(isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
+  if(profile?.email!==ADMIN_EMAIL&&isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
   return <AppInner user={user} profile={profile} trialLeft={trialDaysLeft(profile)}/>;
 }
 
@@ -4572,10 +4572,16 @@ function AdminModal({onClose}){
   },[]);
 
   const setPlan=async(uid,plan)=>{
-    await fbSaveUserProfile(uid,{plan});
-    setUsers(us=>us.map(u=>u.id===uid?{...u,plan}:u));
-    setMsg('✓ Aggiornato');
-    setTimeout(()=>setMsg(''),2000);
+    try{
+      await fbDb.collection('users').doc(uid).update({plan});
+      setUsers(us=>us.map(u=>u.id===uid?{...u,plan}:u));
+      setMsg('✓ Piano aggiornato');
+      setTimeout(()=>setMsg(''),2000);
+    }catch(e){
+      console.error('Errore salvataggio piano:',e);
+      setMsg('❌ Errore nel salvataggio: '+e.message);
+      setTimeout(()=>setMsg(''),4000);
+    }
   };
 
   const planColor={trial:'#f59e0b',pro:'#10b981',team:'#8b5cf6',blocked:'#ef4444'};
