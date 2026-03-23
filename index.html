@@ -1929,19 +1929,50 @@ ${(p.progressi||[]).length>1?`
 
       {tab==='panoramica'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          <div style={S.grid(4)}>
-            <StatCard label="Peso" value={`${p.peso} kg`} color={C.blue}/>
-            <StatCard label="BMI" value={b} sub={bl} color={bc}/>
-            <StatCard label="FC riposo" value={`${p.fc} bpm`} color={C.purple}/>
-            <StatCard label="PA" value={p.pa} color={C.pink}/>
+          {/* HERO ROW */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:12}}>
+            {/* Card Peso */}
+            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:20,display:'flex',alignItems:'center',gap:16}}>
+              <div style={{width:52,height:52,borderRadius:'50%',border:'3px solid '+C.blue,background:C.blue+'15',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <span style={{fontSize:11,fontWeight:600,color:C.muted}}>kg</span>
+              </div>
+              <div>
+                <div style={{fontSize:isMobile?28:36,fontWeight:900,color:C.strong,lineHeight:1}}>{p.peso||'—'}</div>
+                <div style={{fontSize:12,fontWeight:600,color:C.muted}}>Peso attuale</div>
+                {p.altezza&&p.peso&&(()=>{const tgt=(24.9*Math.pow(p.altezza/100,2)).toFixed(1);const diff=(p.peso-tgt).toFixed(1);return <div style={{fontSize:12,color:C.dim}}>{diff<0?'sotto target':'target '+tgt+' kg · '+diff+' kg da perdere'}</div>;})()}
+              </div>
+            </div>
+            {/* Card BMI */}
+            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:20,display:'flex',alignItems:'center',gap:16}}>
+              <div style={{width:52,height:52,borderRadius:'50%',border:'3px solid '+(bc||C.muted),background:(bc||C.muted)+'15',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <span style={{fontSize:11,fontWeight:600,color:C.muted}}>BMI</span>
+              </div>
+              <div>
+                <div style={{fontSize:isMobile?28:36,fontWeight:900,color:C.strong,lineHeight:1}}>{b||'—'}</div>
+                <div style={{fontSize:12,fontWeight:600,color:C.muted}}>Body Mass Index</div>
+                {b&&<span style={S.tag(bc)}>{bl}</span>}
+              </div>
+            </div>
           </div>
-          <div style={S.grid(3)}>
-            <StatCard label="6MWT" value={`${p.test?.mwtDist||'—'} m`} color={C.cyan}/>
-            <StatCard label="Sit-to-Stand" value={`${p.test?.stsRip||'—'} rip`} color={C.green}/>
-            <StatCard label="Sedute" value={p.log?.length||0} color={C.orange}/>
+          {/* GRIGLIA COMPATTA */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(3, 1fr)':'repeat(5, 1fr)',gap:isMobile?8:10}}>
+            {[
+              {label:'FC RIPOSO',value:p.fc||'—',unit:'bpm'},
+              {label:'PA',value:p.pa||'—',unit:''},
+              {label:'6MWT',value:p.test?.mwtDist||'—',unit:'m'},
+              {label:'STS 30S',value:p.test?.stsRip||'—',unit:'rip'},
+              {label:'SEDUTE',value:p.log?.length||0,unit:''},
+            ].map(item=>(
+              <div key={item.label} style={{background:C.bg,borderRadius:10,padding:isMobile?10:12,textAlign:'center'}}>
+                <div style={{fontSize:10,fontWeight:600,textTransform:'uppercase',letterSpacing:0.5,color:C.muted,marginBottom:6}}>{item.label}</div>
+                <div style={{fontSize:isMobile?16:18,fontWeight:800,color:C.strong}}>{item.value}</div>
+                {item.unit&&<div style={{fontSize:11,color:C.muted}}>{item.unit}</div>}
+              </div>
+            ))}
           </div>
-          <div style={S.grid(2)}>
-            <div style={S.card}>
+          {/* INFO CLINICHE + TARGET FC */}
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:12}}>
+            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:20}}>
               <div style={S.st}>Info cliniche</div>
               {[['Patologie',p.patologie],['Farmaci',p.farmaci],['Obiettivo',p.obiettivo],['Attività',p.attivita]].map(([k,v])=>(
                 <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'5px 0',borderBottom:`1px solid ${C.border}`}}>
@@ -1949,7 +1980,7 @@ ${(p.progressi||[]).length>1?`
                 </div>
               ))}
             </div>
-            <div style={S.card}>
+            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:20}}>
               <div style={S.st}>Target FC</div>
               {[
                 ['Peso target (BMI 24.9)',p.altezza?`${(24.9*(p.altezza/100)**2).toFixed(1)} kg`:'—'],
@@ -1959,7 +1990,7 @@ ${(p.progressi||[]).length>1?`
                 ['FC target 75%',fcMax?`${Math.round(fcMax*.75)} bpm`:'—'],
               ].map(([k,v])=>(
                 <div key={k} style={{display:'flex',justifyContent:'space-between',fontSize:13,padding:'5px 0',borderBottom:`1px solid ${C.border}`}}>
-                  <span style={{color:C.muted}}>{k}</span><span style={{color:C.green,fontWeight:600}}>{v}</span>
+                  <span style={{color:C.muted}}>{k}</span><span style={{color:C.strong,fontWeight:600}}>{v}</span>
                 </div>
               ))}
             </div>
