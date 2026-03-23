@@ -3283,6 +3283,9 @@ function AppInner({user,profile,trialLeft}){
               <button onClick={()=>{setShowParametri(false);setShowTutorial(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #a78bfa40',background:'#a78bfa10',color:'#a78bfa',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                 <span style={{fontSize:14}}>📖</span><span>{T.tutorial}</span>
               </button>
+              <button onClick={()=>window.open('/PTBoard_Guida_Rapida_PT.pdf','_blank')} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid #3b82f640',background:'#3b82f610',color:'#3b82f6',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontSize:14}}>📄</span><span>Guida PDF</span>
+              </button>
               <div style={{fontSize:10,color:isLight?'#475569':'#cbd5e1',fontWeight:700,textTransform:'uppercase',letterSpacing:1,marginBottom:8,marginTop:4}}>Il tuo brand</div>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <div title="Clicca per caricare logo" onClick={()=>document.getElementById('logo-upload-input').click()} style={{width:60,height:60,borderRadius:8,border:`2px dashed ${C.border2}`,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',background:C.bg,flexShrink:0,overflow:'hidden'}}>
@@ -5063,6 +5066,9 @@ const TSTEPS=[
     </div>
     <div style="background:#3b82f615;border:1px solid #3b82f640;border-radius:10px;padding:12px;font-size:12px;color:#93c5fd">
       💡 Puoi riaprire questo tutorial dal menu → Parametri → 📖 Tutorial
+    </div>
+    <div style="background:#3b82f615;border:1px solid #3b82f640;border-radius:10px;padding:12px;text-align:center;margin-top:10px">
+      <a href="/PTBoard_Guida_Rapida_PT.pdf" target="_blank" style="font-size:13px;color:#60a5fa;font-weight:700;text-decoration:none">📄 Scarica la Guida Rapida PDF</a>
     </div>
   </div>`},
 ];
