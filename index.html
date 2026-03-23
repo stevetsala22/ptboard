@@ -3043,6 +3043,10 @@ function App(){
   );
 
   if(!user) return <AuthScreen onProfileReady={p=>setProfile(p)}/>;
+  if(user&&user.emailVerified===false&&user.email!==ADMIN_EMAIL){
+    const isLegacy=profile&&profile.plan!==undefined;
+    if(!isLegacy) return <EmailVerifyScreen user={user}/>;
+  }
   if(profile?.plan==='blocked') return <PaywallScreen user={user} profile={profile} blocked/>;
   if(profile?.email!==ADMIN_EMAIL&&isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
   return <AppInner user={user} profile={profile} trialLeft={trialDaysLeft(profile)}/>;
@@ -3069,6 +3073,8 @@ function AppInner({user,profile,trialLeft}){
   const [showParametri,setShowParametri]=useState(false);
   const [showDeleteAccount,setShowDeleteAccount]=useState(false);
   const [deleteConfirmText,setDeleteConfirmText]=useState('');
+  const [deleteReason,setDeleteReason]=useState('');
+  const [deleteDetail,setDeleteDetail]=useState('');
   const [sidebarOpen,setSidebarOpen]=useState(!isMobile);
   const [isLight,setIsLight]=useState(stored?.isLight||false);
   const [dataReady,setDataReady]=useState(true);
@@ -3409,14 +3415,29 @@ function AppInner({user,profile,trialLeft}){
       />}
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
-      {showDeleteAccount&&<Modal title="Eliminare definitivamente il tuo account?" onClose={()=>setShowDeleteAccount(false)}>
+      {showDeleteAccount&&<Modal title="Eliminare definitivamente il tuo account?" onClose={()=>{setShowDeleteAccount(false);setDeleteReason('');setDeleteDetail('');setDeleteConfirmText('');}}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <div style={{fontSize:13,color:C.text,lineHeight:1.6,background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'10px 12px'}}>Tutti i tuoi dati, pazienti, appuntamenti e impostazioni verranno eliminati permanentemente. Questa azione non è reversibile.</div>
-          <div style={{fontSize:12,color:C.muted}}>Scrivi <strong style={{color:C.text}}>ELIMINA</strong> per confermare:</div>
+          <div style={{fontSize:13,fontWeight:700,color:C.text,marginTop:4}}>Aiutaci a migliorare — perché vuoi eliminare il tuo account?</div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {['Troppo costoso','Non mi serve più','Ho trovato un\'alternativa migliore','Troppo complicato da usare','Altro motivo'].map(r=>(
+              <button key={r} onClick={()=>setDeleteReason(r)} style={{textAlign:'left',padding:'10px 14px',borderRadius:8,border:deleteReason===r?'1px solid #3b82f6':'1px solid #334155',background:deleteReason===r?'#3b82f620':'transparent',color:deleteReason===r?'#60a5fa':C.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
+            ))}
+          </div>
+          {deleteReason==='Altro motivo'&&<textarea style={{...S.inp,border:'1px solid #334155',minHeight:60,resize:'vertical'}} placeholder="Descrivi il motivo..." value={deleteDetail} onChange={e=>setDeleteDetail(e.target.value)}/>}
+          <div style={{fontSize:12,color:C.muted,marginTop:4}}>Scrivi <strong style={{color:C.text}}>ELIMINA</strong> per confermare:</div>
           <input style={{...S.inp,border:'1px solid #ef444440'}} placeholder="ELIMINA" value={deleteConfirmText} onChange={e=>setDeleteConfirmText(e.target.value)}/>
           <button disabled={deleteConfirmText!=='ELIMINA'} onClick={async()=>{
             try{
               const uid=user.uid;
+              await fbDb.collection('deleteFeedback').doc(uid).set({
+                email:user.email,
+                reason:deleteReason,
+                detail:deleteDetail,
+                deletedAt:new Date().toISOString(),
+                plan:profile?.plan||'unknown',
+                daysUsed:profile?.createdAt?Math.floor((Date.now()-new Date(profile.createdAt).getTime())/(1000*60*60*24)):0
+              });
               await fbDb.collection('users').doc(uid).collection('appdata').doc('main').delete();
               await fbDb.collection('users').doc(uid).delete();
               await fbAuth.currentUser.delete();
@@ -4642,9 +4663,11 @@ function AdminModal({onClose}){
   const [users,setUsers]=useState([]);
   const [loading,setLoading]=useState(true);
   const [msg,setMsg]=useState('');
+  const [feedbacks,setFeedbacks]=useState([]);
 
   useEffect(()=>{
     fbGetAllUsers().then(u=>{setUsers(u);setLoading(false);});
+    fbDb.collection('deleteFeedback').get().then(s=>{setFeedbacks(s.docs.map(d=>({id:d.id,...d.data()})));}).catch(()=>{});
   },[]);
 
   const setPlan=async(uid,plan,duration)=>{
@@ -4765,6 +4788,84 @@ function AdminModal({onClose}){
               </tbody>
             </table>
           </div>}
+
+          {/* Feedback eliminazioni */}
+          <div style={{marginTop:28}}>
+            <div style={{fontSize:14,fontWeight:800,color:'#f8fafc',marginBottom:12}}>📋 Feedback eliminazioni</div>
+            {feedbacks.length===0?<div style={{padding:20,textAlign:'center',color:'#475569',fontSize:13}}>Nessun feedback di eliminazione</div>:
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
+                <thead>
+                  <tr style={{borderBottom:'1px solid #1e2d47'}}>
+                    {['Email','Motivo','Dettaglio','Piano','Giorni usati','Data eliminazione'].map(h=>(
+                      <th key={h} style={{padding:'9px 12px',textAlign:'left',fontSize:10,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:.5,whiteSpace:'nowrap'}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {feedbacks.map(f=>(
+                    <tr key={f.id} style={{borderBottom:'1px solid #0f172a'}}>
+                      <td style={{padding:'10px 12px',color:'#e2e8f0'}}>{f.email||'—'}</td>
+                      <td style={{padding:'10px 12px',color:'#94a3b8'}}>{f.reason||'—'}</td>
+                      <td style={{padding:'10px 12px',color:'#94a3b8',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis'}}>{f.detail||'—'}</td>
+                      <td style={{padding:'10px 12px',color:'#94a3b8'}}>{f.plan||'—'}</td>
+                      <td style={{padding:'10px 12px',color:'#94a3b8'}}>{f.daysUsed!=null?f.daysUsed+'g':'—'}</td>
+                      <td style={{padding:'10px 12px',color:'#475569',whiteSpace:'nowrap'}}>{f.deletedAt?new Date(f.deletedAt).toLocaleDateString('it-IT'):'—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmailVerifyScreen({user}){
+  const [msg,setMsg]=useState('');
+  const [err,setErr]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const checkVerified=async()=>{
+    setErr('');setMsg('');setLoading(true);
+    try{
+      await fbAuth.currentUser.reload();
+      if(fbAuth.currentUser.emailVerified){
+        window.location.reload();
+      }else{
+        setErr('Email non ancora verificata. Controlla la casella di posta (anche lo spam).');
+      }
+    }catch(e){setErr('Errore. Riprova.');}
+    setLoading(false);
+  };
+
+  const resend=async()=>{
+    setErr('');setMsg('');setLoading(true);
+    try{
+      await fbAuth.currentUser.sendEmailVerification();
+      setMsg('Email rinviata!');
+    }catch(e){setErr('Errore nell\'invio. Riprova tra qualche minuto.');}
+    setLoading(false);
+  };
+
+  const logout=async()=>{await fbAuth.signOut();};
+
+  return(
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
+      <div style={{width:'100%',maxWidth:420}}>
+        <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:32,textAlign:'center'}}>
+          <div style={{fontSize:56,marginBottom:16}}>📧</div>
+          <div style={{fontSize:20,fontWeight:800,color:'#f8fafc',marginBottom:10}}>Verifica la tua email</div>
+          <div style={{fontSize:14,color:'#94a3b8',lineHeight:1.7,marginBottom:24}}>
+            Abbiamo inviato un'email di verifica a <strong style={{color:'#e2e8f0'}}>{user.email}</strong>. Clicca il link nell'email per attivare il tuo account.
+          </div>
+          {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:12}}>{err}</div>}
+          {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:12}}>{msg}</div>}
+          <button onClick={checkVerified} disabled={loading} style={{width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1}}>Ho verificato, accedi</button>
+          <button onClick={resend} disabled={loading} style={{width:'100%',padding:'12px',borderRadius:9,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:13,fontWeight:600,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8}}>Rinvia email</button>
+          <button onClick={logout} style={{width:'100%',padding:'8px',borderRadius:9,border:'none',background:'transparent',color:'#64748b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>Esci</button>
         </div>
       </div>
     </div>
@@ -4784,6 +4885,8 @@ function AuthScreen({onProfileReady}){
   const [err,setErr]=useState('');
   const [msg,setMsg]=useState('');
   const [loading,setLoading]=useState(false);
+  const [showPw,setShowPw]=useState(false);
+  const [showPw2,setShowPw2]=useState(false);
 
   const errMap=(code)=>{
     if(code==='auth/user-not-found'||code==='auth/wrong-password'||code==='auth/invalid-credential') return 'Email o password errati';
@@ -4794,7 +4897,7 @@ function AuthScreen({onProfileReady}){
   };
 
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,nome.trim(),1);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,nome.trim(),1);await c.user.sendEmailVerification();if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
@@ -4826,8 +4929,8 @@ function AuthScreen({onProfileReady}){
           {mode==='register'&&<input style={inp} placeholder="Telefono (opzionale)" type="tel" value={telefono} onChange={e=>setTelefono(e.target.value)}/>}
           {mode==='register'&&<input style={inp} placeholder="Città (opzionale)" value={citta} onChange={e=>setCitta(e.target.value)}/>}
           <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
-          {mode!=='reset'&&<input style={inp} placeholder="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/>}
-          {mode==='register'&&<input style={inp} placeholder="Conferma password" type="password" value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/>}
+          {mode!=='reset'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder="Password" type={showPw?'text':'password'} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/><button type="button" onClick={()=>setShowPw(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw?'🙈':'👁'}</button></div>}
+          {mode==='register'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder="Conferma password" type={showPw2?'text':'password'} value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/><button type="button" onClick={()=>setShowPw2(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw2?'🙈':'👁'}</button></div>}
           {mode==='register'&&<label style={{display:'flex',alignItems:'flex-start',gap:8,fontSize:12,color:'#64748b',marginBottom:12,cursor:'pointer',lineHeight:1.5}}>
             <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)} style={{marginTop:2,flexShrink:0,accentColor:'#3b82f6'}}/>
             <span>Accetto la <a href="/privacy.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Privacy Policy</a> e i <a href="/terms.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Termini di Servizio</a></span>
