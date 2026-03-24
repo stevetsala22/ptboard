@@ -3262,8 +3262,24 @@ function AppInner({user,profile,trialLeft}){
       if(remote&&remote.dataVersion>=4){
         if(remote.patients?.length) setPatients(remote.patients);
         if(remote.bookings) setBookings(remote.bookings);
-        if(remote.exercises) setExercises(remote.exercises);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
+        // Aggiorna libreria esercizi: aggiungi nuovi esercizi di default senza toccare quelli esistenti
+        var currentExercises = remote.exercises || INIT_EXERCISES;
+        var currentIds = currentExercises.map(function(e){return e.id;});
+        var nuovi = INIT_EXERCISES.filter(function(e){
+          return currentIds.indexOf(e.id) === -1;
+        });
+        if(nuovi.length > 0){
+          var merged = currentExercises.concat(nuovi);
+          setExercises(merged);
+          var mergedData = {patients: remote.patients||[], bookings: remote.bookings||[], exercises: merged, isLight: remote.isLight, dataVersion:4};
+          save(mergedData);
+          fbSave(user.uid, mergedData);
+          showToast('Libreria aggiornata: ' + nuovi.length + ' nuovi esercizi aggiunti', 'success');
+          console.log('Libreria aggiornata: aggiunti ' + nuovi.length + ' nuovi esercizi');
+        } else {
+          if(remote.exercises) setExercises(remote.exercises);
+        }
       }
     }).catch(()=>{}).finally(()=>setSyncing(false));
     if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
