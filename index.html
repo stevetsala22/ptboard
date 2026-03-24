@@ -1100,43 +1100,94 @@ const profilo=(mwt,sts,sesso,test,extra,eta)=>{
 };
 const calcNutrizione=(p)=>{
   if(!p)return null;
+  var eta=p.annoNascita?(new Date().getFullYear()-p.annoNascita):null;
+  var peso=p.peso?+p.peso:null;
+  var altezza=p.altezza?+p.altezza:null;
   // STEP 1 — BMR
   var bmr;
-  if(p.bia?.FM&&p.peso){
-    var ffm=(+p.peso)*(1-(+p.bia.FM)/100);
+  if(p.bia?.FM&&peso){
+    var ffm=peso*(1-(+p.bia.FM)/100);
     bmr=370+(21.6*ffm);
   }else{
-    var eta=p.annoNascita?(new Date().getFullYear()-p.annoNascita):null;
-    if(!eta||!p.peso||!p.altezza)return null;
-    if(p.sesso==='M')bmr=(10*(+p.peso))+(6.25*(+p.altezza))-(5*eta)+5;
-    else bmr=(10*(+p.peso))+(6.25*(+p.altezza))-(5*eta)-161;
+    if(!eta||!peso||!altezza)return null;
+    if(p.sesso==='M')bmr=(10*peso)+(6.25*altezza)-(5*eta)+5;
+    else bmr=(10*peso)+(6.25*altezza)-(5*eta)-161;
   }
+  if(!eta&&peso&&altezza){eta=50;}
   if(p.patologie){var pat0=p.patologie.toLowerCase();if(pat0.includes('tiroidea')||pat0.includes('ipotiroidismo'))bmr*=0.90;}
   if(p.fumo==='Fumatore regolare')bmr+=200;else if(p.fumo==='Fumatore occasionale')bmr+=100;
+  // FC max — Tanaka 2001
+  var fcMaxCalc=eta?Math.round(208-(0.7*eta)):null;
   // STEP 2 — TDEE
   var fattori={'Sedentaria':1.2,'Poco attiva':1.375,'Moderata':1.55,'Attiva':1.725,'Molto attiva':1.9};
   var fattore=fattori[p.attivita]||1.4;
   var tdee=bmr*fattore;
-  // STEP 3 — Calorie target
-  var obiettivoMap={'Perdere peso':0.80,'Aumentare massa':1.15,'Resistenza':1.05,'Forza':1.10,'Salute':1.0,'Riabilitazione':1.0,'Performance':1.10,'Benessere':1.0};
-  var molt=obiettivoMap[p.obiettivo]||1.0;
+  // STEP 3 — Calorie target (ISSN 2017, ACSM Position Stand)
+  var obiettivoMap={
+    'Perdere peso':{molt:0.80,note:'Deficit 20% (ACSM: max -500 kcal/giorno)'},
+    'Aumentare massa':{molt:1.15,note:'Surplus 15% (ISSN: surplus 10-20% per ipertrofia)'},
+    'Resistenza':{molt:1.05,note:'Leggero surplus per supporto endurance'},
+    'Forza':{molt:1.10,note:'Surplus moderato per supporto forza'},
+    'Salute':{molt:1.0,note:'Mantenimento (TDEE = intake)'},
+    'Riabilitazione':{molt:1.0,note:'Mantenimento con focus proteine'},
+    'Performance':{molt:1.10,note:'Surplus per supporto performance'},
+    'Benessere':{molt:1.0,note:'Mantenimento'}
+  };
+  var obInfo=obiettivoMap[p.obiettivo]||{molt:1.0,note:'Mantenimento'};
+  var molt=obInfo.molt;
   var kcal=Math.round(tdee*molt);
   if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')kcal=Math.round(kcal*1.05);
-  // STEP 4 — Macros
-  var protMap={'Perdere peso':2.0,'Aumentare massa':2.0,'Resistenza':1.6,'Forza':2.0,'Salute':1.4,'Riabilitazione':1.6,'Performance':1.8,'Benessere':1.4};
-  var protPerKg=protMap[p.obiettivo]||1.6;
-  var pesoCalcolo=+p.peso;
-  var bmiVal=p.altezza&&p.peso?(+p.peso)/((+p.altezza/100)**2):null;
-  if(bmiVal&&bmiVal>30)pesoCalcolo=24.9*((+p.altezza/100)**2);
+  // Cap sul deficit: mai sotto BMR * 1.2
+  if(kcal<bmr*1.2)kcal=Math.round(bmr*1.2);
+  // STEP 4 — Macros (ISSN Position Stand 2017)
+  var protMap={
+    'Perdere peso':{perKg:2.3,ref:'ISSN 2017: 2.3-3.1 g/kg in deficit per preservare massa magra'},
+    'Aumentare massa':{perKg:1.8,ref:'ISSN 2017: 1.6-2.2 g/kg in surplus'},
+    'Resistenza':{perKg:1.4,ref:'ISSN: 1.2-1.4 g/kg per endurance'},
+    'Forza':{perKg:2.0,ref:'ISSN: 1.6-2.2 g/kg per forza'},
+    'Salute':{perKg:1.2,ref:'RDA: 0.8 g/kg minimo, 1.2 per attivi'},
+    'Riabilitazione':{perKg:1.6,ref:'Piu proteine per recupero tessutale'},
+    'Performance':{perKg:1.8,ref:'ISSN: 1.4-2.0 g/kg per atleti'},
+    'Benessere':{perKg:1.2,ref:'Mantenimento con adeguato apporto'}
+  };
+  var protInfo=protMap[p.obiettivo]||{perKg:1.6,ref:''};
+  var protPerKg=protInfo.perKg;
+  // Aggiusta per età: sarcopenia prevention (Bauer 2013)
+  if(eta&&eta>60)protPerKg+=0.2;
+  // Aggiusta per sesso: massa magra proporzionalmente minore
+  if(p.sesso==='F')protPerKg-=0.1;
+  var pesoCalcolo=peso||70;
+  var bmiVal=altezza&&peso?peso/((altezza/100)**2):null;
+  if(bmiVal&&bmiVal>30)pesoCalcolo=24.9*((altezza/100)**2);
   var proteine=Math.round(protPerKg*pesoCalcolo);
   var kcalProt=proteine*4;
-  var grassiPct={'Perdere peso':0.25,'Aumentare massa':0.25,'Resistenza':0.25,'Forza':0.30,'Salute':0.30,'Riabilitazione':0.30,'Performance':0.25,'Benessere':0.30};
-  var pctG=grassiPct[p.obiettivo]||0.28;
+  // Grassi (ISSN + ACSM)
+  var grassiMap={
+    'Perdere peso':{pct:0.25,ref:'ISSN: 20-35% in deficit, 25% compromesso'},
+    'Aumentare massa':{pct:0.28,ref:'25-30% per supporto ormonale'},
+    'Resistenza':{pct:0.25,ref:'20-25% per endurance'},
+    'Forza':{pct:0.30,ref:'25-35% per testosterone e recupero'},
+    'Salute':{pct:0.30,ref:'Dieta mediterranea: 30-35%'},
+    'Riabilitazione':{pct:0.28,ref:'Moderato per anti-infiammatorio'},
+    'Performance':{pct:0.25,ref:'20-30% per atleti'},
+    'Benessere':{pct:0.30,ref:'Equilibrato'}
+  };
+  var grassiInfo=grassiMap[p.obiettivo]||{pct:0.28,ref:''};
+  var pctG=grassiInfo.pct;
   if(p.patologie){var pat1=p.patologie.toLowerCase();if(pat1.includes('dislipidemia')||pat1.includes('cardiopatia'))pctG=0.20;}
+  // Mai sotto 20% (minimo per vitamine liposolubili)
+  if(pctG<0.20)pctG=0.20;
   var grassi=Math.round((kcal*pctG)/9);
   var kcalGrassi=grassi*9;
   var carboidrati=Math.round((kcal-kcalProt-kcalGrassi)/4);
   if(carboidrati<0)carboidrati=0;
+  // Minimo carboidrati per endurance/performance: 3 g/kg
+  if((p.obiettivo==='Resistenza'||p.obiettivo==='Performance')&&peso){
+    var minCarbo=Math.round(3*peso);
+    if(carboidrati<minCarbo)carboidrati=minCarbo;
+  }
+  // Minimo 130g carboidrati in deficit (fabbisogno cerebrale)
+  if(p.obiettivo==='Perdere peso'&&carboidrati<130)carboidrati=130;
   if(p.patologie){
     var pat2=p.patologie.toLowerCase();
     if(pat2.includes('diabete tipo 2')){var maxCarbo=Math.round((kcal*0.40)/4);if(carboidrati>maxCarbo){var diff=carboidrati-maxCarbo;carboidrati=maxCarbo;grassi+=Math.round((diff*4)/9);}}
@@ -1155,7 +1206,7 @@ const calcNutrizione=(p)=>{
     if(pat3.includes('osteoporosi'))note.push('Osteoporosi: calcio 1200mg/giorno, vitamina D, proteine adeguate');
     if(pat3.includes('artrosi')||pat3.includes('artrite'))note.push('Artrosi/artrite: alimenti anti-infiammatori (omega-3, curcuma, verdure)');
     if(pat3.includes('depressione')||pat3.includes('ansia'))note.push('Benessere mentale: omega-3, triptofano (tacchino, semi), limitare caffeina');
-    if(pat3.includes('obesita'))note.push('Obesità: deficit calorico moderato, proteine calcolate su peso ideale');
+    if(pat3.includes('obesita'))note.push('Obesita: deficit calorico moderato, proteine calcolate su peso ideale');
     if(pat3.includes('tiroidea'))note.push('Patologia tiroidea: monitorare metabolismo, aggiustare kcal con il medico');
   }
   if(p.allergie){
@@ -1166,8 +1217,16 @@ const calcNutrizione=(p)=>{
   }
   if(p.alcol&&(p.alcol.includes('8-14')||p.alcol.includes('>14')))note.push('Consumo alcol elevato: attenzione alle calorie vuote (~7 kcal/g)');
   if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')note.push('Stress elevato: kcal leggermente aumentate per compensare il cortisolo');
+  // Note automatiche per età, BMI, obiettivo, FC, motivazione
+  if(eta&&eta>65)note.push('Over 65: aumentare proteine a '+protPerKg.toFixed(1)+' g/kg per prevenzione sarcopenia (Bauer 2013). Calcio 1200mg/giorno + vitamina D.');
+  if(p.obiettivo==='Perdere peso'&&bmiVal&&bmiVal>30)note.push('Proteine calcolate su peso ideale ('+pesoCalcolo.toFixed(0)+' kg) per evitare eccesso proteico. Obiettivo: -0.5 kg/settimana (non oltre 1% peso corporeo/settimana).');
+  if(p.obiettivo==='Perdere peso'&&bmiVal&&bmiVal>=25&&bmiVal<=30)note.push('Deficit moderato -20%. Obiettivo: -0.5 kg/settimana. Monitorare peso ogni 7 giorni, stesso giorno e ora.');
+  if(p.obiettivo==='Aumentare massa')note.push('Surplus calorico 15%. Monitorare peso: obiettivo +0.25-0.5 kg/settimana. Se grasso aumenta troppo, ridurre surplus a 10%.');
+  if(p.fc&&+p.fc>80)note.push('FC riposo elevata: possibile sovrallenamento o stress. Considerare riduzione volume allenamento.');
+  if(p.motivazione&&+p.motivazione<5)note.push('Motivazione bassa: semplificare il piano, ridurre vincoli alimentari, focus su piccoli obiettivi raggiungibili.');
+  note.push('Riferimenti: ISSN Position Stand 2017, ACSM Guidelines 11th ed., Mifflin-St Jeor 1990'+(p.bia?.FM?', Katch-McArdle (BIA)':'')+'.');
   note.push('⚠️ Suggerimenti nutrizionali generici — per un piano personalizzato rivolgersi a un nutrizionista');
-  return{kcal,proteine,carboidrati,grassi,note:note.join('\n')};
+  return{kcal,proteine,carboidrati,grassi,note:note.join('\n'),formula:p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor',protRef:protInfo.ref,grassiRef:grassiInfo.ref};
 };
 const interpPushup=(rip,sesso)=>{if(!rip)return null;const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}else{if(r<7)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<15)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}};
 const interpPlank=(sec)=>{if(!sec)return null;const s=+sec;if(s<30)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con plank sulle ginocchia 3×15s'};if(s<60)return{l:gT().base,c:'#f59e0b',cons:'Progressione a 45s poi 60s'};if(s<120)return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti laterale e dinamico'};return{l:gT().excellent,c:'#3b82f6',cons:'Core molto stabile — esercizi avanzati'};};
