@@ -465,7 +465,7 @@ const exportCSV=(patients)=>{
   const headers=['ID','Cognome','Nome','Sesso','Data nascita','Altezza (cm)','Peso (kg)','BMI','Profilo','Attività','Obiettivo','Patologie','Farmaci','6MWT (m)','STS 30s (rip)','Sedute totali','Data valutazione'];
   const rows=patients.map(p=>{
     const b=bmi(p.peso,p.altezza);
-    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
     return [p.id,p.cognome,p.nome,p.sesso,p.ddn,p.altezza,p.peso,b||'',pr?.code||'',p.attivita,p.obiettivo,p.patologie,p.farmaci,p.test?.mwtDist,p.test?.stsRip,p.log?.length||0,p.dataValutazione].map(v=>{
       const s=String(v??'');
       return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.split('"').join('""')+'"':s;
@@ -488,7 +488,7 @@ const exportPDFLista=(patients,trainerProfile)=>{
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
   const righe=patients.map((p,i)=>{
     const b=p.peso&&p.altezza?(p.peso/(p.altezza/100)**2).toFixed(1):'—';
-    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
     const bg=i%2===0?'#f8fafc':'#ffffff';
     return '<tr style="background:'+bg+'">'+
       '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;font-weight:600">'+esc(p.nome)+' '+esc(p.cognome)+'</td>'+
@@ -982,44 +982,96 @@ const bmiCat=(b)=>{
   if(b<35)return{l:gT().bmiOb1,c:'#f87171'};
   return{l:gT().bmiOb2,c:C.red};
 };
+// ── TABELLE NORMATIVE PER ETÀ E SESSO ────────────────────────────────────────
+// Bohannon & Crouch 2017 — 6MWT distanza media attesa (m)
+var mwtNorms={
+  M:{20:695,30:669,40:643,50:617,60:591,65:578,70:553,75:528,80:503},
+  F:{20:660,30:634,40:608,50:582,60:556,65:543,70:518,75:493,80:468}
+};
+// Rikli & Jones 1999 — STS 30s ripetizioni medie
+var stsNorms={
+  M:{25:20,30:19,35:18,40:17,45:16,50:15,55:14,60:14,65:13,70:12,75:11,80:10,85:9},
+  F:{25:18,30:17,35:16,40:15,45:15,50:14,55:13,60:13,65:12,70:11,75:10,80:9,85:8}
+};
+// Dodds 2014 — Handgrip forza media (kg)
+var hgNorms={
+  M:{25:50,30:51,35:51,40:50,45:48,50:46,55:44,60:42,65:39,70:36,75:33,80:30},
+  F:{25:31,30:32,35:32,40:31,45:30,50:28,55:27,60:25,65:23,70:22,75:20,80:18}
+};
+// Bohannon 2006 — TUG tempo medio (s)
+var tugNorms={20:8.0,30:8.0,40:8.0,50:9.0,60:9.5,65:10.0,70:11.0,75:12.0,80:13.5};
+
+function getNormInterp(norms,eta){
+  var ages=Object.keys(norms).map(Number).sort(function(a,b){return a-b;});
+  if(eta<=ages[0])return norms[ages[0]];
+  if(eta>=ages[ages.length-1])return norms[ages[ages.length-1]];
+  for(var i=0;i<ages.length-1;i++){
+    if(eta>=ages[i]&&eta<=ages[i+1]){
+      var ratio=(eta-ages[i])/(ages[i+1]-ages[i]);
+      return norms[ages[i]]+ratio*(norms[ages[i+1]]-norms[ages[i]]);
+    }
+  }
+  return norms[ages[Math.floor(ages.length/2)]];
+}
+function getMwtNorm(sesso,eta){return getNormInterp((mwtNorms[sesso]||mwtNorms['M']),eta);}
+function getStsNorm(sesso,eta){return getNormInterp((stsNorms[sesso]||stsNorms['M']),eta);}
+function getHgNorm(sesso,eta){return getNormInterp((hgNorms[sesso]||hgNorms['M']),eta);}
+function getTugNorm(eta){return getNormInterp(tugNorms,eta);}
+
 // ── CLASSIFICAZIONE PESATA SCIENTIFICA ────────────────────────────────────────
-const calcScore=(test,sesso,extra)=>{
+const calcScore=(test,sesso,extra,eta)=>{
   // test = {mwtDist, stsRip, handgrip, tugSec, biaFM/massaGrassa, ...}
   // extra = {biaFM} from bia object or massaGrassa from test
+  // eta = età del cliente (default 50)
+  if(!eta||eta<10||eta>120)eta=50;
   const m=sesso==='M';
   const components=[];
-  // 1. CAPACITÀ AEROBICA (peso 40%) — 6MWT
+  // 1. CAPACITÀ AEROBICA (peso 40%) — 6MWT — Bohannon & Crouch 2017
   if(test?.mwtDist&&+test.mwtDist>0){
     const d=+test.mwtDist;
-    const s=d>550?100:d>=451?75:d>=300?50:25;
-    components.push({id:'aerobica',label:'Capacita aerobica (6MWT)',w:40,score:s,val:d+'m',icon:'🚶'});
+    const norm=getMwtNorm(sesso,eta);
+    const ratio=d/norm;
+    const s=ratio>=1.1?100:ratio>=0.9?80:ratio>=0.7?60:ratio>=0.5?40:20;
+    components.push({id:'aerobica',label:'Capacita aerobica (6MWT)',w:40,score:s,val:d+'m (norma '+Math.round(norm)+'m per '+(m?'uomo':'donna')+' '+eta+' anni)',icon:'🚶'});
   }
   // 2. FORZA (peso 30%) — media STS + Handgrip
-  const stsS=test?.stsRip&&+test.stsRip>0?(+test.stsRip>15?100:+test.stsRip>=10?67:33):null;
+  // STS — Rikli & Jones 1999
+  let stsS=null;
+  if(test?.stsRip&&+test.stsRip>0){
+    const rip=+test.stsRip;
+    const norm=getStsNorm(sesso,eta);
+    const ratio=rip/norm;
+    stsS=ratio>=1.2?100:ratio>=1.0?80:ratio>=0.8?60:ratio>=0.6?40:20;
+  }
+  // Handgrip — Dodds 2014
   const hg=test?.handgrip&&+test.handgrip>0?+test.handgrip:null;
   let hgS=null;
   if(hg!==null){
-    if(m){hgS=hg>=44?100:hg>=35?75:hg>=25?50:25;}
-    else{hgS=hg>=28?100:hg>=20?75:hg>=14?50:25;}
+    const norm=getHgNorm(sesso,eta);
+    const ratio=hg/norm;
+    hgS=ratio>=1.2?100:ratio>=1.0?80:ratio>=0.8?60:ratio>=0.6?40:20;
   }
   let forzaScore=null,forzaVal='';
   if(stsS!==null&&hgS!==null){forzaScore=Math.round((stsS+hgS)/2);forzaVal='STS '+test.stsRip+' rip + HG '+hg+'kg';}
   else if(stsS!==null){forzaScore=stsS;forzaVal='STS '+test.stsRip+' rip';}
   else if(hgS!==null){forzaScore=hgS;forzaVal='HG '+hg+'kg';}
   if(forzaScore!==null) components.push({id:'forza',label:'Forza (STS + Handgrip)',w:30,score:forzaScore,val:forzaVal,icon:'💪'});
-  // 3. COMPOSIZIONE CORPOREA (peso 20%) — FM%
+  // 3. COMPOSIZIONE CORPOREA (peso 20%) — FM% — ACSM/ACE con modulazione età
   const fm=extra?.biaFM?+extra.biaFM:(test?.massaGrassa?+test.massaGrassa:(test?.biaFM?+test.biaFM:null));
   if(fm!==null&&fm>0){
     let cs;
-    if(m){cs=fm<14?100:fm<=17?75:fm<=24?50:25;}
-    else{cs=fm<21?100:fm<=24?75:fm<=31?50:25;}
+    const fmAdjust=Math.max(0,Math.floor((eta-30)/10));
+    if(m){cs=fm<6+fmAdjust?100:fm<14+fmAdjust?85:fm<18+fmAdjust?70:fm<25+fmAdjust?50:25;}
+    else{cs=fm<14+fmAdjust?100:fm<21+fmAdjust?85:fm<25+fmAdjust?70:fm<32+fmAdjust?50:25;}
     components.push({id:'corpo',label:'Composizione corporea (FM%)',w:20,score:cs,val:fm+'%',icon:'📏'});
   }
-  // 4. EQUILIBRIO (peso 10%) — TUG
+  // 4. EQUILIBRIO (peso 10%) — TUG — Bohannon 2006
   if(test?.tugSec&&+test.tugSec>0){
     const t=+test.tugSec;
-    const ts=t<10?100:t<=12?67:t<=20?33:0;
-    components.push({id:'equilibrio',label:'Equilibrio (TUG)',w:10,score:ts,val:t+'s',icon:'⏱'});
+    const norm=getTugNorm(eta);
+    const ratio=t/norm;
+    const ts=ratio<=0.85?100:ratio<=1.0?80:ratio<=1.3?55:ratio<=1.6?30:10;
+    components.push({id:'equilibrio',label:'Equilibrio (TUG)',w:10,score:ts,val:t+'s (norma '+norm.toFixed(1)+'s per '+eta+' anni)',icon:'⏱'});
   }
   // Minimo: almeno 6MWT o STS
   if(components.length===0)return null;
@@ -1031,19 +1083,19 @@ const calcScore=(test,sesso,extra)=>{
   const allIds=['aerobica','forza','corpo','equilibrio'];
   const missing=allIds.filter(id=>!components.find(c=>c.id===id));
   const missingLabels={aerobica:'6MWT',forza:'STS o Handgrip',corpo:'FM% (BIA o plicometria)',equilibrio:'TUG'};
-  // Risultato
+  // Risultato — soglie aggiornate per norme età
   let code,l,c,bg;
-  if(score>=70){code='C';l=gT().profileGood;c=C.green;bg='#d1fae5';}
-  else if(score>=40){code='B';l=gT().profileMed;c=C.yellow;bg='#fef3c7';}
+  if(score>=75){code='C';l=gT().profileGood;c=C.green;bg='#d1fae5';}
+  else if(score>=45){code='B';l=gT().profileMed;c=C.yellow;bg='#fef3c7';}
   else{code='A';l=gT().profileLow;c=C.red;bg='#fee2e2';}
   return{code,l,c,bg,score,components,missing:missing.map(id=>missingLabels[id])};
 };
 
 // Wrapper retrocompatibile — stessa interfaccia {code,l,c,bg}
-const profilo=(mwt,sts,sesso,test,extra)=>{
+const profilo=(mwt,sts,sesso,test,extra,eta)=>{
   // Chiamata legacy con solo mwt,sts → costruisci test minimale
   const t=test||{mwtDist:mwt,stsRip:sts};
-  const r=calcScore(t,sesso||'M',extra);
+  const r=calcScore(t,sesso||'M',extra,eta||50);
   return r;
 };
 const calcNutrizione=(p)=>{
@@ -1632,7 +1684,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
         <button style={{...S.btn(),padding:isMobile?'10px 16px':'8px 16px',fontSize:isMobile?14:13,borderRadius:10}} onClick={onNewVal}>+ Nuova Valutazione</button>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
-        {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='A').length,c:C.red},{l:T.profileMed.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip)?.code==='C').length,c:C.green}].map(x=>(
+        {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50)?.code==='A').length,c:C.red},{l:T.profileMed.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50)?.code==='C').length,c:C.green}].map(x=>(
           <StatCard key={x.l} label={x.l} value={x.v} color={x.c}/>
         ))}
       </div>
@@ -1652,7 +1704,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
         {filtered.map(function(p,idx){
           var b=bmi(p.peso,p.altezza);
           var bc2=bmiCat(b);var bl=bc2.l;var bc=bc2.c;
-          var pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+          var pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
           var delay=Math.min(idx*0.03,0.3);
           return(
             <div key={p.id} onClick={()=>onSelect(p.id)}
@@ -1702,7 +1754,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const p=patient;
   const b=bmi(p.peso,p.altezza);
   const {l:bl,c:bc}=bmiCat(b);
-  const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+  const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
   const fcMax=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
 
   const upd=(fn)=>onUpdate({...p,...fn(p)});
@@ -1728,7 +1780,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const tabs=[{id:'panoramica',l:'Panoramica'},{id:'profilo',l:'Profilo'},{id:'programma',l:'Programma'},{id:'sedute',l:'Sedute ('+((p.log?.length||0)+prossime.length)+')'},{id:'nutri',l:'Nutrizione'}];
 
   const generaPDF=()=>{
-    const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+    const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
     const b2=bmi(p.peso,p.altezza);
     const {l:bl2}=bmiCat(b2);
     const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
@@ -2897,7 +2949,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   const [touched,setTouched]=useState({});
   const touch=n=>setTouched(t=>({...t,[n]:true}));
   const b=bmi(form.peso,form.altezza);
-  const pr=profilo(form.test?.mwtDist,form.test?.stsRip,form.sesso,form.test,{biaFM:form.bia?.FM});
+  const pr=profilo(form.test?.mwtDist,form.test?.stsRip,form.sesso,form.test,{biaFM:form.bia?.FM},form.annoNascita?new Date().getFullYear()-form.annoNascita:50);
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   const updT=e=>setForm(f=>({...f,test:{...f.test,[e.target.name]:e.target.value}}));
   const updP=e=>setForm(f=>({...f,programma:{...f.programma,[e.target.name]:e.target.value}}));
@@ -3425,8 +3477,9 @@ function AppInner({user,profile,trialLeft}){
         initialData={reevalPatient?{nome:reevalPatient.nome,cognome:reevalPatient.cognome,sesso:reevalPatient.sesso,ddn:reevalPatient.ddn||''}:null}
         onSave={p=>{
           const b2=bmi(+p.peso,+p.altezza);
-          const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
-          const sc2=calcScore(p.test,p.sesso,{biaFM:p.bia?.FM});
+          const _eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
+          const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},_eta);
+          const sc2=calcScore(p.test,p.sesso,{biaFM:p.bia?.FM},_eta);
           const vEntry={id:Date.now().toString(),data:new Date().toLocaleDateString('it-IT'),dataISO:new Date().toISOString(),peso:p.peso||'',altezza:p.altezza||'',bmi:b2?String(b2):'',mwtDist:p.test?.mwtDist||'',stsRip:p.test?.stsRip||'',rpe:p.test?.mwtRpe||'',pushup:p.test?.pushupRip||'',plank:p.test?.plankSec||'',tug:p.test?.tugSec||'',handgrip:p.test?.handgrip||'',sitReach:p.sitReach||'',fm:p.bia?.FM||'',phaseAngle:p.bia?.PhA||'',ecwTbw:p.bia?.ECW||'',spo2:p.spo2||'',fcRiposo:p.fc||'',profilo:pr2?.code||'',score:sc2?String(sc2.score):'',note:p.test?.noteVal||''};
           if(reevalPatient){
             setPatients(ps=>ps.map(x=>x.id===reevalPatient.id?{...x,test:p.test,bia:p.bia,peso:p.peso,altezza:p.altezza,dataValutazione:fmtDate(),valutazioni:(x.valutazioni||[]).concat([vEntry])}:x));
@@ -3640,11 +3693,11 @@ function WizardValutazione({onSave,onClose,initialData}){
 
   const bmiVal=d.peso&&d.altezza?bmi(+d.peso,+d.altezza):null;
   const {l:bmiLbl,c:bmiClr}=bmiVal?bmiCat(bmiVal):{l:'—',c:C.muted};
-  const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM});
-  const prog=pr?PROGRAMMI[pr.code]:null;
   const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
   const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
+  const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
+  const prog=pr?PROGRAMMI[pr.code]:null;
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
   const STEPS_BASE=[1,3,4,5,7,8];
