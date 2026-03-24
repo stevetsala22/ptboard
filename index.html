@@ -1389,21 +1389,82 @@ const DAYS=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
 const MONTHS=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
 
 const INIT_EXERCISES=[
-  {id:'E01',nome:'Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Piegamento sulle ginocchia con bilanciere o corpo libero'},
-  {id:'E02',nome:'Push-up',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni sulle braccia'},
-  {id:'E03',nome:'Affondi',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Passo avanti con piegamento'},
-  {id:'E04',nome:'Plank',cat:'Core',muscoli:'Core, Addome',desc:'Posizione isometrica in appoggio sugli avambracci'},
-  {id:'E05',nome:'Rematore',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata verso il corpo con manubrio'},
-  {id:'E06',nome:'Dead Bug',cat:'Core',muscoli:'Core',desc:'Stabilizzazione lombare a terra'},
-  {id:'E07',nome:'Box Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat su panchetta bassa'},
-  {id:'E08',nome:'Wall Push-up',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni al muro'},
-  {id:'E09',nome:'Camminata',cat:'Cardio',muscoli:'Full Body',desc:'Camminata a ritmo moderato'},
-  {id:'E10',nome:'Cyclette',cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Ciclismo stazionario'},
-  {id:'E11',nome:'Mountain Climbers',cat:'Cardio',muscoli:'Full Body',desc:'Arrampicata sul posto in posizione plank'},
-  {id:'E12',nome:'Ponte Glutei',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Sollevamento bacino da supino'},
-  {id:'E13',nome:'Hip Hinge',cat:'Forza',muscoli:'Femorali, Glutei, Lombari',desc:'Cerniera dell anca con bilanciere o corpo libero'},
-  {id:'E14',nome:'Romanian Deadlift',cat:'Forza',muscoli:'Femorali, Glutei',desc:'Stacco rumeno con manubri'},
-  {id:'E15',nome:'Lat Machine',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata alla lat machine'},
+  // ── FORZA — QUADRICIPITI ──
+  {id:'E01',nome:'Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Piegamento sulle ginocchia a corpo libero o con bilanciere',livello:'intermedio'},
+  {id:'E02',nome:'Box Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat con seduta su panca — ideale per principianti',livello:'base'},
+  {id:'E03',nome:'Goblet Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat con manubrio al petto — ottimo per tecnica',livello:'base'},
+  {id:'E04',nome:'Leg Press',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Pressa a 45 gradi per gambe — riduce carico sulla schiena',livello:'intermedio'},
+  {id:'E05',nome:'Bulgarian Split Squat',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Affondo con piede posteriore elevato su panca',livello:'avanzato'},
+  {id:'E06',nome:'Sissy Squat',cat:'Forza',muscoli:'Quadricipiti',desc:'Squat con inclinazione indietro — isolamento quadricipiti',livello:'avanzato'},
+  // ── FORZA — GLUTEI / FEMORALI ──
+  {id:'E07',nome:'Ponte Glutei',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Sollevamento bacino da supino a terra',livello:'base'},
+  {id:'E08',nome:'Hip Thrust',cat:'Forza',muscoli:'Glutei',desc:'Ponte glutei con schiena su panca e bilanciere',livello:'intermedio'},
+  {id:'E09',nome:'Affondi',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Passo avanti con piegamento alternato',livello:'intermedio'},
+  {id:'E10',nome:'Step-Up',cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Salita su rialzo con una gamba alla volta',livello:'base'},
+  {id:'E11',nome:'Romanian Deadlift',cat:'Forza',muscoli:'Femorali, Glutei',desc:'Stacco rumeno con manubri o bilanciere — catena posteriore',livello:'intermedio'},
+  {id:'E12',nome:'Hip Hinge',cat:'Forza',muscoli:'Femorali, Glutei, Lombari',desc:'Cerniera dell anca a corpo libero — pattern fondamentale',livello:'base'},
+  {id:'E13',nome:'Good Morning',cat:'Forza',muscoli:'Femorali, Lombari',desc:'Flessione del busto in avanti con bilanciere sulle spalle',livello:'avanzato'},
+  {id:'E14',nome:'Leg Curl',cat:'Forza',muscoli:'Femorali',desc:'Flessione ginocchio alla macchina — isolamento femorali',livello:'intermedio'},
+  {id:'E15',nome:'Nordic Curl',cat:'Forza',muscoli:'Femorali',desc:'Eccentrica femorali in ginocchio — molto avanzato',livello:'avanzato'},
+  // ── FORZA — PETTORALI ──
+  {id:'E16',nome:'Push-up',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni sulle braccia a terra',livello:'intermedio'},
+  {id:'E17',nome:'Wall Push-up',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni al muro — versione facilitata',livello:'base'},
+  {id:'E18',nome:'Push-up Ginocchia',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni con ginocchia a terra',livello:'base'},
+  {id:'E19',nome:'Panca Manubri',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Distensioni su panca piana con manubri',livello:'intermedio'},
+  {id:'E20',nome:'Panca Bilanciere',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Distensioni su panca piana con bilanciere',livello:'avanzato'},
+  {id:'E21',nome:'Croci Manubri',cat:'Forza',muscoli:'Pettorali',desc:'Aperture su panca piana — isolamento pettorali',livello:'intermedio'},
+  {id:'E22',nome:'Dip',cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Parallele — spinta verticale corpo libero',livello:'avanzato'},
+  // ── FORZA — DORSALI ──
+  {id:'E23',nome:'Rematore Manubrio',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata con un manubrio in appoggio su panca',livello:'intermedio'},
+  {id:'E24',nome:'Lat Machine',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata verticale alla lat machine',livello:'intermedio'},
+  {id:'E25',nome:'Trazioni',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — corpo libero',livello:'avanzato'},
+  {id:'E26',nome:'Pulley Basso',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata orizzontale al cavo basso',livello:'intermedio'},
+  {id:'E27',nome:'Row Elastico',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata con elastico — ideale a casa o per principianti',livello:'base'},
+  {id:'E28',nome:'Rematore Bilanciere',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata bilanciere a busto flesso',livello:'avanzato'},
+  // ── FORZA — SPALLE ──
+  {id:'E29',nome:'Press Spalle Manubri',cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Distensioni sopra la testa con manubri',livello:'intermedio'},
+  {id:'E30',nome:'Alzate Laterali',cat:'Forza',muscoli:'Spalle',desc:'Sollevamento manubri laterale — deltoide laterale',livello:'base'},
+  {id:'E31',nome:'Face Pull',cat:'Forza',muscoli:'Spalle, Dorsali',desc:'Tirata al viso con cavo o elastico — salute spalle',livello:'intermedio'},
+  {id:'E32',nome:'Arnold Press',cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Press con rotazione dei manubri — tutti i capi del deltoide',livello:'avanzato'},
+  {id:'E33',nome:'Shrug',cat:'Forza',muscoli:'Spalle',desc:'Alzate di spalle con manubri o bilanciere — trapezio',livello:'intermedio'},
+  // ── FORZA — BICIPITI ──
+  {id:'E34',nome:'Curl Manubri',cat:'Forza',muscoli:'Bicipiti',desc:'Flessione avambraccio con manubri alternati',livello:'base'},
+  {id:'E35',nome:'Curl Bilanciere',cat:'Forza',muscoli:'Bicipiti',desc:'Flessione avambraccio con bilanciere',livello:'intermedio'},
+  {id:'E36',nome:'Hammer Curl',cat:'Forza',muscoli:'Bicipiti',desc:'Curl con presa neutra — brachioradiale e bicipiti',livello:'intermedio'},
+  {id:'E37',nome:'Curl Concentrato',cat:'Forza',muscoli:'Bicipiti',desc:'Curl seduto con gomito appoggiato alla coscia — isolamento',livello:'avanzato'},
+  // ── FORZA — TRICIPITI ──
+  {id:'E38',nome:'French Press',cat:'Forza',muscoli:'Tricipiti',desc:'Estensione sopra la testa con manubrio — tricipiti',livello:'intermedio'},
+  {id:'E39',nome:'Pushdown Cavo',cat:'Forza',muscoli:'Tricipiti',desc:'Estensione al cavo alto — isolamento tricipiti',livello:'intermedio'},
+  {id:'E40',nome:'Dip Panca',cat:'Forza',muscoli:'Tricipiti',desc:'Flessioni inverse con mani su panca dietro',livello:'base'},
+  {id:'E41',nome:'Kickback',cat:'Forza',muscoli:'Tricipiti',desc:'Estensione indietro con manubrio a busto flesso',livello:'base'},
+  // ── FORZA — POLPACCI ──
+  {id:'E42',nome:'Calf Raise',cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni in piedi — gastrocnemio',livello:'base'},
+  {id:'E43',nome:'Calf Seduto',cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni seduto — soleo',livello:'intermedio'},
+  // ── CORE ──
+  {id:'E44',nome:'Plank',cat:'Core',muscoli:'Core, Addome',desc:'Posizione isometrica in appoggio sugli avambracci',livello:'base'},
+  {id:'E45',nome:'Dead Bug',cat:'Core',muscoli:'Core',desc:'Stabilizzazione lombare a terra — braccia e gambe alternate',livello:'base'},
+  {id:'E46',nome:'Mountain Climbers',cat:'Core',muscoli:'Core, Full Body',desc:'Arrampicata sul posto in posizione plank',livello:'intermedio'},
+  {id:'E47',nome:'Crunch',cat:'Core',muscoli:'Addome',desc:'Flessione del busto da supino — retto addominale',livello:'base'},
+  {id:'E48',nome:'Russian Twist',cat:'Core',muscoli:'Addome, Obliqui',desc:'Rotazione del busto seduto con o senza peso',livello:'intermedio'},
+  {id:'E49',nome:'Pallof Press',cat:'Core',muscoli:'Core, Obliqui',desc:'Press anti-rotazione al cavo — stabilita core',livello:'intermedio'},
+  {id:'E50',nome:'Bird Dog',cat:'Core',muscoli:'Core, Lombari',desc:'Estensione braccio-gamba opposti in quadrupedia',livello:'base'},
+  {id:'E51',nome:'Ab Wheel',cat:'Core',muscoli:'Core, Addome',desc:'Rollout con ruota addominale — molto avanzato',livello:'avanzato'},
+  {id:'E52',nome:'Plank Laterale',cat:'Core',muscoli:'Obliqui, Core',desc:'Plank su un fianco — obliqui e stabilita laterale',livello:'intermedio'},
+  {id:'E53',nome:'Hollow Hold',cat:'Core',muscoli:'Addome, Core',desc:'Posizione a corpo cavo supino — isometrica addominale',livello:'avanzato'},
+  // ── CARDIO ──
+  {id:'E54',nome:'Camminata',cat:'Cardio',muscoli:'Full Body',desc:'Camminata a ritmo moderato — base cardio',livello:'base'},
+  {id:'E55',nome:'Cyclette',cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Ciclismo stazionario — basso impatto',livello:'base'},
+  {id:'E56',nome:'Corsa',cat:'Cardio',muscoli:'Full Body',desc:'Corsa continua a ritmo moderato',livello:'intermedio'},
+  {id:'E57',nome:'Vogatore',cat:'Cardio',muscoli:'Full Body',desc:'Rowing machine — cardio e forza combinati',livello:'intermedio'},
+  {id:'E58',nome:'Jumping Jack',cat:'Cardio',muscoli:'Full Body',desc:'Salti con apertura braccia e gambe',livello:'intermedio'},
+  {id:'E59',nome:'Burpee',cat:'Cardio',muscoli:'Full Body',desc:'Squat thrust con salto — massima intensita',livello:'avanzato'},
+  {id:'E60',nome:'Salto Corda',cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Salto con corda — coordinazione e cardio',livello:'intermedio'},
+  // ── MOBILITÀ ──
+  {id:'E61',nome:'Cat-Cow',cat:'Mobilita',muscoli:'Colonna, Core',desc:'Flessione-estensione colonna in quadrupedia',livello:'base'},
+  {id:'E62',nome:'Stretching Psoas',cat:'Mobilita',muscoli:'Flessori Anca',desc:'Allungamento flessori anca in affondo basso',livello:'base'},
+  {id:'E63',nome:'90/90 Hip Stretch',cat:'Mobilita',muscoli:'Anca',desc:'Rotazione anca in posizione 90/90 a terra',livello:'intermedio'},
+  {id:'E64',nome:'World Greatest Stretch',cat:'Mobilita',muscoli:'Full Body',desc:'Affondo con rotazione toracica — mobilita completa',livello:'intermedio'},
+  {id:'E65',nome:'Foam Rolling',cat:'Mobilita',muscoli:'Full Body',desc:'Auto-massaggio con rullo — rilascio miofasciale',livello:'base'},
 ];
 
 const INIT_PATIENTS=[];
@@ -2873,19 +2934,19 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
 function ExercisesPage({exercises,setExercises,T}){
   const [showModal,setShowModal]=useState(false);
   const [editing,setEditing]=useState(null);
-  const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:''});
+  const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio'});
   const [filter,setFilter]=useState('Tutti');
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   const cats=['Tutti'].concat(Array.from(new Set(exercises.map(e=>e.cat))));
   const filtered=filter==='Tutti'?exercises:exercises.filter(e=>e.cat===filter);
-  const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:''});setEditing(null);setShowModal(true)};
+  const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio'});setEditing(null);setShowModal(true)};
   const openEdit=(ex)=>{setForm({...ex});setEditing(ex.id);setShowModal(true)};
   const save=()=>{
     if(editing)setExercises(es=>es.map(e=>e.id===editing?{...form,id:editing}:e));
     else setExercises(es=>[...es,{...form,id:'E'+Date.now()}]);
     setShowModal(false);
   };
-  const catColors={Forza:C.blue,Cardio:C.green,Core:C.orange,Mobilità:C.teal,Funzionale:C.purple};
+  const catColors={Forza:C.blue,Cardio:C.green,Core:C.orange,Mobilità:C.teal,Mobilita:C.teal,Funzionale:C.purple};
   return(
     <div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
@@ -2899,7 +2960,7 @@ function ExercisesPage({exercises,setExercises,T}){
         {filtered.map(ex=>(
           <div key={ex.id} style={{...S.card,border:`1px solid ${catColors[ex.cat]||C.border2}30`}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
-              <div><div style={{fontSize:13,fontWeight:700,color:C.strong,marginBottom:4}}>{ex.nome}</div><span style={S.tag(catColors[ex.cat]||C.muted)}>{ex.cat}</span></div>
+              <div><div style={{fontSize:13,fontWeight:700,color:C.strong,marginBottom:4}}>{ex.nome}</div><span style={S.tag(catColors[ex.cat]||C.muted)}>{ex.cat}</span>{ex.livello&&<span style={{marginLeft:6,display:'inline-block',padding:'3px 8px',borderRadius:6,fontSize:10,fontWeight:700,background:ex.livello==='base'?'#10b98115':ex.livello==='intermedio'?'#f59e0b15':'#ef444415',color:ex.livello==='base'?C.green:ex.livello==='intermedio'?C.yellow:C.red}}>{ex.livello}</span>}</div>
               <div style={{display:'flex',gap:4}}>
                 <button style={{...S.btn('ghost',true),padding:'3px 7px'}} onClick={()=>openEdit(ex)}>✏</button>
                 <button style={{...S.btn('danger',true),padding:'3px 7px'}} onClick={()=>setExercises(es=>es.filter(e=>e.id!==ex.id))}>✕</button>
@@ -2915,9 +2976,10 @@ function ExercisesPage({exercises,setExercises,T}){
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
             <FF label="Nome" name="nome" value={form.nome} onChange={upd}/>
             <div style={S.grid(2)}>
-              <FF label="Categoria" name="cat" value={form.cat} onChange={upd} options={['Forza','Cardio','Core','Mobilità','Funzionale']}/>
+              <FF label="Categoria" name="cat" value={form.cat} onChange={upd} options={['Forza','Cardio','Core','Mobilità','Mobilita','Funzionale']}/>
               <FF label="Muscoli" name="muscoli" value={form.muscoli} onChange={upd}/>
             </div>
+            <FF label="Livello" name="livello" value={form.livello} onChange={upd} options={['base','intermedio','avanzato']}/>
             <FF label="Descrizione / note tecniche" name="desc" type="textarea" value={form.desc} onChange={upd}/>
           </div>
           <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
@@ -3551,6 +3613,15 @@ var generaSchedaAuto = function(params, esercizi) {
   if (patologie.includes('ernia')) esclusi = esclusi.concat(['Squat', 'Romanian Deadlift', 'Hip Hinge']);
   if (patologie.includes('artrosi') && patologie.includes('ginocchio')) esclusi = esclusi.concat(['Squat', 'Affondi']);
   if (patologie.includes('spalla') || patologie.includes('cuffia')) esclusi = esclusi.concat(['Push-up']);
+  // ── LIVELLI PERMESSI per profilo ──
+  var livelliPermessi;
+  if (profilo === 'A') {
+    livelliPermessi = ['base'];
+  } else if (profilo === 'B') {
+    livelliPermessi = ['base', 'intermedio'];
+  } else {
+    livelliPermessi = ['base', 'intermedio', 'avanzato'];
+  }
   // ── CATEGORIE ESERCIZI RICHIESTI ──
   var categorie;
   if (profilo === 'A') {
@@ -3626,9 +3697,20 @@ var generaSchedaAuto = function(params, esercizi) {
       if (usati.indexOf(ex.id) !== -1) return false;
       if (esclusi.indexOf(ex.nome) !== -1) return false;
       if (ex.cat !== req.cat) return false;
+      if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
       if (req.muscoli && ex.muscoli && ex.muscoli.toLowerCase().indexOf(req.muscoli.toLowerCase()) === -1) return false;
       return true;
     });
+    // Fallback: se non trova match con livello, prova senza filtro livello
+    if (candidati.length === 0) {
+      candidati = esercizi.filter(function(ex) {
+        if (usati.indexOf(ex.id) !== -1) return false;
+        if (esclusi.indexOf(ex.nome) !== -1) return false;
+        if (ex.cat !== req.cat) return false;
+        if (req.muscoli && ex.muscoli && ex.muscoli.toLowerCase().indexOf(req.muscoli.toLowerCase()) === -1) return false;
+        return true;
+      });
+    }
     if (candidati.length === 0) {
       candidati = esercizi.filter(function(ex) {
         if (usati.indexOf(ex.id) !== -1) return false;
@@ -3637,7 +3719,7 @@ var generaSchedaAuto = function(params, esercizi) {
       });
     }
     if (candidati.length > 0) {
-      var scelto = candidati[0];
+      var scelto = candidati[Math.floor(Math.random() * candidati.length)];
       usati.push(scelto.id);
       var serie = config.serie;
       var rip = config.rip;
@@ -3657,6 +3739,16 @@ var generaSchedaAuto = function(params, esercizi) {
       });
     }
   });
+  // ── MOBILITA automatica per profilo A o eta > 60 ──
+  if (profilo === 'A' || eta > 60) {
+    var mobCandidati = esercizi.filter(function(ex) {
+      return ex.cat === 'Mobilita' && usati.indexOf(ex.id) === -1;
+    });
+    if (mobCandidati.length > 0) {
+      var mobScelto = mobCandidati[Math.floor(Math.random() * mobCandidati.length)];
+      schedaEsercizi.push({eId: mobScelto.id, serie: 2, reps: '30s', rec: 0, peso: '', note: 'Mobilita'});
+    }
+  }
   // ── GENERA NOME SCHEDA ──
   var nomeScheda;
   if (profilo === 'A') nomeScheda = 'Adattamento — ' + (obiettivo || 'Generale');
