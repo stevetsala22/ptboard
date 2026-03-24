@@ -270,6 +270,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;color:var(--text);transition:col
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 input,select,textarea,button{font-family:inherit;color:var(--text)}
 input,select,textarea{background:var(--input-bg);color:var(--text)}
+.hide-scrollbar::-webkit-scrollbar{display:none}
 /* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────────── */
 @media(max-width:768px){
   /* Grid forms: 1 colonna su mobile */
@@ -2084,23 +2085,12 @@ ${(p.progressi||[]).length>1?`
               </div>
             </div>
           </div>
-          {/* Riga 2: bottoni azione ben spaziati */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8}}>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #334155',background:'transparent',cursor:'pointer',color:C.dim,fontSize:11,fontWeight:600}} onClick={onBack}>
-              <span style={{fontSize:18}}>←</span><span>Torna</span>
-            </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={onValuta}>
-              <span style={{fontSize:18}}>📋</span><span>Valuta</span>
-            </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={generaPDF}>
-              <span style={{fontSize:18}}>📄</span><span>PDF</span>
-            </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:`1px solid ${C.border2}`,background:'transparent',cursor:'pointer',color:C.dim,fontSize:11,fontWeight:600}} onClick={onEdit}>
-              <span style={{fontSize:18}}>✏️</span><span>Modifica</span>
-            </button>
-            {p.telefono&&<a href={'https://wa.me/'+p.telefono.replace(/[\s\-\(\)\+]/g,'')+'?text='+encodeURIComponent('Ciao '+p.nome+'! Ti scrivo da PT Board.')} target="_blank" rel="noreferrer" style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #25D36640',background:'#25D36620',cursor:'pointer',color:'#25D366',fontSize:11,fontWeight:600,textDecoration:'none'}}>
-              <span style={{fontSize:18}}>💬</span><span>WhatsApp</span>
-            </a>}
+          {/* Riga 2: bottoni azione scrollabili */}
+          <div className="hide-scrollbar" style={{display:'flex',gap:8,overflowX:'auto',whiteSpace:'nowrap',paddingBottom:4,WebkitOverflowScrolling:'touch',scrollbarWidth:'none',msOverflowStyle:'none'}}>
+            <button style={{padding:'6px 12px',borderRadius:8,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:12,fontWeight:600,fontFamily:'inherit',display:'flex',alignItems:'center',gap:4,flexShrink:0}} onClick={onValuta}>🎯 Valuta</button>
+            <button style={{padding:'6px 12px',borderRadius:8,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:12,fontWeight:600,fontFamily:'inherit',display:'flex',alignItems:'center',gap:4,flexShrink:0}} onClick={generaPDF}>📄 PDF</button>
+            <button style={{padding:'6px 12px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',color:C.dim,fontSize:12,fontWeight:600,fontFamily:'inherit',display:'flex',alignItems:'center',gap:4,flexShrink:0}} onClick={onEdit}>✏️ Modifica</button>
+            {p.telefono&&<a href={'https://wa.me/'+p.telefono.replace(/[\s\-\(\)\+]/g,'')+'?text='+encodeURIComponent('Ciao '+p.nome+'! Ti scrivo da PT Board.')} target="_blank" rel="noreferrer" style={{padding:'6px 12px',borderRadius:8,border:'1px solid #25D36640',background:'#25D36620',cursor:'pointer',color:'#25D366',fontSize:12,fontWeight:600,fontFamily:'inherit',display:'flex',alignItems:'center',gap:4,flexShrink:0,textDecoration:'none'}}>💬 WhatsApp</a>}
           </div>
         </div>
       ):(
@@ -2124,33 +2114,33 @@ ${(p.progressi||[]).length>1?`
       )}
 
       {/* Tabs scorrevoli */}
-      <div style={{display:'flex',gap:3,marginBottom:14,background:C.sidebar,borderRadius:9,padding:3,overflowX:'auto',WebkitOverflowScrolling:'touch',scrollbarWidth:'none'}}>
-        {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn(tab===t.id?'primary':'ghost',true),borderRadius:6,border:'none',whiteSpace:'nowrap',fontSize:isMobile?12:12,padding:isMobile?'6px 12px':'5px 12px',flexShrink:0}}>{t.l}</button>)}
+      <div className="hide-scrollbar" style={{display:'flex',gap:3,marginBottom:14,background:C.sidebar,borderRadius:9,padding:3,overflowX:'auto',whiteSpace:'nowrap',WebkitOverflowScrolling:'touch',scrollbarWidth:'none',msOverflowStyle:'none'}}>
+        {tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn(tab===t.id?'primary':'ghost',true),borderRadius:6,border:'none',whiteSpace:'nowrap',fontSize:12,padding:isMobile?'6px 12px':'5px 12px',flexShrink:0}}>{t.l}</button>)}
       </div>
 
       {tab==='panoramica'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           {/* HERO ROW */}
-          <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
             {/* Card Peso */}
-            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:20,display:'flex',alignItems:'center',gap:16}}>
-              <div style={{width:52,height:52,borderRadius:'50%',border:'3px solid '+C.blue,background:C.blue+'15',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <span style={{fontSize:11,fontWeight:600,color:C.muted}}>kg</span>
+            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?12:20,display:'flex',alignItems:'center',gap:isMobile?10:16}}>
+              <div style={{width:isMobile?40:52,height:isMobile?40:52,borderRadius:'50%',border:'3px solid '+C.blue,background:C.blue+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <span style={{fontSize:isMobile?10:11,fontWeight:600,color:C.muted}}>kg</span>
               </div>
-              <div>
-                <div style={{fontSize:isMobile?28:36,fontWeight:900,color:C.strong,lineHeight:1}}>{p.peso||'—'}</div>
-                <div style={{fontSize:12,fontWeight:600,color:C.muted}}>Peso attuale</div>
-                {p.altezza&&p.peso&&(()=>{const tgt=(24.9*Math.pow(p.altezza/100,2)).toFixed(1);const diff=(p.peso-tgt).toFixed(1);return <div style={{fontSize:12,color:C.dim}}>{diff<0?'sotto target':'target '+tgt+' kg · '+diff+' kg da perdere'}</div>;})()}
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:isMobile?22:36,fontWeight:900,color:C.strong,lineHeight:1}}>{p.peso||'—'}</div>
+                <div style={{fontSize:isMobile?11:12,fontWeight:600,color:C.muted}}>Peso attuale</div>
+                {p.altezza&&p.peso&&(()=>{const tgt=(24.9*Math.pow(p.altezza/100,2)).toFixed(1);const diff=(p.peso-tgt).toFixed(1);return <div style={{fontSize:isMobile?10:12,color:C.dim,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{diff<0?'sotto target':'target '+tgt+' kg'}</div>;})()}
               </div>
             </div>
             {/* Card BMI */}
-            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?16:20,display:'flex',alignItems:'center',gap:16}}>
-              <div style={{width:52,height:52,borderRadius:'50%',border:'3px solid '+(bc||C.muted),background:(bc||C.muted)+'15',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <span style={{fontSize:11,fontWeight:600,color:C.muted}}>BMI</span>
+            <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:isMobile?12:20,display:'flex',alignItems:'center',gap:isMobile?10:16}}>
+              <div style={{width:isMobile?40:52,height:isMobile?40:52,borderRadius:'50%',border:'3px solid '+(bc||C.muted),background:(bc||C.muted)+'15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <span style={{fontSize:isMobile?10:11,fontWeight:600,color:C.muted}}>BMI</span>
               </div>
-              <div>
-                <div style={{fontSize:isMobile?28:36,fontWeight:900,color:C.strong,lineHeight:1}}>{b||'—'}</div>
-                <div style={{fontSize:12,fontWeight:600,color:C.muted}}>Body Mass Index</div>
+              <div style={{minWidth:0}}>
+                <div style={{fontSize:isMobile?22:36,fontWeight:900,color:C.strong,lineHeight:1}}>{b||'—'}</div>
+                <div style={{fontSize:isMobile?11:12,fontWeight:600,color:C.muted}}>Body Mass Index</div>
                 {b&&<span style={S.tag(bc)}>{bl}</span>}
               </div>
             </div>
@@ -2164,8 +2154,8 @@ ${(p.progressi||[]).length>1?`
               {label:'STS 30S',value:p.test?.stsRip||'—',unit:'rip'},
               {label:'SEDUTE',value:p.log?.length||0,unit:''},
             ].map(item=>(
-              <div key={item.label} style={{background:C.bg,borderRadius:10,padding:isMobile?10:12,textAlign:'center'}}>
-                <div style={{fontSize:10,fontWeight:600,textTransform:'uppercase',letterSpacing:0.5,color:C.muted,marginBottom:6}}>{item.label}</div>
+              <div key={item.label} style={{background:C.bg,borderRadius:10,padding:isMobile?8:12,textAlign:'center'}}>
+                <div style={{fontSize:isMobile?9:10,fontWeight:600,textTransform:'uppercase',letterSpacing:0.5,color:C.muted,marginBottom:isMobile?4:6}}>{item.label}</div>
                 <div style={{fontSize:isMobile?16:18,fontWeight:800,color:C.strong}}>{item.value}</div>
                 {item.unit&&<div style={{fontSize:11,color:C.muted}}>{item.unit}</div>}
               </div>
@@ -2693,16 +2683,14 @@ ${(p.progressi||[]).length>1?`
                 {future.map(b=>{
                   const isPast=b.data<todayISO;
                   const isCompleting=completingId===b.id;
+                  const fmtD=(function(d){try{return new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short'});}catch(e){return d;}});
                   return <div key={b.id}>
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'7px 12px',background:C.card,border:'1px solid '+C.border2,borderRadius:8,marginBottom:3}}>
-                      <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <span style={{fontWeight:700,color:C.blue,fontSize:12,minWidth:75}}>{b.data}</span>
-                        <span style={{color:C.muted,fontSize:12}}>{b.ora} · {b.tipo} · {b.durata} min</span>
-                        {isPast&&!b.completed&&<span style={{fontSize:11,fontWeight:700,color:C.yellow,background:C.yellow+'20',padding:'2px 7px',borderRadius:10}}>Scaduto</span>}
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <div style={{display:'flex',alignItems:'center',padding:isMobile?'8px 10px':'7px 12px',background:C.card,border:'1px solid '+C.border2,borderRadius:8,marginBottom:3,gap:isMobile?6:8}}>
+                      <span style={{fontWeight:700,color:C.blue,fontSize:isMobile?13:12,flexShrink:0,width:isMobile?55:75}}>{isMobile?fmtD(b.data):b.data}</span>
+                      <span style={{color:C.muted,fontSize:12,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',flex:1}}>{b.ora} · {b.tipo} · {b.durata} min</span>
+                      <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                         {b.completed
-                          ?<span style={{fontSize:11,fontWeight:700,color:C.green,background:C.green+'20',padding:'3px 10px',borderRadius:10}}>✅ Completata</span>
+                          ?<span style={{fontSize:11,fontWeight:700,color:C.green,background:C.green+'20',padding:'3px 10px',borderRadius:10}}>✅</span>
                           :<button style={{...S.btn('success',true),fontSize:11,padding:'4px 10px'}} onClick={()=>{setCompletingId(b.id);setCompletingRpe('');setCompletingNote('');}}>Completa</button>
                         }
                         <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+b.data+'?',()=>onDeleteBooking(b.id))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit'}}>✕</button>
@@ -2743,17 +2731,18 @@ ${(p.progressi||[]).length>1?`
             </div>
             {openStorico&&<div>
               {(!p.log||p.log.length===0)&&<div style={{color:C.muted,fontSize:13}}>Nessuna seduta completata</div>}
-              {(p.log||[]).slice().reverse().map(s=>(
-                <div key={s.id} style={{padding:'6px 10px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:10,fontSize:12}}>
+              {(p.log||[]).slice().reverse().map(s=>{
+                const fmtD=(function(d){try{return new Date(d).toLocaleDateString('it-IT',{day:'numeric',month:'short'});}catch(e){return d;}});
+                return <div key={s.id} style={{padding:isMobile?'8px 10px':'6px 10px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:isMobile?6:10,fontSize:12}}>
                   <div style={{width:9,height:9,borderRadius:'50%',background:rpeC(s.rpe),flexShrink:0}}/>
-                  <span style={{color:C.muted,minWidth:80}}>{s.data}</span>
-                  <span style={{fontSize:13,fontWeight:700,color:C.strong,flex:1}}>{s.tipo}</span>
-                  <span style={{color:C.muted}}>{s.durata} min</span>
-                  <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center'}}>{s.rpe||'—'}</span>
-                  {s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
-                  <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+s.data+'?',()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)})))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit'}}>✕</button>
-                </div>
-              ))}
+                  <span style={{color:C.muted,flexShrink:0,width:isMobile?55:80,fontSize:isMobile?13:12,fontWeight:isMobile?700:400}}>{isMobile?fmtD(s.data):s.data}</span>
+                  <span style={{fontSize:isMobile?12:13,fontWeight:700,color:C.strong,flex:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.tipo}{!isMobile?' ':''}</span>
+                  <span style={{color:C.muted,flexShrink:0}}>{s.durata}m</span>
+                  <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center',flexShrink:0}}>{s.rpe||'—'}</span>
+                  {!isMobile&&s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
+                  <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+s.data+'?',()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)})))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>✕</button>
+                </div>;
+              })}
             </div>}
           </div>
         </div>
