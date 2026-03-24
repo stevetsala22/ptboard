@@ -3600,41 +3600,177 @@ function AppInner({user,profile,trialLeft}){
   );
 }
 
-// ── DATI PROGRAMMI PER PROFILO ────────────────────────────────────────────────
-const PROGRAMMI={
-  A:{
-    nome:'Programma Forma Bassa — Avvio Graduale',
-    desc:'Capacità molto bassa. Focus su adattamento, sicurezza e costruzione abitudine.',
-    settimane:[
-      {num:1,cardio:'Camminata lenta 10-15 min, RPE 2-3. Pausa ogni 5 min se necessario.',forza:'Esercizi da seduto: sollevamento gambe, push-up da muro (2×8). Recupero 90s.',note:'Monitorare PA e FC. Fermarsi se RPE > 5.'},
-      {num:2,cardio:'Camminata 15-20 min, RPE 3-4. Intervalli: 5 min cammino / 2 min pausa.',forza:'Squat assistito con sedia + alzate laterali 1kg (2×10). Recupero 90s.',note:'Aggiungere 5 min se ben tollerato.'},
-      {num:3,cardio:'Camminata 20-25 min continua, RPE 3-4.',forza:'Squat libero + curl 2kg + step-up basso (3×8). Recupero 60s.',note:'Prima settimana con resistenza leggera.'},
-      {num:4,cardio:'Camminata 25-30 min, RPE 4-5. Primo tratto in leggera salita.',forza:'Circuito 3 esercizi × 3 giri: squat, push-up ginocchia, row elastico.',note:'Rivalutare con 6MWT a fine mese.'},
-    ],
-    sedute:3,minCardio:75,minForza:45,kcal:1600,prot:128,carbo:160,grassi:53,
-  },
-  B:{
-    nome:'Programma Forma Media — Progressione Moderata',
-    desc:'Capacità moderata. Progressione controllata su cardio e forza funzionale.',
-    settimane:[
-      {num:1,cardio:'Camminata veloce 20 min + 2 brevi salite, RPE 4-5.',forza:'Squat + affondi + push-up (3×10). Recupero 60s.',note:'Stabilire il ritmo di base della settimana.'},
-      {num:2,cardio:'Camminata/corsa blanda 25 min, RPE 4-5. Intervalli 3 min corsa / 2 min cammino.',forza:'Aggiunta peso leggero (2-4 kg). Circuit training 3 giri.',note:'Aumentare intensità cardio del 10%.'},
-      {num:3,cardio:'30 min cardio (bike o camminata veloce), RPE 5-6.',forza:'Supersets: squat+curl, affondi+press (3×12). Recupero 45s.',note:'Introdurre attrezzatura minima.'},
-      {num:4,cardio:'35 min cardio variato (LISS + 2×5 min HIIT leggero), RPE 5-7.',forza:'Full body con sovraccarichi: 4 esercizi × 3 giri × 12 rip.',note:'Rivalutare test funzionali. Obiettivo: profilo C.'},
-    ],
-    sedute:4,minCardio:110,minForza:70,kcal:1800,prot:144,carbo:180,grassi:60,
-  },
-  C:{
-    nome:'Programma Buona Forma — Sviluppo Intensivo',
-    desc:'Buona capacità di base. Obiettivo: composizione corporea e performance.',
-    settimane:[
-      {num:1,cardio:'30 min LISS (60-70% FC max) + 10 min HIIT 30/30, RPE 5-7.',forza:'Upper/Lower split: 4 esercizi × 4 giri × 10-12 rip. Recupero 45s.',note:'Settimana baseline — registrare i carichi.'},
-      {num:2,cardio:'35 min cardio + 15 min HIIT (40/20), RPE 6-7.',forza:'Aumentare carico +5-10%. Aggiungere esercizio accessorio per gruppo.',note:'Progressione lineare del carico.'},
-      {num:3,cardio:'40 min cardio. 2 sessioni HIIT dedicate (20 min, 30/15).',forza:'Volume alto: 5 giri × 8-10 rip. Compound: stacco, panca.',note:'Monitorare recupero e sonno.'},
-      {num:4,cardio:'45 min cardio variato. Prova corsa 5 km se ben tollerato.',forza:'Deload parziale: 3 giri × 12 rip, carico -20%. Lavoro mobilità.',note:'Rivalutare e pianificare prossimo mesociclo.'},
-    ],
-    sedute:5,minCardio:150,minForza:100,kcal:2100,prot:168,carbo:220,grassi:70,
-  },
+// ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
+var generaProgramma = function(params) {
+  var profilo = params.profilo;
+  var obiettivo = params.obiettivo;
+  var eta = params.eta || 50;
+  var sesso = params.sesso || 'M';
+  var patologie = (params.patologie || '').toLowerCase();
+  var score = params.score || 50;
+  var attivita = params.attivita || 'Sedentaria';
+  var seduteDisponibili = params.seduteSettimana ? +params.seduteSettimana : null;
+  // ── FREQUENZA (ACSM Guidelines 11th ed.) ──
+  var sedute, minCardio, minForza;
+  if (profilo === 'A') { sedute = 3; minCardio = 75; minForza = 40; }
+  else if (profilo === 'B') { sedute = 4; minCardio = 120; minForza = 60; }
+  else { sedute = 5; minCardio = 150; minForza = 90; }
+  if (seduteDisponibili && seduteDisponibili < sedute) sedute = seduteDisponibili;
+  if (eta > 65) { minCardio = Math.round(minCardio * 0.85); minForza = Math.round(minForza * 0.8); }
+  if (eta > 75) { sedute = Math.min(sedute, 3); }
+  if (obiettivo === 'Perdere peso') { minCardio = Math.round(minCardio * 1.2); }
+  if (obiettivo === 'Aumentare massa') { minForza = Math.round(minForza * 1.3); minCardio = Math.round(minCardio * 0.7); }
+  if (obiettivo === 'Resistenza') { minCardio = Math.round(minCardio * 1.3); }
+  if (obiettivo === 'Forza') { minForza = Math.round(minForza * 1.3); }
+  // ── INTENSITÀ ──
+  var rpeMin, rpeMax, recSec, serieBase, ripBase;
+  if (profilo === 'A') { rpeMin = 2; rpeMax = 4; recSec = 90; serieBase = 2; ripBase = 10; }
+  else if (profilo === 'B') { rpeMin = 4; rpeMax = 6; recSec = 60; serieBase = 3; ripBase = 12; }
+  else { rpeMin = 5; rpeMax = 8; recSec = 45; serieBase = 4; ripBase = 10; }
+  if (eta > 65) { rpeMax = Math.min(rpeMax, 6); recSec += 15; }
+  // ── TIPO CARDIO per profilo e obiettivo ──
+  var cardioDesc = [];
+  if (profilo === 'A') {
+    cardioDesc = [
+      'Camminata lenta ' + Math.round(minCardio/sedute) + ' min, RPE ' + rpeMin + '-' + (rpeMin+1),
+      'Camminata moderata ' + Math.round(minCardio/sedute + 3) + ' min, RPE ' + (rpeMin+1),
+      'Camminata veloce ' + Math.round(minCardio/sedute + 5) + ' min, RPE ' + rpeMax,
+      'Camminata veloce ' + Math.round(minCardio/sedute + 8) + ' min con 2 brevi salite'
+    ];
+  } else if (profilo === 'B') {
+    if (obiettivo === 'Perdere peso') {
+      cardioDesc = [
+        'Camminata veloce ' + Math.round(minCardio/sedute) + ' min, RPE ' + rpeMin,
+        'Intervalli: 3 min corsa / 2 min cammino x ' + Math.round(minCardio/sedute/5) + ' cicli',
+        'Corsa leggera continua ' + Math.round(minCardio/sedute) + ' min, RPE ' + (rpeMax-1),
+        'LISS ' + Math.round(minCardio/sedute) + ' min + 2x3 min HIIT leggero'
+      ];
+    } else {
+      cardioDesc = [
+        'Camminata veloce/cyclette ' + Math.round(minCardio/sedute) + ' min, RPE ' + rpeMin,
+        'Intervalli: 3 min intenso / 2 min recupero x ' + Math.round(minCardio/sedute/5) + ' cicli',
+        'Cardio moderato ' + Math.round(minCardio/sedute + 5) + ' min',
+        'Cardio variato ' + Math.round(minCardio/sedute + 5) + ' min + 5 min HIIT'
+      ];
+    }
+  } else {
+    if (obiettivo === 'Perdere peso') {
+      cardioDesc = [
+        'LISS 30 min (60-70% FC max) + 10 min HIIT 30/30',
+        'Intervalli: 4 min corsa / 1 min sprint x 6 cicli',
+        'HIIT 20 min (30s on / 15s off) + 15 min LISS',
+        'Corsa continua 35 min + 10 min intervalli in salita'
+      ];
+    } else if (obiettivo === 'Aumentare massa') {
+      cardioDesc = [
+        'LISS 15 min post-allenamento (non interferire con ipertrofia)',
+        'Camminata veloce 20 min nei giorni di riposo',
+        'Cyclette 15 min bassa intensita come recupero attivo',
+        'LISS 15 min + mobilita 10 min'
+      ];
+    } else {
+      cardioDesc = [
+        'LISS 30 min (60-70% FC max) + 10 min HIIT',
+        'Intervalli: 4 min alta / 2 min bassa x 5 cicli',
+        'Corsa o bike 35 min continua, RPE ' + rpeMin + '-' + rpeMax,
+        'Variato: 20 min corsa + 15 min bike + 10 min HIIT'
+      ];
+    }
+  }
+  // ── TIPO FORZA per profilo e obiettivo ──
+  var forzaDesc = [];
+  if (profilo === 'A') {
+    forzaDesc = [
+      'Esercizi da seduto: leg extension, push-up muro (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
+      'Squat assistito (sedia) + alzate laterali 1kg (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
+      'Squat libero + curl 2kg + step-up basso (' + (serieBase+1) + 'x' + ripBase + '). Recupero ' + (recSec-15) + 's',
+      'Circuito 3 esercizi x ' + (serieBase+1) + ' giri: squat, push-up ginocchia, row elastico'
+    ];
+  } else if (profilo === 'B') {
+    if (obiettivo === 'Aumentare massa') {
+      forzaDesc = [
+        'Upper: panca manubri + row + press spalle + curl (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
+        'Lower: squat + affondi + leg curl + calf (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
+        'Upper: push-up + lat machine + alzate laterali + dip (' + serieBase + 'x' + (ripBase-2) + '). Aumento peso 5%',
+        'Lower: stacco rumeno + leg press + affondi + ponte glutei (' + serieBase + 'x' + ripBase + '). Aumento peso 5%'
+      ];
+    } else {
+      forzaDesc = [
+        'Full body: squat + push-up + row + plank (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
+        'Full body: affondi + press + curl + dead bug (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
+        'Superset: squat+curl, affondi+press (' + serieBase + 'x' + ripBase + '). Recupero ' + (recSec-15) + 's',
+        'Circuito: 5 esercizi x ' + serieBase + ' giri. Aumento intensita 10%'
+      ];
+    }
+  } else {
+    if (obiettivo === 'Aumentare massa') {
+      forzaDesc = [
+        'Push: panca ' + serieBase + 'x8 + press spalle ' + serieBase + 'x10 + croci ' + serieBase + 'x12 + dip ' + serieBase + 'x max. Rec ' + recSec + 's',
+        'Pull: stacco ' + serieBase + 'x6 + trazioni ' + serieBase + 'x max + row ' + serieBase + 'x10 + curl ' + serieBase + 'x12. Rec ' + recSec + 's',
+        'Legs: squat ' + serieBase + 'x8 + leg press ' + serieBase + 'x10 + affondi ' + serieBase + 'x10 + calf ' + serieBase + 'x15. Rec ' + recSec + 's',
+        'Deload: tutti gli esercizi a -20% carico, ' + (serieBase-1) + 'x12. Focus tecnica e mobilita'
+      ];
+    } else if (obiettivo === 'Forza') {
+      forzaDesc = [
+        'Squat ' + serieBase + 'x5 @80% + accessori (' + serieBase + 'x8-10). Rec 120s compound, ' + recSec + 's accessori',
+        'Panca ' + serieBase + 'x5 @80% + push accessori. Rec 120s compound',
+        'Stacco ' + serieBase + 'x5 @80% + pull accessori. Rec 120s compound',
+        'Deload: compound ' + (serieBase-1) + 'x5 @70%. Rivalutare 1RM'
+      ];
+    } else {
+      forzaDesc = [
+        'Upper/Lower split: ' + serieBase + ' esercizi x ' + serieBase + ' serie x 10-12 rip. Rec ' + recSec + 's',
+        'Aumento carico +5-10%. Aggiungere esercizio accessorio per gruppo',
+        'Volume alto: 5 serie x 8-10 rip. Compound: stacco, panca, squat',
+        'Deload parziale: ' + (serieBase-1) + ' serie x 12 rip, carico -20%. Mobilita'
+      ];
+    }
+  }
+  // ── PRECAUZIONI PATOLOGIE ──
+  var precauzioni = [];
+  if (patologie.includes('ipertensione')) precauzioni.push('Ipertensione: evitare Valsalva, monitorare PA prima e dopo. No isometria prolungata. Preferire circuiti a bassa intensita.');
+  if (patologie.includes('diabete tipo 2')) precauzioni.push('Diabete T2: allenarsi 1-3h dopo il pasto. Portare snack glucidico. Monitorare glicemia se insulino-trattato. No esercizio a digiuno.');
+  if (patologie.includes('diabete tipo 1')) precauzioni.push('Diabete T1: monitorare glicemia prima, durante e dopo. Se <100 mg/dL assumere 15g carboidrati. Evitare esercizio intenso se >250 mg/dL.');
+  if (patologie.includes('cardiopatia')) precauzioni.push('Cardiopatia: RPE max 5. Monitorare FC costantemente. Evitare sforzi massimali. Riscaldamento lungo 10 min. Defaticamento graduale.');
+  if (patologie.includes('artrosi') || patologie.includes('artrite')) precauzioni.push('Artrosi/Artrite: evitare impatti. Preferire cyclette, nuoto, esercizi in scarico. Riscaldamento lungo. Stop se dolore articolare.');
+  if (patologie.includes('osteoporosi')) precauzioni.push('Osteoporosi: includere esercizi in carico (camminata, squat leggero). Evitare flessione vertebrale sotto carico. Equilibrio e propriocezione prioritari.');
+  if (patologie.includes('ernia')) precauzioni.push('Ernia lombare: evitare flessione lombare sotto carico (deadlift, sit-up). Core stability isometrica (plank, bird dog). Niente compressione assiale pesante.');
+  if (patologie.includes('asma') || patologie.includes('bpco')) precauzioni.push('Asma/BPCO: riscaldamento graduale 15 min. Broncodilatatore disponibile. Evitare aria fredda. Intervalli brevi con recuperi lunghi.');
+  if (patologie.includes('obesita')) precauzioni.push('Obesita: preferire esercizi a basso impatto (cyclette, nuoto, camminata). Aumentare volume prima dell\'intensita. Monitorare articolazioni.');
+  if (eta > 70) precauzioni.push('Over 70: equilibrio e prevenzione cadute prioritari. Supervisione costante. Alzata da seduto prima di camminare.');
+  if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push('Over 60: includere esercizi equilibrio 2x/settimana (single leg stand, tandem walk).');
+  // ── SETTIMANE ──
+  var settimane = [];
+  for (var w = 0; w < 4; w++) {
+    settimane.push({
+      num: w + 1,
+      cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
+      forza: forzaDesc[w] || forzaDesc[forzaDesc.length - 1],
+      note: w === 0 ? 'Settimana di adattamento. Registrare RPE e carichi.' :
+            w === 1 ? 'Aumentare volume o intensita del 10% rispetto a sett. 1.' :
+            w === 2 ? 'Picco di volume. Monitorare recupero e sonno.' :
+            'Deload o rivalutazione. Ridurre volume 20-30% se affaticamento.'
+    });
+  }
+  var nomeObiettivo = obiettivo || 'Salute';
+  var nomeProfilo = profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : 'Buona Forma';
+  var nome = 'Programma ' + nomeObiettivo + ' — ' + nomeProfilo;
+  var desc = 'Programma personalizzato per ' + (sesso === 'M' ? 'uomo' : 'donna') + ' di ' + eta + ' anni. Obiettivo: ' + nomeObiettivo + '. Profilo: ' + nomeProfilo + ' (score ' + score + '/100).';
+  if (precauzioni.length > 0) desc += ' Attenzione: ' + precauzioni.length + ' precauzioni cliniche.';
+  return {
+    nome: nome,
+    desc: desc,
+    sedute: sedute,
+    minCardio: minCardio,
+    minForza: minForza,
+    rpeRange: rpeMin + '-' + rpeMax,
+    recSec: recSec,
+    serieBase: serieBase,
+    ripBase: ripBase,
+    settimane: settimane,
+    precauzioni: precauzioni,
+    riferimenti: 'ACSM Guidelines for Exercise Testing and Prescription (11th ed.) \u00b7 ISSN Position Stand 2017 \u00b7 WHO Physical Activity Guidelines 2020'
+  };
 };
 
 // ── WIZARD VALUTAZIONE 20 MIN ─────────────────────────────────────────────────
@@ -3756,7 +3892,8 @@ function WizardValutazione({onSave,onClose,initialData}){
   const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
-  const prog=pr?PROGRAMMI[pr.code]:null;
+  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana}):null;
+  const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
   const STEPS_BASE=[1,3,4,5,7,8];
@@ -3822,13 +3959,15 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
 <div><strong style="color:#10b981">Forza:</strong> ${esc(w.forza)}</div>
 <div class="tip">💡 ${esc(w.note)}</div></div>`).join('')}
 </div>
+${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="background:#fef3c720;border:1px solid #f59e0b40"><div class="st" style="color:#f59e0b">⚠️ Precauzioni cliniche</div>${prog.precauzioni.map(function(p2){return '<div style="font-size:11px;color:#334155;line-height:1.6;padding:3px 0">'+esc(p2)+'</div>';}).join('')}</div>`:''}
 <div class="sec"><div class="st">Linee guida nutrizionali</div>
 <div class="g4">
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${prog.kcal}</div><div class="kl">kcal/gg</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px">${prog.prot}g</div><div class="kl">Proteine</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${prog.carbo}g</div><div class="kl">Carboidrati</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${prog.grassi}g</div><div class="kl">Grassi</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${nutri.kcal||'—'}</div><div class="kl">kcal/gg</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px">${nutri.proteine||'—'}g</div><div class="kl">Proteine</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${nutri.carboidrati||'—'}g</div><div class="kl">Carboidrati</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${nutri.grassi||'—'}g</div><div class="kl">Grassi</div></div>
 </div></div>
+<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:12px">${prog.riferimenti}</div>
 <footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — ${pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span></footer>
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');w.document.write(html);w.document.close();
@@ -3848,7 +3987,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
       ['PROGRAMMA 4 SETTIMANE',''],['Nome',prog.nome],['Sedute/sett',prog.sedute],['Min cardio/sett',prog.minCardio],['Min forza/sett',prog.minForza],[''],
       ['SETTIMANA','CARDIO','FORZA','NOTE'],
       ...prog.settimane.map(w=>[`Settimana ${w.num}`,w.cardio,w.forza,w.note]),[''],
-      ['NUTRIZIONE',''],['kcal/gg',prog.kcal],['Proteine g',prog.prot],['Carboidrati g',prog.carbo],['Grassi g',prog.grassi],
+      ['NUTRIZIONE',''],['kcal/gg',nutri.kcal||'—'],['Proteine g',nutri.proteine||'—'],['Carboidrati g',nutri.carboidrati||'—'],['Grassi g',nutri.grassi||'—'],
     ];
     const csv=rows.map(function(r){return r.map(function(cell){var s=String(cell||'');return '"'+s.split('"').join('""')+'"';}).join(',');}).join('\n');
     const a=document.createElement('a');
@@ -4590,7 +4729,7 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
               <div style={{...S.card,marginBottom:14}}>
                 <div style={S.st}>🥗 Linee guida nutrizionali</div>
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:8}}>
-                  {[[prog.kcal,'kcal/gg',C.orange],[prog.prot+'g','Proteine',C.blue],[prog.carbo+'g','Carboidrati',C.yellow],[prog.grassi+'g','Grassi',C.green]].map(([v,l,c])=>(
+                  {[[nutri.kcal||'—','kcal/gg',C.orange],[(nutri.proteine||'—')+'g','Proteine',C.blue],[(nutri.carboidrati||'—')+'g','Carboidrati',C.yellow],[(nutri.grassi||'—')+'g','Grassi',C.green]].map(([v,l,c])=>(
                     <div key={l} style={{background:C.bg,borderRadius:9,padding:'10px 6px',textAlign:'center',border:'1px solid '+c+'30'}}>
                       <div style={{fontSize:16,fontWeight:800,color:c}}>{v}</div>
                       <div style={{fontSize:9,color:C.muted,marginTop:2}}>{l}</div>
@@ -4598,6 +4737,13 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   ))}
                 </div>
               </div>
+              {prog.precauzioni&&prog.precauzioni.length>0&&<div style={{...S.card,marginBottom:14,background:'#fef3c720',border:'1px solid #f59e0b40'}}>
+                <div style={{fontSize:12,fontWeight:800,color:'#f59e0b',marginBottom:8}}>⚠️ Precauzioni cliniche</div>
+                {prog.precauzioni.map((p2,i)=>(
+                  <div key={i} style={{fontSize:12,color:C.text,lineHeight:1.6,padding:'4px 0',borderBottom:i<prog.precauzioni.length-1?'1px solid '+C.border:'none'}}>{p2}</div>
+                ))}
+              </div>}
+              <div style={{fontSize:11,color:C.muted,fontStyle:'italic',marginBottom:14}}>{prog.riferimenti}</div>
               <div style={{display:'flex',gap:10}}>
                 <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportPdf}</button>
                 <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportCsv}</button>
@@ -4626,8 +4772,8 @@ ${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</d
                   cirBraccio:d.cirBraccio,cirCoscia:d.cirCoscia,cirPolpaccio:d.cirPolpaccio,plicaSott:d.plicaSott,plicaTric:d.plicaTric,plicaIlio:d.plicaIlio,massaGrassa:d.massaGrassa,
                   gad7:d.gad7,motivazione:d.motivazione,
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
-                programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note}:{},
-                nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:(prog?{kcal:String(prog.kcal),proteine:String(prog.prot),carboidrati:String(prog.carbo),grassi:String(prog.grassi),note:'',pianoPasti:''}:{});})(),
+                programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note,precauzioni:prog.precauzioni||[],riferimenti:prog.riferimenti||''}:{},
+                nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:{};})(),
               };
               onSave(p);
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button><span className="tp">Salva la valutazione</span></div>}
