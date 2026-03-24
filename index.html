@@ -227,38 +227,6 @@ var checkOnboardingEmails=async function(uid,profile){
   }
   await fbDb.collection('users').doc(uid).update({onboardingSent:sentEmails});
 };
-// ── AI COACH ─────────────────────────────────────────────────────────────────
-const aiCoach=async(paziente)=>{
-  const prompt=`Sei un esperto personal trainer. Analizza questo profilo cliente e suggerisci un programma di allenamento personalizzato in italiano. Sii specifico, pratico e motivante.
-PROFILO:
-- Nome: Paziente (dati anonimizzati)
-- Età: ${paziente.annoNascita?new Date().getFullYear()-paziente.annoNascita:'-'} anni
-- Sesso: ${paziente.sesso}
-- Peso: ${paziente.peso} kg | Altezza: ${paziente.altezza} cm
-- BMI: ${paziente.altezza&&paziente.peso?(paziente.peso/(paziente.altezza/100)**2).toFixed(1):'-'}
-- Attività attuale: ${paziente.attivita}
-- Obiettivo: ${paziente.obiettivo||'non specificato'}
-- Patologie: ${paziente.patologie||'nessuna'}
-- Test MWT: ${paziente.test?.mwtDist||'-'} m | STS: ${paziente.test?.stsRip||'-'} ripetizioni
-- Stress percepito: ${paziente.stressPercepito} | Sonno: ${paziente.sonno||'-'} ore
-Fornisci:
-1. 🎯 Obiettivo prioritario (2 righe)
-2. 📅 Schema settimanale (giorni e tipo di allenamento)
-3. 💪 3 esercizi chiave con serie/reps
-4. 🥗 Consiglio nutrizionale rapido
-5. ⚠️ Precauzioni specifiche per questo cliente`;
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:1000,
-      messages:[{role:'user',content:prompt}]
-    })
-  });
-  const data=await res.json();
-  return data.content?.[0]?.text||'Errore nel generare il programma.';
-};
 var openLemonCheckout=function(planUrl, planType, uid){
   if(!window.createLemonSqueezy){
     window.open(planUrl,'_blank');
@@ -1796,9 +1764,6 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [openSections,setOpenSections]=useState({ana:true,test:false,prog:false});
   const [showPesoModal,setShowPesoModal]=useState(false);
   const [showSchedaModal,setShowSchedaModal]=useState(false);
-  const [showAI,setShowAI]=useState(false);
-  const [aiResult,setAiResult]=useState('');
-  const [aiLoading,setAiLoading]=useState(false);
   const [newPeso,setNewPeso]=useState({data:fmtDate(),peso:'',nota:''});
   const [completingId,setCompletingId]=useState(null);
   const [completingRpe,setCompletingRpe]=useState('');
@@ -1992,15 +1957,12 @@ ${(p.progressi||[]).length>1?`
             </div>
           </div>
           {/* Riga 2: bottoni azione ben spaziati */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr',gap:8}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:8}}>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #334155',background:'transparent',cursor:'pointer',color:C.dim,fontSize:11,fontWeight:600}} onClick={onBack}>
               <span style={{fontSize:18}}>←</span><span>Torna</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={onValuta}>
               <span style={{fontSize:18}}>📋</span><span>Valuta</span>
-            </button>
-            <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #7c3aed40',background:'#7c3aed20',cursor:'pointer',color:'#c4b5fd',fontSize:11,fontWeight:600}} onClick={()=>{showToast('🤖 AI Coach — Disponibile a breve! Stiamo preparando questa funzionalità.','warning');}}>
-              <span style={{fontSize:18}}>🤖</span><span>AI Coach</span>
             </button>
             <button style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'10px 6px',borderRadius:10,border:'1px solid #10b98140',background:'#10b98120',cursor:'pointer',color:'#6ee7b7',fontSize:11,fontWeight:600}} onClick={generaPDF}>
               <span style={{fontSize:18}}>📄</span><span>PDF</span>
@@ -2026,7 +1988,7 @@ ${(p.progressi||[]).length>1?`
           </div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onValuta}>📋 Valuta ora</button><span className="tp">Avvia nuova valutazione</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={generaPDF}>📄 Report PDF</button><span className="tp">Scarica report completo</span></div>
-          <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={()=>{showToast('🤖 AI Coach — Disponibile a breve! Stiamo preparando questa funzionalità.','warning');}}>🤖 AI Coach</button><span className="tp">Genera programma con intelligenza artificiale</span></div>
+
           {p.telefono&&<div className="tt"><a href={'https://wa.me/'+p.telefono.replace(/[\s\-\(\)\+]/g,'')+'?text='+encodeURIComponent('Ciao '+p.nome+'! Ti scrivo da PT Board.')} target="_blank" rel="noreferrer" onMouseEnter={function(e){e.currentTarget.style.borderColor='#25D366';e.currentTarget.style.color='#25D366';}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6,textDecoration:'none'}}>💬 WhatsApp</a><span className="tp">Scrivi su WhatsApp</span></div>}
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onEdit}>✏ {T.edit}</button><span className="tp">Modifica cliente</span></div>
           <div className="tt"><button onMouseEnter={function(e){e.currentTarget.style.borderColor=C.blue;e.currentTarget.style.color=C.blue;}} onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.text;}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'9px 16px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:6}} onClick={onDelete}>🗑</button><span className="tp">Elimina cliente definitivamente</span></div>
@@ -2492,7 +2454,6 @@ ${(p.progressi||[]).length>1?`
               <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
                 {(p.test?.mwtDist||p.test?.stsRip)?<button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={()=>{var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;var scheda=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test},exercises);upd(function(x){return{schede:(x.schede||[]).concat([scheda])};});showToast('Scheda generata: '+scheda.nome,'success');}}>⚡ Genera scheda allenamento</button>:<div style={{fontSize:12,color:C.muted,fontStyle:'italic',padding:'6px 0'}}>Completa almeno un test per generare la scheda automatica.</div>}
                 <div style={{display:'flex',gap:8}}>
-                  <button style={{...S.btn(),fontSize:12}} onClick={()=>setShowAI(true)}>🤖 AI scheda</button>
                   <button style={{...S.btn('',true),fontSize:12}} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
                 </div>
               </div>
@@ -2643,42 +2604,6 @@ ${(p.progressi||[]).length>1?`
         </div>
       )}
 
-      {/* AI Coach Modal */}
-      {showAI&&(
-        <div style={{position:'fixed',inset:0,background:'#000000c0',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
-          <div style={{background:'#0f1623',border:'1px solid #7c3aed50',borderRadius:16,width:'min(680px,95vw)',maxHeight:'88vh',overflowY:'auto',display:'flex',flexDirection:'column'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'18px 22px',borderBottom:'1px solid #1e2d47'}}>
-              <div style={{display:'flex',alignItems:'center',gap:10}}>
-                <span style={{fontSize:20}}>🤖</span>
-                <div>
-                  <div style={{fontSize:15,fontWeight:800,color:'#f8fafc'}}>AI Coach</div>
-                  <div style={{fontSize:11,color:'#64748b'}}>{p.nome} {p.cognome}</div>
-                </div>
-              </div>
-              <button onClick={()=>setShowAI(false)} style={{background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
-            </div>
-            <div style={{padding:28,flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',gap:16}}>
-              <div style={{fontSize:48}}>🔒</div>
-              <div style={{fontSize:18,fontWeight:800,color:'#f8fafc'}}>Funzionalità Pro</div>
-              <div style={{fontSize:13,color:'#94a3b8',lineHeight:1.8,maxWidth:380}}>
-                L'AI Coach è disponibile esclusivamente per gli utenti con piano <strong style={{color:'#a78bfa'}}>Pro</strong>.<br/>
-                Genera programmi personalizzati in pochi secondi grazie all'intelligenza artificiale.
-              </div>
-              <div style={{background:'#7c3aed15',border:'1px solid #7c3aed40',borderRadius:12,padding:'14px 20px',fontSize:12,color:'#c4b5fd',lineHeight:1.7,maxWidth:360}}>
-                ✨ <strong>Cosa include l'AI Coach:</strong><br/>
-                🎯 Obiettivo prioritario personalizzato<br/>
-                📅 Schema settimanale completo<br/>
-                💪 Esercizi con serie e ripetizioni<br/>
-                🥗 Consigli nutrizionali<br/>
-                ⚠️ Precauzioni per il cliente
-              </div>
-              <button onClick={()=>{setShowAI(false);onUpgrade();}} style={{marginTop:8,padding:'12px 28px',borderRadius:10,border:'none',background:'linear-gradient(135deg,#7c3aed,#3b82f6)',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                💎 Passa al piano Pro
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showBookingModal&&<Modal title="Prenota seduta" onClose={()=>setShowBookingModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
