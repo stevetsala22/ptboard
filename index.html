@@ -2513,7 +2513,12 @@ ${(p.progressi||[]).length>1?`
             </div>
             {openSchede&&<div>
               <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
-                {(p.test?.mwtDist||p.test?.stsRip)?<button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={()=>{var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;var scheda=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test},exercises);upd(function(x){return{schede:(x.schede||[]).concat([scheda])};});showToast('Scheda generata: '+scheda.nome,'success');}}>⚡ Genera scheda allenamento</button>:<div style={{fontSize:12,color:C.muted,fontStyle:'italic',padding:'6px 0'}}>Completa almeno un test per generare la scheda automatica.</div>}
+                {(p.test?.mwtDist||p.test?.stsRip)?<div style={{textAlign:'center',margin:'0'}}>
+                  <button style={{width:'100%',padding:'16px',borderRadius:12,background:'linear-gradient(135deg,'+C.blue+',#2563eb)',color:'#fff',fontSize:15,fontWeight:800,border:'none',cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}} onClick={()=>{var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;var scheda=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length},exercises);upd(function(x){return{schede:(x.schede||[]).concat([scheda])};});showToast('Scheda generata: '+scheda.nome,'success');}}>⚡ Genera scheda allenamento</button>
+                  <div style={{fontSize:11,color:C.muted,marginTop:6}}>Ogni click genera una combinazione diversa di esercizi</div>
+                </div>:<div style={{textAlign:'center',padding:20,background:C.bg,borderRadius:12,margin:'0'}}>
+                  <div style={{fontSize:13,color:C.muted}}>Completa almeno un test (6MWT o STS) per generare la scheda automatica</div>
+                </div>}
                 <div style={{display:'flex',gap:8}}>
                   <button style={{...S.btn('',true),fontSize:12}} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
                 </div>
@@ -2522,37 +2527,57 @@ ${(p.progressi||[]).length>1?`
               {p.schede?.map((scheda,si)=>{
                 const isExp=expandedScheda===si;
                 return <div key={si}>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 12px',background:C.bg,border:'1px solid '+C.border2,borderRadius:8,marginBottom:4}}>
-                    <div style={{flex:1,cursor:'pointer'}} onClick={()=>setExpandedScheda(si===expandedScheda?null:si)}>
-                      <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
-                      <div style={{fontSize:11,color:C.muted}}>{scheda.tipo} · {scheda.data} · {scheda.esercizi?.length||0} esercizi</div>
+                  <div onClick={()=>setExpandedScheda(si===expandedScheda?null:si)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',background:C.card,border:'1px solid '+C.border2,borderRadius:12,cursor:'pointer',marginBottom:8}}>
+                    <div style={{display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{width:40,height:40,borderRadius:10,background:C.blue+'15',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:C.blue}}>{scheda.codice ? scheda.codice.slice(-3) : 'S'+(si+1)}</div>
+                      <div>
+                        <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
+                        <div style={{fontSize:11,color:C.muted}}>{scheda.split || ''} · {scheda.data} · {(scheda.esercizi||[]).length} esercizi</div>
+                      </div>
                     </div>
-                    <div style={{display:'flex',gap:4}}>
-                      <button style={{fontSize:11,padding:'3px 7px',background:C.blue+'15',color:C.blue,border:'none',borderRadius:6,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>setShowSchedaModal(true)}>✏️ Modifica</button>
-                      <button style={{fontSize:11,padding:'3px 7px',background:C.green+'15',color:C.green,border:'none',borderRadius:6,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>generaSchedaPDF(scheda)}>📄 PDF</button>
-                      <button style={{fontSize:11,padding:'3px 7px',background:'#ef444420',color:C.red,border:'none',borderRadius:6,cursor:'pointer',fontFamily:'inherit'}} onClick={()=>showConfirmToast('Eliminare la scheda "'+scheda.nome+'"?',()=>upd(x=>({schede:x.schede.filter((_,i)=>i!==si)})))}>✕ Elimina</button>
-                    </div>
+                    <div style={{fontSize:18,color:C.muted,transform:isExp?'rotate(180deg)':'rotate(0)',transition:'transform .2s'}}>▾</div>
                   </div>
-                  {isExp&&<div style={{padding:'4px 12px 10px',marginBottom:6}}>
+                  {isExp&&<div style={{padding:'0 4px',marginBottom:16}}>
+                    <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12,marginTop:4}}>
+                      <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.blue+'15',color:C.blue}}>{scheda.config?.tipo || 'Full Body'}</span>
+                      <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.green+'15',color:C.green}}>{scheda.config?.serie || 3}x{scheda.config?.rip || 10}</span>
+                      <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:'#f59e0b15',color:'#f59e0b'}}>Rec {scheda.config?.rec || 60}s</span>
+                    </div>
                     {scheda.esercizi?.map((ex,ei)=>{
-                      const eInfo=exercises.find(e=>e.id===ex.eId);
+                      const eInfo=exercises.find(function(x){return x.id===ex.eId;})||{};
                       return(
-                        <div key={ei} style={{...S.row,border:'1px solid '+C.border2,borderRadius:8,marginBottom:4}}>
-                          <div style={{width:24,height:24,borderRadius:6,background:C.blue+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:C.blue}}>{ei+1}</div>
+                        <div key={ei} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',background:ei%2===0?C.bg:'transparent',borderRadius:8,marginBottom:2}}>
+                          <div style={{width:28,height:28,borderRadius:8,background:C.blue+'10',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:800,color:C.blue,flexShrink:0}}>{ei+1}</div>
                           <div style={{flex:1}}>
-                            <div style={{fontSize:13,color:C.strong,fontWeight:600}}>{eInfo?.nome||ex.eId}</div>
-                            <div style={{fontSize:11,color:C.muted}}>{eInfo?.muscoli}</div>
+                            <div style={{fontSize:13,fontWeight:700,color:C.strong}}>
+                              {eInfo.nome || ex.eId}
+                            </div>
+                            <div style={{fontSize:11,color:C.muted}}>
+                              {ex.note || ''}
+                              {eInfo.livello &&
+                                <span style={{marginLeft:6,padding:'1px 6px',borderRadius:4,fontSize:9,fontWeight:700,
+                                  background: eInfo.livello==='base'?'#10b98115':eInfo.livello==='intermedio'?'#f59e0b15':'#ef444415',
+                                  color: eInfo.livello==='base'?C.green:eInfo.livello==='intermedio'?'#f59e0b':'#ef4444'
+                                }}>{eInfo.livello}</span>
+                              }
+                            </div>
                           </div>
-                          <div style={{display:'flex',gap:14,fontSize:12,color:C.muted}}>
-                            <span><b style={{color:C.text}}>{ex.serie}</b> serie</span>
-                            <span><b style={{color:C.text}}>{ex.reps}</b> rip</span>
-                            {ex.peso&&<span><b style={{color:C.text}}>{ex.peso}</b> kg</span>}
-                            <span>rec <b style={{color:C.text}}>{ex.rec}s</b></span>
+                          <div style={{textAlign:'right',flexShrink:0}}>
+                            <div style={{fontSize:13,fontWeight:800,color:C.strong}}>{ex.serie}×{ex.reps}</div>
+                            {ex.rec > 0 && <div style={{fontSize:10,color:C.muted}}>rec {ex.rec}s</div>}
                           </div>
                         </div>
                       );
                     })}
-                    {scheda.note&&<div style={{marginTop:6,fontSize:12,color:C.muted,fontStyle:'italic'}}>{scheda.note}</div>}
+                    {scheda.note&&<div style={{fontSize:11,color:C.muted,fontStyle:'italic',padding:'8px 12px',marginTop:8,borderTop:'1px solid '+C.border2}}>{scheda.note}</div>}
+                    <div style={{display:'flex',gap:8,marginTop:12}}>
+                      <button style={{flex:1,padding:'8px 12px',borderRadius:8,background:'transparent',border:'1px solid '+C.border2,color:C.muted,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}
+                        onClick={function(){
+                          var newSchede = (p.schede||[]).filter(function(_,j){return j!==si;});
+                          upd(function(){return{schede:newSchede};});
+                          showToast('Scheda eliminata','info');
+                        }}>Elimina</button>
+                    </div>
                   </div>}
                 </div>;
               })}
@@ -3749,13 +3774,58 @@ var generaSchedaAuto = function(params, esercizi) {
       schedaEsercizi.push({eId: mobScelto.id, serie: 2, reps: '30s', rec: 0, peso: '', note: 'Mobilita'});
     }
   }
-  // ── GENERA NOME SCHEDA ──
-  var nomeScheda;
-  if (profilo === 'A') nomeScheda = 'Adattamento — ' + (obiettivo || 'Generale');
-  else if (profilo === 'B') nomeScheda = 'Progressione — ' + (obiettivo || 'Generale');
-  else nomeScheda = 'Avanzato — ' + (obiettivo || 'Generale');
+  // ── GENERA NOME SCHEDA (professionale) ──
+  var splitMap = {
+    'A': {
+      'Perdere peso': 'Dimagrimento Graduale',
+      'Aumentare massa': 'Condizionamento Base',
+      'Resistenza': 'Endurance Fundamentals',
+      'Forza': 'Forza Funzionale Base',
+      'Salute': 'Fitness & Benessere',
+      'Riabilitazione': 'Riatletizzazione',
+      'Performance': 'Preparazione Atletica',
+      'Benessere': 'Active Recovery'
+    },
+    'B': {
+      'Perdere peso': 'Fat Loss Intermedio',
+      'Aumentare massa': 'Ipertrofia Progressiva',
+      'Resistenza': 'Endurance Building',
+      'Forza': 'Strength Development',
+      'Salute': 'Fitness Completo',
+      'Riabilitazione': 'Riconditioning Plus',
+      'Performance': 'Athletic Training',
+      'Benessere': 'Wellness Program'
+    },
+    'C': {
+      'Perdere peso': 'High Intensity Fat Loss',
+      'Aumentare massa': 'Hypertrophy Advanced',
+      'Resistenza': 'Endurance Performance',
+      'Forza': 'Max Strength Protocol',
+      'Salute': 'Elite Fitness',
+      'Riabilitazione': 'Return to Performance',
+      'Performance': 'Sport Performance',
+      'Benessere': 'Wellness Elite'
+    }
+  };
+  var nomeScheda = (splitMap[profilo] && splitMap[profilo][obiettivo]) || 'Programma Personalizzato';
+  // Tipo split nel sottotitolo
+  var splitType;
+  if (profilo === 'A') splitType = 'Full Body';
+  else if (profilo === 'B') {
+    if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') splitType = 'Upper / Lower';
+    else splitType = 'Full Body';
+  } else {
+    if (obiettivo === 'Aumentare massa') splitType = 'Push / Pull / Legs';
+    else if (obiettivo === 'Forza') splitType = 'Squat / Bench / Deadlift';
+    else splitType = 'Upper / Lower';
+  }
+  // Numero progressivo scheda
+  var numSchede = (params.schedeEsistenti || 0) + 1;
+  var codice = profilo + numSchede.toString().padStart(2, '0');
   return {
     nome: nomeScheda,
+    codice: 'SCH-' + codice,
+    split: splitType,
     tipo: config.tipo,
     data: new Date().toLocaleDateString('it-IT'),
     esercizi: schedaEsercizi,
