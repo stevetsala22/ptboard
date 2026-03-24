@@ -2489,9 +2489,12 @@ ${(p.progressi||[]).length>1?`
               <span style={{fontSize:12,color:C.muted}}>{openSchede?'▲':'▼'}</span>
             </div>
             {openSchede&&<div>
-              <div style={{display:'flex',gap:8,marginBottom:10}}>
-                <button style={{...S.btn(),fontSize:12}} onClick={()=>setShowAI(true)}>⚡ Genera scheda</button>
-                <button style={{...S.btn('',true),fontSize:12}} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
+              <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
+                {(p.test?.mwtDist||p.test?.stsRip)?<button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontSize:14,fontWeight:700,border:'none',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:8}} onClick={()=>{var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;var scheda=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test},exercises);upd(function(x){return{schede:(x.schede||[]).concat([scheda])};});showToast('Scheda generata: '+scheda.nome,'success');}}>⚡ Genera scheda allenamento</button>:<div style={{fontSize:12,color:C.muted,fontStyle:'italic',padding:'6px 0'}}>Completa almeno un test per generare la scheda automatica.</div>}
+                <div style={{display:'flex',gap:8}}>
+                  <button style={{...S.btn(),fontSize:12}} onClick={()=>setShowAI(true)}>🤖 AI scheda</button>
+                  <button style={{...S.btn('',true),fontSize:12}} onClick={()=>setShowSchedaModal(true)}>+ Nuova scheda</button>
+                </div>
               </div>
               {(!p.schede||p.schede.length===0)&&<div style={{color:C.muted,fontSize:13,padding:'8px 0',textAlign:'center'}}>Nessuna scheda. Clicca "+ Nuova scheda" per creare.</div>}
               {p.schede?.map((scheda,si)=>{
@@ -3599,6 +3602,150 @@ function AppInner({user,profile,trialLeft}){
     </div>
   );
 }
+
+// ── GENERA SCHEDA ALLENAMENTO AUTOMATICA ──────────────────────────────────────
+var generaSchedaAuto = function(params, esercizi) {
+  var profilo = params.profilo;
+  var obiettivo = params.obiettivo;
+  var sesso = params.sesso || 'M';
+  var eta = params.eta || 50;
+  var patologie = (params.patologie || '').toLowerCase();
+  var testResults = params.test || {};
+  // ── PARAMETRI BASE per profilo ──
+  var config;
+  if (profilo === 'A') { config = {serie: 2, rip: 10, rec: 90, numEx: 5, tipo: 'Full Body'}; }
+  else if (profilo === 'B') { config = {serie: 3, rip: 12, rec: 60, numEx: 6, tipo: 'Full Body'}; }
+  else { config = {serie: 4, rip: 10, rec: 45, numEx: 8, tipo: 'Upper/Lower'}; }
+  if (eta > 65) { config.rec += 15; config.rip = Math.max(8, config.rip - 2); }
+  if (eta > 75) { config.serie = Math.min(config.serie, 2); config.numEx = Math.min(config.numEx, 5); }
+  if (obiettivo === 'Perdere peso') { config.rec = Math.max(30, config.rec - 15); config.rip += 3; }
+  if (obiettivo === 'Aumentare massa') { config.serie += 1; config.rec += 15; config.rip = Math.max(6, config.rip - 4); }
+  if (obiettivo === 'Forza') { config.serie += 1; config.rec = 120; config.rip = Math.max(5, config.rip - 5); }
+  // ── ESERCIZI ESCLUSI per patologie ──
+  var esclusi = [];
+  if (patologie.includes('ernia')) esclusi = esclusi.concat(['Squat', 'Romanian Deadlift', 'Hip Hinge']);
+  if (patologie.includes('artrosi') && patologie.includes('ginocchio')) esclusi = esclusi.concat(['Squat', 'Affondi']);
+  if (patologie.includes('spalla') || patologie.includes('cuffia')) esclusi = esclusi.concat(['Push-up']);
+  // ── CATEGORIE ESERCIZI RICHIESTI ──
+  var categorie;
+  if (profilo === 'A') {
+    categorie = [
+      {cat: 'Forza', muscoli: 'Quadricipiti', label: 'Gambe'},
+      {cat: 'Forza', muscoli: 'Pettorali', label: 'Spinta'},
+      {cat: 'Forza', muscoli: 'Dorsali', label: 'Tirata'},
+      {cat: 'Core', muscoli: '', label: 'Core'},
+      {cat: 'Cardio', muscoli: '', label: 'Cardio'}
+    ];
+  } else if (profilo === 'B') {
+    if (obiettivo === 'Perdere peso') {
+      categorie = [
+        {cat: 'Forza', muscoli: 'Quadricipiti', label: 'Gambe compound'},
+        {cat: 'Forza', muscoli: 'Glutei', label: 'Glutei'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Spinta'},
+        {cat: 'Forza', muscoli: 'Dorsali', label: 'Tirata'},
+        {cat: 'Core', muscoli: '', label: 'Core'},
+        {cat: 'Cardio', muscoli: '', label: 'Cardio HIIT'}
+      ];
+    } else {
+      categorie = [
+        {cat: 'Forza', muscoli: 'Quadricipiti', label: 'Gambe'},
+        {cat: 'Forza', muscoli: 'Glutei', label: 'Posteriore'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Spinta'},
+        {cat: 'Forza', muscoli: 'Dorsali', label: 'Tirata'},
+        {cat: 'Forza', muscoli: 'Bicipiti', label: 'Braccia'},
+        {cat: 'Core', muscoli: '', label: 'Core'}
+      ];
+    }
+  } else {
+    if (obiettivo === 'Aumentare massa') {
+      categorie = [
+        {cat: 'Forza', muscoli: 'Quadricipiti', label: 'Gambe compound'},
+        {cat: 'Forza', muscoli: 'Glutei', label: 'Posteriore'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Petto'},
+        {cat: 'Forza', muscoli: 'Dorsali', label: 'Dorso'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Spinta accessorio'},
+        {cat: 'Forza', muscoli: 'Dorsali', label: 'Tirata accessorio'},
+        {cat: 'Forza', muscoli: 'Bicipiti', label: 'Braccia'},
+        {cat: 'Core', muscoli: '', label: 'Core'}
+      ];
+    } else if (obiettivo === 'Forza') {
+      categorie = [
+        {cat: 'Forza', muscoli: 'Quadricipiti', label: 'Squat'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Panca'},
+        {cat: 'Forza', muscoli: 'Femorali', label: 'Stacco'},
+        {cat: 'Forza', muscoli: 'Dorsali', label: 'Tirata'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Spinta accessorio'},
+        {cat: 'Forza', muscoli: 'Glutei', label: 'Accessorio gambe'},
+        {cat: 'Forza', muscoli: 'Bicipiti', label: 'Braccia'},
+        {cat: 'Core', muscoli: '', label: 'Core'}
+      ];
+    } else {
+      categorie = [
+        {cat: 'Forza', muscoli: 'Quadricipiti', label: 'Gambe'},
+        {cat: 'Forza', muscoli: 'Glutei', label: 'Posteriore'},
+        {cat: 'Forza', muscoli: 'Pettorali', label: 'Spinta'},
+        {cat: 'Forza', muscoli: 'Dorsali', label: 'Tirata'},
+        {cat: 'Core', muscoli: '', label: 'Core'},
+        {cat: 'Forza', muscoli: 'Bicipiti', label: 'Braccia'},
+        {cat: 'Cardio', muscoli: '', label: 'Cardio'},
+        {cat: 'Core', muscoli: '', label: 'Stabilita'}
+      ];
+    }
+  }
+  categorie = categorie.slice(0, config.numEx);
+  // ── SELEZIONA ESERCIZI dalla libreria ──
+  var schedaEsercizi = [];
+  var usati = [];
+  categorie.forEach(function(req) {
+    var candidati = esercizi.filter(function(ex) {
+      if (usati.indexOf(ex.id) !== -1) return false;
+      if (esclusi.indexOf(ex.nome) !== -1) return false;
+      if (ex.cat !== req.cat) return false;
+      if (req.muscoli && ex.muscoli && ex.muscoli.toLowerCase().indexOf(req.muscoli.toLowerCase()) === -1) return false;
+      return true;
+    });
+    if (candidati.length === 0) {
+      candidati = esercizi.filter(function(ex) {
+        if (usati.indexOf(ex.id) !== -1) return false;
+        if (esclusi.indexOf(ex.nome) !== -1) return false;
+        return ex.cat === req.cat;
+      });
+    }
+    if (candidati.length > 0) {
+      var scelto = candidati[0];
+      usati.push(scelto.id);
+      var serie = config.serie;
+      var rip = config.rip;
+      var rec = config.rec;
+      if (req.cat === 'Core') { serie = Math.max(2, serie - 1); rip = rip + 5; }
+      if (req.cat === 'Cardio') { serie = 1; rip = 0; rec = 0; }
+      if (obiettivo === 'Forza' && (scelto.nome.toLowerCase().includes('squat') || scelto.nome.toLowerCase().includes('deadlift') || scelto.nome.toLowerCase().includes('hip hinge'))) {
+        rip = 5; rec = 120;
+      }
+      schedaEsercizi.push({
+        eId: scelto.id,
+        serie: serie,
+        reps: req.cat === 'Cardio' ? (profilo === 'A' ? '10 min' : profilo === 'B' ? '15 min' : '20 min') : rip,
+        rec: rec,
+        peso: '',
+        note: req.label
+      });
+    }
+  });
+  // ── GENERA NOME SCHEDA ──
+  var nomeScheda;
+  if (profilo === 'A') nomeScheda = 'Adattamento — ' + (obiettivo || 'Generale');
+  else if (profilo === 'B') nomeScheda = 'Progressione — ' + (obiettivo || 'Generale');
+  else nomeScheda = 'Avanzato — ' + (obiettivo || 'Generale');
+  return {
+    nome: nomeScheda,
+    tipo: config.tipo,
+    data: new Date().toLocaleDateString('it-IT'),
+    esercizi: schedaEsercizi,
+    note: 'Scheda generata automaticamente per profilo ' + (profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : 'Buona Forma') + ' — obiettivo ' + (obiettivo || 'Generale') + '. Recupero base: ' + config.rec + 's. Riferimenti: ACSM Guidelines, NSCA Essentials of Strength Training.',
+    config: config
+  };
+};
 
 // ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
 var generaProgramma = function(params) {
