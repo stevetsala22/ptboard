@@ -1843,13 +1843,80 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const fcMax=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
 
   const upd=(fn)=>onUpdate({...p,...fn(p)});
-  const generaSchedaPDF=(scheda)=>{
+  const exportSchedaPDF=(scheda)=>{
     const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
-    const dataOggi=fmtDateIT(new Date().toISOString().slice(0,10));
-    const logoHtml=trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;object-fit:contain"/>${trainerProfile.nomeStudio?`<div style="font-size:12px;color:#64748b;margin-top:4px">${trainerProfile.nomeStudio}</div>`:''}` :`<div style="font-size:22px;font-weight:900;color:#3b82f6">PT Board</div>`;
-    const righe=(scheda.esercizi||[]).map((ex,ei)=>{const eInfo=exercises.find(e=>e.id===ex.eId);const nome=eInfo?.nome||ex.eId||'';const bg=ei%2===0?'#f8fafc':'#ffffff';return`<tr style="background:${bg}"><td style="width:40px;text-align:center;font-weight:700;color:#3b82f6;padding:10px 12px;border-bottom:1px solid #e2e8f0">${ei+1}</td><td style="font-weight:600;padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${nome}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.serie||'—'}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.reps||'—'}</td><td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#1e293b">${ex.rec?ex.rec+'s':'—'}</td><td style="font-size:12px;color:#64748b;font-style:italic;padding:10px 12px;border-bottom:1px solid #e2e8f0">${ex.note||''}</td></tr>`;}).join('');
-    const html=`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>${scheda.nome} — ${p.nome} ${p.cognome}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid #3b82f6"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">🖨️ Stampa / Salva PDF</button></div><div style="max-width:800px;margin:0 auto;padding:40px"><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:20px;margin-bottom:24px"><div>${logoHtml}</div><div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">${p.nome} ${p.cognome}</div><div style="font-size:14px;color:#64748b;margin-top:4px">${scheda.nome}</div><div style="font-size:13px;color:#94a3b8;margin-top:2px">Generata il ${dataOggi}</div></div></div>${(scheda.esercizi||[]).length===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">Questa scheda non ha ancora esercizi.</div>':`<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#3b82f6"><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px;width:40px">#</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Esercizio</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Serie</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Ripetizioni</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Recupero</th><th style="text-align:left;color:#fff;font-size:12px;font-weight:700;text-transform:uppercase;padding:10px 12px">Note</th></tr></thead><tbody>${righe}</tbody></table>`}<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">${nomeStudio} · Generata il ${dataOggi}</div><div style="font-size:10px;color:#94a3b8">${p.nome} ${p.cognome}</div></div></div></body></html>`;
-    const w=window.open('','_blank');w.document.write(html);w.document.close();
+    const dataOggi=scheda.data||fmtDate();
+    const logoHtml=trainerProfile?.logo?'<div style="display:flex;align-items:center;gap:12px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px"/><div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">Scheda Allenamento</div></div></div>':'<div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">Scheda Allenamento</div></div>';
+    const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
+    const profiloLbl=pr?pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma':'—';
+    const profiloClr=pr?pr.code==='A'?'#ef4444':pr.code==='B'?'#f59e0b':'#10b981':'#64748b';
+    const numEx=(scheda.esercizi||[]).length;
+    const fontSize=numEx>10?'9px':'10px';
+    const headerFontSize='8px';
+    const needsPageBreak=numEx>14;
+    const righe=(scheda.esercizi||[]).map((ex,ei)=>{
+      const eInfo=exercises.find(e=>e.id===ex.eId)||{};
+      const nome=eInfo.nome||ex.eId||'';
+      const gruppo=(eInfo.muscoli||eInfo.target||eInfo.gruppo||'').toString();
+      const cat=(eInfo.categoria||'').toLowerCase();
+      const livello=eInfo.livello||'';
+      const livClr=livello==='base'?'#10b981':livello==='intermedio'?'#f59e0b':'#ef4444';
+      const bg=ei%2===0?'#f8fafc':'#ffffff';
+      var ripCol=ex.reps||'—';
+      var recCol=ex.rec?ex.rec+'s':'—';
+      if(cat==='cardio'){ripCol=(ex.reps||'15')+' min';recCol='—';}
+      if(cat==='core'&&String(ex.reps).indexOf('s')!==-1){ripCol=ex.reps;}
+      const pageBreakStyle=needsPageBreak&&ei===Math.ceil(numEx/2)?'page-break-before:always;':'';
+      return'<tr style="background:'+bg+';'+pageBreakStyle+'">'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';font-weight:700;color:#3b82f6;text-align:center">'+String(ei+1)+'</td>'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';font-weight:600;color:#1e293b">'+esc(nome)+'</td>'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#64748b">'+esc(gruppo)+'</td>'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+'"><span style="color:'+livClr+';font-weight:600">'+(livello?esc(livello):'—')+'</span></td>'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#1e293b">'+(ex.serie||'—')+'</td>'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#1e293b">'+esc(String(ripCol))+'</td>'+
+        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#1e293b">'+esc(String(recCol))+'</td>'+
+      '</tr>';
+    }).join('');
+    const noteHtml=scheda.note?'<div style="margin-top:20px;background:#f0fdf4;border-left:3px solid #10b981;padding:12px;border-radius:0 8px 8px 0"><div style="font-size:9px;color:#374151;font-style:italic">'+esc(scheda.note)+'</div></div>':'';
+    const fileName='Scheda_'+(p.nome||'').replace(/\s/g,'_')+'_'+(p.cognome||'').replace(/\s/g,'_')+'_'+(scheda.codice||'SCH')+'.pdf';
+    const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+esc(scheda.nome)+' — '+esc(p.nome)+' '+esc(p.cognome)+'</title>'+
+      '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b;font-size:13px}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}@page{margin:20mm 15mm}</style></head><body>'+
+      '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid #3b82f6">'+
+      '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">\u2190 Torna all\'app</button>'+
+      '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">\uD83D\uDDA8\uFE0F Stampa / Salva PDF</button></div>'+
+      '<div style="max-width:800px;margin:0 auto;padding:40px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px">'+
+      '<div>'+logoHtml+'</div>'+
+      '<div style="text-align:right;font-size:12px;color:#64748b">'+esc(dataOggi)+'</div>'+
+      '</div>'+
+      '<div style="height:2px;background:#3b82f6;margin-bottom:20px"></div>'+
+      '<div style="background:#f8fafc;border-radius:8px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-between">'+
+      '<div><div style="font-size:14px;font-weight:700;color:#0f172a">'+esc(p.nome)+' '+esc(p.cognome)+'</div><div style="font-size:11px;color:#64748b;margin-top:4px">'+(eta?'Et\u00e0: '+eta+' anni':'')+(p.sesso?' \u00b7 '+esc(p.sesso):'')+'</div></div>'+
+      '<div style="text-align:right"><div style="font-size:11px;color:#64748b">Obiettivo: <strong>'+esc(p.obiettivo||'\u2014')+'</strong></div><div style="font-size:11px;margin-top:4px">Profilo: <span style="color:'+profiloClr+';font-weight:700">'+esc(profiloLbl)+'</span></div></div>'+
+      '</div>'+
+      '<div style="margin-bottom:16px"><div style="font-size:18px;font-weight:800;color:#0f172a">'+esc(scheda.nome)+'</div>'+
+      '<div style="font-size:11px;color:#64748b;margin-top:4px">'+(scheda.codice?esc(scheda.codice)+' \u00b7 ':'')+esc(scheda.split||'')+' \u00b7 '+esc(dataOggi)+'</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'+
+      '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#3b82f620;color:#3b82f6">'+(scheda.config?.tipo||'Full Body')+'</span>'+
+      '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#10b98120;color:#10b981">'+(scheda.config?.serie||3)+'\u00d7'+(scheda.config?.rip||10)+'</span>'+
+      '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#f59e0b20;color:#f59e0b">Rec '+(scheda.config?.rec||60)+'s</span>'+
+      '</div></div>'+
+      (numEx===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">Questa scheda non ha ancora esercizi.</div>':
+      '<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#3b82f6">'+
+      '<th style="text-align:center;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">#</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Esercizio</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Gruppo</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Livello</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Serie</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Rip</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Rec</th>'+
+      '</tr></thead><tbody>'+righe+'</tbody></table>')+
+      noteHtml+
+      '<div style="margin-top:40px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between">'+
+      '<div style="font-size:8px;color:#94a3b8">Generata con PT Board \u2014 personaltrainerboard.com</div>'+
+      '<div style="font-size:8px;color:#94a3b8">Pagina 1/1</div>'+
+      '</div></div></body></html>';
+    const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
   };
 
   const addPeso=()=>{
@@ -2571,6 +2638,8 @@ ${(p.progressi||[]).length>1?`
                     })}
                     {scheda.note&&<div style={{fontSize:11,color:C.muted,fontStyle:'italic',padding:'8px 12px',marginTop:8,borderTop:'1px solid '+C.border2}}>{scheda.note}</div>}
                     <div style={{display:'flex',gap:8,marginTop:12}}>
+                      <button style={{flex:1,padding:'8px 12px',borderRadius:8,background:C.blue,border:'none',color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}
+                        onClick={function(){ exportSchedaPDF(scheda); }}>📄 Esporta PDF</button>
                       <button style={{flex:1,padding:'8px 12px',borderRadius:8,background:'transparent',border:'1px solid '+C.border2,color:C.muted,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}
                         onClick={function(){
                           var newSchede = (p.schede||[]).filter(function(_,j){return j!==si;});
