@@ -3240,6 +3240,7 @@ function AppInner({user,profile,trialLeft}){
   const [lang,setLang]=useState(getLang());
   const T=LANGS[lang]?.t||LANGS.it.t;
   const firstLoad=useRef(true);
+  var debounceTimer=React.useRef(null);
 
   const [syncing,setSyncing]=useState(true);
   const [,forceUpdate]=useState(0);
@@ -3434,7 +3435,7 @@ function AppInner({user,profile,trialLeft}){
                   {trainerProfile?.logo?<img src={trainerProfile.logo} alt="logo" style={{width:'100%',height:'100%',objectFit:'contain'}}/>:<span style={{fontSize:22}}>🏷️</span>}
                 </div>
                 <div style={{flex:1,minWidth:0}}>
-                  <input placeholder="Nome studio" value={trainerProfile?.nomeStudio||''} onChange={async e=>{const v=e.target.value;await fbSaveUserProfile(user.uid,{nomeStudio:v});setProfile(p=>({...p,nomeStudio:v}));}} style={{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:6,padding:'5px 8px',color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:4}}/>
+                  <input placeholder="Nome studio" value={trainerProfile?.nomeStudio||''} onChange={e=>{const v=e.target.value;setProfile(p=>({...p,nomeStudio:v}));clearTimeout(debounceTimer.current);debounceTimer.current=setTimeout(function(){fbSaveUserProfile(user.uid,{nomeStudio:v});},1000);}} style={{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:6,padding:'5px 8px',color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:4}}/>
                   {trainerProfile?.logo&&<button onClick={async()=>{await fbSaveUserProfile(user.uid,{logo:''});setProfile(p=>({...p,logo:''}));}} style={{fontSize:10,color:'#ef4444',background:'transparent',border:'none',cursor:'pointer',padding:0}}>✕ Rimuovi logo</button>}
                 </div>
               </div>
