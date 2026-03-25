@@ -184,7 +184,8 @@ var ONBOARDING_EMAILS=[
   {day:3, templateId:2, key:'day3'},
   {day:7, templateId:3, key:'day7'},
   {day:14, templateId:5, key:'day14'},
-  {day:25, templateId:4, key:'day25'}
+  {day:25, templateId:4, key:'day25'},
+  {day:15, templateId:6, key:'trialExpired', requireNoActivePlan:true}
 ];
 var sendBrevoEmail=async function(toEmail,toName,templateId){
   try{
@@ -214,8 +215,11 @@ var checkOnboardingEmails=async function(uid,profile){
   var now=new Date();
   var daysSinceReg=Math.floor((now-created)/(1000*60*60*24));
   var sentEmails=profile.onboardingSent||{};
+  var hasActivePlan=profile.plan&&profile.plan!=='trial'&&profile.planExpiresAt&&new Date(profile.planExpiresAt)>now;
   var toSend=ONBOARDING_EMAILS.filter(function(e){
-    return daysSinceReg>=e.day&&!sentEmails[e.key];
+    if(daysSinceReg<e.day||sentEmails[e.key])return false;
+    if(e.requireNoActivePlan&&hasActivePlan)return false;
+    return true;
   });
   if(toSend.length===0)return;
   var trainerName=profile.nome||(profile.email.split('@')[0]);
