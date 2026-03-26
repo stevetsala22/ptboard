@@ -232,8 +232,21 @@ var checkOnboardingEmails=async function(uid,profile){
   }
   await fbDb.collection('users').doc(uid).update({onboardingSent:sentEmails});
 };
-var openStripeCheckout=function(planUrl){
-  window.open(planUrl,'_blank');
+var openCheckout=function(plan){
+  var links={
+    proMonthly:'https://buy.stripe.com/bJe28k04F3Y58YPdY8dQQ00',
+    proYearly:'https://buy.stripe.com/8x26oA5oZ2U17ULcU4dQQ02',
+    teamMonthly:'https://buy.stripe.com/aFadR22cN3Y53Ev07idQQ03',
+    teamYearly:'https://buy.stripe.com/14A9AMdVv66d0sj3judQQ01'
+  };
+  var email=fbAuth.currentUser?fbAuth.currentUser.email:'';
+  var uid=fbAuth.currentUser?fbAuth.currentUser.uid:'';
+  var url=links[plan];
+  if(url){
+    var sep=url.includes('?')?'&':'?';
+    url+=sep+'prefilled_email='+encodeURIComponent(email)+'&client_reference_id='+encodeURIComponent(uid+'|'+plan);
+    window.open(url,'_blank');
+  }
 };
 </script>
 <style>
@@ -3228,6 +3241,24 @@ function App(){
     }catch(e){clearTimeout(timeout);setUser(null);}
   },[]);
 
+  useEffect(()=>{
+    if(!user?.uid)return;
+    var unsubSnap=fbDb.collection('users').doc(user.uid).onSnapshot(function(doc){
+      if(doc.exists){
+        var data=doc.data();
+        setProfile(function(prev){
+          if(prev&&!prev.plan&&data.plan&&data.plan!=='blocked'){
+            showToast('Piano '+data.plan.toUpperCase()+' attivato!','success');
+          }else if(prev&&prev.plan==='blocked'&&data.plan&&data.plan!=='blocked'){
+            showToast('Piano '+data.plan.toUpperCase()+' attivato!','success');
+          }
+          return Object.assign({},prev,{plan:data.plan,planType:data.planType,planActivatedAt:data.planActivatedAt,planExpiresAt:data.planExpiresAt});
+        });
+      }
+    });
+    return function(){unsubSnap();};
+  },[user?.uid]);
+
   if(user===undefined) return(
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'#07090f',gap:16}}>
       <div style={{fontSize:32,fontWeight:900,color:'#3b82f6'}}>PT Board</div>
@@ -5140,7 +5171,7 @@ function TrialBlockScreen({user}){
               <div style={{marginTop:12,marginBottom:12}}>
                 {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
               </div>
-              <button onClick={()=>openStripeCheckout(plan.url+'?prefilled_email='+encodeURIComponent(user.email)+'&client_reference_id='+encodeURIComponent(user.uid))} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
+              <button onClick={()=>openCheckout(key)} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
               {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
             </div>
           );
@@ -5224,7 +5255,7 @@ function PianiModal({onClose,profile,user}){
                   <div style={{flex:1,marginTop:12,marginBottom:12}}>
                     {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
                   </div>
-                  <button onClick={()=>openStripeCheckout(plan.url+'?prefilled_email='+encodeURIComponent(user?.email||'')+'&client_reference_id='+encodeURIComponent(user?.uid||''))} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
+                  <button onClick={()=>openCheckout(key)} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
                   {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
                 </div>
               );
