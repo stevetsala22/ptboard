@@ -82,7 +82,6 @@ if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
 <link rel="apple-touch-icon" href="icon192.png"/>
 <title>PT Board</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.9/babel.min.js"></script>
@@ -117,10 +116,10 @@ const ADMIN_EMAIL='stevetsala22@gmail.com'; // ← cambia con la tua email
 const TRIAL_DAYS=15;
 window.TRIAL_DAYS=TRIAL_DAYS;
 const PLANS={
-  proMonthly:{name:'Pro Mensile',price:'9,99',period:'/mese',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/871f65c8-d1af-4985-80cf-eeb1bdbdcd38'},
-  proYearly:{name:'Pro Annuale',price:'7,99',period:'/mese',yearly:'95,88€/anno',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/93a74fa1-9f3d-4e24-972f-bc53a978572e',badge:'Risparmia 20%'},
-  teamMonthly:{name:'Team Mensile',price:'19,99',period:'/mese',sub:'Fino a 3 PT',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/70c3ccdf-79d6-48ad-8f97-730be4242d80'},
-  teamYearly:{name:'Team Annuale',price:'15,99',period:'/mese',yearly:'191,88€/anno',sub:'Fino a 3 PT',url:'https://personaltrainerboard.lemonsqueezy.com/checkout/buy/fc6ddc56-199a-4ba9-ba35-03ba1cb415c9',badge:'Risparmia 20%'}
+  proMonthly:{name:'Pro Mensile',price:'9,99',period:'/mese',url:'https://buy.stripe.com/bJe28k04F3Y58YPdY8dQQ00'},
+  proYearly:{name:'Pro Annuale',price:'7,99',period:'/mese',yearly:'95,88€/anno',url:'https://buy.stripe.com/8x26oA5oZ2U17ULcU4dQQ02',badge:'Risparmia 20%'},
+  teamMonthly:{name:'Team Mensile',price:'19,99',period:'/mese',sub:'Fino a 3 PT',url:'https://buy.stripe.com/aFadR22cN3Y53Ev07idQQ03'},
+  teamYearly:{name:'Team Annuale',price:'15,99',period:'/mese',yearly:'191,88€/anno',sub:'Fino a 3 PT',url:'https://buy.stripe.com/14A9AMdVv66d0sj3judQQ01',badge:'Risparmia 20%'}
 };
 // ── USER PLAN FUNCTIONS ───────────────────────────────────────────────────────
 const fbSaveUserProfile=async(uid,data)=>{
@@ -233,30 +232,8 @@ var checkOnboardingEmails=async function(uid,profile){
   }
   await fbDb.collection('users').doc(uid).update({onboardingSent:sentEmails});
 };
-var openLemonCheckout=function(planUrl, planType, uid){
-  if(!window.createLemonSqueezy){
-    window.open(planUrl,'_blank');
-    return;
-  }
-  window.createLemonSqueezy();
-  window.LemonSqueezy.Setup({
-    eventHandler: function(event){
-      if(event.event==='Checkout.Success'){
-        var plan=planType.includes('team')?'team':'pro';
-        var expiryDays=planType.toLowerCase().includes('yearly')?370:33;
-        var planExpiresAt=new Date(Date.now()+expiryDays*24*60*60*1000).toISOString();
-        fbDb.collection('users').doc(uid).update({plan:plan,planType:planType,planActivatedAt:new Date().toISOString(),planExpiresAt:planExpiresAt}).then(function(){
-          console.log('Piano attivato:',plan);
-          showToast('Piano '+plan.toUpperCase()+' attivato! Benvenuto!','success');
-          window.location.reload();
-        }).catch(function(e){
-          console.warn('Errore attivazione piano:',e);
-          showToast('Pagamento ricevuto! Il piano si attiverà a breve.','success');
-        });
-      }
-    }
-  });
-  window.LemonSqueezy.Url.Open(planUrl);
+var openStripeCheckout=function(planUrl){
+  window.open(planUrl,'_blank');
 };
 </script>
 <style>
@@ -5163,7 +5140,7 @@ function TrialBlockScreen({user}){
               <div style={{marginTop:12,marginBottom:12}}>
                 {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
               </div>
-              <button onClick={()=>openLemonCheckout(plan.url+'?checkout[email]='+encodeURIComponent(user.email)+'&checkout[custom][uid]='+encodeURIComponent(user.uid), key, user.uid)} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
+              <button onClick={()=>openStripeCheckout(plan.url+'?prefilled_email='+encodeURIComponent(user.email)+'&client_reference_id='+encodeURIComponent(user.uid))} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
               {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
             </div>
           );
@@ -5247,7 +5224,7 @@ function PianiModal({onClose,profile,user}){
                   <div style={{flex:1,marginTop:12,marginBottom:12}}>
                     {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
                   </div>
-                  <button onClick={()=>openLemonCheckout(plan.url+'?checkout[email]='+encodeURIComponent(user?.email||'')+'&checkout[custom][uid]='+encodeURIComponent(user?.uid||''), key, user?.uid||'')} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
+                  <button onClick={()=>openStripeCheckout(plan.url+'?prefilled_email='+encodeURIComponent(user?.email||'')+'&client_reference_id='+encodeURIComponent(user?.uid||''))} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
                   {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
                 </div>
               );
