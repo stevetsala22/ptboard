@@ -5223,33 +5223,48 @@ function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setP
     setIsLight(prevLight.current);
     onClose();
   };
+  const lblStyle={fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:10};
+  const cardStyle={background:C.card,border:'1px solid '+C.border2,borderRadius:14,padding:20,marginBottom:16};
+  const btnActive={padding:12,borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',background:C.blue,color:'#fff',border:'none'};
+  const btnInactive={padding:12,borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',background:C.bg,border:'1px solid '+C.border2,color:C.muted};
   return(
-    <div style={{position:'fixed',inset:0,background:'#000000cc',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
-      <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:16,padding:24,width:'90%',maxWidth:420,maxHeight:'80vh',overflowY:'auto',position:'relative'}}>
-        <button onClick={handleCancel} style={{position:'absolute',right:16,top:16,background:'none',border:'none',color:C.muted,fontSize:20,cursor:'pointer'}}>✕</button>
-        <div style={{fontSize:18,fontWeight:700,color:C.strong,marginBottom:20}}>Personalizza</div>
-        <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Lingua</div>
-        <select value={pLang} onChange={e=>setPLang(e.target.value)} style={{width:'100%',padding:'7px 8px',borderRadius:7,border:'1px solid '+C.border2,background:C.card,color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:16,cursor:'pointer'}}>
-          <option value="it">🇮🇹 Italiano</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="fr">🇫🇷 Français</option>
-        </select>
-        <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Tema</div>
-        <div style={{display:'flex',gap:8,marginBottom:16}}>
-          <button onClick={()=>setPLight(false)} style={{flex:1,padding:'8px',borderRadius:8,border:'1px solid '+(pLight?C.border2:C.blue),background:pLight?C.card:C.blue,color:pLight?C.muted:'#fff',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>🌙 Scuro</button>
-          <button onClick={()=>setPLight(true)} style={{flex:1,padding:'8px',borderRadius:8,border:'1px solid '+(pLight?C.blue:C.border2),background:pLight?C.blue:C.card,color:pLight?'#fff':C.muted,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>☀️ Chiaro</button>
+    <div style={{position:'fixed',inset:0,zIndex:9999,background:C.bg,overflowY:'auto'}}>
+      <div style={{maxWidth:600,margin:'0 auto',padding:isMobile?'20px 16px':'40px 24px'}}>
+        <button onClick={handleCancel} style={{fontSize:13,color:C.muted,cursor:'pointer',background:'none',border:'none',fontFamily:'inherit',marginBottom:16}}>← Torna ai parametri</button>
+        <div style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,textAlign:'center',marginBottom:8}}>Personalizza</div>
+        <div style={{fontSize:14,color:C.muted,textAlign:'center',marginBottom:32}}>Lingua, tema e brand del tuo studio</div>
+        <div style={cardStyle}>
+          <div style={lblStyle}>Lingua</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+            <button onClick={()=>setPLang('it')} style={pLang==='it'?btnActive:btnInactive}>🇮🇹 Italiano</button>
+            <button onClick={()=>setPLang('en')} style={pLang==='en'?btnActive:btnInactive}>🇬🇧 English</button>
+            <button onClick={()=>setPLang('fr')} style={pLang==='fr'?btnActive:btnInactive}>🇫🇷 Français</button>
+          </div>
         </div>
-        <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Nome studio</div>
-        <input value={pNome} onChange={e=>setPNome(e.target.value)} placeholder="Nome studio" style={{width:'100%',padding:10,borderRadius:8,border:'1px solid '+C.border2,background:C.card,color:C.strong,fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:16,boxSizing:'border-box'}}/>
-        <div style={{fontSize:12,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>Logo</div>
-        {pLogo&&<div style={{marginBottom:8}}>
-          <img src={pLogo} alt="logo" style={{width:80,height:80,borderRadius:10,objectFit:'cover',display:'block',marginBottom:6}}/>
-          <button onClick={()=>setPLogo('')} style={{fontSize:11,color:'#ef4444',background:'transparent',border:'none',cursor:'pointer',padding:0}}>✕ Rimuovi logo</button>
-        </div>}
-        <button onClick={()=>document.getElementById('personalizza-logo-input').click()} style={{width:'100%',padding:'8px',borderRadius:8,border:'1px solid '+C.border2,background:C.card,color:C.muted,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>Carica logo</button>
-        <input id="personalizza-logo-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const max=200;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const b64=canvas.toDataURL('image/jpeg',0.7);setPLogo(b64);};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
-        <button onClick={handleSave} style={{width:'100%',padding:14,borderRadius:10,background:C.blue,color:'#fff',fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginTop:20,border:'none'}}>Salva modifiche</button>
-        <button onClick={handleCancel} style={{width:'100%',padding:10,borderRadius:10,background:'transparent',border:'1px solid '+C.border2,color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:8}}>Annulla</button>
+        <div style={cardStyle}>
+          <div style={lblStyle}>Tema</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            <button onClick={()=>setPLight(false)} style={!pLight?btnActive:btnInactive}>🌙 Scuro</button>
+            <button onClick={()=>setPLight(true)} style={pLight?btnActive:btnInactive}>☀️ Chiaro</button>
+          </div>
+        </div>
+        <div style={cardStyle}>
+          <div style={lblStyle}>Nome studio</div>
+          <input value={pNome} onChange={e=>setPNome(e.target.value)} placeholder="Es. Fitness Studio Roma" style={{width:'100%',padding:12,borderRadius:8,border:'1px solid '+C.border2,background:C.bg,color:C.strong,fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:16,boxSizing:'border-box'}}/>
+          <div style={lblStyle}>Logo</div>
+          {pLogo&&<div style={{marginBottom:10}}>
+            <img src={pLogo} alt="logo" style={{width:80,height:80,borderRadius:12,objectFit:'cover',display:'block',border:'1px solid '+C.border2,marginBottom:10}}/>
+          </div>}
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <button onClick={()=>document.getElementById('personalizza-logo-input').click()} style={{padding:'10px 16px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.strong,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Carica logo</button>
+            {pLogo&&<button onClick={()=>setPLogo('')} style={{fontSize:12,color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>Rimuovi logo</button>}
+          </div>
+          <input id="personalizza-logo-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const max=200;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const b64=canvas.toDataURL('image/jpeg',0.7);setPLogo(b64);};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
+        </div>
+        <div style={{marginTop:32,display:'flex',flexDirection:'column',gap:10}}>
+          <button onClick={handleSave} style={{width:'100%',padding:16,borderRadius:12,background:C.blue,color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none'}}>Salva modifiche</button>
+          <button onClick={handleCancel} style={{width:'100%',padding:12,borderRadius:12,background:'transparent',border:'1px solid '+C.border2,color:C.muted,fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Annulla</button>
+        </div>
       </div>
     </div>
   );
