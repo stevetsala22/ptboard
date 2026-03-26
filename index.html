@@ -3276,10 +3276,10 @@ function App(){
   }
   if(profile?.plan==='blocked') return <PaywallScreen user={user} profile={profile} blocked/>;
   if(profile?.email!==ADMIN_EMAIL&&isTrialExpired(profile)) return <PaywallScreen user={user} profile={profile}/>;
-  return <AppInner user={user} profile={profile} trialLeft={trialDaysLeft(profile)}/>;
+  return <AppInner user={user} profile={profile} setProfile={setProfile} trialLeft={trialDaysLeft(profile)}/>;
 }
 
-function AppInner({user,profile,trialLeft}){
+function AppInner({user,profile,setProfile,trialLeft}){
   var trainerProfile=profile;
   var tpNome=trainerProfile?.nome||trainerProfile?.displayName||'';
   var tpCognome=trainerProfile?.cognome||'';
