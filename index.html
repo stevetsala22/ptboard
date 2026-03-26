@@ -1629,7 +1629,8 @@ function LineChartComp({data,color=C.blue}){
   useEffect(()=>{
     if(!ref.current||!data?.length)return;
     if(chartRef.current)chartRef.current.destroy();
-    chartRef.current=new Chart(ref.current,{type:'line',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),borderColor:color,backgroundColor:color+'20',fill:true,tension:.4,pointBackgroundColor:color,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}},y:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}}}}});
+    const cs=getComputedStyle(document.documentElement);const mc=cs.getPropertyValue('--muted').trim()||'#6b7280';const gc=cs.getPropertyValue('--border2').trim()||'#374151';
+    chartRef.current=new Chart(ref.current,{type:'line',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),borderColor:color,backgroundColor:color+'20',fill:true,tension:.4,pointBackgroundColor:color,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mc,font:{size:11}}}}}});
     return()=>{if(chartRef.current)chartRef.current.destroy()};
   },[data,color]);
   if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>{gT().noData}</div>;
@@ -1641,7 +1642,8 @@ function BarChartComp({data,color=C.blue}){
   useEffect(()=>{
     if(!ref.current||!data?.length)return;
     if(chartRef.current)chartRef.current.destroy();
-    chartRef.current=new Chart(ref.current,{type:'bar',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),backgroundColor:color+'80',borderColor:color,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}},y:{grid:{color:'#1e293b'},ticks:{color:C.muted,font:{size:11}}}}}});
+    const cs=getComputedStyle(document.documentElement);const mc=cs.getPropertyValue('--muted').trim()||'#6b7280';const gc=cs.getPropertyValue('--border2').trim()||'#374151';
+    chartRef.current=new Chart(ref.current,{type:'bar',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),backgroundColor:color+'80',borderColor:color,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mc,font:{size:11}}}}}});
     return()=>{if(chartRef.current)chartRef.current.destroy()};
   },[data,color]);
   if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>{gT().noData}</div>;
@@ -3313,6 +3315,15 @@ function AppInner({user,profile,trialLeft}){
   const T=LANGS[lang]?.t||LANGS.it.t;
   const firstLoad=useRef(true);
   var debounceTimer=React.useRef(null);
+  var [localNomeStudio,setLocalNomeStudio]=React.useState(profile?.nomeStudio||'');
+  var localNomeStudioRef=React.useRef(localNomeStudio);
+  React.useEffect(function(){setLocalNomeStudio(profile?.nomeStudio||'');},[profile?.nomeStudio]);
+  React.useEffect(function(){
+    if(localNomeStudio===localNomeStudioRef.current)return;
+    localNomeStudioRef.current=localNomeStudio;
+    var t=setTimeout(function(){if(user?.uid)fbSaveUserProfile(user.uid,{nomeStudio:localNomeStudio});},1500);
+    return function(){clearTimeout(t);};
+  },[localNomeStudio]);
 
   const [syncing,setSyncing]=useState(true);
   const [,forceUpdate]=useState(0);
@@ -3507,7 +3518,7 @@ function AppInner({user,profile,trialLeft}){
                   {trainerProfile?.logo?<img src={trainerProfile.logo} alt="logo" style={{width:'100%',height:'100%',objectFit:'contain'}}/>:<span style={{fontSize:22}}>🏷️</span>}
                 </div>
                 <div style={{flex:1,minWidth:0}}>
-                  <input placeholder="Nome studio" value={trainerProfile?.nomeStudio||''} onChange={e=>{const v=e.target.value;setProfile(p=>({...p,nomeStudio:v}));clearTimeout(debounceTimer.current);debounceTimer.current=setTimeout(function(){fbSaveUserProfile(user.uid,{nomeStudio:v});},1500);}} style={{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:6,padding:'5px 8px',color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:4}}/>
+                  <input placeholder="Nome studio" value={localNomeStudio} onChange={e=>setLocalNomeStudio(e.target.value)} style={{width:'100%',background:C.bg,border:`1px solid ${C.border2}`,borderRadius:6,padding:'5px 8px',color:C.text,fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:4}}/>
                   {trainerProfile?.logo&&<button onClick={async()=>{await fbSaveUserProfile(user.uid,{logo:''});setProfile(p=>({...p,logo:''}));}} style={{fontSize:10,color:'#ef4444',background:'transparent',border:'none',cursor:'pointer',padding:0}}>✕ Rimuovi logo</button>}
                 </div>
               </div>
