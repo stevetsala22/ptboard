@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PT Board - Social Graphic (Story 1080x1920)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#e2e8f0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  font-family:'DM Sans',system-ui,sans-serif;
+}
+
+.canvas{
+  width:1080px;
+  height:1920px;
+  background:linear-gradient(180deg,#f8faff 0%,#eef2ff 30%,#e8f0fe 60%,#f0f4ff 100%);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Decorative circles */
+.canvas::before{
+  content:'';
+  position:absolute;
+  top:-150px;
+  right:-150px;
+  width:600px;
+  height:600px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.1) 0%,transparent 70%);
+}
+.canvas::after{
+  content:'';
+  position:absolute;
+  bottom:200px;
+  left:-100px;
+  width:500px;
+  height:500px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(16,185,129,.06) 0%,transparent 70%);
+}
+
+/* Top section: text */
+.top-section{
+  padding:100px 80px 60px;
+  position:relative;
+  z-index:2;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 22px;
+  border-radius:100px;
+  font-size:16px;
+  font-weight:700;
+  background:rgba(59,130,246,.1);
+  color:#3b82f6;
+  border:1.5px solid rgba(59,130,246,.2);
+  letter-spacing:.3px;
+  margin-bottom:32px;
+}
+.badge-dot{width:10px;height:10px;border-radius:50%;background:#3b82f6}
+
+.headline{
+  font-size:72px;
+  font-weight:900;
+  line-height:1.05;
+  color:#0f172a;
+  letter-spacing:-2px;
+  margin-bottom:28px;
+}
+.headline span{
+  background:linear-gradient(135deg,#3b82f6,#06b6d4);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.description{
+  font-size:22px;
+  color:#64748b;
+  line-height:1.6;
+  max-width:800px;
+}
+
+/* Stats row */
+.stats-row{
+  display:flex;
+  gap:48px;
+  padding:48px 80px;
+  position:relative;
+  z-index:2;
+}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat-value{font-size:36px;font-weight:900;color:#0f172a;letter-spacing:-.5px}
+.stat-value.blue{color:#3b82f6}
+.stat-value.green{color:#10b981}
+.stat-label{font-size:14px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+/* Mockup section */
+.mockup-section{
+  flex:1;
+  position:relative;
+  padding:0 40px;
+  z-index:2;
+}
+
+/* Laptop */
+.laptop{
+  position:absolute;
+  width:780px;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+}
+.laptop-screen{
+  background:#0c1225;
+  border-radius:16px;
+  padding:10px;
+  box-shadow:0 32px 80px rgba(0,0,0,.2),0 0 0 1px rgba(0,0,0,.08);
+}
+.laptop-topbar{display:flex;align-items:center;gap:7px;padding:8px 14px 10px}
+.laptop-dot{width:10px;height:10px;border-radius:50%}
+.laptop-dot.r{background:#ff5f57}.laptop-dot.y{background:#ffbd2e}.laptop-dot.g{background:#28c840}
+.laptop-content{
+  background:#0a0f1e;
+  border-radius:10px;
+  padding:24px;
+  min-height:400px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.laptop-base{
+  width:108%;height:18px;
+  background:linear-gradient(180deg,#d1d5db,#e5e7eb);
+  border-radius:0 0 10px 10px;
+  margin:-1px auto 0;margin-left:-4%;
+}
+
+/* Phone */
+.phone{
+  position:absolute;
+  width:280px;
+  right:40px;
+  bottom:60px;
+  z-index:5;
+  transform:rotate(-3deg);
+}
+.phone-frame{
+  background:#1a1a2e;
+  border-radius:36px;
+  padding:10px;
+  box-shadow:0 24px 64px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.06);
+}
+.phone-notch{width:100px;height:7px;background:#000;border-radius:10px;margin:6px auto 10px}
+.phone-content{
+  background:#0a0f1e;
+  border-radius:26px;
+  padding:20px;
+  min-height:440px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* App UI elements */
+.app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.app-logo{font-size:15px;font-weight:800;color:#e2e8f0;letter-spacing:-.3px}
+.app-logo em{color:#3b82f6;font-style:normal}
+.app-nav{display:flex;gap:5px}
+.app-nav-dot{width:7px;height:7px;border-radius:2px;background:#1e293b}
+.app-nav-dot.active{background:#3b82f6}
+
+.app-card{background:#111a33;border-radius:12px;padding:14px;border:1px solid #1a2547}
+.app-card-title{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.app-card-value{font-size:24px;font-weight:900;color:#f9fafb}
+.app-card-value.blue{color:#3b82f6}
+.app-card-value.green{color:#10b981}
+
+.app-bar-chart{display:flex;align-items:flex-end;gap:5px;height:60px;margin-top:6px}
+.app-bar{flex:1;border-radius:3px 3px 0 0;min-width:10px}
+
+.app-client-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1a2547}
+.app-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.app-client-info{flex:1}
+.app-client-name{font-size:13px;font-weight:700;color:#e2e8f0}
+.app-client-sub{font-size:10px;color:#64748b}
+.app-client-badge{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700}
+
+/* Floating icon */
+.floating-icon{
+  position:absolute;
+  width:80px;height:80px;
+  background:#fff;
+  border-radius:20px;
+  box-shadow:0 12px 40px rgba(0,0,0,.12);
+  display:flex;align-items:center;justify-content:center;
+  z-index:10;
+}
+.floating-icon.pos1{left:40px;top:20px}
+.floating-icon.pos2{right:60px;top:280px}
+
+.pt-icon{
+  width:50px;height:50px;
+  background:linear-gradient(135deg,#3b82f6,#06b6d4);
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:900;color:#fff;
+  font-family:'DM Sans',sans-serif;
+}
+
+/* CTA bottom */
+.cta-section{
+  padding:40px 80px 80px;
+  position:relative;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.btn-primary{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  padding:24px 48px;
+  border-radius:16px;
+  font-family:inherit;
+  font-size:22px;
+  font-weight:800;
+  color:#fff;
+  background:linear-gradient(135deg,#3b82f6,#2563eb);
+  border:none;
+  box-shadow:0 12px 40px rgba(59,130,246,.35);
+  letter-spacing:.2px;
+}
+.footer-url{
+  font-size:20px;
+  font-weight:700;
+  color:#3b82f6;
+}
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <!-- Top: text -->
+  <div class="top-section">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Prova gratuita 15 giorni
+    </div>
+    <h1 class="headline">
+      Gestisci i tuoi<br/>clienti con<br/><span>PT Board</span>
+    </h1>
+    <p class="description">
+      Valuta, programma e monitora i tuoi clienti in un'unica piattaforma pensata per Personal Trainer.
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat">
+      <span class="stat-value blue">20 min</span>
+      <span class="stat-label">Valutazione</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value green">100%</span>
+      <span class="stat-label">Personalizzabile</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">&infin;</span>
+      <span class="stat-label">Clienti</span>
+    </div>
+  </div>
+
+  <!-- Mockups -->
+  <div class="mockup-section">
+
+    <div class="floating-icon pos1">
+      <div class="pt-icon">PT</div>
+    </div>
+
+    <!-- Laptop -->
+    <div class="laptop">
+      <div class="laptop-screen">
+        <div class="laptop-topbar">
+          <span class="laptop-dot r"></span>
+          <span class="laptop-dot y"></span>
+          <span class="laptop-dot g"></span>
+        </div>
+        <div class="laptop-content">
+          <div class="app-header">
+            <span class="app-logo"><em>PT</em> Board</span>
+            <div class="app-nav">
+              <span class="app-nav-dot active"></span>
+              <span class="app-nav-dot"></span>
+              <span class="app-nav-dot"></span>
+              <span class="app-nav-dot"></span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div class="app-card">
+              <div class="app-card-title">Clienti</div>
+              <div class="app-card-value blue">24</div>
+            </div>
+            <div class="app-card">
+              <div class="app-card-title">Attivi</div>
+              <div class="app-card-value green">18</div>
+            </div>
+            <div class="app-card">
+              <div class="app-card-title">Sessioni</div>
+              <div class="app-card-value">142</div>
+            </div>
+          </div>
+          <div class="app-card" style="flex:1">
+            <div class="app-card-title">Progressi settimanali</div>
+            <div class="app-bar-chart">
+              <div class="app-bar" style="height:35%;background:#1e293b"></div>
+              <div class="app-bar" style="height:55%;background:#1e293b"></div>
+              <div class="app-bar" style="height:40%;background:#1e293b"></div>
+              <div class="app-bar" style="height:70%;background:#3b82f6"></div>
+              <div class="app-bar" style="height:60%;background:#3b82f6"></div>
+              <div class="app-bar" style="height:85%;background:#3b82f6"></div>
+              <div class="app-bar" style="height:75%;background:#3b82f6"></div>
+              <div class="app-bar" style="height:90%;background:linear-gradient(180deg,#06b6d4,#3b82f6)"></div>
+              <div class="app-bar" style="height:50%;background:#1e293b"></div>
+              <div class="app-bar" style="height:65%;background:#3b82f6"></div>
+              <div class="app-bar" style="height:80%;background:#3b82f6"></div>
+              <div class="app-bar" style="height:95%;background:linear-gradient(180deg,#10b981,#3b82f6)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="laptop-base"></div>
+    </div>
+
+    <!-- Phone -->
+    <div class="phone">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-content">
+          <div class="app-header">
+            <span class="app-logo" style="font-size:13px"><em>PT</em> Board</span>
+          </div>
+          <div class="app-card" style="padding:10px 12px">
+            <div class="app-card-title" style="font-size:9px">Prossimo cliente</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <div class="app-avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">MR</div>
+              <div>
+                <div class="app-client-name">Marco R.</div>
+                <div class="app-client-sub">Oggi 10:00 - Forza</div>
+              </div>
+            </div>
+          </div>
+          <div class="app-client-row">
+            <div class="app-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">LB</div>
+            <div class="app-client-info">
+              <div class="app-client-name" style="font-size:12px">Laura B.</div>
+              <div class="app-client-sub">Dimagrimento</div>
+            </div>
+            <span class="app-client-badge" style="background:rgba(16,185,129,.15);color:#10b981">Attivo</span>
+          </div>
+          <div class="app-client-row">
+            <div class="app-avatar" style="background:linear-gradient(135deg,#f59e0b,#f97316)">GP</div>
+            <div class="app-client-info">
+              <div class="app-client-name" style="font-size:12px">Giuseppe P.</div>
+              <div class="app-client-sub">Ipertrofia</div>
+            </div>
+            <span class="app-client-badge" style="background:rgba(59,130,246,.15);color:#3b82f6">Attivo</span>
+          </div>
+          <div class="app-client-row">
+            <div class="app-avatar" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">SA</div>
+            <div class="app-client-info">
+              <div class="app-client-name" style="font-size:12px">Sofia A.</div>
+              <div class="app-client-sub">Funzionale</div>
+            </div>
+            <span class="app-client-badge" style="background:rgba(16,185,129,.15);color:#10b981">Attivo</span>
+          </div>
+          <div class="app-client-row" style="border:none">
+            <div class="app-avatar" style="background:linear-gradient(135deg,#6366f1,#3b82f6)">DF</div>
+            <div class="app-client-info">
+              <div class="app-client-name" style="font-size:12px">Davide F.</div>
+              <div class="app-client-sub">Riabilitazione</div>
+            </div>
+            <span class="app-client-badge" style="background:rgba(245,158,11,.15);color:#f59e0b">In pausa</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA bottom -->
+  <div class="cta-section">
+    <button class="btn-primary">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      Inizia gratis
+    </button>
+    <span class="footer-url">personaltrainerboard.com</span>
+  </div>
+
+</div>
+
+</body>
+</html>
