@@ -8,6 +8,23 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js',new Date());
 gtag('config','G-EXPPE8PWMT');
 </script>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1671690820676185');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <meta charset="UTF-8"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="apple-touch-icon" href="/favicon.png"/>
@@ -339,7 +356,7 @@ a{color:var(--blue);text-decoration:none}
     </div>
     <div class="navbar-cta">
       <a href="/" class="btn btn-ghost btn-sm" onclick="sessionStorage.setItem('entered','1')">Accedi</a>
-      <a href="/" class="btn btn-primary btn-sm" onclick="sessionStorage.setItem('entered','1')">Prova gratis</a>
+      <a href="/" class="btn btn-primary btn-sm" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Prova gratis</a>
     </div>
     <button class="mobile-menu-btn" onclick="document.querySelector('.navbar-links').style.display=document.querySelector('.navbar-links').style.display==='flex'?'none':'flex'" aria-label="Menu">&#9776;</button>
   </div>
@@ -608,7 +625,7 @@ a{color:var(--blue);text-decoration:none}
           <div class="price-feature yes"><span class="icon">&#10003;</span> Export PDF</div>
           <div class="price-feature no"><span class="icon">&#10007;</span> AI Coach (in arrivo)</div>
         </div>
-        <a href="/" class="btn btn-ghost" style="width:100%" onclick="sessionStorage.setItem('entered','1')">Inizia gratis</a>
+        <a href="/" class="btn btn-ghost" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis</a>
       </div>
       <!-- Pro Mensile -->
       <div class="price-card popular animate delay-1">
@@ -628,7 +645,7 @@ a{color:var(--blue);text-decoration:none}
           <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
           <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
         </div>
-        <a href="/" class="btn btn-primary" style="width:100%" onclick="sessionStorage.setItem('entered','1')">Scegli Pro Mensile &#8594;</a>
+        <a href="/" class="btn btn-primary" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Mensile &#8594;</a>
         <div class="price-divider"></div>
         <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">I competitor costano di piu:</div>
         <div class="price-competitor"><span class="name">Mindflex</span><span class="amount">&#8364;49/m</span></div>
@@ -655,7 +672,7 @@ a{color:var(--blue);text-decoration:none}
           <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
           <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
         </div>
-        <a href="/" class="btn btn-primary" style="width:100%" onclick="sessionStorage.setItem('entered','1')">Scegli Pro Annuale &#8594;</a>
+        <a href="/" class="btn btn-primary" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Annuale &#8594;</a>
       </div>
       <!-- Team -->
       <div class="price-card animate delay-3">
@@ -673,7 +690,7 @@ a{color:var(--blue);text-decoration:none}
           <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Ogni PT ha i propri clienti isolati</div>
           <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Dati separati e sicuri</div>
         </div>
-        <a href="/" class="btn btn-ghost" style="width:100%" onclick="sessionStorage.setItem('entered','1')">Scegli Team &#8594;</a>
+        <a href="/" class="btn btn-ghost" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Team &#8594;</a>
         <div style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5">Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com</div>
       </div>
     </div>
@@ -757,7 +774,7 @@ a{color:var(--blue);text-decoration:none}
       <h2>Pronto a diventare il PT<br/>che tutti vogliono?</h2>
       <p>Unisciti ai professionisti che stanno trasformando il loro modo di lavorare. 15 giorni gratis, zero rischi.</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-        <a href="/" class="btn btn-primary btn-lg">Inizia gratis ora &#8594;</a>
+        <a href="/" class="btn btn-primary btn-lg" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis ora &#8594;</a>
         <a href="#pricing" class="btn btn-ghost btn-lg">Vedi i piani</a>
       </div>
       <div style="margin-top:24px;font-size:13px;color:var(--dim)">Nessuna carta di credito richiesta &middot; Setup in 2 minuti &middot; Disdici quando vuoi</div>
