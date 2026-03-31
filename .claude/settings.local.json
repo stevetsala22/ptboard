@@ -9,7 +9,10 @@
       "Bash(start https://github.com/stevetsala22/ptboard)",
       "Bash(start \"\" \"C:\\\\Users\\\\User\\\\Downloads\\\\files \\(33\\)\\\\index.html\")",
       "Bash(find \"c:/Users/User/Downloads/files \\(33\\)\" -type f \\\\\\( -name \"*.env*\" -o -name \"*secret*\" -o -name \"*config*\" \\\\\\))",
-      "mcp__5d8e3a31-13c6-44d6-89a3-f66eaf9a8c36__create-design-from-candidate"
+      "mcp__5d8e3a31-13c6-44d6-89a3-f66eaf9a8c36__create-design-from-candidate",
+      "mcp__5d8e3a31-13c6-44d6-89a3-f66eaf9a8c36__commit-editing-transaction",
+      "mcp__5d8e3a31-13c6-44d6-89a3-f66eaf9a8c36__start-editing-transaction",
+      "mcp__5d8e3a31-13c6-44d6-89a3-f66eaf9a8c36__perform-editing-operations"
     ]
   }
 }
