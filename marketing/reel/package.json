@@ -1,0 +1,17 @@
+{
+  "name": "ptboard-reel",
+  "version": "1.0.0",
+  "description": "PT Board Instagram Reel / TikTok video (30s)",
+  "scripts": {
+    "studio": "remotion studio src/index.jsx",
+    "render": "remotion render src/index.jsx PTBoardReel out/reel.mp4",
+    "preview": "remotion render src/index.jsx PTBoardReel out/preview.mp4 --frames=0-90"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.443",
+    "@remotion/player": "^4.0.443",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.443"
+  }
+}
