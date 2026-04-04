@@ -3951,53 +3951,67 @@ var generaProgramma = function(params) {
   if (profilo === 'A') { rpeMin = 2; rpeMax = 4; recSec = 90; serieBase = 2; ripBase = 10; }
   else if (profilo === 'B') { rpeMin = 4; rpeMax = 6; recSec = 60; serieBase = 3; ripBase = 12; }
   else { rpeMin = 5; rpeMax = 8; recSec = 45; serieBase = 4; ripBase = 10; }
+  // ── MODIFICATORI OBIETTIVO per intensita (solo B e C — Profilo A protetto) ──
+  var ripRange = '' + ripBase;
+  if (profilo !== 'A') {
+    if (obiettivo === 'Perdere peso') { ripBase = 12; recSec = 45; ripRange = profilo === 'B' ? '12-15' : '10-15'; }
+    else if (obiettivo === 'Aumentare massa') { ripBase = 10; recSec = 60; ripRange = '8-12'; }
+    else if (obiettivo === 'Forza') { ripBase = profilo === 'B' ? 6 : 5; recSec = profilo === 'B' ? 90 : 120; ripRange = profilo === 'B' ? '6-8' : '3-6'; }
+  }
+  // ── ZONA FC CARDIO ──
+  var zonaFC;
+  if (profilo === 'A') zonaFC = '55-65% FC max';
+  else if (profilo === 'B') zonaFC = '60-70% FC max';
+  else zonaFC = '65-75% FC max';
+  // Ridurre zona FC per massa (cardio non deve interferire con ipertrofia)
+  if (obiettivo === 'Aumentare massa') zonaFC = profilo === 'A' ? '50-60% FC max' : '55-65% FC max';
   if (eta > 65) { rpeMax = Math.min(rpeMax, 6); recSec += 15; }
   // ── TIPO CARDIO per profilo e obiettivo ──
   var cardioDesc = [];
   if (profilo === 'A') {
     cardioDesc = [
-      'Camminata lenta ' + Math.round(minCardio/sedute) + ' min, RPE ' + rpeMin + '-' + (rpeMin+1),
-      'Camminata moderata ' + Math.round(minCardio/sedute + 3) + ' min, RPE ' + (rpeMin+1),
-      'Camminata veloce ' + Math.round(minCardio/sedute + 5) + ' min, RPE ' + rpeMax,
-      'Camminata veloce ' + Math.round(minCardio/sedute + 8) + ' min con 2 brevi salite'
+      'Camminata lenta ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + rpeMin + '-' + (rpeMin+1),
+      'Camminata moderata ' + Math.round(minCardio/sedute + 3) + ' min (' + zonaFC + '), RPE ' + (rpeMin+1),
+      'Camminata veloce ' + Math.round(minCardio/sedute + 5) + ' min (' + zonaFC + '), RPE ' + rpeMax,
+      'Camminata veloce ' + Math.round(minCardio/sedute + 8) + ' min (' + zonaFC + ') con 2 brevi salite'
     ];
   } else if (profilo === 'B') {
     if (obiettivo === 'Perdere peso') {
       cardioDesc = [
-        'Camminata veloce ' + Math.round(minCardio/sedute) + ' min, RPE ' + rpeMin,
-        'Intervalli: 3 min corsa / 2 min cammino x ' + Math.round(minCardio/sedute/5) + ' cicli',
-        'Corsa leggera continua ' + Math.round(minCardio/sedute) + ' min, RPE ' + (rpeMax-1),
-        'LISS ' + Math.round(minCardio/sedute) + ' min + 2x3 min HIIT leggero'
+        'Camminata veloce ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + rpeMin,
+        'Intervalli: 3 min corsa / 2 min cammino x ' + Math.round(minCardio/sedute/5) + ' cicli (' + zonaFC + ')',
+        'Corsa leggera continua ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + (rpeMax-1),
+        'LISS ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + ') + 2x3 min HIIT leggero'
       ];
     } else {
       cardioDesc = [
-        'Camminata veloce/cyclette ' + Math.round(minCardio/sedute) + ' min, RPE ' + rpeMin,
-        'Intervalli: 3 min intenso / 2 min recupero x ' + Math.round(minCardio/sedute/5) + ' cicli',
-        'Cardio moderato ' + Math.round(minCardio/sedute + 5) + ' min',
-        'Cardio variato ' + Math.round(minCardio/sedute + 5) + ' min + 5 min HIIT'
+        'Camminata veloce/cyclette ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + rpeMin,
+        'Intervalli: 3 min intenso / 2 min recupero x ' + Math.round(minCardio/sedute/5) + ' cicli (' + zonaFC + ')',
+        'Cardio moderato ' + Math.round(minCardio/sedute + 5) + ' min (' + zonaFC + ')',
+        'Cardio variato ' + Math.round(minCardio/sedute + 5) + ' min (' + zonaFC + ') + 5 min HIIT'
       ];
     }
   } else {
     if (obiettivo === 'Perdere peso') {
       cardioDesc = [
-        'LISS 30 min (60-70% FC max) + 10 min HIIT 30/30',
+        'LISS 30 min (' + zonaFC + ') + 10 min HIIT 30/30',
         'Intervalli: 4 min corsa / 1 min sprint x 6 cicli',
         'HIIT 20 min (30s on / 15s off) + 15 min LISS',
         'Corsa continua 35 min + 10 min intervalli in salita'
       ];
     } else if (obiettivo === 'Aumentare massa') {
       cardioDesc = [
-        'LISS 15 min post-allenamento (non interferire con ipertrofia)',
-        'Camminata veloce 20 min nei giorni di riposo',
-        'Cyclette 15 min bassa intensita come recupero attivo',
-        'LISS 15 min + mobilita 10 min'
+        'LISS 15 min post-allenamento (' + zonaFC + ', non interferire con ipertrofia)',
+        'Camminata veloce 20 min nei giorni di riposo (' + zonaFC + ')',
+        'Cyclette 15 min bassa intensita come recupero attivo (' + zonaFC + ')',
+        'LISS 15 min (' + zonaFC + ') + mobilita 10 min'
       ];
     } else {
       cardioDesc = [
-        'LISS 30 min (60-70% FC max) + 10 min HIIT',
-        'Intervalli: 4 min alta / 2 min bassa x 5 cicli',
-        'Corsa o bike 35 min continua, RPE ' + rpeMin + '-' + rpeMax,
-        'Variato: 20 min corsa + 15 min bike + 10 min HIIT'
+        'LISS 30 min (' + zonaFC + ') + 10 min HIIT',
+        'Intervalli: 4 min alta / 2 min bassa x 5 cicli (' + zonaFC + ')',
+        'Corsa o bike 35 min continua (' + zonaFC + '), RPE ' + rpeMin + '-' + rpeMax,
+        'Variato: 20 min corsa + 15 min bike + 10 min HIIT (' + zonaFC + ')'
       ];
     }
   }
@@ -4013,39 +4027,39 @@ var generaProgramma = function(params) {
   } else if (profilo === 'B') {
     if (obiettivo === 'Aumentare massa') {
       forzaDesc = [
-        'Upper: panca manubri + row + press spalle + curl (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
-        'Lower: squat + affondi + leg curl + calf (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
-        'Upper: push-up + lat machine + alzate laterali + dip (' + serieBase + 'x' + (ripBase-2) + '). Aumento peso 5%',
-        'Lower: stacco rumeno + leg press + affondi + ponte glutei (' + serieBase + 'x' + ripBase + '). Aumento peso 5%'
+        'Upper: panca manubri + row + press spalle + curl (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
+        'Lower: squat + affondi + leg curl + calf (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
+        'Upper: push-up + lat machine + alzate laterali + dip (' + serieBase + 'x' + ripRange + '). Aumento peso 5%',
+        'Lower: stacco rumeno + leg press + affondi + ponte glutei (' + serieBase + 'x' + ripRange + '). Aumento peso 5%'
       ];
     } else {
       forzaDesc = [
-        'Full body: squat + push-up + row + plank (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
-        'Full body: affondi + press + curl + dead bug (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
-        'Superset: squat+curl, affondi+press (' + serieBase + 'x' + ripBase + '). Recupero ' + (recSec-15) + 's',
+        'Full body: squat + push-up + row + plank (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
+        'Full body: affondi + press + curl + dead bug (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
+        'Superset: squat+curl, affondi+press (' + serieBase + 'x' + ripRange + '). Recupero ' + (recSec-15) + 's',
         'Circuito: 5 esercizi x ' + serieBase + ' giri. Aumento intensita 10%'
       ];
     }
   } else {
     if (obiettivo === 'Aumentare massa') {
       forzaDesc = [
-        'Push: panca ' + serieBase + 'x8 + press spalle ' + serieBase + 'x10 + croci ' + serieBase + 'x12 + dip ' + serieBase + 'x max. Rec ' + recSec + 's',
-        'Pull: stacco ' + serieBase + 'x6 + trazioni ' + serieBase + 'x max + row ' + serieBase + 'x10 + curl ' + serieBase + 'x12. Rec ' + recSec + 's',
-        'Legs: squat ' + serieBase + 'x8 + leg press ' + serieBase + 'x10 + affondi ' + serieBase + 'x10 + calf ' + serieBase + 'x15. Rec ' + recSec + 's',
+        'Push: panca + press spalle + croci + dip (' + serieBase + 'x' + ripRange + '). Rec ' + recSec + 's',
+        'Pull: stacco + trazioni + row + curl (' + serieBase + 'x' + ripRange + '). Rec ' + recSec + 's',
+        'Legs: squat + leg press + affondi + calf (' + serieBase + 'x' + ripRange + '). Rec ' + recSec + 's',
         'Deload: tutti gli esercizi a -20% carico, ' + (serieBase-1) + 'x12. Focus tecnica e mobilita'
       ];
     } else if (obiettivo === 'Forza') {
       forzaDesc = [
-        'Squat ' + serieBase + 'x5 @80% + accessori (' + serieBase + 'x8-10). Rec 120s compound, ' + recSec + 's accessori',
-        'Panca ' + serieBase + 'x5 @80% + push accessori. Rec 120s compound',
-        'Stacco ' + serieBase + 'x5 @80% + pull accessori. Rec 120s compound',
-        'Deload: compound ' + (serieBase-1) + 'x5 @70%. Rivalutare 1RM'
+        'Squat ' + serieBase + 'x' + ripRange + ' @80% + accessori (' + serieBase + 'x8-10). Rec ' + recSec + 's compound, 60s accessori',
+        'Panca ' + serieBase + 'x' + ripRange + ' @80% + push accessori. Rec ' + recSec + 's compound',
+        'Stacco ' + serieBase + 'x' + ripRange + ' @80% + pull accessori. Rec ' + recSec + 's compound',
+        'Deload: compound ' + (serieBase-1) + 'x' + ripBase + ' @70%. Rivalutare 1RM'
       ];
     } else {
       forzaDesc = [
-        'Upper/Lower split: ' + serieBase + ' esercizi x ' + serieBase + ' serie x 10-12 rip. Rec ' + recSec + 's',
+        'Upper/Lower split: ' + serieBase + ' serie x ' + ripRange + ' rip. Rec ' + recSec + 's',
         'Aumento carico +5-10%. Aggiungere esercizio accessorio per gruppo',
-        'Volume alto: 5 serie x 8-10 rip. Compound: stacco, panca, squat',
+        'Volume alto: ' + (serieBase+1) + ' serie x 8-10 rip. Compound: stacco, panca, squat',
         'Deload parziale: ' + (serieBase-1) + ' serie x 12 rip, carico -20%. Mobilita'
       ];
     }
@@ -4088,6 +4102,7 @@ var generaProgramma = function(params) {
     minCardio: minCardio,
     minForza: minForza,
     rpeRange: rpeMin + '-' + rpeMax,
+    zonaFC: zonaFC,
     recSec: recSec,
     serieBase: serieBase,
     ripBase: ripBase,
