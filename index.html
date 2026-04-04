@@ -1851,6 +1851,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [openStorico,setOpenStorico]=useState(false);
   const [openSchede,setOpenSchede]=useState(false);
   const [expandedScheda,setExpandedScheda]=useState(null);
+  const [expandedWeek,setExpandedWeek]=useState(0);
 
   const p=patient;
   const b=bmi(p.peso,p.altezza);
@@ -2033,11 +2034,13 @@ ${p.programma?.cardio||p.programma?.forza?`
   <div class="section-title">Programma allenamento</div>
   <div class="grid">
     <div>
-      ${[['Inizio',p.programma.dataInizio],['Sedute/sett.',p.programma.sedute],['Min cardio/sett.',p.programma.minCardio?p.programma.minCardio+" min":'—'],['Min forza/sett.',p.programma.minForza?p.programma.minForza+" min":'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+      ${[['Inizio',p.programma.dataInizio],['Sedute/sett.',p.programma.sedute],['Min cardio/sett.',p.programma.minCardio?p.programma.minCardio+" min":'—'],['Min forza/sett.',p.programma.minForza?p.programma.minForza+" min":'—'],['RPE target',p.programma.rpeRange||'—'],['Zona FC',p.programma.zonaFC||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
     </div>
     <div>
-      ${p.programma.cardio?`<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">Cardio</div><div class="note-box">${esc(p.programma.cardio)}</div></div>`:''}
-      ${p.programma.forza?`<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">Forza</div><div class="note-box" style="border-color:#10b981">${esc(p.programma.forza)}</div></div>`:''}
+      ${p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w){var wLabels={1:'Adattamento',2:'Progressione',3:'Picco',4:'Deload'};return '<div style="margin-bottom:10px;padding:8px;background:#f8fafc;border-radius:6px;border-left:3px solid #3b82f6"><div style="font-size:10px;font-weight:700;color:#0f172a;margin-bottom:4px">Settimana '+w.num+' — '+(wLabels[w.num]||'')+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#3b82f6">Cardio:</strong> '+esc(w.cardio)+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#10b981">Forza:</strong> '+esc(w.forza)+'</div><div style="font-size:9px;color:#64748b;font-style:italic;line-height:1.5">'+esc(w.note)+'</div></div>';}).join(''):(
+        (p.programma.cardio?'<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">Cardio</div><div class="note-box">'+esc(p.programma.cardio)+'</div></div>':'')+
+        (p.programma.forza?'<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">Forza</div><div class="note-box" style="border-color:#10b981">'+esc(p.programma.forza)+'</div></div>':'')
+      )}
     </div>
   </div>
 </div>`:''}
@@ -2566,12 +2569,35 @@ ${(p.progressi||[]).length>1?`
           </div>
           <div style={S.card}>
             <div style={S.st}>Contenuto sedute</div>
-            {[['Cardio',p.programma?.cardio,C.cyan],['Forza',p.programma?.forza,C.green],['Note',p.programma?.note,C.yellow]].map(([k,v,c])=>(
-              <div key={k} style={{display:'flex',gap:10,marginBottom:12}}>
-                <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
-                <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{v||'—'}</div></div>
-              </div>
-            ))}
+            {p.programma?.settimane&&p.programma.settimane.length>0?(
+              p.programma.settimane.map((w,wi)=>{
+                var wLabels=['Adattamento','Progressione','Picco','Deload'];
+                var isOpen=expandedWeek===wi;
+                return(<div key={wi} style={{marginBottom:6}}>
+                  <div onClick={()=>setExpandedWeek(wi===expandedWeek?null:wi)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:isOpen?C.blue+'10':C.bg,border:'1px solid '+(isOpen?C.blue+'40':C.border2),borderRadius:10,cursor:'pointer'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>
+                      <span style={{fontSize:13,fontWeight:700,color:isOpen?C.blue:C.strong}}>Settimana {w.num} — {wLabels[wi]||''}</span>
+                    </div>
+                    <span style={{fontSize:12,color:C.muted}}>{isOpen?'▲':'▼'}</span>
+                  </div>
+                  {isOpen&&<div style={{padding:'12px 14px',borderLeft:'3px solid '+C.blue+'40'}}>
+                    {[['Cardio',w.cardio,C.cyan],['Forza',w.forza,C.green],['Note',w.note,C.yellow]].map(([k,v,c])=>(
+                      <div key={k} style={{display:'flex',gap:10,marginBottom:10}}>
+                        <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
+                        <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6,fontStyle:k==='Note'?'italic':'normal'}}>{v||'—'}</div></div>
+                      </div>
+                    ))}
+                  </div>}
+                </div>);
+              })
+            ):(
+              [['Cardio',p.programma?.cardio,C.cyan],['Forza',p.programma?.forza,C.green],['Note',p.programma?.note,C.yellow]].map(([k,v,c])=>(
+                <div key={k} style={{display:'flex',gap:10,marginBottom:12}}>
+                  <div style={{width:3,borderRadius:3,background:c,flexShrink:0}}/>
+                  <div><div style={{...S.label,color:c}}>{k}</div><div style={{fontSize:13,color:C.text,lineHeight:1.6}}>{v||'—'}</div></div>
+                </div>
+              ))
+            )}
           </div>
           {/* Schede allenamento (accordion) */}
           <div style={{marginTop:20}}>
@@ -3714,10 +3740,12 @@ var generaSchedaAuto = function(params, esercizi) {
   var patologie = (params.patologie || '').toLowerCase();
   var prog = params.programma || {};
   // ── PARAMETRI: leggi dal programma se disponibile, altrimenti calcola ──
-  var serieBase, ripBase, recSec, zonaFC, cardioText, noteText;
+  var serieBase, ripBase, recSec, zonaFC, cardioText, noteText, rpeRange;
   if (prog.serieBase) {
     serieBase = +prog.serieBase; ripBase = +prog.ripBase || 10; recSec = +prog.recSec || 60;
-    zonaFC = prog.zonaFC || ''; cardioText = prog.cardio || ''; noteText = prog.note || 'Settimana di adattamento. Registrare RPE e carichi.';
+    zonaFC = prog.zonaFC || ''; cardioText = prog.cardio || ''; rpeRange = prog.rpeRange || '';
+    noteText = prog.note || 'Settimana di adattamento. Registrare RPE e carichi.';
+    if (rpeRange) noteText += ' RPE target: ' + rpeRange + '.';
   } else {
     // Retrocompatibilita — calcola come generaProgramma
     if (profilo === 'A') { serieBase = 2; ripBase = 10; recSec = 90; }
@@ -3730,7 +3758,7 @@ var generaSchedaAuto = function(params, esercizi) {
     }
     if (eta > 65) { recSec += 15; ripBase = Math.max(8, ripBase - 2); }
     if (eta > 75) { serieBase = Math.min(serieBase, 2); }
-    zonaFC = ''; cardioText = ''; noteText = 'Settimana di adattamento. Registrare RPE e carichi.';
+    zonaFC = ''; cardioText = ''; rpeRange = ''; noteText = 'Settimana di adattamento. Registrare RPE e carichi.';
   }
   if (!cardioText) {
     cardioText = profilo === 'A' ? 'Camminata 20 min' : profilo === 'B' ? 'Cardio 25 min' : 'LISS 30 min + HIIT 10 min';
@@ -5107,7 +5135,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                   cirBraccio:d.cirBraccio,cirCoscia:d.cirCoscia,cirPolpaccio:d.cirPolpaccio,plicaSott:d.plicaSott,plicaTric:d.plicaTric,plicaIlio:d.plicaIlio,massaGrassa:d.massaGrassa,
                   gad7:d.gad7,motivazione:d.motivazione,
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
-                programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note,precauzioni:prog.precauzioni||[],riferimenti:prog.riferimenti||'',serieBase:prog.serieBase,ripBase:prog.ripBase,recSec:prog.recSec,zonaFC:prog.zonaFC||'',rpeRange:prog.rpeRange||''}:{},
+                programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note,precauzioni:prog.precauzioni||[],riferimenti:prog.riferimenti||'',serieBase:prog.serieBase,ripBase:prog.ripBase,recSec:prog.recSec,zonaFC:prog.zonaFC||'',rpeRange:prog.rpeRange||'',settimane:prog.settimane||[]}:{},
                 nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:{};})(),
               };
               onSave(p);
