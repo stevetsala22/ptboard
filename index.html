@@ -2904,7 +2904,10 @@ function SchedaModal({exercises,onSave,onClose}){
 
 // ── CALENDARIO ────────────────────────────────────────────────────────────────
 function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
+  const [view,setView]=useState('week');
   const [weekOffset,setWeekOffset]=useState(0);
+  const [dayOffset,setDayOffset]=useState(0);
+  const [monthOffset,setMonthOffset]=useState(0);
   const [showModal,setShowModal]=useState(false);
   const [viewBooking,setViewBooking]=useState(null);
   const [newB,setNewB]=useState({patientId:'',data:'',ora:'09:00',durata:60,tipo:'PT',note:'',stato:'Confermato'});
@@ -2926,6 +2929,23 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
   };
   const days=getWeekDays();
   const hours=['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+  const DAYS_FULL=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+  const MONTHS_FULL=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+  // Day view helpers
+  const dayDate=(function(){var d=new Date();d.setDate(d.getDate()+dayOffset);return d;})();
+  const dayStr=dayDate.toISOString().slice(0,10);
+  const dayDow=dayDate.getDay()===0?6:dayDate.getDay()-1;
+
+  // Month view helpers
+  const monthBase=(function(){var d=new Date();d.setDate(1);d.setMonth(d.getMonth()+monthOffset);return d;})();
+  const monthYear=monthBase.getFullYear();
+  const monthIdx=monthBase.getMonth();
+  const monthDaysCount=new Date(monthYear,monthIdx+1,0).getDate();
+  const monthStartDow=(function(){var d=new Date(monthYear,monthIdx,1).getDay();return d===0?6:d-1;})();
+  const monthWeeks=(function(){var cells=[];for(var i=0;i<monthStartDow;i++)cells.push(null);for(var i=1;i<=monthDaysCount;i++)cells.push(i);while(cells.length%7!==0)cells.push(null);var weeks=[];for(var i=0;i<cells.length;i+=7)weeks.push(cells.slice(i,i+7));return weeks;})();
+
+  const openModalWithDate=function(dateStr,ora){setNewB(function(f){return{...f,data:dateStr,ora:ora||'09:00'};});setShowModal(true);};
 
   const saveBooking=()=>{
     const bk={...newB,id:'B'+Date.now()};
@@ -2937,9 +2957,19 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
     if(pat)askSendEmail({pat,subject:'Conferma prenotazione',message:'La tua seduta è confermata!\n\n📅 '+fmtDateIT(newB.data)+'\n🕐 Ore '+newB.ora+'\n💪 '+newB.tipo+' — '+newB.durata+' minuti\n\nTi aspetto! Se hai bisogno di spostare o annullare, contattami.\n\n[nomeMittente]',trainerProfile});
   };
 
+  const viewBtnStyle=function(v){return{padding:'6px 14px',borderRadius:8,fontSize:12,fontWeight:700,border:'none',cursor:'pointer',background:view===v?C.blue:'transparent',color:view===v?'#fff':C.muted,transition:'all .15s ease'};};
+
   return(
     <div>
       <h1 style={{fontSize:22,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:16}}>Prenota la tua seduta</h1>
+      {/* View toggle */}
+      <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:14,background:C.bg,borderRadius:10,padding:3,width:'fit-content',border:'1px solid '+C.border2}}>
+        <button onClick={function(){setView('day');}} style={viewBtnStyle('day')}>Giorno</button>
+        <button onClick={function(){setView('week');}} style={viewBtnStyle('week')}>Settimana</button>
+        <button onClick={function(){setView('month');}} style={viewBtnStyle('month')}>Mese</button>
+      </div>
+      {/* ── WEEK VIEW (unchanged) ── */}
+      {view==='week'&&<div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <div className="tt"><button style={S.btn('ghost',true)} onClick={()=>setWeekOffset(w=>w-1)}>‹</button><span className="tp">Settimana precedente</span></div>
@@ -2991,6 +3021,85 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
           ))}
         </div>
       </div>
+      </div>}
+      {/* ── DAY VIEW ── */}
+      {view==='day'&&<div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <button style={S.btn('ghost',true)} onClick={function(){setDayOffset(function(d){return d-1;});}}>‹</button>
+          <span style={{fontSize:14,fontWeight:700,color:C.strong}}>{DAYS_FULL[dayDow]} {dayDate.getDate()} {MONTHS_FULL[dayDate.getMonth()]} {dayDate.getFullYear()}</span>
+          <button style={S.btn('ghost',true)} onClick={function(){setDayOffset(function(d){return d+1;});}}>›</button>
+          <button style={{...S.btn('ghost',true),fontSize:11}} onClick={function(){setDayOffset(0);}}>Oggi</button>
+        </div>
+        <button style={S.btn()} onClick={function(){openModalWithDate(dayStr);}}>+ Prenota</button>
+      </div>
+      <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,overflow:'hidden'}}>
+        <div style={{overflowY:'auto',maxHeight:'calc(100vh - 260px)'}}>
+          {hours.map(function(h){
+            var slot=bookings.filter(function(b){return b.data===dayStr&&b.ora&&b.ora.slice(0,2)===h.slice(0,2);});
+            return(
+              <div key={h} style={{display:'flex',borderBottom:'1px solid '+C.border,minHeight:54}}>
+                <div style={{width:60,padding:'4px 8px',fontSize:11,color:C.muted,borderRight:'1px solid '+C.border2,display:'flex',alignItems:'center',flexShrink:0}}>{h}</div>
+                <div style={{flex:1,padding:4,cursor:'pointer',minHeight:54}} onClick={function(){if(slot.length===0)openModalWithDate(dayStr,h);}}>
+                  {slot.map(function(b){
+                    var pat=patients.find(function(x){return x.id===b.patientId;});
+                    return(
+                      <div key={b.id} style={{background:b.completed?C.green+'25':C.blue+'25',border:'1px solid '+(b.completed?C.green+'50':C.blue+'50'),borderRadius:6,padding:'6px 10px',cursor:'pointer',marginBottom:2}} onClick={function(e){e.stopPropagation();setViewBooking(b);}}>
+                        <div style={{fontSize:13,fontWeight:700,color:b.completed?C.green:C.blue}}>{b.completed?'✅ ':''}{pat?pat.nome+' '+pat.cognome:'Cliente'}</div>
+                        <div style={{fontSize:11,color:C.muted}}>{b.ora} · {b.durata}' · {b.tipo}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      </div>}
+      {/* ── MONTH VIEW ── */}
+      {view==='month'&&<div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <button style={S.btn('ghost',true)} onClick={function(){setMonthOffset(function(m){return m-1;});}}>‹</button>
+          <span style={{fontSize:14,fontWeight:700,color:C.strong}}>{MONTHS_FULL[monthIdx]} {monthYear}</span>
+          <button style={S.btn('ghost',true)} onClick={function(){setMonthOffset(function(m){return m+1;});}}>›</button>
+          <button style={{...S.btn('ghost',true),fontSize:11}} onClick={function(){setMonthOffset(0);}}>Oggi</button>
+        </div>
+        <button style={S.btn()} onClick={function(){setShowModal(true);}}>+ Prenota</button>
+      </div>
+      <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',borderBottom:'1px solid '+C.border2}}>
+          {DAYS.map(function(d){return <div key={d} style={{padding:'8px 4px',textAlign:'center',fontSize:11,fontWeight:600,color:C.muted}}>{d}</div>;})}
+        </div>
+        {monthWeeks.map(function(week,wi){return(
+          <div key={wi} style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',borderBottom:'1px solid '+C.border}}>
+            {week.map(function(dayNum,di){
+              if(!dayNum)return <div key={di} style={{borderLeft:di?'1px solid '+C.border:'none',minHeight:70,background:C.bg+'80'}}/>;
+              var cellDate=new Date(monthYear,monthIdx,dayNum);
+              var cellStr=cellDate.toISOString().slice(0,10);
+              var isToday=cellDate.toDateString()===new Date().toDateString();
+              var cellBookings=bookings.filter(function(b){return b.data===cellStr;});
+              return(
+                <div key={di} style={{borderLeft:di?'1px solid '+C.border:'none',minHeight:70,padding:4,cursor:'pointer',background:isToday?C.blue+'08':'transparent'}} onClick={function(){openModalWithDate(cellStr);}}>
+                  <div style={{fontSize:13,fontWeight:isToday?800:600,color:isToday?C.blue:C.strong,marginBottom:2,textAlign:'right',paddingRight:4}}>{dayNum}</div>
+                  {cellBookings.slice(0,3).map(function(b){
+                    var pat=patients.find(function(x){return x.id===b.patientId;});
+                    return(
+                      <div key={b.id} style={{fontSize:10,padding:'1px 4px',marginBottom:1,borderRadius:3,background:b.completed?C.green+'20':C.blue+'20',color:b.completed?C.green:C.blue,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',cursor:'pointer'}} onClick={function(e){e.stopPropagation();setViewBooking(b);}}>
+                        {b.ora?.slice(0,5)} {pat?pat.cognome?.slice(0,6):''}
+                      </div>
+                    );
+                  })}
+                  {cellBookings.length>3&&<div style={{fontSize:9,color:C.muted,textAlign:'center'}}>+{cellBookings.length-3}</div>}
+                </div>
+              );
+            })}
+          </div>
+        );})}
+      </div>
+      </div>}
+      {/* ── Today's appointments (shown in all views) ── */}
       {(function(){
         var today=new Date();
         var todayStr=today.toISOString().slice(0,10);
