@@ -4315,7 +4315,7 @@ function WizardValutazione({onSave,onClose,initialData}){
 .tip{background:#fffbeb;border-left:3px solid #f59e0b;padding:7px 10px;font-size:11px;color:#92400e;border-radius:0 5px 5px 0;margin-top:6px}
 footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}</style></head>
-<body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.location.href='/'" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div><div class="pg">
+<body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div><div class="pg">
 <div class="hdr">
   <div><div class="brand">PT Board<small>Valutazione Base — 20 min</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
   <div style="text-align:right"><div style="font-size:20px;font-weight:800">${esc(d.nome)} ${esc(d.cognome)}</div><div style="font-size:11px;color:#64748b">${esc(d.ddn)||''} · ${esc(d.sesso)}</div></div>
@@ -4362,28 +4362,6 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
     const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
 
-  const exportCSV=()=>{
-    if(!prog||!pr)return;
-    const rows=[
-      ['PT Board — Valutazione Base 20 min',''],['Data',fmtDate()],[''],
-      ['CLIENTE',''],['Cognome',d.cognome],['Nome',d.nome],['Data nascita',d.ddn],['Sesso',d.sesso],
-      ['Altezza cm',d.altezza],['Peso kg',d.peso],['Vita cm',d.vita],['PA',d.pa],['FC riposo bpm',d.fc],
-      ['FC max bpm',fcMax||''],['BMI',bmiVal||''],['Categoria BMI',bmiLbl],['Peso target kg',pesoTarget||''],
-      ['Patologie',d.patologie],['Farmaci',d.farmaci],['Attività',d.attivita],['Obiettivo',d.obiettivo],[''],
-      ['TEST FUNZIONALI',''],['6MWT Distanza m',d.mwtDist],['6MWT RPE',d.mwtRpe],['6MWT Sintomi',d.mwtSintomi],
-      ['STS 30s Ripetizioni',d.stsRip],['Note STS',d.stsNote],['RPE riposo',d.rpeRiposo],['Note valutazione',d.noteVal],[''],
-      ['PROFILO',''],['Classificazione',pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'],['Descrizione',pr.l],[''],
-      ['PROGRAMMA 4 SETTIMANE',''],['Nome',prog.nome],['Sedute/sett',prog.sedute],['Min cardio/sett',prog.minCardio],['Min forza/sett',prog.minForza],[''],
-      ['SETTIMANA','CARDIO','FORZA','NOTE'],
-      ...prog.settimane.map(w=>[`Settimana ${w.num}`,w.cardio,w.forza,w.note]),[''],
-      ['NUTRIZIONE',''],['kcal/gg',nutri.kcal||'—'],['Proteine g',nutri.proteine||'—'],['Carboidrati g',nutri.carboidrati||'—'],['Grassi g',nutri.grassi||'—'],
-    ];
-    const csv=rows.map(function(r){return r.map(function(cell){var s=String(cell||'');return '"'+s.split('"').join('""')+'"';}).join(',');}).join('\n');
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
-    a.download='Valutazione_'+d.cognome+'_'+d.nome+'_'+fmtDate().split('/').join('-')+'.csv';
-    a.click();
-  };
 
   const OL={position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:isMobile?'flex-end':'center',justifyContent:'center',padding:isMobile?0:12};
   const BOX={background:C.card,border:'1px solid '+C.border2,borderRadius:isMobile?'20px 20px 0 0':18,width:isMobile?'100vw':'min(800px,98vw)',maxWidth:isMobile?'100vw':undefined,maxHeight:'94vh',display:'flex',flexDirection:'column'};
@@ -5135,7 +5113,6 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
               <div style={{fontSize:11,color:C.muted,fontStyle:'italic',marginBottom:14}}>{prog.riferimenti}</div>
               <div style={{display:'flex',gap:10}}>
                 <button onClick={exportPDF} style={{...S.btn('success'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportPdf}</button>
-                <button onClick={exportCSV} style={{...S.btn('purple'),flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>{T.exportCsv}</button>
               </div>
             </>}
           </div>}
