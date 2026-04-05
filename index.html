@@ -1581,6 +1581,32 @@ function Avatar({nome='?',cognome='?',size=34,foto=''}){
   return <div style={{width:size,height:size,borderRadius:'50%',background:'hsl('+hue+',50%,22%)',border:'2px solid hsl('+hue+',50%,38%)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:size*0.33,fontWeight:700,color:'hsl('+hue+',60%,72%)',flexShrink:0}}>{initials}</div>;
 }
 
+// ── DATE MASK HELPER (GG/MM/AAAA) ──
+function dateMaskHandle(raw, prev) {
+  var digits = raw.replace(/\D/g, '').slice(0, 8);
+  var out = '';
+  for (var i = 0; i < digits.length; i++) {
+    if (i === 2 || i === 4) out += '/';
+    out += digits[i];
+  }
+  return out;
+}
+function dateMaskValidate(val) {
+  if (!val) return null;
+  if (val.length > 0 && val.length < 10) return 'Formato: GG/MM/AAAA';
+  if (val.length === 10) {
+    var p = val.split('/');
+    var dd = +p[0], mm = +p[1], yyyy = +p[2];
+    if (dd < 1 || dd > 31) return 'Giorno non valido (01-31)';
+    if (mm < 1 || mm > 12) return 'Mese non valido (01-12)';
+    if (yyyy < 1900 || yyyy > new Date().getFullYear()) return 'Anno non valido (1900-' + new Date().getFullYear() + ')';
+    var date = new Date(yyyy, mm - 1, dd);
+    if (date.getDate() !== dd || date.getMonth() !== mm - 1 || date.getFullYear() !== yyyy) return 'Data non esistente';
+    if (date >= new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1)) return 'La data di nascita non può essere futura';
+  }
+  return null;
+}
+
 function FF({label,name,value,onChange,type='text',options,placeholder,span,rows,required,error,onBlur}){
   const id='ff-'+name;
   const errStyle=error?{border:'1px solid #ef4444'}:{};
@@ -3135,7 +3161,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
     if(field==='altezza'&&form.altezza){const v=+form.altezza;if(isNaN(v)||v<=50||v>=300)return'Inserisci un\'altezza valida (50-300 cm)';}
     if(field==='email'&&form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))return'Email non valida';
     if(field==='telefono'&&form.telefono&&(!/^\+/.test(form.telefono.trim())||form.telefono.replace(/\D/g,'').length<8))return"Inserisci un numero valido con prefisso (es: +39...)";
-    if(field==='ddn'&&form.ddn){const p=form.ddn.split('/');if(p.length===3&&p[2]?.length===4){const d=new Date(+p[2],+p[1]-1,+p[0]);if(d>new Date())return'Data non valida';}}
+    if(field==='ddn'&&form.ddn){var ddnErr=dateMaskValidate(form.ddn);if(ddnErr)return ddnErr;}
     if(field==='fc'&&form.fc){const v=+form.fc;if(isNaN(v)||v<20||v>250)return'Valore FC non realistico';}
     return null;
   };
@@ -3171,7 +3197,7 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
             <FF label="Nome *" name="nome" value={form.nome} onChange={upd} required onBlur={()=>touch('nome')} error={fmtErr('nome')}/>
             <FF label="Email cliente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici" onBlur={()=>touch('email')} error={fmtErr('email')}/>
             <FF label="Telefono / WhatsApp" name="telefono" type="tel" value={form.telefono||''} onChange={upd} placeholder="+39 333 1234567" onBlur={()=>touch('telefono')} error={fmtErr('telefono')}/>
-            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{upd(e);const p=e.target.value.split('/');if(p.length===3&&p[2]?.length===4){const y=+p[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="GG/MM/AAAA" onBlur={()=>touch('ddn')} error={fmtErr('ddn')}/>
+            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{var masked=dateMaskHandle(e.target.value,form.ddn);var ev={target:{name:'ddn',value:masked}};upd(ev);var p2=masked.split('/');if(p2.length===3&&p2[2]?.length===4){var y=+p2[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="__/__/____" onBlur={()=>touch('ddn')} error={fmtErr('ddn')} maxLength={10}/>
             <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
             <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
           </div>
@@ -4457,7 +4483,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?'14px 12px':'0 12px'}}>
                 <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
                 <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
-                <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="GG/MM/AAAA" onChange={upd('ddn')}/>
+                <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="__/__/____" onChange={e=>{var masked=dateMaskHandle(e.target.value,d.ddn);upd('ddn')({target:{value:masked}});}}/>
                 {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
                   &#127874; Eta calcolata: <b>{eta} anni</b>
                 </div>}
