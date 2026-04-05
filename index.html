@@ -2958,6 +2958,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
   };
 
   const viewBtnStyle=function(v){return{padding:'6px 14px',borderRadius:8,fontSize:12,fontWeight:700,border:'none',cursor:'pointer',background:view===v?C.blue:'transparent',color:view===v?'#fff':C.muted,transition:'all .15s ease'};};
+  const tipoColor=function(b){if(b.completed)return C.green;var m={'PT':C.blue,'Valutazione':'#8b5cf6','Follow-up':C.green,'Corpo libero':'#f97316','Pesi':'#06b6d4'};return m[b.tipo]||C.blue;};
 
   return(
     <div>
@@ -3007,9 +3008,9 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
                     {slot.map(b=>{
                       const pat=patients.find(x=>x.id===b.patientId);
                       return(
-                        <div key={b.id} style={{background:b.completed?C.green+'25':C.blue+'25',border:`1px solid ${b.completed?C.green+'50':C.blue+'50'}`,borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
+                        <div key={b.id} style={{background:tipoColor(b)+'25',border:'1px solid '+tipoColor(b)+'50',borderRadius:5,padding:'3px 6px',cursor:'pointer'}}
                           onClick={function(){setViewBooking(b);}}>
-                          <div style={{fontSize:11,fontWeight:700,color:b.completed?C.green:C.blue,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.completed?'✅ ':''}{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
+                          <div style={{fontSize:11,fontWeight:700,color:tipoColor(b),overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.completed?'✅ ':''}{pat?.nome} {pat?.cognome?.slice(0,1)}.</div>
                           <div style={{fontSize:10,color:C.muted}}>{b.durata}' · {b.tipo}</div>
                         </div>
                       );
@@ -3044,8 +3045,8 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
                   {slot.map(function(b){
                     var pat=patients.find(function(x){return x.id===b.patientId;});
                     return(
-                      <div key={b.id} style={{background:b.completed?C.green+'25':C.blue+'25',border:'1px solid '+(b.completed?C.green+'50':C.blue+'50'),borderRadius:6,padding:'6px 10px',cursor:'pointer',marginBottom:2}} onClick={function(e){e.stopPropagation();setViewBooking(b);}}>
-                        <div style={{fontSize:13,fontWeight:700,color:b.completed?C.green:C.blue}}>{b.completed?'✅ ':''}{pat?pat.nome+' '+pat.cognome:'Cliente'}</div>
+                      <div key={b.id} style={{background:tipoColor(b)+'25',border:'1px solid '+tipoColor(b)+'50',borderRadius:6,padding:'6px 10px',cursor:'pointer',marginBottom:2}} onClick={function(e){e.stopPropagation();setViewBooking(b);}}>
+                        <div style={{fontSize:13,fontWeight:700,color:tipoColor(b)}}>{b.completed?'✅ ':''}{pat?pat.nome+' '+pat.cognome:'Cliente'}</div>
                         <div style={{fontSize:11,color:C.muted}}>{b.ora} · {b.durata}' · {b.tipo}</div>
                       </div>
                     );
@@ -3086,12 +3087,13 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
                   {cellBookings.slice(0,3).map(function(b){
                     var pat=patients.find(function(x){return x.id===b.patientId;});
                     return(
-                      <div key={b.id} style={{fontSize:10,padding:'1px 4px',marginBottom:1,borderRadius:3,background:b.completed?C.green+'20':C.blue+'20',color:b.completed?C.green:C.blue,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',cursor:'pointer'}} onClick={function(e){e.stopPropagation();setViewBooking(b);}}>
+                      <div key={b.id} style={{fontSize:10,padding:'1px 4px',marginBottom:1,borderRadius:3,background:tipoColor(b)+'20',color:tipoColor(b),fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',cursor:'pointer'}} onClick={function(e){e.stopPropagation();setViewBooking(b);}}>
                         {b.ora?.slice(0,5)} {pat?pat.cognome?.slice(0,6):''}
                       </div>
                     );
                   })}
                   {cellBookings.length>3&&<div style={{fontSize:9,color:C.muted,textAlign:'center'}}>+{cellBookings.length-3}</div>}
+                  {cellBookings.length>0&&<div style={{fontSize:9,color:C.muted,fontWeight:600,textAlign:'center',marginTop:2}}>{cellBookings.length} sedut{cellBookings.length===1?'a':'e'}</div>}
                 </div>
               );
             })}
