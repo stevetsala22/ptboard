@@ -766,6 +766,55 @@ const LANGS={
     emailSessionRecap:'Riepilogo seduta',emailGoodJob:'Ottimo lavoro oggi!',
     emailSessionDetails:'Ecco il riepilogo della seduta:',emailIntensity:'Intensità:',
     emailKeepGoing:'Continua così! Alla prossima.',
+    // Interp test labels
+    spo2Normal:'Normale',spo2Mild:'Lieve riduzione',spo2Mod:'Ipossiemia moderata',spo2Sev:'Ipossiemia severa',
+    hgSarco:'Sotto soglia sarcopenia',hgUnder:'Sotto la media',hgAbove:'Sopra la media',srVeryLow:'Molto scarsa',
+    // Interp Push-up cons
+    consPushupBeg:'Inizia con push-up sulle ginocchia',consPushupStd:'Progressione standard',consPushupAdv:'Aggiungi varianti avanzate',
+    // Interp Plank cons
+    consPlankBeg:'Inizia con plank sulle ginocchia 3×15s',consPlankBase:'Progressione a 45s poi 60s',
+    consPlankGood:'Aggiungi varianti laterale e dinamico',consPlankExc:'Core molto stabile — esercizi avanzati',
+    // Interp Squat cons
+    consSquatLow:'Squat assistito e mobilità anca',consSquatAvg:'Tecnica prima del carico',
+    consSquatGood:'Aggiungi carico progressivo',consSquatExc:'Varianti avanzate — pistol squat',
+    // Interp TUG cons
+    consTugLow:'Nessuna attenzione specifica',consTugMild:'Esercizi equilibrio preventivi',
+    consTugMod:'Priorità: equilibrio e rinforzo arti inferiori',consTugHigh:'Supervisione raccomandata',
+    // Interp SLB cons
+    consSlbExc:'Aggiungi varianti a occhi chiusi',consSlbGood:'Progressione con superfici instabili',
+    consSlbImprove:'Esercizi propriocettivi 3× settimana',consSlbDef:'Priorità assoluta: equilibrio e propriocezione',
+    // Interp RecupFC cons
+    consHrFast:'Ottima fitness cardiovascolare',consHrGood:'Cardio progressivo',
+    consHrAvg:'Aumentare volume aerobico',consHrSlow:'Cardio bassa intensità — monitorare',
+    // Interp GAD7 cons
+    consGadMin:'Nessun intervento specifico',consGadMild:'Tecniche respirazione e rilassamento',
+    consGadMod:'Valutare supporto professionale',consGadSev:'Consigliare supporto psicologico',
+    // Interp Sonno cons
+    consSleepInsuff:'Priorità al recupero — limitare intensità allenamento',consSleepBorder:'Lavorare su igiene del sonno',
+    consSleepOk:'Recupero adeguato',consSleepExc:'Valutare qualità del sonno',
+    // Interp SpO2 cons
+    consSpo2Normal:"Saturazione ottimale — nessuna limitazione all'esercizio.",
+    consSpo2Mild:'Monitorare durante esercizio aerobico. Evitare alta quota non acclimatata. Se persistente, consultare medico.',
+    consSpo2Mod:'⚠️ Limitare intensità a RPE ≤4. Evitare esercizio anaerobico. Consultare medico prima di proseguire attività fisica.',
+    consSpo2Sev:'🚨 STOP esercizio — invio immediato a valutazione medica. SpO2 <90% richiede ossigenoterapia (WHO).',
+    // Interp Handgrip cons (use {v}/{sarco}/{ref} placeholders)
+    consHgSarcoMale:'Forza prensile {v} kg < {sarco} kg (soglia sarcopenia EWGSOP2). Priorità: rinforzo arti superiori, esercizi con grip (farmer walk, dead hang). Valutare integrazione proteica 1.2-1.6 g/kg/die.',
+    consHgSarcoFemale:'Forza prensile {v} kg < {sarco} kg (soglia sarcopenia EWGSOP2). Priorità: rinforzo globale, esercizi con grip. Valutare apporto proteico ≥1.2 g/kg/die.',
+    consHgUnderMale:'Forza prensile inferiore alla media per età/sesso (rif. {ref} kg, Dodds 2014). Inserire esercizi di presa: farmer carry, plate pinch, wrist curl. Progressione con sovraccarico.',
+    consHgUnderFemale:'Forza prensile inferiore alla media per età/sesso (rif. {ref} kg, Dodds 2014). Inserire esercizi di presa e forza arti superiori.',
+    consHgAvgMale:'Forza prensile nella norma per età e sesso (rif. {ref} kg). Mantenere con allenamento regolare di forza.',
+    consHgAvgFemale:'Forza prensile nella norma per età e sesso (rif. {ref} kg). Mantenere con allenamento regolare.',
+    consHgAboveMale:'Eccellente forza prensile (> media {ref} kg). Indicatore positivo di forza generale e longevità (Leong 2015).',
+    consHgAboveFemale:'Eccellente forza prensile (> media {ref} kg). Ottimo indicatore di salute generale.',
+    // Interp Sit-and-Reach cons
+    consSrVeryLowMale:'Flessibilità catena posteriore molto ridotta. Rischio aumentato lombalgia. Stretching quotidiano: hamstring stretch 3×30s, cat-cow 2×10, forward fold progressivo. Evitare deadlift da terra fino a miglioramento.',
+    consSrVeryLowFemale:'Flessibilità catena posteriore molto ridotta. Stretching quotidiano: hamstring stretch 3×30s, cat-cow 2×10. Evitare carichi elevati su catena posteriore.',
+    consSrUnderMale:'Flessibilità ridotta. Stretching dinamico pre-allenamento + statico post (hamstring, piriforme, polpacci). Aggiungere yoga/mobilità 2×/settimana.',
+    consSrUnderFemale:'Flessibilità ridotta. Stretching dinamico + statico (hamstring, piriforme, polpacci). Yoga/mobilità 2×/settimana.',
+    consSrAvgMale:'Flessibilità nella norma ACSM. Mantenere con stretching regolare post-sessione.',
+    consSrAvgFemale:'Flessibilità nella norma ACSM. Mantenere con stretching regolare.',
+    consSrExcMale:'Ottima flessibilità catena posteriore. Attenzione a ipermobilità — rinforzare core e stabilizzatori.',
+    consSrExcFemale:'Ottima flessibilità. Attenzione a ipermobilità — rinforzare core e stabilizzatori.',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -1017,6 +1066,55 @@ const LANGS={
     emailSessionRecap:'Session recap',emailGoodJob:'Great job today!',
     emailSessionDetails:"Here's your session recap:",emailIntensity:'Intensity:',
     emailKeepGoing:'Keep it up! See you next time.',
+    // Interp test labels
+    spo2Normal:'Normal',spo2Mild:'Mild reduction',spo2Mod:'Moderate hypoxemia',spo2Sev:'Severe hypoxemia',
+    hgSarco:'Below sarcopenia threshold',hgUnder:'Below average',hgAbove:'Above average',srVeryLow:'Very poor',
+    // Interp Push-up cons
+    consPushupBeg:'Start with knee push-ups',consPushupStd:'Standard progression',consPushupAdv:'Add advanced variations',
+    // Interp Plank cons
+    consPlankBeg:'Start with knee plank 3×15s',consPlankBase:'Progress to 45s then 60s',
+    consPlankGood:'Add lateral and dynamic variations',consPlankExc:'Very stable core — advanced exercises',
+    // Interp Squat cons
+    consSquatLow:'Assisted squat and hip mobility',consSquatAvg:'Technique before load',
+    consSquatGood:'Add progressive load',consSquatExc:'Advanced variations — pistol squat',
+    // Interp TUG cons
+    consTugLow:'No specific attention needed',consTugMild:'Preventive balance exercises',
+    consTugMod:'Priority: balance and lower limb strengthening',consTugHigh:'Supervision recommended',
+    // Interp SLB cons
+    consSlbExc:'Add eyes-closed variations',consSlbGood:'Progress with unstable surfaces',
+    consSlbImprove:'Proprioceptive exercises 3×/week',consSlbDef:'Top priority: balance and proprioception',
+    // Interp RecupFC cons
+    consHrFast:'Excellent cardiovascular fitness',consHrGood:'Progressive cardio',
+    consHrAvg:'Increase aerobic volume',consHrSlow:'Low-intensity cardio — monitor',
+    // Interp GAD7 cons
+    consGadMin:'No specific intervention',consGadMild:'Breathing and relaxation techniques',
+    consGadMod:'Consider professional support',consGadSev:'Recommend psychological support',
+    // Interp Sonno cons
+    consSleepInsuff:'Recovery priority — limit training intensity',consSleepBorder:'Work on sleep hygiene',
+    consSleepOk:'Adequate recovery',consSleepExc:'Evaluate sleep quality',
+    // Interp SpO2 cons
+    consSpo2Normal:'Optimal saturation — no exercise limitations.',
+    consSpo2Mild:'Monitor during aerobic exercise. Avoid unacclimatized high altitude. If persistent, consult a doctor.',
+    consSpo2Mod:'⚠️ Limit intensity to RPE ≤4. Avoid anaerobic exercise. Consult a doctor before continuing physical activity.',
+    consSpo2Sev:'🚨 STOP exercise — immediate referral for medical evaluation. SpO2 <90% requires oxygen therapy (WHO).',
+    // Interp Handgrip cons
+    consHgSarcoMale:'Grip strength {v} kg < {sarco} kg (sarcopenia threshold EWGSOP2). Priority: upper limb strengthening, grip exercises (farmer walk, dead hang). Consider protein intake 1.2-1.6 g/kg/day.',
+    consHgSarcoFemale:'Grip strength {v} kg < {sarco} kg (sarcopenia threshold EWGSOP2). Priority: global strengthening, grip exercises. Consider protein intake ≥1.2 g/kg/day.',
+    consHgUnderMale:'Grip strength below average for age/sex (ref. {ref} kg, Dodds 2014). Add grip exercises: farmer carry, plate pinch, wrist curl. Progress with overload.',
+    consHgUnderFemale:'Grip strength below average for age/sex (ref. {ref} kg, Dodds 2014). Add grip exercises and upper limb strength training.',
+    consHgAvgMale:'Grip strength within norm for age and sex (ref. {ref} kg). Maintain with regular strength training.',
+    consHgAvgFemale:'Grip strength within norm for age and sex (ref. {ref} kg). Maintain with regular training.',
+    consHgAboveMale:'Excellent grip strength (> avg {ref} kg). Positive indicator of overall strength and longevity (Leong 2015).',
+    consHgAboveFemale:'Excellent grip strength (> avg {ref} kg). Excellent indicator of overall health.',
+    // Interp Sit-and-Reach cons
+    consSrVeryLowMale:'Very reduced posterior chain flexibility. Increased risk of lower back pain. Daily stretching: hamstring stretch 3×30s, cat-cow 2×10, progressive forward fold. Avoid deadlift from floor until improvement.',
+    consSrVeryLowFemale:'Very reduced posterior chain flexibility. Daily stretching: hamstring stretch 3×30s, cat-cow 2×10. Avoid heavy loads on posterior chain.',
+    consSrUnderMale:'Reduced flexibility. Dynamic stretching pre-workout + static post (hamstring, piriformis, calves). Add yoga/mobility 2×/week.',
+    consSrUnderFemale:'Reduced flexibility. Dynamic + static stretching (hamstring, piriformis, calves). Yoga/mobility 2×/week.',
+    consSrAvgMale:'Flexibility within ACSM norm. Maintain with regular post-session stretching.',
+    consSrAvgFemale:'Flexibility within ACSM norm. Maintain with regular stretching.',
+    consSrExcMale:'Excellent posterior chain flexibility. Watch for hypermobility — strengthen core and stabilizers.',
+    consSrExcFemale:'Excellent flexibility. Watch for hypermobility — strengthen core and stabilizers.',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -1268,6 +1366,55 @@ const LANGS={
     emailSessionRecap:'Récapitulatif séance',emailGoodJob:"Excellent travail aujourd'hui !",
     emailSessionDetails:'Voici le récapitulatif de la séance :',emailIntensity:'Intensité :',
     emailKeepGoing:'Continuez ! À la prochaine.',
+    // Interp test labels
+    spo2Normal:'Normal',spo2Mild:'Réduction légère',spo2Mod:'Hypoxémie modérée',spo2Sev:'Hypoxémie sévère',
+    hgSarco:'Sous le seuil de sarcopénie',hgUnder:'Sous la moyenne',hgAbove:'Au-dessus de la moyenne',srVeryLow:'Très faible',
+    // Interp Push-up cons
+    consPushupBeg:'Commencer avec pompes sur les genoux',consPushupStd:'Progression standard',consPushupAdv:'Ajouter variantes avancées',
+    // Interp Plank cons
+    consPlankBeg:'Commencer avec planche sur genoux 3×15s',consPlankBase:'Progresser à 45s puis 60s',
+    consPlankGood:'Ajouter variantes latérales et dynamiques',consPlankExc:'Sangle abdominale très stable — exercices avancés',
+    // Interp Squat cons
+    consSquatLow:'Squat assisté et mobilité de la hanche',consSquatAvg:'Technique avant la charge',
+    consSquatGood:'Ajouter charge progressive',consSquatExc:'Variantes avancées — pistol squat',
+    // Interp TUG cons
+    consTugLow:'Aucune attention spécifique',consTugMild:"Exercices d'équilibre préventifs",
+    consTugMod:'Priorité : équilibre et renforcement membres inférieurs',consTugHigh:'Supervision recommandée',
+    // Interp SLB cons
+    consSlbExc:'Ajouter variantes yeux fermés',consSlbGood:'Progresser avec surfaces instables',
+    consSlbImprove:'Exercices proprioceptifs 3×/semaine',consSlbDef:'Priorité absolue : équilibre et proprioception',
+    // Interp RecupFC cons
+    consHrFast:'Excellente condition cardiovasculaire',consHrGood:'Cardio progressif',
+    consHrAvg:'Augmenter le volume aérobie',consHrSlow:'Cardio basse intensité — surveiller',
+    // Interp GAD7 cons
+    consGadMin:'Aucune intervention spécifique',consGadMild:'Techniques de respiration et relaxation',
+    consGadMod:'Envisager un soutien professionnel',consGadSev:'Recommander un soutien psychologique',
+    // Interp Sonno cons
+    consSleepInsuff:"Priorité à la récupération — limiter l'intensité",consSleepBorder:"Travailler sur l'hygiène du sommeil",
+    consSleepOk:'Récupération adéquate',consSleepExc:'Évaluer la qualité du sommeil',
+    // Interp SpO2 cons
+    consSpo2Normal:"Saturation optimale — aucune limitation à l'exercice.",
+    consSpo2Mild:'Surveiller pendant exercice aérobie. Éviter haute altitude non acclimatée. Si persistant, consulter un médecin.',
+    consSpo2Mod:"⚠️ Limiter l'intensité à RPE ≤4. Éviter exercice anaérobie. Consulter un médecin avant de poursuivre.",
+    consSpo2Sev:'🚨 ARRÊT exercice — envoi immédiat pour évaluation médicale. SpO2 <90% nécessite oxygénothérapie (OMS).',
+    // Interp Handgrip cons
+    consHgSarcoMale:'Force de préhension {v} kg < {sarco} kg (seuil sarcopénie EWGSOP2). Priorité : renforcement membres supérieurs, exercices de préhension (farmer walk, dead hang). Envisager apport protéique 1.2-1.6 g/kg/jour.',
+    consHgSarcoFemale:'Force de préhension {v} kg < {sarco} kg (seuil sarcopénie EWGSOP2). Priorité : renforcement global, exercices de préhension. Envisager apport protéique ≥1.2 g/kg/jour.',
+    consHgUnderMale:'Force de préhension sous la moyenne pour âge/sexe (réf. {ref} kg, Dodds 2014). Ajouter exercices de préhension : farmer carry, plate pinch, wrist curl. Progresser avec surcharge.',
+    consHgUnderFemale:'Force de préhension sous la moyenne pour âge/sexe (réf. {ref} kg, Dodds 2014). Ajouter exercices de préhension et renforcement membres supérieurs.',
+    consHgAvgMale:'Force de préhension dans la norme pour âge et sexe (réf. {ref} kg). Maintenir avec entraînement de force régulier.',
+    consHgAvgFemale:'Force de préhension dans la norme pour âge et sexe (réf. {ref} kg). Maintenir avec entraînement régulier.',
+    consHgAboveMale:'Excellente force de préhension (> moyenne {ref} kg). Indicateur positif de force générale et longévité (Leong 2015).',
+    consHgAboveFemale:'Excellente force de préhension (> moyenne {ref} kg). Excellent indicateur de santé générale.',
+    // Interp Sit-and-Reach cons
+    consSrVeryLowMale:"Flexibilité chaîne postérieure très réduite. Risque accru de lombalgie. Stretching quotidien : étirement ischio-jambiers 3×30s, cat-cow 2×10, forward fold progressif. Éviter deadlift au sol jusqu'à amélioration.",
+    consSrVeryLowFemale:'Flexibilité chaîne postérieure très réduite. Stretching quotidien : étirement ischio-jambiers 3×30s, cat-cow 2×10. Éviter charges lourdes sur chaîne postérieure.',
+    consSrUnderMale:'Flexibilité réduite. Stretching dynamique pré-entraînement + statique post (ischio-jambiers, piriforme, mollets). Ajouter yoga/mobilité 2×/semaine.',
+    consSrUnderFemale:'Flexibilité réduite. Stretching dynamique + statique (ischio-jambiers, piriforme, mollets). Yoga/mobilité 2×/semaine.',
+    consSrAvgMale:'Flexibilité dans la norme ACSM. Maintenir avec stretching régulier post-séance.',
+    consSrAvgFemale:'Flexibilité dans la norme ACSM. Maintenir avec stretching régulier.',
+    consSrExcMale:"Excellente flexibilité chaîne postérieure. Attention à l'hypermobilité — renforcer le tronc et stabilisateurs.",
+    consSrExcFemale:"Excellente flexibilité. Attention à l'hypermobilité — renforcer le tronc et stabilisateurs.",
   }},
 };
 const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
