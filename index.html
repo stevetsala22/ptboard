@@ -5757,9 +5757,9 @@ function WizardValutazione({onSave,onClose,initialData}){
   const stepsArr=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
   const TOTAL=stepsArr.length;
   const stepIdx=stepsArr.indexOf(step);
-  const TITLES_BASE=['\u{1F464} Anagrafica & Clinica','\u{1F6B6} 6MWT','\u{1FA91} Sit-to-Stand 30s','\u{1F4AA} Push-up & Plank','\u{1F62E}\u200D\u{1F4A8} RPE & Note','\u{1F4CA} Classificazione & Programma'];
-  const TITLES_COMPLETA=['\u{1F464} Anagrafica & Clinica','\u{1F4CF} Composizione & BIA','\u{1F6B6} 6MWT','\u{1FA91} Sit-to-Stand 30s','\u{1F4AA} Test Fisici','\u{1F3C3} Qualità del Movimento','\u{1F62E}\u200D\u{1F4A8} RPE & Note','\u{1F4CA} Classificazione','\u{1F3C6} Programma 4 Settimane'];
-  const TITLES_ANA=['\u{1F464} Anagrafica & Clinica'];
+  const TITLES_BASE=[T.wizStepClinica,T.wizStep6mwt,T.wizStepSts,T.wizStepPushPlank,T.wizStepRpeNote,T.wizStepClassProg];
+  const TITLES_COMPLETA=[T.wizStepClinica,T.wizStepBia,T.wizStep6mwt,T.wizStepSts,T.wizStepPhysTest,T.wizStepMovQuality,T.wizStepRpeNote,T.wizStepClass,T.wizStepProg4];
+  const TITLES_ANA=[T.wizStepClinica];
   const curTitles=wizardType==='base'?TITLES_BASE:wizardType==='completa'?TITLES_COMPLETA:TITLES_ANA;
 
   const exportPDF=()=>{
@@ -5840,30 +5840,30 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
         {!wizardType&&(
           <div style={{padding:isMobile?'16px 12px':'40px 32px',overflowY:'auto',overflowX:'hidden',flex:1}}>
             <div style={{textAlign:'center',marginBottom:isMobile?24:40}}>
-              <div style={{fontSize:isMobile?20:24,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>Seleziona il tipo di valutazione</div>
-              <div style={{fontSize:14,color:C.muted,marginTop:8}}>Scegli in base al tempo disponibile e al livello del cliente</div>
+              <div style={{fontSize:isMobile?20:24,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>{T.wizSelectType}</div>
+              <div style={{fontSize:14,color:C.muted,marginTop:8}}>{T.wizSelectDesc}</div>
             </div>
             <div style={{display:'flex',gap:24,justifyContent:'center',flexDirection:isMobile?'column':'row',alignItems:'stretch'}}>
               {/* Card Base */}
               <div onClick={function(){setWizardType('base');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:isMobile?20:32,cursor:'pointer',transition:'all .3s',flex:1,maxWidth:isMobile?'100%':360,width:isMobile?'100%':undefined,display:'flex',flexDirection:'column'}}>
                 <div style={{fontSize:36,marginBottom:12}}>&#9889;</div>
-                <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>Valutazione Base</div>
-                <span style={{background:C.blue+'20',color:C.blue,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>~10 minuti</span>
+                <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>{T.wizValBase}</div>
+                <span style={{background:C.blue+'20',color:C.blue,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>{T.wizMin10}</span>
                 <div style={{fontSize:isMobile?11:12,color:C.muted,lineHeight:isMobile?1.6:1.8,flex:1}}>
-                  {'\u2713 Anagrafica & Clinica\n\u2713 Sit-to-Stand 30s\n\u2713 6 Minute Walk Test\n\u2713 Push-up max\n\u2713 Plank\n\u2713 RPE & Note\n\u2713 Classificazione automatica'.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
+                  {T.wizBaseList.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
                 </div>
-                <button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>Inizia Valutazione Base &#8594;</button>
+                <button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>{T.wizStartBase}</button>
               </div>
               {/* Card Completa */}
               <div onClick={function(){setWizardType('completa');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:isMobile?20:32,cursor:'pointer',transition:'all .3s',flex:1,maxWidth:isMobile?'100%':360,width:isMobile?'100%':undefined,display:'flex',flexDirection:'column'}}>
                 <div style={{fontSize:36,marginBottom:12}}>&#128300;</div>
-                <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>Valutazione Completa</div>
-                <span style={{background:C.purple+'20',color:C.purple,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>~20 minuti</span>
-                <div style={{fontSize:isMobile?11:12,color:C.muted,marginBottom:8}}>Tutto della Base, più:</div>
+                <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>{T.wizValCompleta}</div>
+                <span style={{background:C.purple+'20',color:C.purple,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>{T.wizMin20}</span>
+                <div style={{fontSize:isMobile?11:12,color:C.muted,marginBottom:8}}>{T.wizCompletaPlus}</div>
                 <div style={{fontSize:isMobile?11:12,color:C.muted,lineHeight:isMobile?1.6:1.8,flex:1}}>
-                  {'\u2713 Sit and Reach\n\u2713 Squat qualità movimento\n\u2713 Affondo FMS\n\u2713 BIA / Plicometria\n\u2713 SpO2 e Handgrip\n\u2713 Postura e Mobilità\n\u2713 Contatto emergenza'.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
+                  {T.wizCompletaList.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
                 </div>
-                <button style={{background:C.purple,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>Inizia Valutazione Completa &#8594;</button>
+                <button style={{background:C.purple,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>{T.wizStartCompleta}</button>
               </div>
             </div>
             {/* Card Anagrafica */}
@@ -5871,16 +5871,16 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
               <div style={{fontSize:36}}>&#128203;</div>
               <div style={{flex:1}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
-                  <div style={{fontSize:isMobile?16:18,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>Solo Anagrafica</div>
-                  <span style={{background:C.green+'20',color:C.green,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',fontWeight:600}}>~3 minuti</span>
+                  <div style={{fontSize:isMobile?16:18,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>{T.wizValAna}</div>
+                  <span style={{background:C.green+'20',color:C.green,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',fontWeight:600}}>{T.wizMin3}</span>
                 </div>
-                <div style={{fontSize:isMobile?11:12,color:C.muted}}>Registra il cliente senza test. Aggiungi i test in seguito dalla scheda cliente.</div>
+                <div style={{fontSize:isMobile?11:12,color:C.muted}}>{T.wizAnaDesc}</div>
               </div>
-              <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',whiteSpace:'nowrap',width:isMobile?'100%':undefined}}>Registra Cliente &#8594;</button>
+              <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',whiteSpace:'nowrap',width:isMobile?'100%':undefined}}>{T.wizStartAna}</button>
             </div>
             {/* Close button */}
             <div style={{textAlign:'center',marginTop:32}}>
-              <button onClick={onClose} style={S.btn('ghost',true)}>{gT().cancel}</button>
+              <button onClick={onClose} style={S.btn('ghost',true)}>{T.cancel}</button>
             </div>
           </div>
         )}
@@ -5889,13 +5889,13 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
         <div style={{padding:isMobile?'12px 16px':'18px 22px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:isMobile?8:12,flexShrink:0}}>
           {!isMobile&&<div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:'1px solid '+C.blue+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>&#127919;</div>}
           <div style={{flex:1}}>
-            <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?'Passo '+(stepIdx+1)+' di '+TOTAL:'Valutazione Cliente'}</div>
+            <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?T.wizStepN.replace('{n}',stepIdx+1).replace('{tot}',TOTAL):T.wizClientEval}</div>
             <div style={{display:'flex',alignItems:'center',gap:6}}>
-              <span style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?curTitles[stepIdx]:'Passo '+(stepIdx+1)+' di '+TOTAL+' \u00B7 '+curTitles[stepIdx]}</span>
-              <span style={{fontSize:11,fontWeight:600,background:(wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green)+'15',color:wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green,padding:'3px 10px',borderRadius:100}}>{wizardType==='base'?'\u26A1 Base':wizardType==='completa'?'\uD83D\uDD2C Completa':'\uD83D\uDCCB Anagrafica'}</span>
+              <span style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?curTitles[stepIdx]:T.wizStepN.replace('{n}',stepIdx+1).replace('{tot}',TOTAL)+' \u00B7 '+curTitles[stepIdx]}</span>
+              <span style={{fontSize:11,fontWeight:600,background:(wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green)+'15',color:wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green,padding:'3px 10px',borderRadius:100}}>{wizardType==='base'?T.wizBadgeBase:wizardType==='completa'?T.wizBadgeCompleta:T.wizBadgeAna}</span>
             </div>
           </div>
-          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
+          <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm(T.wizCloseConfirm))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
         </div>
         {/* Progress */}
         <div style={{height:3,background:C.border,flexShrink:0}}>
@@ -5923,40 +5923,40 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
           {step===1&&<div style={{display:'flex',flexDirection:'column',gap:16}}>
 
             {/* Sezione: Dati personali */}
-            <WizSection title="Dati personali" icon="&#128100;" borderColor={C.blue} defaultOpen={true}>
+            <WizSection title={T.wizSecPersonal} icon="&#128100;" borderColor={C.blue} defaultOpen={true}>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?'14px 12px':'0 12px'}}>
-                <WizIn lbl="Cognome *" name="cognome" val={d.cognome} onChange={upd('cognome')}/>
-                <WizIn lbl="Nome *" name="nome" val={d.nome} onChange={upd('nome')}/>
-                <WizIn lbl="Data nascita" name="ddn" val={d.ddn} ph="__/__/____" onChange={e=>{var masked=dateMaskHandle(e.target.value,d.ddn);upd('ddn')({target:{value:masked}});}}/>
+                <WizIn lbl={T.fSurname+' *'} name="cognome" val={d.cognome} onChange={upd('cognome')}/>
+                <WizIn lbl={T.fName+' *'} name="nome" val={d.nome} onChange={upd('nome')}/>
+                <WizIn lbl={T.fBirth} name="ddn" val={d.ddn} ph="__/__/____" onChange={e=>{var masked=dateMaskHandle(e.target.value,d.ddn);upd('ddn')({target:{value:masked}});}}/>
                 {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
-                  &#127874; Eta calcolata: <b>{eta} anni</b>
+                  &#127874; {T.wizEtaCalc} <b>{eta} {T.wizYears}</b>
                 </div>}
-                <WizIn lbl="Sesso" name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
-                <WizIn lbl="Email" name="email" type="email" val={d.email} onChange={upd('email')}/>
-                <WizIn lbl="Telefono" name="telefono" val={d.telefono} onChange={upd('telefono')}/>
-                <WizIn lbl="Professione" name="professione" val={d.professione} opts={['Studente','Insegnante','Medico/Infermiere','Impiegato','Dirigente','Libero professionista','Operaio','Artigiano','Commerciante','Pensionato','Disoccupato','Altro']} onChange={upd('professione')}/>
-                <WizIn lbl="Contatto di emergenza" name="contEmerg" val={d.contEmerg} ph="Nome, tel, relazione" onChange={upd('contEmerg')}/>
-                <WizIn lbl="Medico curante (MMG)" desc="Da contattare in caso di rischio clinico rilevato" name="medicoBase" val={d.medicoBase} ph="Nome + telefono" onChange={upd('medicoBase')}/>
+                <WizIn lbl={T.fGender} name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
+                <WizIn lbl={T.wizEmail} name="email" type="email" val={d.email} onChange={upd('email')}/>
+                <WizIn lbl={T.wizPhone} name="telefono" val={d.telefono} onChange={upd('telefono')}/>
+                <WizIn lbl={T.wizProfession} name="professione" val={d.professione} opts={['Studente','Insegnante','Medico/Infermiere','Impiegato','Dirigente','Libero professionista','Operaio','Artigiano','Commerciante','Pensionato','Disoccupato','Altro']} onChange={upd('professione')}/>
+                <WizIn lbl={T.wizEmergContact} name="contEmerg" val={d.contEmerg} ph={T.wizEmergPh} onChange={upd('contEmerg')}/>
+                <WizIn lbl={T.wizGP} desc={T.wizGPDesc} name="medicoBase" val={d.medicoBase} ph={T.wizGPPh} onChange={upd('medicoBase')}/>
               </div>
             </WizSection>
 
             {/* Sezione: Misure corporee */}
-            <WizSection title="Misure corporee" icon="&#128207;" borderColor={C.teal} defaultOpen={!isMobile}>
+            <WizSection title={T.wizSecMeasures} icon="&#128207;" borderColor={C.teal} defaultOpen={!isMobile}>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Altezza (cm)" name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
-                <WizIn lbl="Peso (kg)" name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
-                <WizIn lbl="Vita (cm)" name="vita" type="number" val={d.vita} onChange={upd('vita')}/>
-                <WizIn lbl="Torace (cm)" desc="Circonferenza a meta sterno, in apnea" name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
-                <WizIn lbl="Braccio dx rilassato (cm)" desc="Circonferenza a meta del braccio dominante" name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
-                <WizIn lbl="Coscia dx (cm)" desc="Circonferenza a meta della coscia destra" name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
-                <WizIn lbl="Polpaccio dx (cm)" desc="Circonferenza massima del polpaccio destro" name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>
-                <WizIn lbl="PA (es. 120/80)" name="pa" val={d.pa} onChange={upd('pa')}/>
-                <WizIn lbl="FC riposo (bpm)" name="fc" type="number" val={d.fc} onChange={upd('fc')}/>
-                <WizIn lbl="SpO2 — Saturazione O2 (%)" desc="Normale: 95-100%. Sotto 94% = ipossiemia" name="spo2" type="number" val={d.spo2} ph="es. 98" onChange={upd('spo2')}/>
+                <WizIn lbl={T.fHeight} name="altezza" type="number" val={d.altezza} onChange={upd('altezza')}/>
+                <WizIn lbl={T.fWeight} name="peso" type="number" val={d.peso} onChange={upd('peso')}/>
+                <WizIn lbl={T.fWaist} name="vita" type="number" val={d.vita} onChange={upd('vita')}/>
+                <WizIn lbl={T.wizThorax} desc={T.wizThoraxDesc} name="torace" type="number" val={d.torace} onChange={upd('torace')}/>
+                <WizIn lbl={T.wizArmRelax} desc={T.wizArmDesc} name="braccio" type="number" val={d.braccio} onChange={upd('braccio')}/>
+                <WizIn lbl={T.wizThighR} desc={T.wizThighDesc} name="coscia" type="number" val={d.coscia} onChange={upd('coscia')}/>
+                <WizIn lbl={T.wizCalfR} desc={T.wizCalfDesc} name="polpaccio" type="number" val={d.polpaccio} onChange={upd('polpaccio')}/>
+                <WizIn lbl={T.wizPaPh} name="pa" val={d.pa} onChange={upd('pa')}/>
+                <WizIn lbl={T.fFC} name="fc" type="number" val={d.fc} onChange={upd('fc')}/>
+                <WizIn lbl={T.wizSpo2Lbl} desc={T.wizSpo2Desc} name="spo2" type="number" val={d.spo2} ph="98" onChange={upd('spo2')}/>
                 {d.spo2&&<InterpBox interp={interpSpO2(d.spo2)} icon="🫁"/>}
               </div>
               {bmiVal&&<div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:10,marginTop:10}}>
-                {[[bmiVal,'BMI — '+bmiLbl,bmiClr],[d.peso+' kg','Peso attuale',C.text],[(pesoTarget||'—')+' kg','Peso target (BMI 24.9)',C.blue]].map(function(item){var v=item[0],l=item[1],c=item[2];return(
+                {[[bmiVal,'BMI — '+bmiLbl,bmiClr],[d.peso+' kg',T.pdfActualWeight,C.text],[(pesoTarget||'—')+' kg',T.pdfTargetWeight,C.blue]].map(function(item){var v=item[0],l=item[1],c=item[2];return(
                   <div key={l} style={{background:C.card,border:'1px solid '+c+'30',borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
                     <div style={{fontSize:20,fontWeight:900,color:c}}>{v}</div>
                     <div style={{fontSize:10,color:C.muted,marginTop:3}}>{l}</div>
@@ -5971,63 +5971,63 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             </WizSection>
 
             {/* Sezione: Anamnesi clinica */}
-            <WizSection title="Anamnesi clinica" icon="&#127973;" borderColor={C.red} defaultOpen={!isMobile}>
+            <WizSection title={T.wizSecAnamnesi} icon="&#127973;" borderColor={C.red} defaultOpen={!isMobile}>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Patologie note" name="patologie" val={d.patologie} opts={['Nessuna','Ipertensione','Diabete tipo 2','Diabete tipo 1','Dislipidemia','Obesita','Cardiopatia','Asma/BPCO','Artrosi/Artrite','Osteoporosi','Ernia lombare','Scoliosi','Patologia tiroidea','Depressione/Ansia','Altra patologia']} onChange={upd('patologie')}/>
-                <WizIn lbl="Farmaci" name="farmaci" val={d.farmaci} opts={['Nessuno','Antipertensivi','Antidiabetici orali','Insulina','Statine','Betabloccanti','Diuretici','Anticoagulanti','Antinfiammatori (FANS)','Broncodilatatori','Antidepressivi','Integratori','Altri farmaci']} onChange={upd('farmaci')}/>
-                <WizIn lbl="Sintomi da sforzo" name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
-                <WizIn lbl="Allergie note" name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>
-                <WizIn lbl="Familiarita CV/metabolica" desc="Parenti di 1 grado con infarto, ictus o diabete" name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
-                {d.sesso==='F'&&<WizIn lbl="Gravidanza" name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
-                <WizIn lbl="PAR-Q — Screening" name="parq"
-                  desc="7 domande per controindicazioni. SI = invio medico consigliato"
+                <WizIn lbl={T.wizPatNote} name="patologie" val={d.patologie} opts={['Nessuna','Ipertensione','Diabete tipo 2','Diabete tipo 1','Dislipidemia','Obesita','Cardiopatia','Asma/BPCO','Artrosi/Artrite','Osteoporosi','Ernia lombare','Scoliosi','Patologia tiroidea','Depressione/Ansia','Altra patologia']} onChange={upd('patologie')}/>
+                <WizIn lbl={T.wizFarmNote} name="farmaci" val={d.farmaci} opts={['Nessuno','Antipertensivi','Antidiabetici orali','Insulina','Statine','Betabloccanti','Diuretici','Anticoagulanti','Antinfiammatori (FANS)','Broncodilatatori','Antidepressivi','Integratori','Altri farmaci']} onChange={upd('farmaci')}/>
+                <WizIn lbl={T.fSymp} name="sintomiSforzo" val={d.sintomiSforzo} opts={['NO','Dispnea','Dolore toracico','Vertigini','Altro']} onChange={upd('sintomiSforzo')}/>
+                <WizIn lbl={T.wizAllNote} name="allergie" val={d.allergie} opts={['Nessuna','Lattosio','Glutine/Celiachia','Nichel','Pollini','Polvere/Acari','Farmaci (specificare)','Alimenti (specificare)','Latice','Altra allergia']} onChange={upd('allergie')}/>
+                <WizIn lbl={T.wizFamiliarita} desc={T.wizFamiliaritaDesc} name="familiarita" val={d.familiarita} opts={['NO','SI cardiovascolare','SI diabete','SI entrambe']} onChange={upd('familiarita')}/>
+                {d.sesso==='F'&&<WizIn lbl={T.wizGravidanza} name="gravidanza" val={d.gravidanza} opts={['NO','SI in corso','Post-parto < 6 mesi']} onChange={upd('gravidanza')}/>}
+                <WizIn lbl={T.wizParq} name="parq"
+                  desc={T.wizParqDesc}
                   val={d.parq} opts={['NO — nessuna risposta positiva','1 SI — attenzione','2+ SI — invio medico']} onChange={upd('parq')}/>
                 {d.parq&&<InterpBox interp={interpPARQ(d.parq==='NO — nessuna risposta positiva'?0:d.parq==='1 SI — attenzione'?1:d.parq==='2+ SI — invio medico'?3:0)} icon="📋"/>}
-                <WizIn lbl="Invio al medico" name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
-                <WizIn lbl="Infortuni o esperienze negative" name="infortuni" val={d.infortuni} ph="es. Distorsione 2023" onChange={upd('infortuni')}/>
+                <WizIn lbl={T.wizInvioMedico} name="invioMedico" val={d.invioMedico} opts={['NO','Consigliato','Obbligatorio']} onChange={upd('invioMedico')}/>
+                <WizIn lbl={T.wizInfortuni} name="infortuni" val={d.infortuni} ph={T.wizInfortuniPh} onChange={upd('infortuni')}/>
               </div>
             </WizSection>
 
             {/* Sezione: Stile di vita */}
-            <WizSection title="Stile di vita" icon="&#127807;" borderColor={C.green} defaultOpen={!isMobile}>
+            <WizSection title={T.secLife} icon="&#127807;" borderColor={C.green} defaultOpen={!isMobile}>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Attivita attuale" name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderata','Attiva','Molto attiva']} onChange={upd('attivita')}/>
-                <WizIn lbl="Sport / esercizi praticati" name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
-                <WizIn lbl="Esperienza in palestra" name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
-                <WizIn lbl="Sonno (ore/notte)" desc="< 6h croniche: maggior rischio CV e recupero ridotto" name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>
-                <WizIn lbl="Stress percepito" desc="Stress cronico elevato aumenta cortisolo e rischio CV" name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
-                <WizIn lbl="Motivazione (1-10)" name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>
-                <WizIn lbl="Fumo" name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
+                <WizIn lbl={T.wizAttAttuale} name="attivita" val={d.attivita} opts={['Sedentaria','Poco attiva','Moderata','Attiva','Molto attiva']} onChange={upd('attivita')}/>
+                <WizIn lbl={T.wizSport} name="attivitaTipi" val={d.attivitaTipi} opts={['Nessuno','Palestra (pesi)','Corsa','Nuoto','Ciclismo','Calcio','Tennis/Padel','Yoga/Pilates','Arti marziali','Crossfit','Camminata','Danza','Basket/Pallavolo','Sci','Altro']} onChange={upd('attivitaTipi')}/>
+                <WizIn lbl={T.wizEsperienza} name="esperienzaAnni" val={d.esperienzaAnni} opts={['0','< 1 anno','1-3 anni','3-5 anni','> 5 anni']} onChange={upd('esperienzaAnni')}/>
+                <WizIn lbl={T.wizSonnoLbl} desc={T.wizSonnoDesc} name="sonno" val={d.sonno} opts={['5','6','7','8','9','> 9']} onChange={upd('sonno')}/>
+                <WizIn lbl={T.wizStressLbl} desc={T.wizStressDesc} name="stress" val={d.stress} opts={['Basso','Medio','Alto','Molto alto']} onChange={upd('stress')}/>
+                <WizIn lbl={T.wizMotivazione} name="motivazione" val={d.motivazione} opts={['1','2','3','4','5','6','7','8','9','10']} onChange={upd('motivazione')}/>
+                <WizIn lbl={T.wizFumo} name="fumo" val={d.fumo} opts={['Non fumatore','Ex fumatore','Fumatore occasionale','Fumatore regolare']} onChange={upd('fumo')}/>
                 {d.fumo&&d.fumo!=='Non fumatore'&&<InterpBox interp={interpFumo(d.fumo==='Ex fumatore'?'Ex fumatore':d.fumo==='Fumatore occasionale'?'Leggero':d.fumo==='Fumatore regolare'?'Moderato':'Non fumatore')} icon="🚬"/>}
-                <WizIn lbl="Alcol" name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
+                <WizIn lbl={T.wizAlcol} name="alcol" val={d.alcol} opts={['Mai','1-2/sett.','3-7/sett.','8-14/sett.','>14/sett.']} onChange={upd('alcol')}/>
                 {d.alcol&&d.alcol!=='Mai'&&<InterpBox interp={interpAlcol(d.alcol==='1-2/sett.'?'Occasionale':d.alcol==='3-7/sett.'?'Moderato':'Elevato')} icon="🍷"/>}
               </div>
             </WizSection>
 
             {/* Sezione: Postura e mobilita */}
-            <WizSection title="Postura e mobilita" icon="&#129460;" borderColor={C.purple} defaultOpen={!isMobile}>
+            <WizSection title={T.wizSecPostura} icon="&#129460;" borderColor={C.purple} defaultOpen={!isMobile}>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Colonna vertebrale" desc="Iperlordosi = curva lombare accentuata; cifosi = curva dorsale accentuata" name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
+                <WizIn lbl={T.wizColonna} desc={T.wizColonnaDesc} name="posturaColonna" val={d.posturaColonna} opts={['Normale','Iperlordosi lombare','Cifosi dorsale','Scoliosi','Mista']} onChange={upd('posturaColonna')}/>
                 {d.posturaColonna&&d.posturaColonna!=='Normale'&&<InterpBox interp={interpPosturaColonna(d.posturaColonna==='Iperlordosi lombare'?'Iperlordosi':d.posturaColonna==='Cifosi dorsale'?'Cifosi':d.posturaColonna==='Scoliosi'?'Scoliosi lieve':d.posturaColonna)} icon="🦴"/>}
-                <WizIn lbl="Postura spalle" desc="Protratte = rotazione interna, frequente da sedentarieta" name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>
+                <WizIn lbl={T.wizSpalle} desc={T.wizSpalleDesc} name="posturaSpalle" val={d.posturaSpalle} opts={['Normale','Protratte (avanzate)','Asimmetria dx/sx','Elevate']} onChange={upd('posturaSpalle')}/>
                 {d.posturaSpalle&&d.posturaSpalle!=='Normale'&&<InterpBox interp={interpPosturaSpalle(d.posturaSpalle==='Protratte (avanzate)'?'Protratte':d.posturaSpalle==='Asimmetria dx/sx'?'Asimmetriche':d.posturaSpalle==='Elevate'?'Elevate':d.posturaSpalle)} icon="🤸"/>}
-                <WizIn lbl="Mobilita caviglia — ROM" desc="Limitazione limita squat, corsa e postura globale" name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
+                <WizIn lbl={T.wizMobCaviglia} desc={T.wizMobCavigliaDesc} name="mobCaviglia" val={d.mobCaviglia} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobCaviglia')}/>
                 {d.mobCaviglia&&d.mobCaviglia!=='Ottima'&&d.mobCaviglia!=='Buona'&&<InterpBox interp={interpMobCaviglia(d.mobCaviglia==='Ridotta'?8:d.mobCaviglia==='Molto limitata'?5:12)} icon="🦶"/>}
-                <WizIn lbl="Mobilita anca — ROM" desc="Influenza squat, deadlift, corsa e lombalgia" name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
+                <WizIn lbl={T.wizMobAnca} desc={T.wizMobAncaDesc} name="mobAnca" val={d.mobAnca} opts={['Ottima','Buona','Ridotta','Molto limitata']} onChange={upd('mobAnca')}/>
                 {d.mobAnca&&d.mobAnca!=='Ottima'&&d.mobAnca!=='Buona'&&<InterpBox interp={interpMobAnca(d.mobAnca==='Ridotta'?90:d.mobAnca==='Molto limitata'?70:120)} icon="🏃"/>}
-                <WizIn lbl="Sit-and-Reach (cm)" desc="+ = raggiunge oltre i piedi; - = non raggiunge" name="sitReach" type="number" val={d.sitReach} ph="es. +5 oppure -8" onChange={upd('sitReach')}/>
+                <WizIn lbl={T.wizSitReach} desc={T.wizSitReachDesc} name="sitReach" type="number" val={d.sitReach} ph={T.wizSitReachPh} onChange={upd('sitReach')}/>
                 {d.sitReach!==''&&d.sitReach!==undefined&&<InterpBox interp={interpSitReach(d.sitReach,d.sesso)} icon="🧘"/>}
-                <WizIn lbl="Note posturali" name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>
+                <WizIn lbl={T.wizNotePostura} name="notePostura" val={d.notePostura} opts={['Nessuna','Dolore lombare','Dolore cervicale','Dolore al ginocchio','Dolore alla spalla','Iperlordosi con tensione psoas','Cifosi con pettorali corti','Valgo/varo ginocchio','Piede piatto','Asimmetria bacino','Limitazione rotazione torace','Altro']} onChange={upd('notePostura')}/>
               </div>
             </WizSection>
 
             {/* Sezione: Pianificazione */}
-            <WizSection title="Obiettivo e pianificazione" icon="&#127919;" borderColor={C.orange} defaultOpen={!isMobile}>
+            <WizSection title={T.wizSecObiettivo} icon="&#127919;" borderColor={C.orange} defaultOpen={!isMobile}>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Obiettivo principale" name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
-                <WizIn lbl="Orizzonte temporale" name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
-                <WizIn lbl="Sedute/settimana disponibili" name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
-                <WizIn lbl="Durata seduta preferita" name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
+                <WizIn lbl={T.wizObPrincipale} name="obiettivo" val={d.obiettivo} opts={['Perdere peso','Aumentare massa','Resistenza','Forza','Salute','Riabilitazione','Performance','Benessere']} onChange={upd('obiettivo')}/>
+                <WizIn lbl={T.wizOrizzonte} name="orizzonte" val={d.orizzonte} opts={['1 mese','3 mesi','6 mesi','1 anno','Lungo termine']} onChange={upd('orizzonte')}/>
+                <WizIn lbl={T.wizSeduteSett} name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
+                <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
               </div>
             </WizSection>
 
@@ -6037,23 +6037,23 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
           {step===2&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
             <div style={{background:C.blue+'08',border:'1px solid '+C.blue+'20',borderRadius:10,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
               <span style={{fontSize:18}}>📋</span>
-              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>Dati opzionali — compila solo le sezioni per cui hai strumenti disponibili. Salta il resto.</div>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>{T.wizOptionalNote}</div>
             </div>
 
             {/* Circonferenze */}
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>📏</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Circonferenze corporee</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizCirc}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Braccio dx (cm)" name="cirBraccio" type="number" val={d.cirBraccio} ph="es. 32" onChange={upd('cirBraccio')}/>
-                <WizIn lbl="Coscia dx (cm)" name="cirCoscia" type="number" val={d.cirCoscia} ph="es. 55" onChange={upd('cirCoscia')}/>
-                <WizIn lbl="Polpaccio dx (cm)" name="cirPolpaccio" type="number" val={d.cirPolpaccio} ph="es. 37" onChange={upd('cirPolpaccio')}/>
-                <WizIn lbl="Fianchi (cm)" name="fianchi" type="number" val={d.fianchi} ph="es. 98" onChange={upd('fianchi')}/>
+                <WizIn lbl={T.wizCirBraccio} name="cirBraccio" type="number" val={d.cirBraccio} ph="32" onChange={upd('cirBraccio')}/>
+                <WizIn lbl={T.wizCirCoscia} name="cirCoscia" type="number" val={d.cirCoscia} ph="55" onChange={upd('cirCoscia')}/>
+                <WizIn lbl={T.wizCirPolpaccio} name="cirPolpaccio" type="number" val={d.cirPolpaccio} ph="37" onChange={upd('cirPolpaccio')}/>
+                <WizIn lbl={T.wizFianchi} name="fianchi" type="number" val={d.fianchi} ph="98" onChange={upd('fianchi')}/>
               </div>
               {d.vita&&d.fianchi&&<div style={{marginTop:8,background:C.card,borderRadius:8,padding:'8px 12px'}}>
-                {(()=>{const ratio=(+d.vita/+d.fianchi).toFixed(2);const alto=d.sesso==='M'?ratio>0.9:ratio>0.85;return<div style={{fontSize:12,fontWeight:700,color:alto?C.red:C.green}}>Rapporto vita/fianchi: {ratio} — {alto?'Rischio CV elevato':'Nella norma'}</div>})()}
+                {(()=>{const ratio=(+d.vita/+d.fianchi).toFixed(2);const alto=d.sesso==='M'?ratio>0.9:ratio>0.85;return<div style={{fontSize:12,fontWeight:700,color:alto?C.red:C.green}}>{T.whRatio}: {ratio} — {alto?T.wizCircHigh:T.wizCircNorm}</div>})()}
               </div>}
             </div>
 
@@ -6061,17 +6061,17 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>📐</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Plicometria</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— stima massa grassa</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizPlico}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizPlicoDesc}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Plica sottoscapolare (mm)" name="plicaSott" type="number" val={d.plicaSott} ph="es. 12" onChange={upd('plicaSott')}/>
-                <WizIn lbl="Plica tricipitale (mm)" name="plicaTric" type="number" val={d.plicaTric} ph="es. 15" onChange={upd('plicaTric')}/>
-                <WizIn lbl="Plica soprailiaca (mm)" name="plicaIlio" type="number" val={d.plicaIlio} ph="es. 14" onChange={upd('plicaIlio')}/>
-                <WizIn lbl="% Massa grassa stimata" name="massaGrassa" type="number" val={d.massaGrassa} ph="es. 22" onChange={upd('massaGrassa')}/>
+                <WizIn lbl={T.wizPlicaSott} name="plicaSott" type="number" val={d.plicaSott} ph="12" onChange={upd('plicaSott')}/>
+                <WizIn lbl={T.wizPlicaTric} name="plicaTric" type="number" val={d.plicaTric} ph="15" onChange={upd('plicaTric')}/>
+                <WizIn lbl={T.wizPlicaIlio} name="plicaIlio" type="number" val={d.plicaIlio} ph="14" onChange={upd('plicaIlio')}/>
+                <WizIn lbl={T.wizMassaGrassa} name="massaGrassa" type="number" val={d.massaGrassa} ph="22" onChange={upd('massaGrassa')}/>
               </div>
               {d.massaGrassa&&<div style={{marginTop:8,background:C.card,borderRadius:8,padding:'8px 12px'}}>
-                {(()=>{const mg=+d.massaGrassa,m=d.sesso==='M';var l2,c2;if(m){l2=mg<6?'Essenziale':mg<14?'Atletica':mg<18?'Fitness':mg<25?'Accettabile':'Obesa';c2=mg<25?C.green:C.red;}else{l2=mg<14?'Essenziale':mg<21?'Atletica':mg<25?'Fitness':mg<32?'Accettabile':'Obesa';c2=mg<32?C.green:C.red;}return<div style={{fontSize:12,fontWeight:700,color:c2}}>Massa grassa: {mg}% — Categoria: {l2}</div>})()}
+                {(()=>{const mg=+d.massaGrassa,m=d.sesso==='M';var l2,c2;if(m){l2=mg<6?T.wizFatEss:mg<14?T.wizFatAth:mg<18?T.wizFatFit:mg<25?T.wizFatAcc:T.wizFatObe;c2=mg<25?C.green:C.red;}else{l2=mg<14?T.wizFatEss:mg<21?T.wizFatAth:mg<25?T.wizFatFit:mg<32?T.wizFatAcc:T.wizFatObe;c2=mg<32?C.green:C.red;}return<div style={{fontSize:12,fontWeight:700,color:c2}}>{T.wizMgLabel} {mg}% {T.wizMgCat} {l2}</div>})()}
               </div>}
             </div>
 
@@ -6079,40 +6079,40 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #06b6d4'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:16}}>📡</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>BIA — Bioimpedenziometria</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizBia}</span>
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:12,lineHeight:1.5}}>
-                Stima la composizione corporea tramite corrente elettrica. Inserisci i valori dal tuo dispositivo.
+                {T.wizBiaDesc}
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="R — Resistenza (ohm)" name="biaR" type="number" val={d.biaR} ph="es. 520"
-                  desc="Opposizione al passaggio della corrente" onChange={upd('biaR')}/>
-                <WizIn lbl="Xc — Reattanza (ohm)" name="biaXc" type="number" val={d.biaXc} ph="es. 62"
-                  desc="Capacita delle membrane cellulari" onChange={upd('biaXc')}/>
-                <WizIn lbl="PhA — Angolo di fase" name="biaPhA" type="number" val={d.biaPhA} ph="es. 6.8"
-                  desc="Norma adulti: 5-8. Sotto 4 = sarcopenia" onChange={upd('biaPhA')}/>
+                <WizIn lbl={T.wizBiaR} name="biaR" type="number" val={d.biaR} ph="520"
+                  desc={T.wizBiaRDesc} onChange={upd('biaR')}/>
+                <WizIn lbl={T.wizBiaXc} name="biaXc" type="number" val={d.biaXc} ph="62"
+                  desc={T.wizBiaXcDesc} onChange={upd('biaXc')}/>
+                <WizIn lbl={T.wizBiaPhA} name="biaPhA" type="number" val={d.biaPhA} ph="6.8"
+                  desc={T.wizBiaPhADesc} onChange={upd('biaPhA')}/>
                 {d.biaPhA&&<InterpBox interp={interpPhA(d.biaPhA,d.sesso,eta)} icon="⚡"/>}
-                <WizIn lbl="TBW — Acqua totale (L)" name="biaTBW" type="number" val={d.biaTBW} ph="es. 38.5"
-                  desc="Norma: 55-65% peso (M), 45-55% (F)" onChange={upd('biaTBW')}/>
-                <WizIn lbl="FFM — Massa magra (kg)" name="biaFFM" type="number" val={d.biaFFM} ph="es. 62"
-                  desc="Muscoli + ossa + organi + acqua" onChange={upd('biaFFM')}/>
-                <WizIn lbl="FM — Massa grassa (%)" name="biaFM" type="number" val={d.biaFM} ph="es. 22"
-                  desc="Norma: M 10-20%, F 20-30%" onChange={upd('biaFM')}/>
+                <WizIn lbl={T.wizBiaTBW} name="biaTBW" type="number" val={d.biaTBW} ph="38.5"
+                  desc={T.wizBiaTBWDesc} onChange={upd('biaTBW')}/>
+                <WizIn lbl={T.wizBiaFFM} name="biaFFM" type="number" val={d.biaFFM} ph="62"
+                  desc={T.wizBiaFFMDesc} onChange={upd('biaFFM')}/>
+                <WizIn lbl={T.wizBiaFM} name="biaFM" type="number" val={d.biaFM} ph="22"
+                  desc={T.wizBiaFMDesc} onChange={upd('biaFM')}/>
                 {d.biaFM&&<InterpBox interp={interpFMpct(d.biaFM,d.sesso)} icon="🏋"/>}
-                <WizIn lbl="BCM — Massa cellulare (kg)" name="biaBCM" type="number" val={d.biaBCM} ph="es. 28"
-                  desc="Tessuto metabolicamente attivo" onChange={upd('biaBCM')}/>
-                <WizIn lbl="ECW/TBW — Idratazione (%)" name="biaECW" type="number" val={d.biaECW} ph="es. 38"
-                  desc="Norma < 40%. Alto = ritenzione idrica" onChange={upd('biaECW')}/>
+                <WizIn lbl={T.wizBiaBCM} name="biaBCM" type="number" val={d.biaBCM} ph="28"
+                  desc={T.wizBiaBCMDesc} onChange={upd('biaBCM')}/>
+                <WizIn lbl={T.wizBiaECW} name="biaECW" type="number" val={d.biaECW} ph="38"
+                  desc={T.wizBiaECWDesc} onChange={upd('biaECW')}/>
                 {d.biaECW&&<InterpBox interp={interpECW_TBW(+d.biaECW/100)} icon="💧"/>}
               </div>
               {d.biaR&&d.biaXc&&<div style={{background:C.card,borderRadius:8,padding:'8px 12px',marginTop:8,fontSize:11}}>
-                <span style={{color:C.muted}}>PhA calcolato: </span>
+                <span style={{color:C.muted}}>{T.wizPhACalc} </span>
                 <b style={{color:'#06b6d4'}}>{(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2)}</b>
                 <span style={{color:C.muted,marginLeft:8}}>
                   {(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))>=5&&(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<=8
-                    ?'Nella norma (5-8)'
-                    :(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<5?'Sotto norma — valutare stato nutrizionale'
-                    :'Sopra norma — ottima integrita cellulare'}
+                    ?T.wizPhANorm
+                    :(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI))<5?T.wizPhAUnder
+                    :T.wizPhAOver}
                 </span>
               </div>}
               {/* Stima predittiva */}
@@ -6120,14 +6120,14 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                   <span style={{fontSize:14}}>🔬</span>
                   <div>
-                    <div style={{fontSize:11,fontWeight:700,color:C.strong}}>Nessun dispositivo BIA?</div>
-                    <div style={{fontSize:10,color:C.muted}}>Stima automatica da altezza, peso, eta e sesso</div>
+                    <div style={{fontSize:11,fontWeight:700,color:C.strong}}>{T.wizNoBia}</div>
+                    <div style={{fontSize:10,color:C.muted}}>{T.wizNoBiaDesc}</div>
                   </div>
                 </div>
                 <button type="button" style={{...S.btn('ghost'),fontSize:12,width:'100%'}}
                   onClick={()=>{
                     const peso=+d.peso,alt=+d.altezza,age=eta||30,m=d.sesso==='M';
-                    if(!peso||!alt){showToast('Inserire altezza e peso nel passo 1','error');return;}
+                    if(!peso||!alt){showToast(T.wizErrNoAlt,'error');return;}
                     const bmiV=peso/((alt/100)**2);
                     const fmPct=m
                       ?(1.20*bmiV)+(0.23*age)-16.2
@@ -6147,10 +6147,10 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                       biaBMR:Math.round(bmr),
                     }));
                   }}>
-                  Calcola FM%, FFM e TBW da dati antropometrici
+                  {T.wizCalcBia}
                 </button>
                 {d.biaBMR&&<div style={{background:C.card,borderRadius:10,padding:'12px 14px',marginTop:10,display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:8,textAlign:'center'}}>
-                  {[[d.biaFM+'%','Massa grassa','#fb923c'],[d.biaFFM+' kg','Massa magra','#10b981'],[d.biaTBW+' L','Acqua totale','#06b6d4'],[d.biaBMR+' kcal','BMR basale','#8b5cf6']].map(([v,l,col])=>(
+                  {[[d.biaFM+'%',T.wizMassaGrassaLbl,'#fb923c'],[d.biaFFM+' kg',T.wizMassaMagraLbl,'#10b981'],[d.biaTBW+' L',T.wizAcquaTot,'#06b6d4'],[d.biaBMR+' kcal',T.wizBmrBasale,'#8b5cf6']].map(([v,l,col])=>(
                     <div key={l} style={{background:col+'12',borderRadius:10,padding:'10px 8px',border:'1px solid '+col+'20'}}>
                       <div style={{fontSize:18,fontWeight:800,color:col}}>{v}</div>
                       <div style={{fontSize:9,color:C.muted,marginTop:3,lineHeight:1.3}}>{l}</div>
@@ -6158,7 +6158,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                   ))}
                 </div>}
                 {d.biaBMR&&<div style={{fontSize:10,color:C.muted,marginTop:8,lineHeight:1.5,fontStyle:'italic'}}>
-                  Valori stimati (3-5% errore). BMR = Mifflin-St Jeor. FM% = Deurenberg. TBW = Watson.
+                  {T.wizBiaStimati}
                 </div>}
               </div>
             </div>
@@ -6170,9 +6170,9 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>📋</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Protocollo 6MWT</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizProto6mwt}</span>
               </div>
-              {['Corridoio piano >= 20m (o circuito esterno)','Camminare il piu veloce possibile per 6 minuti','Soste consentite — registrarle','Misurare distanza totale in metri','Rilevare RPE (0-10) subito al termine'].map(function(t,i){return(
+              {[T.wizProto6mwt1,T.wizProto6mwt2,T.wizProto6mwt3,T.wizProto6mwt4,T.wizProto6mwt5].map(function(t,i){return(
                 <div key={i} style={{display:'flex',gap:8,marginBottom:6}}>
                   <div style={{width:20,height:20,borderRadius:'50%',background:C.blue+'15',color:C.blue,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
                   <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{t}</div>
@@ -6183,20 +6183,20 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.teal}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>🚶</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Risultati 6MWT</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRis6mwt}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Distanza percorsa (m) *" name="mwtDist" type="number" val={d.mwtDist} ph="es. 320" onChange={upd('mwtDist')}/>
-                <WizIn lbl="RPE al termine (0-10)" name="mwtRpe" type="number" val={d.mwtRpe} ph="0 = nessuno sforzo" onChange={upd('mwtRpe')}/>
+                <WizIn lbl={T.wizMwtDist} name="mwtDist" type="number" val={d.mwtDist} ph="320" onChange={upd('mwtDist')}/>
+                <WizIn lbl={T.wizMwtRpe} name="mwtRpe" type="number" val={d.mwtRpe} ph={T.wizMwtRpePh} onChange={upd('mwtRpe')}/>
               </div>
-              <WizIn lbl="Sintomi durante il test" name="mwtSintomi" val={d.mwtSintomi} opts={['NO','Dispnea lieve','Dispnea moderata','Affaticamento gambe','Dolore','Test interrotto']} onChange={upd('mwtSintomi')}/>
+              <WizIn lbl={T.wizMwtSint} name="mwtSintomi" val={d.mwtSintomi} opts={['NO','Dispnea lieve','Dispnea moderata','Affaticamento gambe','Dolore','Test interrotto']} onChange={upd('mwtSintomi')}/>
               {d.mwtDist&&(()=>{var mwtC=+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green;return<div style={{background:mwtC+'10',border:'1px solid '+mwtC+'30',borderRadius:10,padding:'10px 14px',marginTop:4}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
                   <div style={{width:36,height:36,borderRadius:10,background:mwtC+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,color:mwtC,flexShrink:0}}>{d.mwtDist}</div>
                   <div>
-                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',letterSpacing:.5}}>Indicatore 6MWT</div>
+                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',letterSpacing:.5}}>{T.wizIndic6mwt}</div>
                     <div style={{fontSize:13,fontWeight:700,color:mwtC,marginTop:2}}>
-                      {+d.mwtDist<300?'Capacita molto bassa':+d.mwtDist<=450?'Capacita moderata':'Buona capacita aerobica'}
+                      {+d.mwtDist<300?T.wizCapVeryLow:+d.mwtDist<=450?T.wizCapMod:T.wizCapGood}
                     </div>
                   </div>
                 </div>
@@ -6206,15 +6206,15 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.red}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:16}}>❤️</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Recupero FC</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRecupFc}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Dopo il 6MWT: misura FC immediata, aspetta 1 min, misura di nuovo.</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizFcRecupDesc}</div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="FC post-esercizio (bpm)" name="fcPost" type="number" val={d.fcPost} ph="es. 145" onChange={upd('fcPost')}/>
-                <WizIn lbl="FC dopo 1 minuto (bpm)" name="fcRecup" type="number" val={d.fcRecup} ph="es. 120" onChange={upd('fcRecup')}/>
+                <WizIn lbl={T.wizFcPost} name="fcPost" type="number" val={d.fcPost} ph="145" onChange={upd('fcPost')}/>
+                <WizIn lbl={T.wizFcRecupLbl} name="fcRecup" type="number" val={d.fcRecup} ph="120" onChange={upd('fcRecup')}/>
               </div>
               {d.fcPost&&d.fcRecup&&(()=>{const delta=+d.fcPost-+d.fcRecup;const i=interpRecupFC(delta);return i&&<div style={{background:i.c+'10',border:'1px solid '+i.c+'30',borderRadius:8,padding:'8px 12px',marginTop:6}}>
-                <div style={{fontSize:12,fontWeight:700,color:i.c}}>Delta FC: -{delta} bpm — {i.l}</div>
+                <div style={{fontSize:12,fontWeight:700,color:i.c}}>{T.wizDeltaFc.replace('{n}',delta)} {i.l}</div>
                 <div style={{fontSize:11,color:C.muted,marginTop:3}}>{i.cons}</div>
               </div>})()}
             </div>
@@ -6226,9 +6226,9 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>📋</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Protocollo STS 30s</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizProtoSts}</span>
               </div>
-              {['Sedia standard senza braccioli, altezza ~43 cm','Partenza seduto, braccia incrociate al petto','Alzarsi completamente e risedersi per 30 secondi','Contare ogni alzata completa come 1 ripetizione','Non usare le mani — annotarlo se necessario'].map(function(t,i){return(
+              {[T.wizProtoSts1,T.wizProtoSts2,T.wizProtoSts3,T.wizProtoSts4,T.wizProtoSts5].map(function(t,i){return(
                 <div key={i} style={{display:'flex',gap:8,marginBottom:6}}>
                   <div style={{width:20,height:20,borderRadius:'50%',background:C.green+'15',color:C.green,fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
                   <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{t}</div>
@@ -6239,19 +6239,19 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>🪑</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Risultati STS</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRisSts}</span>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Ripetizioni completate *" name="stsRip" type="number" val={d.stsRip} ph="es. 12" onChange={upd('stsRip')}/>
-                <WizIn lbl="Note tecnica" name="stsNote" val={d.stsNote} ph="es. Uso mani, ginocchia valghe..." onChange={upd('stsNote')}/>
+                <WizIn lbl={T.wizStsRipLbl} name="stsRip" type="number" val={d.stsRip} ph="12" onChange={upd('stsRip')}/>
+                <WizIn lbl={T.wizStsNote} name="stsNote" val={d.stsNote} ph={T.wizStsNotePh} onChange={upd('stsNote')}/>
               </div>
               {d.stsRip&&(()=>{var stsC=+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green;return<div style={{background:stsC+'10',border:'1px solid '+stsC+'30',borderRadius:10,padding:'10px 14px',marginTop:4}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
                   <div style={{width:36,height:36,borderRadius:10,background:stsC+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,color:stsC,flexShrink:0}}>{d.stsRip}</div>
                   <div>
-                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',letterSpacing:.5}}>Indicatore STS</div>
+                    <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',letterSpacing:.5}}>{T.wizIndicSts}</div>
                     <div style={{fontSize:13,fontWeight:700,color:stsC,marginTop:2}}>
-                      {+d.stsRip<10?'Forza molto ridotta':+d.stsRip<=15?'Forza moderata':'Buona forza arti inferiori'}
+                      {+d.stsRip<10?T.wizStrLow:+d.stsRip<=15?T.wizStrMod:T.wizStrGood}
                     </div>
                   </div>
                 </div>
@@ -6259,10 +6259,10 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             </div>
             {/* Preview profilo */}
             {d.mwtDist&&d.stsRip&&pr&&<div style={{background:pr.bg,border:'2px solid '+pr.c+'40',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
-              <div style={{fontSize:18,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</div>
+              <div style={{fontSize:18,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{pr.l}</div>
-                <div style={{fontSize:12,color:C.muted,marginTop:2}}>Score: {pr.score}/100 — profilo determinabile</div>
+                <div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.wizScoreLbl.replace('{n}',pr.score)}</div>
                 <div style={{marginTop:6}}><ScoreBar score={pr.score} color={pr.c} height={8}/></div>
               </div>
             </div>}
@@ -6272,20 +6272,20 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
           {step===5&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
             <div style={{background:C.green+'08',border:'1px solid '+C.green+'20',borderRadius:10,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
               <span style={{fontSize:18}}>💪</span>
-              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>Test opzionali — compila solo quelli per cui hai gli strumenti. Salta il resto.</div>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>{T.wizPhysOptional}</div>
             </div>
 
             {/* Push-up */}
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>💪</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Push-up</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— resistenza arti superiori</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizPushup}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizPushupDesc}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Mani larghezza spalle, corpo dritto, scendi a 90, quante riesci senza pause</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizPushupProto}</div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Ripetizioni" name="pushupRip" type="number" val={d.pushupRip} ph="es. 15" onChange={upd('pushupRip')}/>
-                <WizIn lbl="Note" name="pushupNote" val={d.pushupNote} ph="es. uso ginocchia..." onChange={upd('pushupNote')}/>
+                <WizIn lbl={T.wizPushupRip} name="pushupRip" type="number" val={d.pushupRip} ph="15" onChange={upd('pushupRip')}/>
+                <WizIn lbl={T.wizPushupNote} name="pushupNote" val={d.pushupNote} ph={T.wizPushupNotePh} onChange={upd('pushupNote')}/>
               </div>
               {d.pushupRip&&(()=>{const i=interpPushup(d.pushupRip,d.sesso);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
@@ -6294,11 +6294,11 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🧱</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Plank</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— resistenza core</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizPlank}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizPlankDesc}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Avambracci a terra, corpo dritto, cronometra fino al cedimento</div>
-              <WizIn lbl="Secondi mantenuti" name="plankSec" type="number" val={d.plankSec} ph="es. 45" onChange={upd('plankSec')}/>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizPlankProto}</div>
+              <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
               {d.plankSec&&(()=>{const i=interpPlank(d.plankSec);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
@@ -6306,13 +6306,13 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.orange}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🦵</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Squat</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— forza arti inferiori</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizSquat}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizSquatDesc}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Piedi larghezza spalle, scendi a 90, schiena dritta, quante riesci senza pause</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizSquatProto}</div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Ripetizioni" name="squatRip" type="number" val={d.squatRip} ph="es. 20" onChange={upd('squatRip')}/>
-                <WizIn lbl="Note" name="squatNote" val={d.squatNote} ph="es. ginocchia valghe..." onChange={upd('squatNote')}/>
+                <WizIn lbl={T.wizSquatRip} name="squatRip" type="number" val={d.squatRip} ph="20" onChange={upd('squatRip')}/>
+                <WizIn lbl={T.wizSquatNote} name="squatNote" val={d.squatNote} ph={T.wizSquatNotePh} onChange={upd('squatNote')}/>
               </div>
               {d.squatRip&&(()=>{const i=interpSquat(d.squatRip);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
@@ -6321,13 +6321,13 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.teal}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🦶</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Single Leg Balance</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— equilibrio</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizSlb}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizSlbDescShort}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>In piedi su una gamba, occhi aperti, cronometra fino a max 30s, ripeti per l'altra</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizSlbProto}</div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="Secondi gamba dx" name="slbDx" type="number" val={d.slbDx} ph="max 30s" onChange={upd('slbDx')}/>
-                <WizIn lbl="Secondi gamba sx" name="slbSx" type="number" val={d.slbSx} ph="max 30s" onChange={upd('slbSx')}/>
+                <WizIn lbl={T.wizSlbDx} name="slbDx" type="number" val={d.slbDx} ph={T.wizSlbPh} onChange={upd('slbDx')}/>
+                <WizIn lbl={T.wizSlbSx} name="slbSx" type="number" val={d.slbSx} ph={T.wizSlbPh} onChange={upd('slbSx')}/>
               </div>
               {(d.slbDx||d.slbSx)&&(()=>{const avg=((+d.slbDx||0)+(+d.slbSx||0))/((d.slbDx?1:0)+(d.slbSx?1:0));const i=interpSLB(avg);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
@@ -6336,13 +6336,13 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.yellow}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>⏱</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>TUG + Handgrip</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— rischio cadute e forza prensile</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizTugHg}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizTugHgDesc}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>TUG: alzarsi, camminare 3m, tornare, sedersi. Handgrip: dinamometro, presa massima.</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizTugHgProto}</div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl="TUG (secondi)" name="tugSec" type="number" val={d.tugSec} ph="es. 9.5" onChange={upd('tugSec')}/>
-                <WizIn lbl="Handgrip max (kg)" name="handgrip" type="number" val={d.handgrip} ph="es. 42" onChange={upd('handgrip')}/>
+                <WizIn lbl={T.wizTugSec} name="tugSec" type="number" val={d.tugSec} ph="9.5" onChange={upd('tugSec')}/>
+                <WizIn lbl={T.wizHandgrip} name="handgrip" type="number" val={d.handgrip} ph="42" onChange={upd('handgrip')}/>
               </div>
               {d.handgrip&&<InterpBox interp={interpHandgrip(d.handgrip,d.sesso,eta)} icon="✊"/>}
               {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<InterpBox interp={i} icon="⏱"/>})()}
@@ -6353,28 +6353,28 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
           {step===6&&<div style={{display:'flex',flexDirection:'column',gap:14}}>
             <div style={{background:C.cyan+'08',border:'1px solid '+C.cyan+'20',borderRadius:10,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
               <span style={{fontSize:18}}>🏃</span>
-              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>Valutazione qualitativa del movimento — osserva esecuzione e compensi.</div>
+              <div style={{fontSize:12,color:C.muted,lineHeight:1.5}}>{T.wizMovQualNote}</div>
             </div>
 
             {/* Squat a corpo libero */}
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.blue}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🏋</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Squat a corpo libero</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizSquatBody}</span>
               </div>
               <div style={{marginBottom:10}}>
-                <label style={S.label}>Profondità squat</label>
+                <label style={S.label}>{T.wizSquatProf}</label>
                 <select value={d.sqDepth} onChange={upd('sqDepth')} style={S.sel}>
-                  <option value="">-- Seleziona --</option>
-                  <option value="completa">Completa (coscie parallele o sotto)</option>
-                  <option value="parziale">Parziale (sopra parallela)</option>
-                  <option value="minima">Minima (solo accenno)</option>
+                  <option value="">{T.wizSelectPh}</option>
+                  <option value="completa">{T.wizSquatProfFull}</option>
+                  <option value="parziale">{T.wizSquatProfPart}</option>
+                  <option value="minima">{T.wizSquatProfMin}</option>
                 </select>
               </div>
               <div style={{marginBottom:10}}>
-                <label style={S.label}>Compensi osservati</label>
+                <label style={S.label}>{T.wizCompObs}</label>
                 <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                  {[['nessuno','Nessuno'],['talloni','Talloni si alzano'],['ginocchia','Ginocchia collassano'],['busto','Busto cade avanti'],['dolore','Dolore riferito']].map(function(item){
+                  {[['nessuno',T.wizCompNone],['talloni',T.wizCompHeels],['ginocchia',T.wizCompKnees],['busto',T.wizCompTorso],['dolore',T.wizCompPain]].map(function(item){
                     var k=item[0],l=item[1];
                     var sel=d.sqCompensi===k;
                     return(
@@ -6386,12 +6386,12 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 </div>
               </div>
               <div style={{marginBottom:6}}>
-                <label style={S.label}>Dolore durante squat</label>
+                <label style={S.label}>{T.wizSquatPain}</label>
                 <select value={d.sqDolore} onChange={upd('sqDolore')} style={S.sel}>
-                  <option value="no">No</option>
-                  <option value="lieve">Lieve</option>
-                  <option value="moderato">Moderato</option>
-                  <option value="forte">Forte — stop test</option>
+                  <option value="no">{T.wizPainNo}</option>
+                  <option value="lieve">{T.wizPainLight}</option>
+                  <option value="moderato">{T.wizPainMod}</option>
+                  <option value="forte">{T.wizPainStrong}</option>
                 </select>
               </div>
             </div>
@@ -6400,22 +6400,22 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🦵</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Affondo in avanti</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>— FMS semplificato</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizAffondo}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizAffondoDesc}</span>
               </div>
               <div style={{marginBottom:10}}>
-                <label style={S.label}>Esecuzione affondo</label>
+                <label style={S.label}>{T.wizAffondoExec}</label>
                 <select value={d.affondo} onChange={upd('affondo')} style={S.sel}>
-                  <option value="">-- Seleziona --</option>
-                  <option value="ottimo">Ottimo — equilibrio e controllo perfetti</option>
-                  <option value="buono">Buono — lievi compensi</option>
-                  <option value="scarso">Scarso — difficoltà equilibrio</option>
-                  <option value="impossibile">Non eseguito — dolore o limitazione</option>
+                  <option value="">{T.wizSelectPh}</option>
+                  <option value="ottimo">{T.wizAffondoOpt}</option>
+                  <option value="buono">{T.wizAffondoBuono}</option>
+                  <option value="scarso">{T.wizAffondoScarso}</option>
+                  <option value="impossibile">{T.wizAffondoImposs}</option>
                 </select>
               </div>
               <div>
-                <label style={S.label}>Note movimento</label>
-                <textarea value={d.noteMovimento||''} onChange={upd('noteMovimento')} placeholder="Osservazioni cliniche sul movimento..." style={{...S.ta,minHeight:70,borderRadius:10}}/>
+                <label style={S.label}>{T.wizMovNote}</label>
+                <textarea value={d.noteMovimento||''} onChange={upd('noteMovimento')} placeholder={T.wizMovNotePh} style={{...S.ta,minHeight:70,borderRadius:10}}/>
               </div>
             </div>
           </div>}
@@ -6426,37 +6426,37 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:16}}>📊</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>RPE — Sforzo percepito</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRpeTitle}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:12,lineHeight:1.5}}>Valuta lo stato percepito dopo i test, a riposo.</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:12,lineHeight:1.5}}>{T.wizRpeDescF}</div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8,marginBottom:12}}>
-                {[[0,'#10b981','Nulla'],[2,'#22d3ee','Molto lieve'],[4,'#f59e0b','Lieve'],[6,'#fb923c','Moderata'],[8,'#ef4444','Intensa']].map(function(item){var v=item[0],c=item[1],l=item[2];var sel=String(d.rpeRiposo)===String(v);return(
+                {[[0,'#10b981',T.wizRpe0],[2,'#22d3ee',T.wizRpe2],[4,'#f59e0b',T.wizRpe4],[6,'#fb923c',T.wizRpe6],[8,'#ef4444',T.wizRpe8]].map(function(item){var v=item[0],c=item[1],l=item[2];var sel=String(d.rpeRiposo)===String(v);return(
                   <div key={v} onClick={function(){set('rpeRiposo',String(v));}} style={{background:sel?c+'20':C.card,border:'2px solid '+(sel?c:C.border2),borderRadius:12,padding:'10px 4px',textAlign:'center',cursor:'pointer',transition:'all .15s',transform:sel?'scale(1.05)':'scale(1)'}}>
                     <div style={{fontSize:22,fontWeight:900,color:c,lineHeight:1}}>{v}</div>
                     <div style={{fontSize:9,color:sel?c:C.muted,fontWeight:sel?700:400,marginTop:4}}>{l}</div>
                   </div>
                 );})}
               </div>
-              <WizIn lbl="RPE a riposo (0-10)" name="rpeRiposo" type="number" val={d.rpeRiposo} ph="0-10" onChange={upd('rpeRiposo')}/>
+              <WizIn lbl={T.wizRpeFinal} name="rpeRiposo" type="number" val={d.rpeRiposo} ph={T.wizRpePh} onChange={upd('rpeRiposo')}/>
             </div>
             {/* GAD-7 */}
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #06b6d4'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:16}}>🧠</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>GAD-7 — Ansia</span>
-                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>punteggio 0-21</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizGad7}</span>
+                <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizGad7Sub}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>7 domande: 0=mai, 1=alcuni giorni, 2=piu della meta, 3=quasi sempre. Somma i punteggi.</div>
-              <WizIn lbl="Punteggio totale GAD-7 (0-21)" name="gad7" type="number" val={d.gad7} ph="es. 5" onChange={upd('gad7')}/>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizGad7Desc}</div>
+              <WizIn lbl={T.wizGad7Lbl} name="gad7" type="number" val={d.gad7} ph="5" onChange={upd('gad7')}/>
               {d.gad7!==''&&d.gad7!==undefined&&(()=>{const i=interpGAD7(d.gad7);return i&&<InterpBox interp={i} icon="🧠"/>})()}
             </div>
             {/* Note */}
             <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                 <span style={{fontSize:16}}>📝</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Note generali</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizNoteGen}</span>
               </div>
-              <textarea value={d.noteVal||''} onChange={upd('noteVal')} placeholder="Osservazioni cliniche, comportamento durante i test, motivazione, note utili per il programma..." style={{...S.ta,minHeight:100,borderRadius:10}}/>
+              <textarea value={d.noteVal||''} onChange={upd('noteVal')} placeholder={T.wizNoteGenPh} style={{...S.ta,minHeight:100,borderRadius:10}}/>
             </div>
           </div>}
 
@@ -6464,11 +6464,11 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
           {step===8&&<div>
             {!pr?<div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
-              <div style={{fontSize:14}}>Inserisci almeno il 6MWT (passo 3) o STS (passo 4) per ottenere la classificazione automatica.</div>
+              <div style={{fontSize:14}}>{T.wizNoClassif}</div>
             </div>:<>
               <div style={{background:pr.bg,border:'2px solid '+pr.c+'50',borderRadius:16,padding:28,textAlign:'center',marginBottom:18}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,marginBottom:12}}>
-                  <div style={{fontSize:28,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</div>
+                  <div style={{fontSize:28,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</div>
                   <div style={{textAlign:'left'}}>
                     <div style={{fontSize:36,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.score}<span style={{fontSize:16,fontWeight:600}}>/100</span></div>
                     <div style={{fontSize:15,fontWeight:700,color:C.strong,marginTop:4}}>{pr.l}</div>
@@ -6478,28 +6478,28 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 <div style={{fontSize:13,color:C.muted,marginTop:10,maxWidth:400,margin:'10px auto 0'}}>{prog?.desc}</div>
               </div>
               <div style={{...S.card,marginBottom:16}}>
-                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>Breakdown componenti score</div>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>{T.wizScoreBreakdown}</div>
                 <ScoreBreakdown pr={pr}/>
               </div>
               {/* Tabella risultati test */}
               <div style={{background:C.card,border:'1px solid '+C.border,borderRadius:12,padding:16,marginBottom:16}}>
-                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>Risultati per test</div>
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:12}}>{T.wizTestResults}</div>
                 <table style={{width:'100%',borderCollapse:'collapse',fontSize:12}}>
                   <thead><tr style={{borderBottom:'2px solid '+C.border}}>
-                    <th style={{textAlign:'left',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>Test</th>
-                    <th style={{textAlign:'center',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>Risultato</th>
-                    <th style={{textAlign:'center',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>Livello</th>
+                    <th style={{textAlign:'left',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>{T.wizTblTest}</th>
+                    <th style={{textAlign:'center',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>{T.wizTblResult}</th>
+                    <th style={{textAlign:'center',padding:'6px 8px',fontSize:11,color:C.muted,textTransform:'uppercase'}}>{T.wizTblLevel}</th>
                   </tr></thead>
                   <tbody>
                     {(function(){
                       var rows=[];
-                      if(d.pushupRip){var v=+d.pushupRip;var cl=v<5?C.red:v<15?C.yellow:C.green;var lv=v<5?'Base':v<15?'Intermedio':'Avanzato';var ic=v<5?'🔴':v<15?'🟡':'🟢';rows=rows.concat([{t:'Push-up',r:v+' rip.',cl:cl,lv:lv,ic:ic}]);}
-                      if(d.plankSec){var v2=+d.plankSec;var cl2=v2<20?C.red:v2<60?C.yellow:C.green;var lv2=v2<20?'Base':v2<60?'Intermedio':'Avanzato';var ic2=v2<20?'🔴':v2<60?'🟡':'🟢';rows=rows.concat([{t:'Plank',r:v2+'s',cl:cl2,lv:lv2,ic:ic2}]);}
-                      if(d.stsRip){var v3=+d.stsRip;var cl3=v3<8?C.red:v3<14?C.yellow:C.green;var lv3=v3<8?'Base':v3<14?'Intermedio':'Avanzato';var ic3=v3<8?'🔴':v3<14?'🟡':'🟢';rows=rows.concat([{t:'Sit-to-Stand',r:v3+' rip.',cl:cl3,lv:lv3,ic:ic3}]);}
-                      if(d.mwtDist){var v4=+d.mwtDist;var cl4=v4<300?C.red:v4<500?C.yellow:C.green;var lv4=v4<300?'Base':v4<500?'Intermedio':'Avanzato';var ic4=v4<300?'🔴':v4<500?'🟡':'🟢';rows=rows.concat([{t:'6MWT',r:v4+' m',cl:cl4,lv:lv4,ic:ic4}]);}
-                      if(d.sitReach){var v5=+d.sitReach;var cl5=v5<0?C.red:v5<10?C.yellow:C.green;var lv5=v5<0?'Base':v5<10?'Intermedio':'Avanzato';var ic5=v5<0?'🔴':v5<10?'🟡':'🟢';rows=rows.concat([{t:'Sit & Reach',r:v5+' cm',cl:cl5,lv:lv5,ic:ic5}]);}
-                      if(d.sqDepth){var sq=d.sqDepth;var hasPain=d.sqDolore==='forte'||d.sqDolore==='moderato';var cl6=sq==='minima'||hasPain?C.red:sq==='parziale'?C.yellow:C.green;var lv6=sq==='minima'||hasPain?'Base':sq==='parziale'?'Intermedio':'Avanzato';var ic6=sq==='minima'||hasPain?'🔴':sq==='parziale'?'🟡':'🟢';rows=rows.concat([{t:'Squat',r:sq.charAt(0).toUpperCase()+sq.slice(1),cl:cl6,lv:lv6,ic:ic6}]);}
-                      if(d.affondo){var af=d.affondo;var cl7=af==='impossibile'||af==='scarso'?C.red:af==='buono'?C.yellow:C.green;var lv7=af==='impossibile'||af==='scarso'?'Base':af==='buono'?'Intermedio':'Avanzato';var ic7=af==='impossibile'||af==='scarso'?'🔴':af==='buono'?'🟡':'🟢';rows=rows.concat([{t:'Affondo',r:af.charAt(0).toUpperCase()+af.slice(1),cl:cl7,lv:lv7,ic:ic7}]);}
+                      if(d.pushupRip){var v=+d.pushupRip;var cl=v<5?C.red:v<15?C.yellow:C.green;var lv=v<5?T.wizLvlBase:v<15?T.wizLvlInter:T.wizLvlAdv;var ic=v<5?'🔴':v<15?'🟡':'🟢';rows=rows.concat([{t:'Push-up',r:v+' rip.',cl:cl,lv:lv,ic:ic}]);}
+                      if(d.plankSec){var v2=+d.plankSec;var cl2=v2<20?C.red:v2<60?C.yellow:C.green;var lv2=v2<20?T.wizLvlBase:v2<60?T.wizLvlInter:T.wizLvlAdv;var ic2=v2<20?'🔴':v2<60?'🟡':'🟢';rows=rows.concat([{t:'Plank',r:v2+'s',cl:cl2,lv:lv2,ic:ic2}]);}
+                      if(d.stsRip){var v3=+d.stsRip;var cl3=v3<8?C.red:v3<14?C.yellow:C.green;var lv3=v3<8?T.wizLvlBase:v3<14?T.wizLvlInter:T.wizLvlAdv;var ic3=v3<8?'🔴':v3<14?'🟡':'🟢';rows=rows.concat([{t:'Sit-to-Stand',r:v3+' rip.',cl:cl3,lv:lv3,ic:ic3}]);}
+                      if(d.mwtDist){var v4=+d.mwtDist;var cl4=v4<300?C.red:v4<500?C.yellow:C.green;var lv4=v4<300?T.wizLvlBase:v4<500?T.wizLvlInter:T.wizLvlAdv;var ic4=v4<300?'🔴':v4<500?'🟡':'🟢';rows=rows.concat([{t:'6MWT',r:v4+' m',cl:cl4,lv:lv4,ic:ic4}]);}
+                      if(d.sitReach){var v5=+d.sitReach;var cl5=v5<0?C.red:v5<10?C.yellow:C.green;var lv5=v5<0?T.wizLvlBase:v5<10?T.wizLvlInter:T.wizLvlAdv;var ic5=v5<0?'🔴':v5<10?'🟡':'🟢';rows=rows.concat([{t:'Sit & Reach',r:v5+' cm',cl:cl5,lv:lv5,ic:ic5}]);}
+                      if(d.sqDepth){var sq=d.sqDepth;var hasPain=d.sqDolore==='forte'||d.sqDolore==='moderato';var cl6=sq==='minima'||hasPain?C.red:sq==='parziale'?C.yellow:C.green;var lv6=sq==='minima'||hasPain?T.wizLvlBase:sq==='parziale'?T.wizLvlInter:T.wizLvlAdv;var ic6=sq==='minima'||hasPain?'🔴':sq==='parziale'?'🟡':'🟢';rows=rows.concat([{t:'Squat',r:sq.charAt(0).toUpperCase()+sq.slice(1),cl:cl6,lv:lv6,ic:ic6}]);}
+                      if(d.affondo){var af=d.affondo;var cl7=af==='impossibile'||af==='scarso'?C.red:af==='buono'?C.yellow:C.green;var lv7=af==='impossibile'||af==='scarso'?T.wizLvlBase:af==='buono'?T.wizLvlInter:T.wizLvlAdv;var ic7=af==='impossibile'||af==='scarso'?'🔴':af==='buono'?'🟡':'🟢';rows=rows.concat([{t:'Affondo',r:af.charAt(0).toUpperCase()+af.slice(1),cl:cl7,lv:lv7,ic:ic7}]);}
                       return rows.map(function(row,i){return(
                         <tr key={row.t} style={{background:i%2===0?'transparent':C.bg,borderBottom:'1px solid '+C.border}}>
                           <td style={{padding:'8px',fontWeight:600,color:C.text}}>{row.t}</td>
@@ -6509,7 +6509,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                       );});
                     })()}
                     {pr&&pr.score&&<tr style={{borderTop:'2px solid '+C.border}}>
-                      <td style={{padding:'8px',fontWeight:900,color:C.strong}}>Score finale</td>
+                      <td style={{padding:'8px',fontWeight:900,color:C.strong}}>{T.wizScoreFinal}</td>
                       <td style={{padding:'8px',textAlign:'center',fontWeight:900,fontSize:16,color:pr.c}}>{pr.score}/100</td>
                       <td style={{padding:'8px',textAlign:'center'}}><span style={{background:pr.c+'20',color:pr.c,borderRadius:6,padding:'2px 8px',fontSize:11,fontWeight:700}}>{pr.l}</span></td>
                     </tr>}
@@ -6517,18 +6517,18 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 </table>
               </div>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:8,marginBottom:16}}>
-                {[['6MWT: '+(d.mwtDist||'—')+' m',+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],['STS: '+(d.stsRip||'—')+' rip.',+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],['BMI: '+(bmiVal||'—')+' — '+bmiLbl,bmiClr],['Peso target: '+(pesoTarget||'—')+' kg',C.blue]].map(function(item){var l=item[0],c=item[1];return(
+                {[['6MWT: '+(d.mwtDist||'—')+' m',+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green],['STS: '+(d.stsRip||'—')+' rip.',+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green],['BMI: '+(bmiVal||'—')+' — '+bmiLbl,bmiClr],[T.pdfTargetWeight+': '+(pesoTarget||'—')+' kg',C.blue]].map(function(item){var l=item[0],c=item[1];return(
                   <div key={l} style={{background:C.bg,border:'1px solid '+c+'30',borderRadius:10,padding:'10px 14px'}}>
                     <div style={{fontSize:13,fontWeight:700,color:c}}>{l}</div>
                   </div>
                 );})}
               </div>
               <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:12,padding:14}}>
-                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>Criteri di classificazione</div>
-                {[['A',C.red,'Score < 40','Avvio molto graduale — priorita sicurezza'],['B',C.yellow,'Score 40-69','Progressione moderata e controllata'],['C',C.green,'Score >= 70','Progressione intensa — focus composizione']].map(function(item){var p2=item[0],c2=item[1],v=item[2],desc=item[3];return(
+                <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:C.muted,marginBottom:8}}>{T.wizClassCriteria}</div>
+                {[['A',C.red,T.wizCritA,T.wizCritADesc],['B',C.yellow,T.wizCritB,T.wizCritBDesc],['C',C.green,T.wizCritC,T.wizCritCDesc]].map(function(item){var p2=item[0],c2=item[1],v=item[2],desc=item[3];return(
                   <div key={p2} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+C.border}}>
                     <div style={{width:28,height:28,borderRadius:8,background:c2+'20',border:'1px solid '+c2+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c2,flexShrink:0}}>{p2==='A'?'1':p2==='B'?'2':'3'}</div>
-                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{p2==='A'?'Forma Bassa':p2==='B'?'Forma Media':'Buona Forma'} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
+                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{p2==='A'?T.profileLowShort:p2==='B'?T.profileMedShort:T.profileGoodShort} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
                   </div>
                 );})}
               </div>
@@ -6539,10 +6539,10 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
           {(step===9||(step===8&&wizardType==='base'))&&<div>
             {!prog?<div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
-              <div style={{fontSize:14}}>Completa i test funzionali per ricevere il programma automatico.</div>
+              <div style={{fontSize:14}}>{T.wizNoProg}</div>
             </div>:<>
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:8,marginBottom:16}}>
-                {[[prog.sedute,'Sedute/sett.',C.blue],[prog.minCardio+"'",'Min cardio/sett.',C.green],[prog.minForza+"'",'Min forza/sett.',C.orange]].map(([v,l,c])=>(
+                {[[prog.sedute,T.fProgSessions,C.blue],[prog.minCardio+"'",T.fProgCardioMin,C.green],[prog.minForza+"'",T.fProgForzaMin,C.orange]].map(([v,l,c])=>(
                   <div key={l} style={{background:C.bg,border:'1px solid '+c+'30',borderRadius:12,padding:'12px 8px',textAlign:'center'}}>
                     <div style={{fontSize:24,fontWeight:900,color:c}}>{v}</div>
                     <div style={{fontSize:10,color:C.muted,textTransform:'uppercase',marginTop:4}}>{l}</div>
@@ -6551,18 +6551,18 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
               </div>
               {prog.settimane.map(w=>(
                 <div key={w.num} style={{...S.card,marginBottom:10,borderLeft:'3px solid '+C.blue}}>
-                  <div style={{fontSize:10,fontWeight:700,color:C.blue,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Settimana {w.num}</div>
+                  <div style={{fontSize:10,fontWeight:700,color:C.blue,textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>{T.wizSettN.replace('{n}',w.num)}</div>
                   <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:10}}>
-                    <div><div style={{fontSize:9,color:C.green,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Cardio</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.cardio}</div></div>
-                    <div><div style={{fontSize:9,color:C.purple,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>Forza</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.forza}</div></div>
+                    <div><div style={{fontSize:9,color:C.green,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>{T.pdfCardio}</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.cardio}</div></div>
+                    <div><div style={{fontSize:9,color:C.purple,fontWeight:700,textTransform:'uppercase',marginBottom:4}}>{T.pdfForza}</div><div style={{fontSize:12,color:C.text,lineHeight:1.6}}>{w.forza}</div></div>
                   </div>
                   <div style={{marginTop:8,background:C.yellow+'10',border:'1px solid '+C.yellow+'30',borderRadius:7,padding:'6px 10px',fontSize:12,color:C.yellow}}>💡 {w.note}</div>
                 </div>
               ))}
               <div style={{...S.card,marginBottom:14}}>
-                <div style={S.st}>🥗 Linee guida nutrizionali</div>
+                <div style={S.st}>{T.wizNutGuide}</div>
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:8}}>
-                  {[[nutri.kcal||'—','kcal/gg',C.orange],[(nutri.proteine||'—')+'g','Proteine',C.blue],[(nutri.carboidrati||'—')+'g','Carboidrati',C.yellow],[(nutri.grassi||'—')+'g','Grassi',C.green]].map(([v,l,c])=>(
+                  {[[nutri.kcal||'—',T.pdfNutKcal,C.orange],[(nutri.proteine||'—')+'g',T.pdfNutProt,C.blue],[(nutri.carboidrati||'—')+'g',T.pdfNutCarb,C.yellow],[(nutri.grassi||'—')+'g',T.nutFat.replace(' (g)',''),C.green]].map(([v,l,c])=>(
                     <div key={l} style={{background:C.bg,borderRadius:9,padding:'10px 6px',textAlign:'center',border:'1px solid '+c+'30'}}>
                       <div style={{fontSize:16,fontWeight:800,color:c}}>{v}</div>
                       <div style={{fontSize:9,color:C.muted,marginTop:2}}>{l}</div>
@@ -6571,7 +6571,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 </div>
               </div>
               {prog.precauzioni&&prog.precauzioni.length>0&&<div style={{...S.card,marginBottom:14,background:'#fef3c720',border:'1px solid #f59e0b40'}}>
-                <div style={{fontSize:12,fontWeight:800,color:'#f59e0b',marginBottom:8}}>⚠️ Precauzioni cliniche</div>
+                <div style={{fontSize:12,fontWeight:800,color:'#f59e0b',marginBottom:8}}>{T.wizPrecCliniche}</div>
                 {prog.precauzioni.map((p2,i)=>(
                   <div key={i} style={{fontSize:12,color:C.text,lineHeight:1.6,padding:'4px 0',borderBottom:i<prog.precauzioni.length-1?'1px solid '+C.border:'none'}}>{p2}</div>
                 ))}
@@ -6586,16 +6586,16 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
 
         {/* Footer */}
         <div style={{padding:isMobile?'12px 16px':'14px 22px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0,gap:8,flexWrap:'wrap',position:isMobile?'sticky':'static',bottom:0,background:C.card,zIndex:10}}>
-          <div className="tt"><button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm('Chiudere la valutazione? I dati non salvati andranno persi.'))return;}onClose();}} style={S.btn('ghost',true)}>{gT().cancel}</button><span className="tp">Chiudi senza salvare</span></div>
+          <div className="tt"><button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm(T.wizCloseConfirm))return;}onClose();}} style={S.btn('ghost',true)}>{T.cancel}</button><span className="tp">{T.wizCloseTooltip}</span></div>
           <div style={{display:'flex',gap:8}}>
 
-            {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{gT().wPrev}</button><span className="tp">Torna al passo precedente</span></div>}
+            {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{T.wPrev}</button><span className="tp">{T.wizPrevTooltip}</span></div>}
             {stepIdx<TOTAL-1&&<div className="tt"><button onClick={function(){
-              if(step===1&&(!d.nome.trim()||!d.cognome.trim())){showToast('Inserisci nome e cognome per continuare.','error');return;}
+              if(step===1&&(!d.nome.trim()||!d.cognome.trim())){showToast(T.wizErrNomeCogn,'error');return;}
               setStep(stepsArr[stepIdx+1]);
-            }} style={S.btn()}>{gT().wNext}</button><span className="tp">Vai al passo successivo</span></div>}
+            }} style={S.btn()}>{T.wNext}</button><span className="tp">{T.wizNextTooltip}</span></div>}
             {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
-              if(!d.nome.trim()||!d.cognome.trim()){showToast('Dati incompleti — torna al passo 1.','error');return;}
+              if(!d.nome.trim()||!d.cognome.trim()){showToast(T.wizErrIncomplete,'error');return;}
               var p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
                 test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal,
@@ -6608,7 +6608,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:{};})(),
               };
               onSave(p);
-            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{'\u2713'} Salva &amp; apri scheda</button><span className="tp">Salva la valutazione</span></div>}
+            }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{T.wizSaveAndOpen}</button><span className="tp">{T.wizSaveTooltip}</span></div>}
           </div>
         </div>
         </>)}
