@@ -2536,59 +2536,59 @@ const calcNutrizione=(p)=>{
   note.push('⚠️ Suggerimenti nutrizionali generici — per un piano personalizzato rivolgersi a un nutrizionista');
   return{kcal,proteine,carboidrati,grassi,note:note.join('\n'),formula:p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor',protRef:protInfo.ref,grassiRef:grassiInfo.ref};
 };
-const interpPushup=(rip,sesso)=>{if(!rip)return null;const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}else{if(r<7)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con push-up sulle ginocchia'};if(r<15)return{l:gT().average,c:'#f59e0b',cons:'Progressione standard'};return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti avanzate'};}};
-const interpPlank=(sec)=>{if(!sec)return null;const s=+sec;if(s<30)return{l:gT().veryLow,c:'#ef4444',cons:'Inizia con plank sulle ginocchia 3×15s'};if(s<60)return{l:gT().base,c:'#f59e0b',cons:'Progressione a 45s poi 60s'};if(s<120)return{l:gT().good,c:'#10b981',cons:'Aggiungi varianti laterale e dinamico'};return{l:gT().excellent,c:'#3b82f6',cons:'Core molto stabile — esercizi avanzati'};};
-const interpSquat=(rip)=>{if(!rip)return null;const r=+rip;if(r<10)return{l:gT().veryLow,c:'#ef4444',cons:'Squat assistito e mobilità anca'};if(r<20)return{l:gT().average,c:'#f59e0b',cons:'Tecnica prima del carico'};if(r<30)return{l:gT().good,c:'#10b981',cons:'Aggiungi carico progressivo'};return{l:gT().excellent,c:'#3b82f6',cons:'Varianti avanzate — pistol squat'};};
-const interpTUG=(sec)=>{if(!sec)return null;const s=+sec;if(s<10)return{l:gT().fallLow,c:'#10b981',cons:'Nessuna attenzione specifica'};if(s<12)return{l:gT().fallMild,c:'#f59e0b',cons:'Esercizi equilibrio preventivi'};if(s<20)return{l:gT().fallMod,c:'#fb923c',cons:'Priorità: equilibrio e rinforzo arti inferiori'};return{l:gT().fallHigh,c:'#ef4444',cons:'Supervisione raccomandata'};};
-const interpSLB=(sec)=>{if(!sec)return null;const s=+sec;if(s>=30)return{l:gT().excellent,c:'#3b82f6',cons:'Aggiungi varianti a occhi chiusi'};if(s>=15)return{l:gT().good,c:'#10b981',cons:'Progressione con superfici instabili'};if(s>=5)return{l:gT().balImprove,c:'#f59e0b',cons:'Esercizi propriocettivi 3× settimana'};return{l:gT().balDef,c:'#ef4444',cons:'Priorità assoluta: equilibrio e propriocezione'};};
-const interpRecupFC=(delta)=>{if(!delta)return null;const d=+delta;if(d>=20)return{l:gT().fastRecov,c:'#10b981',cons:'Ottima fitness cardiovascolare'};if(d>=12)return{l:gT().goodRecov,c:'#3b82f6',cons:'Cardio progressivo'};if(d>=6)return{l:gT().average,c:'#f59e0b',cons:'Aumentare volume aerobico'};return{l:gT().slow,c:'#ef4444',cons:'Cardio bassa intensità — monitorare'};};
-const interpGAD7=(s)=>{if(s===''||s===null||s===undefined)return null;const v=+s;if(v<=4)return{l:gT().minAnx,c:'#10b981',cons:'Nessun intervento specifico'};if(v<=9)return{l:gT().mildAnx,c:'#f59e0b',cons:'Tecniche respirazione e rilassamento'};if(v<=14)return{l:gT().moderateAnx,c:'#fb923c',cons:'Valutare supporto professionale'};return{l:gT().severeAnx,c:'#ef4444',cons:'Consigliare supporto psicologico'};};
-const interpSonno=(ore)=>{if(!ore)return null;const o=+ore;if(o<6)return{l:gT().sleepInsuff,c:'#ef4444',cons:'Priorità al recupero — limitare intensità allenamento'};if(o<7)return{l:gT().sleepBorder,c:'#f59e0b',cons:'Lavorare su igiene del sonno'};if(o<=9)return{l:gT().sleepOk,c:'#10b981',cons:'Recupero adeguato'};return{l:gT().sleepExcess,c:'#f59e0b',cons:'Valutare qualità del sonno'};};
+const interpPushup=(rip,sesso)=>{if(!rip)return null;const T=gT();const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:T.veryLow,c:'#ef4444',cons:T.consPushupBeg};if(r<20)return{l:T.average,c:'#f59e0b',cons:T.consPushupStd};return{l:T.good,c:'#10b981',cons:T.consPushupAdv};}else{if(r<7)return{l:T.veryLow,c:'#ef4444',cons:T.consPushupBeg};if(r<15)return{l:T.average,c:'#f59e0b',cons:T.consPushupStd};return{l:T.good,c:'#10b981',cons:T.consPushupAdv};}};
+const interpPlank=(sec)=>{if(!sec)return null;const T=gT();const s=+sec;if(s<30)return{l:T.veryLow,c:'#ef4444',cons:T.consPlankBeg};if(s<60)return{l:T.base,c:'#f59e0b',cons:T.consPlankBase};if(s<120)return{l:T.good,c:'#10b981',cons:T.consPlankGood};return{l:T.excellent,c:'#3b82f6',cons:T.consPlankExc};};
+const interpSquat=(rip)=>{if(!rip)return null;const T=gT();const r=+rip;if(r<10)return{l:T.veryLow,c:'#ef4444',cons:T.consSquatLow};if(r<20)return{l:T.average,c:'#f59e0b',cons:T.consSquatAvg};if(r<30)return{l:T.good,c:'#10b981',cons:T.consSquatGood};return{l:T.excellent,c:'#3b82f6',cons:T.consSquatExc};};
+const interpTUG=(sec)=>{if(!sec)return null;const T=gT();const s=+sec;if(s<10)return{l:T.fallLow,c:'#10b981',cons:T.consTugLow};if(s<12)return{l:T.fallMild,c:'#f59e0b',cons:T.consTugMild};if(s<20)return{l:T.fallMod,c:'#fb923c',cons:T.consTugMod};return{l:T.fallHigh,c:'#ef4444',cons:T.consTugHigh};};
+const interpSLB=(sec)=>{if(!sec)return null;const T=gT();const s=+sec;if(s>=30)return{l:T.excellent,c:'#3b82f6',cons:T.consSlbExc};if(s>=15)return{l:T.good,c:'#10b981',cons:T.consSlbGood};if(s>=5)return{l:T.balImprove,c:'#f59e0b',cons:T.consSlbImprove};return{l:T.balDef,c:'#ef4444',cons:T.consSlbDef};};
+const interpRecupFC=(delta)=>{if(!delta)return null;const T=gT();const d=+delta;if(d>=20)return{l:T.fastRecov,c:'#10b981',cons:T.consHrFast};if(d>=12)return{l:T.goodRecov,c:'#3b82f6',cons:T.consHrGood};if(d>=6)return{l:T.average,c:'#f59e0b',cons:T.consHrAvg};return{l:T.slow,c:'#ef4444',cons:T.consHrSlow};};
+const interpGAD7=(s)=>{if(s===''||s===null||s===undefined)return null;const T=gT();const v=+s;if(v<=4)return{l:T.minAnx,c:'#10b981',cons:T.consGadMin};if(v<=9)return{l:T.mildAnx,c:'#f59e0b',cons:T.consGadMild};if(v<=14)return{l:T.moderateAnx,c:'#fb923c',cons:T.consGadMod};return{l:T.severeAnx,c:'#ef4444',cons:T.consGadSev};};
+const interpSonno=(ore)=>{if(!ore)return null;const T=gT();const o=+ore;if(o<6)return{l:T.sleepInsuff,c:'#ef4444',cons:T.consSleepInsuff};if(o<7)return{l:T.sleepBorder,c:'#f59e0b',cons:T.consSleepBorder};if(o<=9)return{l:T.sleepOk,c:'#10b981',cons:T.consSleepOk};return{l:T.sleepExcess,c:'#f59e0b',cons:T.consSleepExc};};
 
 // ── 1. SpO2 — soglie WHO/AHA ────────────────────────────────────────────────
 const interpSpO2=(val)=>{
-  if(!val)return null;const v=+val;
-  if(v>=96)return{l:'Normale',c:'#10b981',cons:'Saturazione ottimale — nessuna limitazione all\'esercizio.'};
-  if(v>=94)return{l:'Lieve riduzione',c:'#f59e0b',cons:'Monitorare durante esercizio aerobico. Evitare alta quota non acclimatata. Se persistente, consultare medico.'};
-  if(v>=90)return{l:'Ipossiemia moderata',c:'#fb923c',cons:'⚠️ Limitare intensità a RPE ≤4. Evitare esercizio anaerobico. Consultare medico prima di proseguire attività fisica.'};
-  return{l:'Ipossiemia severa',c:'#ef4444',cons:'🚨 STOP esercizio — invio immediato a valutazione medica. SpO2 <90% richiede ossigenoterapia (WHO).'};
+  if(!val)return null;const T=gT();const v=+val;
+  if(v>=96)return{l:T.spo2Normal,c:'#10b981',cons:T.consSpo2Normal};
+  if(v>=94)return{l:T.spo2Mild,c:'#f59e0b',cons:T.consSpo2Mild};
+  if(v>=90)return{l:T.spo2Mod,c:'#fb923c',cons:T.consSpo2Mod};
+  return{l:T.spo2Sev,c:'#ef4444',cons:T.consSpo2Sev};
 };
 
 // ── 2. Handgrip — normativi Dodds 2014 (kg) ─────────────────────────────────
 const interpHandgrip=(kg,sesso,eta)=>{
-  if(!kg)return null;const v=+kg,m=sesso==='M',a=+eta||50;
+  if(!kg)return null;const T=gT();const v=+kg,m=sesso==='M',a=+eta||50;
   // Soglie basate su Dodds RM et al. (2014) "Grip strength across the life course" + cut-off sarcopenia EWGSOP2 2019
   if(m){
     const sarco=a<65?30:27; // EWGSOP2: <27 kg uomini anziani, <30 giovani adulti
     const ref=a<30?50:a<40?51:a<50?50:a<60?46:a<70?42:a<80?36:30; // mediane Dodds
-    if(v<sarco)return{l:'Sotto soglia sarcopenia',c:'#ef4444',cons:`Forza prensile ${v} kg < ${sarco} kg (soglia sarcopenia EWGSOP2). Priorità: rinforzo arti superiori, esercizi con grip (farmer walk, dead hang). Valutare integrazione proteica 1.2-1.6 g/kg/die.`};
-    if(v<ref*0.8)return{l:'Sotto la media',c:'#f59e0b',cons:`Forza prensile inferiore alla media per età/sesso (rif. ${ref} kg, Dodds 2014). Inserire esercizi di presa: farmer carry, plate pinch, wrist curl. Progressione con sovraccarico.`};
-    if(v<ref*1.1)return{l:'Nella media',c:'#10b981',cons:`Forza prensile nella norma per età e sesso (rif. ${ref} kg). Mantenere con allenamento regolare di forza.`};
-    return{l:'Sopra la media',c:'#3b82f6',cons:`Eccellente forza prensile (> media ${ref} kg). Indicatore positivo di forza generale e longevità (Leong 2015).`};
+    if(v<sarco)return{l:T.hgSarco,c:'#ef4444',cons:T.consHgSarcoMale.replace('{v}',v).replace('{sarco}',sarco)};
+    if(v<ref*0.8)return{l:T.hgUnder,c:'#f59e0b',cons:T.consHgUnderMale.replace('{ref}',ref)};
+    if(v<ref*1.1)return{l:T.average,c:'#10b981',cons:T.consHgAvgMale.replace('{ref}',ref)};
+    return{l:T.hgAbove,c:'#3b82f6',cons:T.consHgAboveMale.replace('{ref}',ref)};
   }else{
     const sarco=a<65?20:16; // EWGSOP2: <16 kg donne anziane
     const ref=a<30?31:a<40?32:a<50?31:a<60?28:a<70?25:a<80?22:18;
-    if(v<sarco)return{l:'Sotto soglia sarcopenia',c:'#ef4444',cons:`Forza prensile ${v} kg < ${sarco} kg (soglia sarcopenia EWGSOP2). Priorità: rinforzo globale, esercizi con grip. Valutare apporto proteico ≥1.2 g/kg/die.`};
-    if(v<ref*0.8)return{l:'Sotto la media',c:'#f59e0b',cons:`Forza prensile inferiore alla media per età/sesso (rif. ${ref} kg, Dodds 2014). Inserire esercizi di presa e forza arti superiori.`};
-    if(v<ref*1.1)return{l:'Nella media',c:'#10b981',cons:`Forza prensile nella norma per età e sesso (rif. ${ref} kg). Mantenere con allenamento regolare.`};
-    return{l:'Sopra la media',c:'#3b82f6',cons:`Eccellente forza prensile (> media ${ref} kg). Ottimo indicatore di salute generale.`};
+    if(v<sarco)return{l:T.hgSarco,c:'#ef4444',cons:T.consHgSarcoFemale.replace('{v}',v).replace('{sarco}',sarco)};
+    if(v<ref*0.8)return{l:T.hgUnder,c:'#f59e0b',cons:T.consHgUnderFemale.replace('{ref}',ref)};
+    if(v<ref*1.1)return{l:T.average,c:'#10b981',cons:T.consHgAvgFemale.replace('{ref}',ref)};
+    return{l:T.hgAbove,c:'#3b82f6',cons:T.consHgAboveFemale.replace('{ref}',ref)};
   }
 };
 
 // ── 3. Sit-and-Reach — flessibilità ACSM (cm) ──────────────────────────────
 const interpSitReach=(cm,sesso)=>{
-  if(cm===''||cm===null||cm===undefined)return null;const v=+cm,m=sesso==='M';
+  if(cm===''||cm===null||cm===undefined)return null;const T=gT();const v=+cm,m=sesso==='M';
   // ACSM Guidelines for Exercise Testing and Prescription (11th ed.)
   if(m){
-    if(v<-8)return{l:'Molto scarsa',c:'#ef4444',cons:'Flessibilità catena posteriore molto ridotta. Rischio aumentato lombalgia. Stretching quotidiano: hamstring stretch 3×30s, cat-cow 2×10, forward fold progressivo. Evitare deadlift da terra fino a miglioramento.'};
-    if(v<0)return{l:'Sotto la media',c:'#f59e0b',cons:'Flessibilità ridotta. Stretching dinamico pre-allenamento + statico post (hamstring, piriforme, polpacci). Aggiungere yoga/mobilità 2×/settimana.'};
-    if(v<17)return{l:'Nella media',c:'#10b981',cons:'Flessibilità nella norma ACSM. Mantenere con stretching regolare post-sessione.'};
-    return{l:'Eccellente',c:'#3b82f6',cons:'Ottima flessibilità catena posteriore. Attenzione a ipermobilità — rinforzare core e stabilizzatori.'};
+    if(v<-8)return{l:T.srVeryLow,c:'#ef4444',cons:T.consSrVeryLowMale};
+    if(v<0)return{l:T.hgUnder,c:'#f59e0b',cons:T.consSrUnderMale};
+    if(v<17)return{l:T.average,c:'#10b981',cons:T.consSrAvgMale};
+    return{l:T.excellent,c:'#3b82f6',cons:T.consSrExcMale};
   }else{
-    if(v<-4)return{l:'Molto scarsa',c:'#ef4444',cons:'Flessibilità catena posteriore molto ridotta. Stretching quotidiano: hamstring stretch 3×30s, cat-cow 2×10. Evitare carichi elevati su catena posteriore.'};
-    if(v<4)return{l:'Sotto la media',c:'#f59e0b',cons:'Flessibilità ridotta. Stretching dinamico + statico (hamstring, piriforme, polpacci). Yoga/mobilità 2×/settimana.'};
-    if(v<21)return{l:'Nella media',c:'#10b981',cons:'Flessibilità nella norma ACSM. Mantenere con stretching regolare.'};
-    return{l:'Eccellente',c:'#3b82f6',cons:'Ottima flessibilità. Attenzione a ipermobilità — rinforzare core e stabilizzatori.'};
+    if(v<-4)return{l:T.srVeryLow,c:'#ef4444',cons:T.consSrVeryLowFemale};
+    if(v<4)return{l:T.hgUnder,c:'#f59e0b',cons:T.consSrUnderFemale};
+    if(v<21)return{l:T.average,c:'#10b981',cons:T.consSrAvgFemale};
+    return{l:T.excellent,c:'#3b82f6',cons:T.consSrExcFemale};
   }
 };
 
