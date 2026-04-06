@@ -2297,7 +2297,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   };
 
   const addPeso=()=>{
-    if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){showToast('Inserisci un peso valido','error');return;}
+    if(!newPeso.peso||isNaN(+newPeso.peso)||+newPeso.peso<=0){showToast(T.enterValidWeight,'error');return;}
     const entry={...newPeso,peso:+newPeso.peso};
     upd(x=>({progressi:(x.progressi||[]).concat([entry]).sort((a,b2)=>a.data.localeCompare(b2.data))}));
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
@@ -3049,7 +3049,7 @@ ${(p.progressi||[]).length>1?`
       {tab==='nutri'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:2}}>
-            <button style={{...S.btn(),fontSize:12}} onClick={()=>{var nutCalc=calcNutrizione(p);if(nutCalc){onUpdate({...p,nutrizione:{...p.nutrizione,kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note}});showToast('Macros ricalcolati in base ai dati del cliente','success');}else{showToast('Dati insufficienti per il calcolo (servono peso, altezza, età e sesso)','warning');}}}>{T.recalcMacros}</button>
+            <button style={{...S.btn(),fontSize:12}} onClick={()=>{var nutCalc=calcNutrizione(p);if(nutCalc){onUpdate({...p,nutrizione:{...p.nutrizione,kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note}});showToast(T.macrosRecalc,'success');}else{showToast(T.insufficientData,'warning');}}}>{T.recalcMacros}</button>
             <span style={{fontSize:11,color:C.muted}}>{T.calcWith+' '+(p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor')+' · '+(p.obiettivo||T.noObjective)}</span>
           </div>
           <div style={S.grid(4)}>
@@ -3094,7 +3094,7 @@ ${(p.progressi||[]).length>1?`
                           ?<span style={{fontSize:11,fontWeight:700,color:C.green,background:C.green+'20',padding:'3px 10px',borderRadius:10}}>✅</span>
                           :<button style={{...S.btn('success',true),fontSize:11,padding:'4px 10px'}} onClick={()=>{setCompletingId(b.id);setCompletingRpe('');setCompletingNote('');}}>{T.completeBtn}</button>
                         }
-                        <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+b.data+'?',()=>onDeleteBooking(b.id))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit'}}>✕</button>
+                        <button onClick={()=>showConfirmToast(T.confirmDeleteSession+' '+b.data+'?',()=>onDeleteBooking(b.id))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit'}}>✕</button>
                       </div>
                     </div>
                     {isCompleting&&(
@@ -3106,8 +3106,8 @@ ${(p.progressi||[]).length>1?`
                             const logEntry={id:Date.now(),data:b.data,tipo:b.tipo,durata:+b.durata,rpe:+completingRpe||0,note:completingNote};
                             onUpdate({...p,log:(p.log||[]).concat([logEntry])});
                             onCompleteBooking(b.id);
-                            showToast('Seduta registrata!','success');
-                            askSendEmail({pat:p,subject:'Riepilogo seduta',message:'Ottimo lavoro oggi!\n\nEcco il riepilogo della seduta:\n📅 '+fmtDateIT(b.data)+'\n💪 '+b.tipo+' — '+b.durata+' minuti\n📊 Intensità: '+(+completingRpe||0)+'/10\n\nContinua così! Alla prossima.\n\n[nomeMittente]',trainerProfile});
+                            showToast(T.sessionRecorded,'success');
+                            askSendEmail({pat:p,subject:T.emailSessionRecap,message:T.emailGoodJob+'\n\n'+T.emailSessionDetails+'\n📅 '+fmtDateIT(b.data)+'\n💪 '+b.tipo+' — '+b.durata+' '+T.calEmailMin+'\n📊 '+T.emailIntensity+' '+(+completingRpe||0)+'/10\n\n'+T.emailKeepGoing+'\n\n[nomeMittente]',trainerProfile});
                             setCompletingId(null);
                           }}>{T.save}</button>
                           <button style={S.btn('ghost')} onClick={()=>setCompletingId(null)}>{T.cancel}</button>
@@ -3141,7 +3141,7 @@ ${(p.progressi||[]).length>1?`
                   <span style={{color:C.muted,flexShrink:0}}>{s.durata}m</span>
                   <span style={{...S.tag(rpeC(s.rpe)),minWidth:28,textAlign:'center',flexShrink:0}}>{s.rpe||'—'}</span>
                   {!isMobile&&s.note&&<span style={{fontSize:11,color:C.muted,maxWidth:140,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.note}</span>}
-                  <button onClick={()=>showConfirmToast('Eliminare questa seduta del '+s.data+'?',()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)})))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>✕</button>
+                  <button onClick={()=>showConfirmToast(T.confirmDeleteSession+' '+s.data+'?',()=>upd(x=>({log:x.log.filter(l=>l.id!==s.id)})))} style={{background:'#ef444420',color:C.red,fontSize:11,padding:'3px 6px',borderRadius:6,border:'none',cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>✕</button>
                 </div>;
               })}
             </div>}
@@ -3150,37 +3150,37 @@ ${(p.progressi||[]).length>1?`
       )}
 
 
-      {showBookingModal&&<Modal title="Prenota seduta" onClose={()=>setShowBookingModal(false)}>
+      {showBookingModal&&<Modal title={T.bookSessionTitle} onClose={()=>setShowBookingModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          <FF label="Data" name="data" type="date" value={newSeduta.data} onChange={e=>setNewSeduta(f=>({...f,data:e.target.value}))}/>
-          <FF label="Ora" name="ora" type="time" value={newSeduta.ora} onChange={e=>setNewSeduta(f=>({...f,ora:e.target.value}))}/>
-          <FF label="Tipo seduta" name="tipo" value={newSeduta.tipo} onChange={e=>setNewSeduta(f=>({...f,tipo:e.target.value}))} options={['Camminata lenta','Camminata svelto','Forza base','Forza intermedia','Forza avanzata','Cardio moderato','Cardio intenso','HIIT','Mobilità/stretching']}/>
-          <FF label="Durata (min)" name="durata" type="number" value={newSeduta.durata} onChange={e=>setNewSeduta(f=>({...f,durata:e.target.value}))}/>
-          <FF label="Note" name="note" type="textarea" value={newSeduta.note} onChange={e=>setNewSeduta(f=>({...f,note:e.target.value}))}/>
+          <FF label={T.calDate} name="data" type="date" value={newSeduta.data} onChange={e=>setNewSeduta(f=>({...f,data:e.target.value}))}/>
+          <FF label={T.calTime} name="ora" type="time" value={newSeduta.ora} onChange={e=>setNewSeduta(f=>({...f,ora:e.target.value}))}/>
+          <FF label={T.calLblTypeFull} name="tipo" value={newSeduta.tipo} onChange={e=>setNewSeduta(f=>({...f,tipo:e.target.value}))} options={[{v:'Camminata lenta',l:T.sessionTypeSlowWalk},{v:'Camminata svelto',l:T.sessionTypeFastWalk},{v:'Forza base',l:T.sessionTypeStrengthBase},{v:'Forza intermedia',l:T.sessionTypeStrengthInter},{v:'Forza avanzata',l:T.sessionTypeStrengthAdv},{v:'Cardio moderato',l:T.sessionTypeCardioMod},{v:'Cardio intenso',l:T.sessionTypeCardioInt},{v:'HIIT',l:'HIIT'},{v:'Mobilità/stretching',l:T.sessionTypeMobility}]}/>
+          <FF label={T.calDur} name="durata" type="number" value={newSeduta.durata} onChange={e=>setNewSeduta(f=>({...f,durata:e.target.value}))}/>
+          <FF label={T.fProgNote} name="note" type="textarea" value={newSeduta.note} onChange={e=>setNewSeduta(f=>({...f,note:e.target.value}))}/>
         </div>
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-          <button style={S.btn('ghost')} onClick={()=>setShowBookingModal(false)}>{gT().cancel}</button>
+          <button style={S.btn('ghost')} onClick={()=>setShowBookingModal(false)}>{T.cancel}</button>
           <button style={S.btn()} onClick={async()=>{
-            if(!newSeduta.data||!newSeduta.ora)return showToast('Inserisci data e ora','warning');
+            if(!newSeduta.data||!newSeduta.ora)return showToast(T.enterDateTime,'warning');
             const b={id:Date.now().toString(),patientId:p.id,patientName:(p.nome||'')+' '+(p.cognome||''),data:newSeduta.data,ora:newSeduta.ora,tipo:newSeduta.tipo,durata:parseInt(newSeduta.durata)||60,note:newSeduta.note,completed:false};
             await onAddBooking(b);
             setShowBookingModal(false);
             setNewSeduta({data:'',ora:'',tipo:'Forza base',durata:'60',note:''});
-            showToast('Seduta prenotata','success');
-            askSendEmail({pat:p,subject:'Conferma prenotazione',message:'La tua seduta è confermata!\n\n📅 '+fmtDateIT(newSeduta.data)+'\n🕐 Ore '+newSeduta.ora+'\n💪 '+newSeduta.tipo+' — '+(parseInt(newSeduta.durata)||60)+' minuti\n\nTi aspetto! Se hai bisogno di spostare o annullare, contattami.\n\n[nomeMittente]',trainerProfile});
-          }}>{gT().save}</button>
+            showToast(T.sessionBooked,'success');
+            askSendEmail({pat:p,subject:T.calEmailConfirmSubj,message:T.calEmailConfirmIntro+'\n\n📅 '+fmtDateIT(newSeduta.data)+'\n🕐 '+T.calEmailHour+' '+newSeduta.ora+'\n💪 '+newSeduta.tipo+' — '+(parseInt(newSeduta.durata)||60)+' '+T.calEmailMin+'\n\n'+T.calEmailWaitingFor+'\n\n[nomeMittente]',trainerProfile});
+          }}>{T.save}</button>
         </div>
       </Modal>}
 
-      {showPesoModal&&<Modal title="Aggiungi misurazione peso" onClose={()=>setShowPesoModal(false)}>
+      {showPesoModal&&<Modal title={T.addWeightMeas} onClose={()=>setShowPesoModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          <FF label="Data" name="data" value={newPeso.data} onChange={e=>setNewPeso(f=>({...f,data:e.target.value}))}/>
-          <FF label="Peso (kg)" name="peso" type="number" value={newPeso.peso} onChange={e=>setNewPeso(f=>({...f,peso:e.target.value}))}/>
-          <FF label="Nota" name="nota" value={newPeso.nota} onChange={e=>setNewPeso(f=>({...f,nota:e.target.value}))}/>
+          <FF label={T.calDate} name="data" value={newPeso.data} onChange={e=>setNewPeso(f=>({...f,data:e.target.value}))}/>
+          <FF label={T.fWeight} name="peso" type="number" value={newPeso.peso} onChange={e=>setNewPeso(f=>({...f,peso:e.target.value}))}/>
+          <FF label={T.weightNote} name="nota" value={newPeso.nota} onChange={e=>setNewPeso(f=>({...f,nota:e.target.value}))}/>
         </div>
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-          <button style={S.btn('ghost')} onClick={()=>setShowPesoModal(false)}>{gT().cancel}</button>
-          <button style={S.btn()} onClick={addPeso}>{gT().save}</button>
+          <button style={S.btn('ghost')} onClick={()=>setShowPesoModal(false)}>{T.cancel}</button>
+          <button style={S.btn()} onClick={addPeso}>{T.save}</button>
         </div>
       </Modal>}
 
