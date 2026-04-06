@@ -2223,9 +2223,9 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const exportSchedaPDF=(scheda)=>{
     const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
     const dataOggi=scheda.data||fmtDate();
-    const logoHtml=trainerProfile?.logo?'<div style="display:flex;align-items:center;gap:12px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px"/><div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">Scheda Allenamento</div></div></div>':'<div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">Scheda Allenamento</div></div>';
+    const logoHtml=trainerProfile?.logo?'<div style="display:flex;align-items:center;gap:12px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px"/><div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div></div>':'<div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div>';
     const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
-    const profiloLbl=pr?pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma':'—';
+    const profiloLbl=pr?pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort:'—';
     const profiloClr=pr?pr.code==='A'?'#ef4444':pr.code==='B'?'#f59e0b':'#10b981':'#64748b';
     const numEx=(scheda.esercizi||[]).length;
     const fontSize=numEx>10?'9px':'10px';
@@ -2259,8 +2259,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+esc(scheda.nome)+' — '+esc(p.nome)+' '+esc(p.cognome)+'</title>'+
       '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b;font-size:13px}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}@page{margin:20mm 15mm}</style></head><body>'+
       '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid #3b82f6">'+
-      '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">\u2190 Torna all\'app</button>'+
-      '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">\uD83D\uDDA8\uFE0F Stampa / Salva PDF</button></div>'+
+      '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfBackToApp+'</button>'+
+      '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfPrint+'</button></div>'+
       '<div style="max-width:800px;margin:0 auto;padding:40px">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px">'+
       '<div>'+logoHtml+'</div>'+
@@ -2268,8 +2268,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '</div>'+
       '<div style="height:2px;background:#3b82f6;margin-bottom:20px"></div>'+
       '<div style="background:#f8fafc;border-radius:8px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-between">'+
-      '<div><div style="font-size:14px;font-weight:700;color:#0f172a">'+esc(p.nome)+' '+esc(p.cognome)+'</div><div style="font-size:11px;color:#64748b;margin-top:4px">'+(eta?'Et\u00e0: '+eta+' anni':'')+(p.sesso?' \u00b7 '+esc(p.sesso):'')+'</div></div>'+
-      '<div style="text-align:right"><div style="font-size:11px;color:#64748b">Obiettivo: <strong>'+esc(p.obiettivo||'\u2014')+'</strong></div><div style="font-size:11px;margin-top:4px">Profilo: <span style="color:'+profiloClr+';font-weight:700">'+esc(profiloLbl)+'</span></div></div>'+
+      '<div><div style="font-size:14px;font-weight:700;color:#0f172a">'+esc(p.nome)+' '+esc(p.cognome)+'</div><div style="font-size:11px;color:#64748b;margin-top:4px">'+(eta?T.pdfAge+': '+eta:'')+(p.sesso?' \u00b7 '+esc(p.sesso):'')+'</div></div>'+
+      '<div style="text-align:right"><div style="font-size:11px;color:#64748b">'+T.pdfGoal+': <strong>'+esc(p.obiettivo||'\u2014')+'</strong></div><div style="font-size:11px;margin-top:4px">'+T.profileCode+': <span style="color:'+profiloClr+';font-weight:700">'+esc(profiloLbl)+'</span></div></div>'+
       '</div>'+
       '<div style="margin-bottom:16px"><div style="font-size:18px;font-weight:800;color:#0f172a">'+esc(scheda.nome)+'</div>'+
       '<div style="font-size:11px;color:#64748b;margin-top:4px">'+(scheda.codice?esc(scheda.codice)+' \u00b7 ':'')+esc(scheda.split||'')+' \u00b7 '+esc(dataOggi)+'</div>'+
@@ -2278,19 +2278,19 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#10b98120;color:#10b981">'+(scheda.config?.serie||3)+'\u00d7'+(scheda.config?.rip||10)+'</span>'+
       '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#f59e0b20;color:#f59e0b">Rec '+(scheda.config?.rec||60)+'s</span>'+
       '</div></div>'+
-      (numEx===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">Questa scheda non ha ancora esercizi.</div>':
+      (numEx===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">'+T.schedaEmpty+'</div>':
       '<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#3b82f6">'+
       '<th style="text-align:center;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">#</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Esercizio</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Gruppo</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Livello</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Serie</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Rip</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">Rec</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblExercise+'</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblGroup+'</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblLevel+'</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblSets+'</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblReps+'</th>'+
+      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblRest+'</th>'+
       '</tr></thead><tbody>'+righe+'</tbody></table>')+
       noteHtml+
       '<div style="margin-top:40px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between">'+
-      '<div style="font-size:8px;color:#94a3b8">Generata con PT Board \u2014 personaltrainerboard.com</div>'+
+      '<div style="font-size:8px;color:#94a3b8">'+T.generatedWith+' \u2014 personaltrainerboard.com</div>'+
       '<div style="font-size:8px;color:#94a3b8">Pagina 1/1</div>'+
       '</div></div></body></html>';
     const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
@@ -2345,61 +2345,61 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}
   .no-print{text-align:center;padding:16px;}
 </style></head><body>
-<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div>
+<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div>
 <div class="page">
 
 <div class="header">
   <div>
     ${trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;max-width:160px;object-fit:contain;display:block;margin-bottom:${trainerProfile?.nomeStudio?4:8}px"/>${trainerProfile?.nomeStudio?`<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${esc(trainerProfile.nomeStudio)}</div>`:''}`:`<div class="brand">PT Board <small></small></div>`}
-    <div style="font-size:11px;color:#64748b;margin-top:8px">Scheda cliente · ${fmtDate()}</div>
+    <div style="font-size:11px;color:#64748b;margin-top:8px">${T.pdfPatientSheet} · ${fmtDate()}</div>
   </div>
   <div style="text-align:right">
     <div class="patient-name">${esc(p.nome)} ${esc(p.cognome)}</div>
-    <div class="patient-meta">${esc(p.id)} · Valutazione: ${esc(p.dataValutazione)||'—'}</div>
-    ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">${pr2.code==='A'?'Forma Bassa':pr2.code==='B'?'Forma Media':'Buona Forma'}</span>`:''}
+    <div class="patient-meta">${esc(p.id)} · ${T.assessmentNum}: ${esc(p.dataValutazione)||'—'}</div>
+    ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">${pr2.code==='A'?T.profileLowShort:pr2.code==='B'?T.profileMedShort:T.profileGoodShort}</span>`:''}
   </div>
 </div>
 
 <div class="grid3" style="margin-bottom:28px">
   <div class="kpi"><div class="kpi-val">${b2||'—'}</div><div class="kpi-lbl">BMI · ${bl2}</div></div>
-  <div class="kpi"><div class="kpi-val">${p.peso||'—'} kg</div><div class="kpi-lbl">Peso attuale</div></div>
-  <div class="kpi"><div class="kpi-val">${pesoTarget||'—'} kg</div><div class="kpi-lbl">Peso target (BMI 24.9)</div></div>
+  <div class="kpi"><div class="kpi-val">${p.peso||'—'} kg</div><div class="kpi-lbl">${T.pdfActualWeight}</div></div>
+  <div class="kpi"><div class="kpi-val">${pesoTarget||'—'} kg</div><div class="kpi-lbl">${T.pdfTargetWeight}</div></div>
 </div>
 
 <div class="grid">
 <div>
 <div class="section">
-  <div class="section-title">Dati anagrafici</div>
-  ${[['Data nascita',p.ddn],['Sesso',p.sesso],['Altezza',p.altezza?p.altezza+' cm':'—'],['Vita',p.vita?p.vita+' cm':'—'],['Fianchi',p.fianchi?p.fianchi+' cm':'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
+  <div class="section-title">${T.secAna}</div>
+  ${[[T.pdfBirthDate,p.ddn],[T.pdfGender,p.sesso],[T.pdfHeight,p.altezza?p.altezza+' cm':'—'],[T.pdfWaist,p.vita?p.vita+' cm':'—'],[T.pdfHips,p.fianchi?p.fianchi+' cm':'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
 </div>
 <div class="section">
-  <div class="section-title">Parametri clinici</div>
-  ${[['PA',p.pa],['FC riposo',p.fc?p.fc+' bpm':'—'],['FC max',fcM?fcM+' bpm':'—'],['FC target 60%',fcM?Math.round(fcM*0.6)+' bpm':'—'],['FC target 75%',fcM?Math.round(fcM*0.75)+' bpm':'—'],['Patologie',p.patologie],['Farmaci',p.farmaci]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
+  <div class="section-title">${T.secClin}</div>
+  ${[[T.pdfPA,p.pa],[T.pdfFCRest,p.fc?p.fc+' bpm':'—'],[T.pdfFCMax,fcM?fcM+' bpm':'—'],[T.pdfFCTarget60,fcM?Math.round(fcM*0.6)+' bpm':'—'],[T.pdfFCTarget75,fcM?Math.round(fcM*0.75)+' bpm':'—'],[T.pdfPath,p.patologie],[T.pdfMeds,p.farmaci]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
 </div>
 </div>
 <div>
 <div class="section">
-  <div class="section-title">Test funzionali</div>
-  ${[['6MWT – Distanza',p.test?.mwtDist?p.test.mwtDist+' m':'—'],['6MWT – RPE',p.test?.mwtRpe||'—'],['6MWT – Sintomi',p.test?.mwtSintomi||'—'],['STS 30s – Rip.',p.test?.stsRip||'—'],['Note',p.test?.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)}</span></div>`).join('')}
+  <div class="section-title">${T.secTest}</div>
+  ${[[T.pdf6mwtDist,p.test?.mwtDist?p.test.mwtDist+' m':'—'],[T.pdf6mwtRpe,p.test?.mwtRpe||'—'],[T.pdf6mwtSymp,p.test?.mwtSintomi||'—'],[T.pdfStsSec,p.test?.stsRip||'—'],[T.pdfNotes,p.test?.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)}</span></div>`).join('')}
 </div>
 <div class="section">
-  <div class="section-title">Stile di vita & obiettivi</div>
-  ${[['Attività',p.attivita],['Obiettivo',p.obiettivo],['Stress',p.stressPercepito],['Sonno',p.sonno?p.sonno+' ore':'—'],['Preferenze',p.preferenze]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
+  <div class="section-title">${T.secLife}</div>
+  ${[[T.pdfActivity,p.attivita],[T.pdfGoal,p.obiettivo],[T.pdfStress,p.stressPercepito],[T.pdfSleep,p.sonno?p.sonno+' ore':'—'],[T.pdfPref,p.preferenze]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
 </div>
 </div>
 </div>
 
 ${p.programma?.cardio||p.programma?.forza?`
 <div class="section">
-  <div class="section-title">Programma allenamento</div>
+  <div class="section-title">${T.secProg}</div>
   <div class="grid">
     <div>
-      ${[['Inizio',p.programma.dataInizio],['Sedute/sett.',p.programma.sedute],['Min cardio/sett.',p.programma.minCardio?p.programma.minCardio+" min":'—'],['Min forza/sett.',p.programma.minForza?p.programma.minForza+" min":'—'],['RPE target',p.programma.rpeRange||'—'],['Zona FC',p.programma.zonaFC||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
+      ${[[T.pdfProgStart,p.programma.dataInizio],[T.pdfProgSessions,p.programma.sedute],[T.pdfProgCardioMin,p.programma.minCardio?p.programma.minCardio+" min":'—'],[T.pdfProgForzaMin,p.programma.minForza?p.programma.minForza+" min":'—'],['RPE target',p.programma.rpeRange||'—'],['Zona FC',p.programma.zonaFC||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
     </div>
     <div>
-      ${p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w){var wLabels={1:'Adattamento',2:'Progressione',3:'Picco',4:'Deload'};return '<div style="margin-bottom:10px;padding:8px;background:#f8fafc;border-radius:6px;border-left:3px solid #3b82f6"><div style="font-size:10px;font-weight:700;color:#0f172a;margin-bottom:4px">Settimana '+w.num+' — '+(wLabels[w.num]||'')+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#3b82f6">Cardio:</strong> '+esc(w.cardio)+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#10b981">Forza:</strong> '+esc(w.forza)+'</div><div style="font-size:9px;color:#64748b;font-style:italic;line-height:1.5">'+esc(w.note)+'</div></div>';}).join(''):(
-        (p.programma.cardio?'<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">Cardio</div><div class="note-box">'+esc(p.programma.cardio)+'</div></div>':'')+
-        (p.programma.forza?'<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">Forza</div><div class="note-box" style="border-color:#10b981">'+esc(p.programma.forza)+'</div></div>':'')
+      ${p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w){var wLabels={1:T.weekAdapt,2:T.weekProgress,3:T.weekPeak,4:T.weekDeload};return '<div style="margin-bottom:10px;padding:8px;background:#f8fafc;border-radius:6px;border-left:3px solid #3b82f6"><div style="font-size:10px;font-weight:700;color:#0f172a;margin-bottom:4px">'+T.lblWeek+' '+w.num+' — '+(wLabels[w.num]||'')+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#3b82f6">'+T.pdfCardio+':</strong> '+esc(w.cardio)+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#10b981">'+T.pdfForza+':</strong> '+esc(w.forza)+'</div><div style="font-size:9px;color:#64748b;font-style:italic;line-height:1.5">'+esc(w.note)+'</div></div>';}).join(''):(
+        (p.programma.cardio?'<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">'+T.pdfCardio+'</div><div class="note-box">'+esc(p.programma.cardio)+'</div></div>':'')+
+        (p.programma.forza?'<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">'+T.pdfForza+'</div><div class="note-box" style="border-color:#10b981">'+esc(p.programma.forza)+'</div></div>':'')
       )}
     </div>
   </div>
@@ -2407,18 +2407,18 @@ ${p.programma?.cardio||p.programma?.forza?`
 
 ${p.nutrizione?.kcal?`
 <div class="section">
-  <div class="section-title">Piano nutrizionale</div>
+  <div class="section-title">${T.pdfNutSection}</div>
   <div class="grid3" style="margin-bottom:10px">
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.kcal)}</div><div class="kpi-lbl">kcal/giorno</div></div>
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.proteine)||0}g</div><div class="kpi-lbl">Proteine</div></div>
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.carboidrati)||0}g</div><div class="kpi-lbl">Carboidrati</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.kcal)}</div><div class="kpi-lbl">${T.pdfNutKcal}</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.proteine)||0}g</div><div class="kpi-lbl">${T.pdfNutProt}</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.carboidrati)||0}g</div><div class="kpi-lbl">${T.pdfNutCarb}</div></div>
   </div>
   ${p.nutrizione.note?`<div class="note-box">${esc(p.nutrizione.note)}</div>`:''}
 </div>`:''}
 
 ${(p.log||[]).length>0?`
 <div class="section">
-  <div class="section-title">Ultime sedute (${Math.min(p.log.length,10)})</div>
+  <div class="section-title">${T.pdfLastSessions} (${Math.min(p.log.length,10)})</div>
   ${(p.log||[]).slice().reverse().slice(0,10).map(s=>`
   <div class="log-item">
     <div class="dot" style="background:${s.rpe<=3?'#10b981':s.rpe<=6?'#f59e0b':s.rpe<=8?'#fb923c':'#ef4444'}"></div>
@@ -2429,14 +2429,14 @@ ${(p.log||[]).length>0?`
 
 ${(p.progressi||[]).length>1?`
 <div class="section">
-  <div class="section-title">Storico peso</div>
+  <div class="section-title">${T.pdfWeightHistory}</div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${x.peso} kg</div><div class="kpi-lbl">${x.data}</div></div>`).join('')}
   </div>
 </div>`:''}
 
 <div class="footer">
-  <span>${trainerProfile?.nomeStudio?esc(trainerProfile.nomeStudio):'PT Board'} · Report generato il ${fmtDate()}</span>
+  <span>${trainerProfile?.nomeStudio?esc(trainerProfile.nomeStudio):'PT Board'} · ${T.pdfGenerated} ${fmtDate()}</span>
   <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
 </div>
 </div>${'</body></html>'}`;
