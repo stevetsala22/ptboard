@@ -680,6 +680,15 @@ const LANGS={
     calEmailReminderSubj:'Promemoria appuntamento',calEmailReminderIntro:'Ti ricordo il tuo appuntamento:',
     calEmailReminderClosing:'A presto!',
     calEmailSent:'Email inviata a',calEmailErr:'Errore invio:',
+    errDateFormat:'Formato: GG/MM/AAAA',errDayInvalid:'Giorno non valido (01-31)',errMonthInvalid:'Mese non valido (01-12)',
+    errYearInvalid:'Anno non valido',errDateNonExistent:'Data non esistente',errDateFuture:'La data di nascita non può essere futura',
+    errRequired:'Campo obbligatorio',errWeightInvalid:'Inserisci un peso valido (1-500 kg)',
+    errHeightInvalid:'Inserisci un\'altezza valida (50-300 cm)',errEmailInvalid:'Email non valida',
+    errPhoneInvalid:'Inserisci un numero valido con prefisso (es: +39...)',errFcInvalid:'Valore FC non realistico',
+    fillRequired:'Compila i campi obbligatori',clickToUpload:'Clicca per caricare foto',profilePhoto:'Foto profilo',
+    uploadPhoto:'📷 Carica foto',removePhoto:'✕ Rimuovi',emailPlaceholder:'per promemoria automatici',
+    fPhone:'Telefono / WhatsApp',f6mwtM:'6MWT (m)',f6mwtRpeShort:'6MWT RPE',f6mwtSympShort:'6MWT Sintomi',
+    fStsRipShort:'STS 30s (rip)',fStsNoteShort:'STS Note',fProfileAuto:'Profilo (auto)',progShort:'Programma',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -845,6 +854,15 @@ const LANGS={
     calEmailReminderSubj:'Appointment reminder',calEmailReminderIntro:'Reminder of your appointment:',
     calEmailReminderClosing:'See you soon!',
     calEmailSent:'Email sent to',calEmailErr:'Send error:',
+    errDateFormat:'Format: DD/MM/YYYY',errDayInvalid:'Invalid day (01-31)',errMonthInvalid:'Invalid month (01-12)',
+    errYearInvalid:'Invalid year',errDateNonExistent:'Date does not exist',errDateFuture:'Birth date cannot be in the future',
+    errRequired:'Required field',errWeightInvalid:'Enter a valid weight (1-500 kg)',
+    errHeightInvalid:'Enter a valid height (50-300 cm)',errEmailInvalid:'Invalid email',
+    errPhoneInvalid:'Enter a valid number with country code (e.g. +39...)',errFcInvalid:'Unrealistic HR value',
+    fillRequired:'Fill in required fields',clickToUpload:'Click to upload photo',profilePhoto:'Profile photo',
+    uploadPhoto:'📷 Upload photo',removePhoto:'✕ Remove',emailPlaceholder:'for automatic reminders',
+    fPhone:'Phone / WhatsApp',f6mwtM:'6MWT (m)',f6mwtRpeShort:'6MWT RPE',f6mwtSympShort:'6MWT Symptoms',
+    fStsRipShort:'STS 30s (reps)',fStsNoteShort:'STS Notes',fProfileAuto:'Profile (auto)',progShort:'Program',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -1010,6 +1028,15 @@ const LANGS={
     calEmailReminderSubj:'Rappel de rendez-vous',calEmailReminderIntro:'Rappel de votre rendez-vous :',
     calEmailReminderClosing:'À bientôt !',
     calEmailSent:'Email envoyé à',calEmailErr:"Erreur d'envoi :",
+    errDateFormat:'Format : JJ/MM/AAAA',errDayInvalid:'Jour invalide (01-31)',errMonthInvalid:'Mois invalide (01-12)',
+    errYearInvalid:'Année invalide',errDateNonExistent:'Date inexistante',errDateFuture:'La date de naissance ne peut pas être future',
+    errRequired:'Champ obligatoire',errWeightInvalid:'Entrer un poids valide (1-500 kg)',
+    errHeightInvalid:'Entrer une hauteur valide (50-300 cm)',errEmailInvalid:'Email invalide',
+    errPhoneInvalid:'Entrer un numéro valide avec préfixe (ex : +39...)',errFcInvalid:'Valeur FC irréaliste',
+    fillRequired:'Remplir les champs obligatoires',clickToUpload:'Cliquer pour charger une photo',profilePhoto:'Photo de profil',
+    uploadPhoto:'📷 Charger photo',removePhoto:'✕ Retirer',emailPlaceholder:'pour rappels automatiques',
+    fPhone:'Téléphone / WhatsApp',f6mwtM:'6MWT (m)',f6mwtRpeShort:'6MWT RPE',f6mwtSympShort:'6MWT Symptômes',
+    fStsRipShort:'STS 30s (rép)',fStsNoteShort:'STS Notes',fProfileAuto:'Profil (auto)',progShort:'Programme',
   }},
 };
 const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
@@ -1668,16 +1695,17 @@ function dateMaskHandle(raw, prev) {
 }
 function dateMaskValidate(val) {
   if (!val) return null;
-  if (val.length > 0 && val.length < 10) return 'Formato: GG/MM/AAAA';
+  var T = gT();
+  if (val.length > 0 && val.length < 10) return T.errDateFormat;
   if (val.length === 10) {
     var p = val.split('/');
     var dd = +p[0], mm = +p[1], yyyy = +p[2];
-    if (dd < 1 || dd > 31) return 'Giorno non valido (01-31)';
-    if (mm < 1 || mm > 12) return 'Mese non valido (01-12)';
-    if (yyyy < 1900 || yyyy > new Date().getFullYear()) return 'Anno non valido (1900-' + new Date().getFullYear() + ')';
+    if (dd < 1 || dd > 31) return T.errDayInvalid;
+    if (mm < 1 || mm > 12) return T.errMonthInvalid;
+    if (yyyy < 1900 || yyyy > new Date().getFullYear()) return T.errYearInvalid + ' (1900-' + new Date().getFullYear() + ')';
     var date = new Date(yyyy, mm - 1, dd);
-    if (date.getDate() !== dd || date.getMonth() !== mm - 1 || date.getFullYear() !== yyyy) return 'Data non esistente';
-    if (date >= new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1)) return 'La data di nascita non può essere futura';
+    if (date.getDate() !== dd || date.getMonth() !== mm - 1 || date.getFullYear() !== yyyy) return T.errDateNonExistent;
+    if (date >= new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1)) return T.errDateFuture;
   }
   return null;
 }
@@ -3367,119 +3395,119 @@ function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
   const updN=e=>setForm(f=>({...f,nutrizione:{...f.nutrizione,[e.target.name]:e.target.value}}));
   const fmtErr=(field)=>{
     if(!touched[field])return null;
-    if(field==='cognome'&&!form.cognome?.trim())return'Campo obbligatorio';
-    if(field==='nome'&&!form.nome?.trim())return'Campo obbligatorio';
-    if(field==='peso'&&form.peso){const v=+form.peso;if(isNaN(v)||v<=0||v>=500)return'Inserisci un peso valido (1-500 kg)';}
-    if(field==='altezza'&&form.altezza){const v=+form.altezza;if(isNaN(v)||v<=50||v>=300)return'Inserisci un\'altezza valida (50-300 cm)';}
-    if(field==='email'&&form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))return'Email non valida';
-    if(field==='telefono'&&form.telefono&&(!/^\+/.test(form.telefono.trim())||form.telefono.replace(/\D/g,'').length<8))return"Inserisci un numero valido con prefisso (es: +39...)";
+    if(field==='cognome'&&!form.cognome?.trim())return TF.errRequired;
+    if(field==='nome'&&!form.nome?.trim())return TF.errRequired;
+    if(field==='peso'&&form.peso){const v=+form.peso;if(isNaN(v)||v<=0||v>=500)return TF.errWeightInvalid;}
+    if(field==='altezza'&&form.altezza){const v=+form.altezza;if(isNaN(v)||v<=50||v>=300)return TF.errHeightInvalid;}
+    if(field==='email'&&form.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))return TF.errEmailInvalid;
+    if(field==='telefono'&&form.telefono&&(!/^\+/.test(form.telefono.trim())||form.telefono.replace(/\D/g,'').length<8))return TF.errPhoneInvalid;
     if(field==='ddn'&&form.ddn){var ddnErr=dateMaskValidate(form.ddn);if(ddnErr)return ddnErr;}
-    if(field==='fc'&&form.fc){const v=+form.fc;if(isNaN(v)||v<20||v>250)return'Valore FC non realistico';}
+    if(field==='fc'&&form.fc){const v=+form.fc;if(isNaN(v)||v<20||v>250)return TF.errFcInvalid;}
     return null;
   };
   const canSave=form.cognome?.trim()&&form.nome?.trim();
   return(
     <div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
-        <h1 style={{fontSize:18,fontWeight:800,color:C.strong}}>{isNew?'Nuovo cliente':`Modifica — ${form.nome} ${form.cognome}`}</h1>
+        <h1 style={{fontSize:18,fontWeight:800,color:C.strong}}>{isNew?TF.newPatient:TF.editPatient+' — '+form.nome+' '+form.cognome}</h1>
         <div style={{display:'flex',gap:8}}>
-          <button style={S.btn('ghost')} onClick={onCancel}>{gT().cancel}</button>
+          <button style={S.btn('ghost')} onClick={onCancel}>{TF.cancel}</button>
           <div className="tt">
-            <button style={{...S.btn(),...(!canSave?{opacity:0.5,cursor:'not-allowed'}:{})}} onClick={()=>{if(canSave)onSave(form);else{touch('cognome');touch('nome');}}} >✓ Salva</button>
-            {!canSave&&<span className="tp">Compila i campi obbligatori</span>}
+            <button style={{...S.btn(),...(!canSave?{opacity:0.5,cursor:'not-allowed'}:{})}} onClick={()=>{if(canSave)onSave(form);else{touch('cognome');touch('nome');}}} >{'✓ '+TF.save}</button>
+            {!canSave&&<span className="tp">{TF.fillRequired}</span>}
           </div>
         </div>
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:14}}>
         <div style={S.card}>
-          <div style={S.st}>Dati anagrafici</div>
+          <div style={S.st}>{TF.secAna}</div>
           <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:12}}>
-            <div title="Clicca per caricare foto" onClick={()=>document.getElementById('foto-upload-input').click()} style={{width:80,height:80,borderRadius:'50%',cursor:'pointer',overflow:'hidden',flexShrink:0,border:`2px dashed ${C.border2}`,display:'flex',alignItems:'center',justifyContent:'center',background:C.bg}}>
+            <div title={TF.clickToUpload} onClick={()=>document.getElementById('foto-upload-input').click()} style={{width:80,height:80,borderRadius:'50%',cursor:'pointer',overflow:'hidden',flexShrink:0,border:`2px dashed ${C.border2}`,display:'flex',alignItems:'center',justifyContent:'center',background:C.bg}}>
               {form.foto?<img src={form.foto} alt="foto" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<Avatar nome={form.nome||'?'} cognome={form.cognome||'?'} size={76}/>}
             </div>
             <div>
-              <div style={{fontSize:12,color:C.dim,marginBottom:4}}>Foto profilo</div>
-              <button type="button" style={{...S.btn('ghost'),fontSize:11,padding:'4px 10px'}} onClick={()=>document.getElementById('foto-upload-input').click()}>📷 Carica foto</button>
-              {form.foto&&<button type="button" style={{...S.btn('ghost'),fontSize:11,padding:'4px 10px',marginLeft:6,color:'#ef4444'}} onClick={()=>setForm(f=>({...f,foto:''}))}>✕ Rimuovi</button>}
+              <div style={{fontSize:12,color:C.dim,marginBottom:4}}>{TF.profilePhoto}</div>
+              <button type="button" style={{...S.btn('ghost'),fontSize:11,padding:'4px 10px'}} onClick={()=>document.getElementById('foto-upload-input').click()}>{TF.uploadPhoto}</button>
+              {form.foto&&<button type="button" style={{...S.btn('ghost'),fontSize:11,padding:'4px 10px',marginLeft:6,color:'#ef4444'}} onClick={()=>setForm(f=>({...f,foto:''}))}>{TF.removePhoto}</button>}
             </div>
             <input id="foto-upload-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const max=150;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);setForm(f=>({...f,foto:canvas.toDataURL('image/jpeg',0.7)}));};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
           </div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Cognome *" name="cognome" value={form.cognome} onChange={upd} required onBlur={()=>touch('cognome')} error={fmtErr('cognome')}/>
-            <FF label="Nome *" name="nome" value={form.nome} onChange={upd} required onBlur={()=>touch('nome')} error={fmtErr('nome')}/>
-            <FF label="Email cliente" name="email" type="email" value={form.email} onChange={upd} placeholder="per promemoria automatici" onBlur={()=>touch('email')} error={fmtErr('email')}/>
-            <FF label="Telefono / WhatsApp" name="telefono" type="tel" value={form.telefono||''} onChange={upd} placeholder="+39 333 1234567" onBlur={()=>touch('telefono')} error={fmtErr('telefono')}/>
-            <FF label="Data nascita" name="ddn" value={form.ddn} onChange={e=>{var masked=dateMaskHandle(e.target.value,form.ddn);var ev={target:{name:'ddn',value:masked}};upd(ev);var p2=masked.split('/');if(p2.length===3&&p2[2]?.length===4){var y=+p2[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="__/__/____" onBlur={()=>touch('ddn')} error={fmtErr('ddn')} maxLength={10}/>
-            <FF label="Sesso" name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:'F — Femmina'},{v:'M',l:'M — Maschio'}]}/>
-            <FF label="Data valutazione" name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
+            <FF label={TF.fSurname+' *'} name="cognome" value={form.cognome} onChange={upd} required onBlur={()=>touch('cognome')} error={fmtErr('cognome')}/>
+            <FF label={TF.fName+' *'} name="nome" value={form.nome} onChange={upd} required onBlur={()=>touch('nome')} error={fmtErr('nome')}/>
+            <FF label={TF.fEmail} name="email" type="email" value={form.email} onChange={upd} placeholder={TF.emailPlaceholder} onBlur={()=>touch('email')} error={fmtErr('email')}/>
+            <FF label={TF.fPhone} name="telefono" type="tel" value={form.telefono||''} onChange={upd} placeholder="+39 333 1234567" onBlur={()=>touch('telefono')} error={fmtErr('telefono')}/>
+            <FF label={TF.fBirth} name="ddn" value={form.ddn} onChange={e=>{var masked=dateMaskHandle(e.target.value,form.ddn);var ev={target:{name:'ddn',value:masked}};upd(ev);var p2=masked.split('/');if(p2.length===3&&p2[2]?.length===4){var y=+p2[2];if(y>1900&&y<2100)setForm(f=>({...f,annoNascita:y}))}}} placeholder="__/__/____" onBlur={()=>touch('ddn')} error={fmtErr('ddn')} maxLength={10}/>
+            <FF label={TF.fGender} name="sesso" value={form.sesso} onChange={upd} options={[{v:'F',l:TF.gF},{v:'M',l:TF.gM}]}/>
+            <FF label={TF.fDate} name="dataValutazione" value={form.dataValutazione} onChange={upd} placeholder="GG/MM/AAAA"/>
           </div>
         </div>
         <div style={S.card}>
-          <div style={S.st}>Parametri antropometrici</div>
+          <div style={S.st}>{TF.secAntropo}</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Altezza (cm)" name="altezza" type="number" value={form.altezza} onChange={upd} onBlur={()=>touch('altezza')} error={fmtErr('altezza')}/>
-            <FF label="Peso (kg)" name="peso" type="number" value={form.peso} onChange={upd} onBlur={()=>touch('peso')} error={fmtErr('peso')}/>
-            <div><label style={S.label}>BMI (auto)</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${C.border2}`,fontSize:13}}>{b?<span style={{color:bmiCat(b).c,fontWeight:700}}>{b} — {bmiCat(b).l}</span>:<span style={{color:C.muted}}>—</span>}</div></div>
-            <FF label="Vita (cm)" name="vita" type="number" value={form.vita} onChange={upd}/>
-            <FF label="Fianchi (cm)" name="fianchi" type="number" value={form.fianchi} onChange={upd}/>
-            <FF label="PA riposo" name="pa" value={form.pa} onChange={upd}/>
-            <FF label="FC riposo (bpm)" name="fc" type="number" value={form.fc} onChange={upd} onBlur={()=>touch('fc')} error={fmtErr('fc')}/>
+            <FF label={TF.fHeight} name="altezza" type="number" value={form.altezza} onChange={upd} onBlur={()=>touch('altezza')} error={fmtErr('altezza')}/>
+            <FF label={TF.fWeight} name="peso" type="number" value={form.peso} onChange={upd} onBlur={()=>touch('peso')} error={fmtErr('peso')}/>
+            <div><label style={S.label}>{TF.fBMI}</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${C.border2}`,fontSize:13}}>{b?<span style={{color:bmiCat(b).c,fontWeight:700}}>{b} — {bmiCat(b).l}</span>:<span style={{color:C.muted}}>—</span>}</div></div>
+            <FF label={TF.fWaist} name="vita" type="number" value={form.vita} onChange={upd}/>
+            <FF label={TF.fHips} name="fianchi" type="number" value={form.fianchi} onChange={upd}/>
+            <FF label={TF.fPA} name="pa" value={form.pa} onChange={upd}/>
+            <FF label={TF.fFC} name="fc" type="number" value={form.fc} onChange={upd} onBlur={()=>touch('fc')} error={fmtErr('fc')}/>
           </div>
         </div>
         <div style={S.card}>
-          <div style={S.st}>Clinica</div>
+          <div style={S.st}>{TF.secClinica}</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:12}}>
-            <FF label="Patologie" name="patologie" type="textarea" value={form.patologie} onChange={upd}/>
-            <FF label="Farmaci" name="farmaci" type="textarea" value={form.farmaci} onChange={upd}/>
-            <FF label="Sintomi da sforzo" name="sintomiSforzo" value={form.sintomiSforzo} onChange={upd} options={['NO','SI']}/>
-            <FF label="Allergie" name="allergie" value={form.allergie} onChange={upd}/>
+            <FF label={TF.fPath} name="patologie" type="textarea" value={form.patologie} onChange={upd}/>
+            <FF label={TF.fMeds} name="farmaci" type="textarea" value={form.farmaci} onChange={upd}/>
+            <FF label={TF.fSymp} name="sintomiSforzo" value={form.sintomiSforzo} onChange={upd} options={[{v:'NO',l:TF.symNo},{v:'SI',l:TF.symYes}]}/>
+            <FF label={TF.fAllerg} name="allergie" value={form.allergie} onChange={upd}/>
           </div>
         </div>
         <div style={S.card}>
-          <div style={S.st}>Stile di vita</div>
+          <div style={S.st}>{TF.secLife}</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Attività attuale" name="attivita" value={form.attivita} onChange={upd} options={['Sedentaria','Poco attiva','Moderatamente attiva','Attiva']}/>
-            <FF label="Obiettivo" name="obiettivo" value={form.obiettivo} onChange={upd}/>
-            <FF label="Stress" name="stressPercepito" value={form.stressPercepito} onChange={upd} options={['Basso','Medio','Alto']}/>
-            <FF label="Preferenze/limiti" name="preferenze" value={form.preferenze} onChange={upd} span={2}/>
-            <FF label="Sonno (ore)" name="sonno" type="number" value={form.sonno} onChange={upd}/>
+            <FF label={TF.fActivity} name="attivita" value={form.attivita} onChange={upd} options={[{v:'Sedentaria',l:TF.actSed},{v:'Poco attiva',l:TF.actLight},{v:'Moderatamente attiva',l:TF.actMod},{v:'Attiva',l:TF.actActive}]}/>
+            <FF label={TF.fGoal} name="obiettivo" value={form.obiettivo} onChange={upd}/>
+            <FF label={TF.fStress} name="stressPercepito" value={form.stressPercepito} onChange={upd} options={[{v:'Basso',l:TF.strLow},{v:'Medio',l:TF.strMed},{v:'Alto',l:TF.strHigh}]}/>
+            <FF label={TF.fPref} name="preferenze" value={form.preferenze} onChange={upd} span={2}/>
+            <FF label={TF.fSleep} name="sonno" type="number" value={form.sonno} onChange={upd}/>
           </div>
         </div>
         <div style={S.card}>
-          <div style={S.st}>Test funzionali</div>
+          <div style={S.st}>{TF.secTest}</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="6MWT (m)" name="mwtDist" type="number" value={form.test?.mwtDist} onChange={updT}/>
-            <FF label="6MWT RPE" name="mwtRpe" type="number" value={form.test?.mwtRpe} onChange={updT}/>
-            <FF label="6MWT Sintomi" name="mwtSintomi" value={form.test?.mwtSintomi} onChange={updT}/>
-            <FF label="STS 30s (rip)" name="stsRip" type="number" value={form.test?.stsRip} onChange={updT}/>
-            <FF label="STS Note" name="stsNote" value={form.test?.stsNote} onChange={updT}/>
-            <div><label style={S.label}>Profilo (auto)</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${pr?.c||C.border2}40`,fontSize:13}}>{pr?<span style={{color:pr.c,fontWeight:700}}>{pr.l}</span>:<span style={{color:C.muted}}>Inserire 6MWT + STS</span>}</div></div>
-            <FF label="Note valutazione" name="noteVal" type="textarea" value={form.test?.noteVal} onChange={updT} span={3}/>
+            <FF label={TF.f6mwtM} name="mwtDist" type="number" value={form.test?.mwtDist} onChange={updT}/>
+            <FF label={TF.f6mwtRpeShort} name="mwtRpe" type="number" value={form.test?.mwtRpe} onChange={updT}/>
+            <FF label={TF.f6mwtSympShort} name="mwtSintomi" value={form.test?.mwtSintomi} onChange={updT}/>
+            <FF label={TF.fStsRipShort} name="stsRip" type="number" value={form.test?.stsRip} onChange={updT}/>
+            <FF label={TF.fStsNoteShort} name="stsNote" value={form.test?.stsNote} onChange={updT}/>
+            <div><label style={S.label}>{TF.fProfileAuto}</label><div style={{padding:'8px 11px',background:C.bg,borderRadius:7,border:`1px solid ${pr?.c||C.border2}40`,fontSize:13}}>{pr?<span style={{color:pr.c,fontWeight:700}}>{pr.l}</span>:<span style={{color:C.muted}}>{TF.insertSts}</span>}</div></div>
+            <FF label={TF.secNoteVal} name="noteVal" type="textarea" value={form.test?.noteVal} onChange={updT} span={3}/>
           </div>
         </div>
         <div style={S.card}>
-          <div style={S.st}>Programma</div>
+          <div style={S.st}>{TF.progShort}</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:12}}>
-            <FF label="Data inizio" name="dataInizio" value={form.programma?.dataInizio} onChange={updP}/>
-            <FF label="Sedute/sett." name="sedute" type="number" value={form.programma?.sedute} onChange={updP}/>
+            <FF label={TF.fProgStart} name="dataInizio" value={form.programma?.dataInizio} onChange={updP}/>
+            <FF label={TF.fProgSessions} name="sedute" type="number" value={form.programma?.sedute} onChange={updP}/>
             <div/>
-            <FF label="Min cardio/sett." name="minCardio" type="number" value={form.programma?.minCardio} onChange={updP}/>
-            <FF label="Min forza/sett." name="minForza" type="number" value={form.programma?.minForza} onChange={updP}/>
+            <FF label={TF.fProgCardioMin} name="minCardio" type="number" value={form.programma?.minCardio} onChange={updP}/>
+            <FF label={TF.fProgForzaMin} name="minForza" type="number" value={form.programma?.minForza} onChange={updP}/>
             <div/>
-            <FF label="Desc. cardio" name="cardio" type="textarea" value={form.programma?.cardio} onChange={updP} span={3}/>
-            <FF label="Desc. forza" name="forza" type="textarea" value={form.programma?.forza} onChange={updP} span={3}/>
-            <FF label="Note" name="note" type="textarea" value={form.programma?.note} onChange={updP} span={3}/>
+            <FF label={TF.fProgCardio} name="cardio" type="textarea" value={form.programma?.cardio} onChange={updP} span={3}/>
+            <FF label={TF.fProgForza} name="forza" type="textarea" value={form.programma?.forza} onChange={updP} span={3}/>
+            <FF label={TF.fProgNote} name="note" type="textarea" value={form.programma?.note} onChange={updP} span={3}/>
           </div>
         </div>
         <div style={S.card}>
-          <div style={S.st}>Nutrizione</div>
+          <div style={S.st}>{TF.secNutrition}</div>
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'repeat(4,1fr)',gap:12}}>
-            <FF label="Kcal/giorno" name="kcal" type="number" value={form.nutrizione?.kcal} onChange={updN}/>
-            <FF label="Proteine (g)" name="proteine" type="number" value={form.nutrizione?.proteine} onChange={updN}/>
-            <FF label="Carboidrati (g)" name="carboidrati" type="number" value={form.nutrizione?.carboidrati} onChange={updN}/>
-            <FF label="Grassi (g)" name="grassi" type="number" value={form.nutrizione?.grassi} onChange={updN}/>
-            <FF label="Note nutrizionali" name="note" type="textarea" value={form.nutrizione?.note} onChange={updN} span={4}/>
-            <FF label="Piano pasti" name="pianoPasti" type="textarea" value={form.nutrizione?.pianoPasti} onChange={updN} span={4} rows={5}/>
+            <FF label={TF.nutKcal} name="kcal" type="number" value={form.nutrizione?.kcal} onChange={updN}/>
+            <FF label={TF.nutProt} name="proteine" type="number" value={form.nutrizione?.proteine} onChange={updN}/>
+            <FF label={TF.nutCarb} name="carboidrati" type="number" value={form.nutrizione?.carboidrati} onChange={updN}/>
+            <FF label={TF.nutFat} name="grassi" type="number" value={form.nutrizione?.grassi} onChange={updN}/>
+            <FF label={TF.nutNote} name="note" type="textarea" value={form.nutrizione?.note} onChange={updN} span={4}/>
+            <FF label={TF.nutPlan} name="pianoPasti" type="textarea" value={form.nutrizione?.pianoPasti} onChange={updN} span={4} rows={5}/>
           </div>
         </div>
       </div>
