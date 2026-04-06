@@ -3380,6 +3380,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
 
   const upd=(fn)=>onUpdate({...p,...fn(p)});
   const exportSchedaPDF=(scheda)=>{
+    if(typeof gtag!=='undefined')gtag('event','export_pdf',{type:'scheda'});
     const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
     const dataOggi=scheda.data||fmtDate();
     const logoHtml=trainerProfile?.logo?'<div style="display:flex;align-items:center;gap:12px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px"/><div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div></div>':'<div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div>';
@@ -4443,6 +4444,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
   const openModalWithDate=function(dateStr,ora){setNewB(function(f){return{...f,data:dateStr,ora:ora||'09:00',ripeti:'none'};});setShowModal(true);};
 
   const saveBooking=()=>{
+    if(typeof gtag!=='undefined')gtag('event','booking_created',{recurring:!!newB.recurringGroupId});
     var groupId=newB.ripeti!=='none'?'RG'+Date.now():null;
     var allBookings=[];
     var weeks=newB.ripeti==='weekly'?8:newB.ripeti==='biweekly'?4:0;
@@ -5107,6 +5109,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
     if(form.sonno&&(+form.sonno<0||+form.sonno>24))errs.push('Sonno (0-24 ore)');
     if(errs.length){showToast((T.requiredFields||'Campi da correggere')+': '+errs.join(', '),'error');return;}
     if(isNew){
+      if(typeof gtag!=='undefined')gtag('event','patient_created');
       const id=nextPid(patients);
       const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
       if(p.peso)p.progressi=[{data:p.dataValutazione||fmtDate(),peso:+p.peso,nota:'Primo accesso'}];
@@ -5929,6 +5932,7 @@ function WizardValutazione({onSave,onClose,initialData}){
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
+    if(typeof gtag!=='undefined')gtag('event','export_pdf',{type:'wizard'});
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${T.valutazione} ${esc(d.nome)} ${esc(d.cognome)}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:13px}
 .pg{max-width:800px;margin:0 auto;padding:40px}.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #3b82f6;padding-bottom:16px;margin-bottom:22px}
@@ -6772,6 +6776,7 @@ ${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="backgroun
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note,precauzioni:prog.precauzioni||[],riferimenti:prog.riferimenti||'',serieBase:prog.serieBase,ripBase:prog.ripBase,recSec:prog.recSec,zonaFC:prog.zonaFC||'',rpeRange:prog.rpeRange||'',settimane:prog.settimane||[]}:{},
                 nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:{};})(),
               };
+              if(typeof gtag!=='undefined')gtag('event','wizard_complete',{profile:pr.code});
               onSave(p);
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{T.wizSaveAndOpen}</button><span className="tp">{T.wizSaveTooltip}</span></div>}
           </div>
@@ -6845,7 +6850,7 @@ function TrialBlockScreen({user}){
               <div style={{marginTop:12,marginBottom:12}}>
                 {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
               </div>
-              <button onClick={()=>openCheckout(key)} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
+              <button onClick={()=>{if(typeof gtag!=='undefined')gtag('event','plan_click',{plan:key});openCheckout(key);}} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
               {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
             </div>
           );
@@ -6876,7 +6881,7 @@ function LinguaModal({onClose,lang,setLang}){
           {lingue.map(l=>{
             const sel=lang===l.k;
             return(
-              <div key={l.k} onClick={()=>{setLang(l.k);setLangStore(l.k);onClose();}}
+              <div key={l.k} onClick={()=>{if(typeof gtag!=='undefined')gtag('event','language_change',{language:l.k});setLang(l.k);setLangStore(l.k);onClose();}}
                 style={{background:'#0f1623',border:'2px solid '+(sel?'#3b82f6':'#1e2d47'),borderRadius:16,padding:'20px 16px',cursor:'pointer',textAlign:'center',position:'relative',transition:'border-color .15s',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
                 {sel&&<div style={{position:'absolute',top:10,right:12,background:'#3b82f6',color:'#fff',fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20}}>✓ Attiva</div>}
                 <div style={{fontSize:36}}>{l.flag}</div>
@@ -6899,6 +6904,7 @@ function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setP
   const prevLight=useRef(isLight);
   useEffect(function(){setIsLight(pLight);},[pLight]);
   var handleSave=async function(){
+    if(typeof gtag!=='undefined')gtag('event','language_change',{language:pLang});
     setLang(pLang);setLangStore(pLang);
     await fbSaveUserProfile(user.uid,{nomeStudio:pNome,logo:pLogo});
     setProfile(function(p){return Object.assign({},p,{nomeStudio:pNome,logo:pLogo});});
@@ -6994,7 +7000,7 @@ function PianiModal({onClose,profile,user,voluntary}){
                   <div style={{flex:1,marginTop:12,marginBottom:12}}>
                     {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
                   </div>
-                  <button onClick={()=>openCheckout(key)} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
+                  <button onClick={()=>{if(typeof gtag!=='undefined')gtag('event','plan_click',{plan:key});openCheckout(key);}} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
                   {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
                 </div>
               );
@@ -7247,8 +7253,8 @@ function AuthScreen({onProfileReady}){
     return 'Errore. Riprova.';
   };
 
-  const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,nome.trim(),1);await c.user.sendEmailVerification();if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','login',{method:'email'});}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,nome.trim(),1);await c.user.sendEmailVerification();if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
