@@ -5441,6 +5441,7 @@ var generaSchedaAuto = function(params, esercizi) {
 
 // ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
 var generaProgramma = function(params) {
+  var T = gT();
   var profilo = params.profilo;
   var obiettivo = params.obiettivo;
   var eta = params.eta || 50;
@@ -5485,48 +5486,48 @@ var generaProgramma = function(params) {
   var cardioDesc = [];
   if (profilo === 'A') {
     cardioDesc = [
-      'Camminata lenta ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + rpeMin + '-' + (rpeMin+1),
-      'Camminata moderata ' + Math.round(minCardio/sedute + 3) + ' min (' + zonaFC + '), RPE ' + (rpeMin+1),
-      'Camminata veloce ' + Math.round(minCardio/sedute + 5) + ' min (' + zonaFC + '), RPE ' + rpeMax,
-      'Camminata veloce ' + Math.round(minCardio/sedute + 8) + ' min (' + zonaFC + ') con 2 brevi salite'
+      T.gpCardioAW1.replace('{min}',Math.round(minCardio/sedute)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMin).replace('{rpe2}',rpeMin+1),
+      T.gpCardioAW2.replace('{min}',Math.round(minCardio/sedute + 3)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMin+1),
+      T.gpCardioAW3.replace('{min}',Math.round(minCardio/sedute + 5)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMax),
+      T.gpCardioAW4.replace('{min}',Math.round(minCardio/sedute + 8)).replace('{zona}',zonaFC)
     ];
   } else if (profilo === 'B') {
     if (obiettivo === 'Perdere peso') {
       cardioDesc = [
-        'Camminata veloce ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + rpeMin,
-        'Intervalli: 3 min corsa / 2 min cammino x ' + Math.round(minCardio/sedute/5) + ' cicli (' + zonaFC + ')',
-        'Corsa leggera continua ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + (rpeMax-1),
-        'LISS ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + ') + 2x3 min HIIT leggero'
+        T.gpCardioBPesoW1.replace('{min}',Math.round(minCardio/sedute)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMin),
+        T.gpCardioBPesoW2.replace('{n}',Math.round(minCardio/sedute/5)).replace('{zona}',zonaFC),
+        T.gpCardioBPesoW3.replace('{min}',Math.round(minCardio/sedute)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMax-1),
+        T.gpCardioBPesoW4.replace('{min}',Math.round(minCardio/sedute)).replace('{zona}',zonaFC)
       ];
     } else {
       cardioDesc = [
-        'Camminata veloce/cyclette ' + Math.round(minCardio/sedute) + ' min (' + zonaFC + '), RPE ' + rpeMin,
-        'Intervalli: 3 min intenso / 2 min recupero x ' + Math.round(minCardio/sedute/5) + ' cicli (' + zonaFC + ')',
-        'Cardio moderato ' + Math.round(minCardio/sedute + 5) + ' min (' + zonaFC + ')',
-        'Cardio variato ' + Math.round(minCardio/sedute + 5) + ' min (' + zonaFC + ') + 5 min HIIT'
+        T.gpCardioBOtherW1.replace('{min}',Math.round(minCardio/sedute)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMin),
+        T.gpCardioBOtherW2.replace('{n}',Math.round(minCardio/sedute/5)).replace('{zona}',zonaFC),
+        T.gpCardioBOtherW3.replace('{min}',Math.round(minCardio/sedute + 5)).replace('{zona}',zonaFC),
+        T.gpCardioBOtherW4.replace('{min}',Math.round(minCardio/sedute + 5)).replace('{zona}',zonaFC)
       ];
     }
   } else {
     if (obiettivo === 'Perdere peso') {
       cardioDesc = [
-        'LISS 30 min (' + zonaFC + ') + 10 min HIIT 30/30',
-        'Intervalli: 4 min corsa / 1 min sprint x 6 cicli',
-        'HIIT 20 min (30s on / 15s off) + 15 min LISS',
-        'Corsa continua 35 min + 10 min intervalli in salita'
+        T.gpCardioCPesoW1.replace('{zona}',zonaFC),
+        T.gpCardioCPesoW2,
+        T.gpCardioCPesoW3,
+        T.gpCardioCPesoW4
       ];
     } else if (obiettivo === 'Aumentare massa') {
       cardioDesc = [
-        'LISS 15 min post-allenamento (' + zonaFC + ', non interferire con ipertrofia)',
-        'Camminata veloce 20 min nei giorni di riposo (' + zonaFC + ')',
-        'Cyclette 15 min bassa intensita come recupero attivo (' + zonaFC + ')',
-        'LISS 15 min (' + zonaFC + ') + mobilita 10 min'
+        T.gpCardioCMassaW1.replace('{zona}',zonaFC),
+        T.gpCardioCMassaW2.replace('{zona}',zonaFC),
+        T.gpCardioCMassaW3.replace('{zona}',zonaFC),
+        T.gpCardioCMassaW4.replace('{zona}',zonaFC)
       ];
     } else {
       cardioDesc = [
-        'LISS 30 min (' + zonaFC + ') + 10 min HIIT',
-        'Intervalli: 4 min alta / 2 min bassa x 5 cicli (' + zonaFC + ')',
-        'Corsa o bike 35 min continua (' + zonaFC + '), RPE ' + rpeMin + '-' + rpeMax,
-        'Variato: 20 min corsa + 15 min bike + 10 min HIIT (' + zonaFC + ')'
+        T.gpCardioCOtherW1.replace('{zona}',zonaFC),
+        T.gpCardioCOtherW2.replace('{zona}',zonaFC),
+        T.gpCardioCOtherW3.replace('{zona}',zonaFC).replace('{rpe1}',rpeMin).replace('{rpe2}',rpeMax),
+        T.gpCardioCOtherW4.replace('{zona}',zonaFC)
       ];
     }
   }
@@ -5534,64 +5535,64 @@ var generaProgramma = function(params) {
   var forzaDesc = [];
   if (profilo === 'A') {
     forzaDesc = [
-      'Esercizi da seduto: leg extension, push-up muro (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
-      'Squat assistito (sedia) + alzate laterali 1kg (' + serieBase + 'x' + ripBase + '). Recupero ' + recSec + 's',
-      'Squat libero + curl 2kg + step-up basso (' + (serieBase+1) + 'x' + ripBase + '). Recupero ' + (recSec-15) + 's',
-      'Circuito 3 esercizi x ' + (serieBase+1) + ' giri: squat, push-up ginocchia, row elastico'
+      T.gpForzaAW1.replace('{s}',serieBase).replace('{r}',ripBase).replace('{rec}',recSec),
+      T.gpForzaAW2.replace('{s}',serieBase).replace('{r}',ripBase).replace('{rec}',recSec),
+      T.gpForzaAW3.replace('{s}',serieBase+1).replace('{r}',ripBase).replace('{rec}',recSec-15),
+      T.gpForzaAW4.replace('{s}',serieBase+1)
     ];
   } else if (profilo === 'B') {
     if (obiettivo === 'Aumentare massa') {
       forzaDesc = [
-        'Upper: panca manubri + row + press spalle + curl (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
-        'Lower: squat + affondi + leg curl + calf (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
-        'Upper: push-up + lat machine + alzate laterali + dip (' + serieBase + 'x' + ripRange + '). Aumento peso 5%',
-        'Lower: stacco rumeno + leg press + affondi + ponte glutei (' + serieBase + 'x' + ripRange + '). Aumento peso 5%'
+        T.gpForzaBMassaW1.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaBMassaW2.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaBMassaW3.replace('{s}',serieBase).replace('{r}',ripRange),
+        T.gpForzaBMassaW4.replace('{s}',serieBase).replace('{r}',ripRange)
       ];
     } else {
       forzaDesc = [
-        'Full body: squat + push-up + row + plank (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
-        'Full body: affondi + press + curl + dead bug (' + serieBase + 'x' + ripRange + '). Recupero ' + recSec + 's',
-        'Superset: squat+curl, affondi+press (' + serieBase + 'x' + ripRange + '). Recupero ' + (recSec-15) + 's',
-        'Circuito: 5 esercizi x ' + serieBase + ' giri. Aumento intensita 10%'
+        T.gpForzaBOtherW1.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaBOtherW2.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaBOtherW3.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec-15),
+        T.gpForzaBOtherW4.replace('{s}',serieBase)
       ];
     }
   } else {
     if (obiettivo === 'Aumentare massa') {
       forzaDesc = [
-        'Push: panca + press spalle + croci + dip (' + serieBase + 'x' + ripRange + '). Rec ' + recSec + 's',
-        'Pull: stacco + trazioni + row + curl (' + serieBase + 'x' + ripRange + '). Rec ' + recSec + 's',
-        'Legs: squat + leg press + affondi + calf (' + serieBase + 'x' + ripRange + '). Rec ' + recSec + 's',
-        'Deload: tutti gli esercizi a -20% carico, ' + (serieBase-1) + 'x12. Focus tecnica e mobilita'
+        T.gpForzaCMassaW1.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCMassaW2.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCMassaW3.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCMassaW4.replace('{s}',serieBase-1)
       ];
     } else if (obiettivo === 'Forza') {
       forzaDesc = [
-        'Squat ' + serieBase + 'x' + ripRange + ' @80% + accessori (' + serieBase + 'x8-10). Rec ' + recSec + 's compound, 60s accessori',
-        'Panca ' + serieBase + 'x' + ripRange + ' @80% + push accessori. Rec ' + recSec + 's compound',
-        'Stacco ' + serieBase + 'x' + ripRange + ' @80% + pull accessori. Rec ' + recSec + 's compound',
-        'Deload: compound ' + (serieBase-1) + 'x' + ripBase + ' @70%. Rivalutare 1RM'
+        T.gpForzaCForzaW1.replace(/\{s\}/g,serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCForzaW2.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCForzaW3.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCForzaW4.replace('{s}',serieBase-1).replace('{r}',ripBase)
       ];
     } else {
       forzaDesc = [
-        'Upper/Lower split: ' + serieBase + ' serie x ' + ripRange + ' rip. Rec ' + recSec + 's',
-        'Aumento carico +5-10%. Aggiungere esercizio accessorio per gruppo',
-        'Volume alto: ' + (serieBase+1) + ' serie x 8-10 rip. Compound: stacco, panca, squat',
-        'Deload parziale: ' + (serieBase-1) + ' serie x 12 rip, carico -20%. Mobilita'
+        T.gpForzaCOtherW1.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+        T.gpForzaCOtherW2,
+        T.gpForzaCOtherW3.replace('{s}',serieBase+1),
+        T.gpForzaCOtherW4.replace('{s}',serieBase-1)
       ];
     }
   }
   // ── PRECAUZIONI PATOLOGIE ──
   var precauzioni = [];
-  if (patologie.includes('ipertensione')) precauzioni.push('Ipertensione: evitare Valsalva, monitorare PA prima e dopo. No isometria prolungata. Preferire circuiti a bassa intensita.');
-  if (patologie.includes('diabete tipo 2')) precauzioni.push('Diabete T2: allenarsi 1-3h dopo il pasto. Portare snack glucidico. Monitorare glicemia se insulino-trattato. No esercizio a digiuno.');
-  if (patologie.includes('diabete tipo 1')) precauzioni.push('Diabete T1: monitorare glicemia prima, durante e dopo. Se <100 mg/dL assumere 15g carboidrati. Evitare esercizio intenso se >250 mg/dL.');
-  if (patologie.includes('cardiopatia')) precauzioni.push('Cardiopatia: RPE max 5. Monitorare FC costantemente. Evitare sforzi massimali. Riscaldamento lungo 10 min. Defaticamento graduale.');
-  if (patologie.includes('artrosi') || patologie.includes('artrite')) precauzioni.push('Artrosi/Artrite: evitare impatti. Preferire cyclette, nuoto, esercizi in scarico. Riscaldamento lungo. Stop se dolore articolare.');
-  if (patologie.includes('osteoporosi')) precauzioni.push('Osteoporosi: includere esercizi in carico (camminata, squat leggero). Evitare flessione vertebrale sotto carico. Equilibrio e propriocezione prioritari.');
-  if (patologie.includes('ernia')) precauzioni.push('Ernia lombare: evitare flessione lombare sotto carico (deadlift, sit-up). Core stability isometrica (plank, bird dog). Niente compressione assiale pesante.');
-  if (patologie.includes('asma') || patologie.includes('bpco')) precauzioni.push('Asma/BPCO: riscaldamento graduale 15 min. Broncodilatatore disponibile. Evitare aria fredda. Intervalli brevi con recuperi lunghi.');
-  if (patologie.includes('obesita')) precauzioni.push('Obesita: preferire esercizi a basso impatto (cyclette, nuoto, camminata). Aumentare volume prima dell\'intensita. Monitorare articolazioni.');
-  if (eta > 70) precauzioni.push('Over 70: equilibrio e prevenzione cadute prioritari. Supervisione costante. Alzata da seduto prima di camminare.');
-  if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push('Over 60: includere esercizi equilibrio 2x/settimana (single leg stand, tandem walk).');
+  if (patologie.includes('ipertensione')) precauzioni.push(T.gpPrecIpert);
+  if (patologie.includes('diabete tipo 2')) precauzioni.push(T.gpPrecDiabT2);
+  if (patologie.includes('diabete tipo 1')) precauzioni.push(T.gpPrecDiabT1);
+  if (patologie.includes('cardiopatia')) precauzioni.push(T.gpPrecCardio);
+  if (patologie.includes('artrosi') || patologie.includes('artrite')) precauzioni.push(T.gpPrecArtrosi);
+  if (patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOsteo);
+  if (patologie.includes('ernia')) precauzioni.push(T.gpPrecErnia);
+  if (patologie.includes('asma') || patologie.includes('bpco')) precauzioni.push(T.gpPrecAsma);
+  if (patologie.includes('obesita')) precauzioni.push(T.gpPrecObesita);
+  if (eta > 70) precauzioni.push(T.gpPrecOver70);
+  if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOver60);
   // ── SETTIMANE ──
   var settimane = [];
   for (var w = 0; w < 4; w++) {
@@ -5599,17 +5600,17 @@ var generaProgramma = function(params) {
       num: w + 1,
       cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
       forza: forzaDesc[w] || forzaDesc[forzaDesc.length - 1],
-      note: w === 0 ? 'Settimana di adattamento. Registrare RPE e carichi.' :
-            w === 1 ? 'Aumentare volume o intensita del 10% rispetto a sett. 1.' :
-            w === 2 ? 'Picco di volume. Monitorare recupero e sonno.' :
-            'Deload o rivalutazione. Ridurre volume 20-30% se affaticamento.'
+      note: w === 0 ? T.gpWeek1Note :
+            w === 1 ? T.gpWeek2Note :
+            w === 2 ? T.gpWeek3Note :
+            T.gpWeek4Note
     });
   }
-  var nomeObiettivo = obiettivo || 'Salute';
-  var nomeProfilo = profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : 'Buona Forma';
-  var nome = 'Programma ' + nomeObiettivo + ' — ' + nomeProfilo;
-  var desc = 'Programma personalizzato per ' + (sesso === 'M' ? 'uomo' : 'donna') + ' di ' + eta + ' anni. Obiettivo: ' + nomeObiettivo + '. Profilo: ' + nomeProfilo + ' (score ' + score + '/100).';
-  if (precauzioni.length > 0) desc += ' Attenzione: ' + precauzioni.length + ' precauzioni cliniche.';
+  var nomeObiettivo = obiettivo || T.gpDefSalute;
+  var nomeProfilo = profilo === 'A' ? T.profileLowShort : profilo === 'B' ? T.profileMedShort : T.profileGoodShort;
+  var nome = T.gpNomeFmt.replace('{ob}', nomeObiettivo).replace('{pr}', nomeProfilo);
+  var desc = T.gpDescFmt.replace('{sex}', sesso === 'M' ? T.gpUomo : T.gpDonna).replace('{eta}', eta).replace('{ob}', nomeObiettivo).replace('{pr}', nomeProfilo).replace('{score}', score);
+  if (precauzioni.length > 0) desc += T.gpDescPrec.replace('{n}', precauzioni.length);
   return {
     nome: nome,
     desc: desc,
