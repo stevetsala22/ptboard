@@ -2408,6 +2408,7 @@ const profilo=(mwt,sts,sesso,test,extra,eta)=>{
 };
 const calcNutrizione=(p)=>{
   if(!p)return null;
+  var T=gT();
   var eta=p.annoNascita?(new Date().getFullYear()-p.annoNascita):null;
   var peso=p.peso?+p.peso:null;
   var altezza=p.altezza?+p.altezza:null;
@@ -2432,16 +2433,16 @@ const calcNutrizione=(p)=>{
   var tdee=bmr*fattore;
   // STEP 3 — Calorie target (ISSN 2017, ACSM Position Stand)
   var obiettivoMap={
-    'Perdere peso':{molt:0.80,note:'Deficit 20% (ACSM: max -500 kcal/giorno)'},
-    'Aumentare massa':{molt:1.15,note:'Surplus 15% (ISSN: surplus 10-20% per ipertrofia)'},
-    'Resistenza':{molt:1.05,note:'Leggero surplus per supporto endurance'},
-    'Forza':{molt:1.10,note:'Surplus moderato per supporto forza'},
-    'Salute':{molt:1.0,note:'Mantenimento (TDEE = intake)'},
-    'Riabilitazione':{molt:1.0,note:'Mantenimento con focus proteine'},
-    'Performance':{molt:1.10,note:'Surplus per supporto performance'},
-    'Benessere':{molt:1.0,note:'Mantenimento'}
+    'Perdere peso':{molt:0.80,note:T.nutObPesoNote},
+    'Aumentare massa':{molt:1.15,note:T.nutObMassaNote},
+    'Resistenza':{molt:1.05,note:T.nutObResNote},
+    'Forza':{molt:1.10,note:T.nutObForzaNote},
+    'Salute':{molt:1.0,note:T.nutObSaluteNote},
+    'Riabilitazione':{molt:1.0,note:T.nutObRiabNote},
+    'Performance':{molt:1.10,note:T.nutObPerfNote},
+    'Benessere':{molt:1.0,note:T.nutObBenNote}
   };
-  var obInfo=obiettivoMap[p.obiettivo]||{molt:1.0,note:'Mantenimento'};
+  var obInfo=obiettivoMap[p.obiettivo]||{molt:1.0,note:T.nutObBenNote};
   var molt=obInfo.molt;
   var kcal=Math.round(tdee*molt);
   if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')kcal=Math.round(kcal*1.05);
@@ -2449,14 +2450,14 @@ const calcNutrizione=(p)=>{
   if(kcal<bmr*1.2)kcal=Math.round(bmr*1.2);
   // STEP 4 — Macros (ISSN Position Stand 2017)
   var protMap={
-    'Perdere peso':{perKg:2.3,ref:'ISSN 2017: 2.3-3.1 g/kg in deficit per preservare massa magra'},
-    'Aumentare massa':{perKg:1.8,ref:'ISSN 2017: 1.6-2.2 g/kg in surplus'},
-    'Resistenza':{perKg:1.4,ref:'ISSN: 1.2-1.4 g/kg per endurance'},
-    'Forza':{perKg:2.0,ref:'ISSN: 1.6-2.2 g/kg per forza'},
-    'Salute':{perKg:1.2,ref:'RDA: 0.8 g/kg minimo, 1.2 per attivi'},
-    'Riabilitazione':{perKg:1.6,ref:'Piu proteine per recupero tessutale'},
-    'Performance':{perKg:1.8,ref:'ISSN: 1.4-2.0 g/kg per atleti'},
-    'Benessere':{perKg:1.2,ref:'Mantenimento con adeguato apporto'}
+    'Perdere peso':{perKg:2.3,ref:T.nutProtPesoRef},
+    'Aumentare massa':{perKg:1.8,ref:T.nutProtMassaRef},
+    'Resistenza':{perKg:1.4,ref:T.nutProtResRef},
+    'Forza':{perKg:2.0,ref:T.nutProtForzaRef},
+    'Salute':{perKg:1.2,ref:T.nutProtSaluteRef},
+    'Riabilitazione':{perKg:1.6,ref:T.nutProtRiabRef},
+    'Performance':{perKg:1.8,ref:T.nutProtPerfRef},
+    'Benessere':{perKg:1.2,ref:T.nutProtBenRef}
   };
   var protInfo=protMap[p.obiettivo]||{perKg:1.6,ref:''};
   var protPerKg=protInfo.perKg;
@@ -2471,14 +2472,14 @@ const calcNutrizione=(p)=>{
   var kcalProt=proteine*4;
   // Grassi (ISSN + ACSM)
   var grassiMap={
-    'Perdere peso':{pct:0.25,ref:'ISSN: 20-35% in deficit, 25% compromesso'},
-    'Aumentare massa':{pct:0.28,ref:'25-30% per supporto ormonale'},
-    'Resistenza':{pct:0.25,ref:'20-25% per endurance'},
-    'Forza':{pct:0.30,ref:'25-35% per testosterone e recupero'},
-    'Salute':{pct:0.30,ref:'Dieta mediterranea: 30-35%'},
-    'Riabilitazione':{pct:0.28,ref:'Moderato per anti-infiammatorio'},
-    'Performance':{pct:0.25,ref:'20-30% per atleti'},
-    'Benessere':{pct:0.30,ref:'Equilibrato'}
+    'Perdere peso':{pct:0.25,ref:T.nutFatPesoRef},
+    'Aumentare massa':{pct:0.28,ref:T.nutFatMassaRef},
+    'Resistenza':{pct:0.25,ref:T.nutFatResRef},
+    'Forza':{pct:0.30,ref:T.nutFatForzaRef},
+    'Salute':{pct:0.30,ref:T.nutFatSaluteRef},
+    'Riabilitazione':{pct:0.28,ref:T.nutFatRiabRef},
+    'Performance':{pct:0.25,ref:T.nutFatPerfRef},
+    'Benessere':{pct:0.30,ref:T.nutFatBenRef}
   };
   var grassiInfo=grassiMap[p.obiettivo]||{pct:0.28,ref:''};
   var pctG=grassiInfo.pct;
@@ -2503,37 +2504,37 @@ const calcNutrizione=(p)=>{
   }
   // STEP 5 — Note
   var note=[];
-  if(+p.sonno<6)note.push('Sonno ridotto (<6h): aumentare proteine e attenzione al recupero');
+  if(+p.sonno<6)note.push(T.nutNoteSleep);
   if(p.patologie){
     var pat3=p.patologie.toLowerCase();
-    if(pat3.includes('ipertensione'))note.push('Ipertensione: sodio < 2g/giorno, aumentare potassio (frutta, verdura)');
-    if(pat3.includes('diabete tipo 2'))note.push('Diabete T2: carboidrati a basso indice glicemico, evitare zuccheri semplici');
-    if(pat3.includes('diabete tipo 1'))note.push('Diabete T1: carboidrati stabili e prevedibili, minimo 130g/giorno');
-    if(pat3.includes('dislipidemia'))note.push('Dislipidemia: grassi saturi < 7%, preferire omega-3, aumentare fibre');
-    if(pat3.includes('cardiopatia'))note.push('Cardiopatia: grassi saturi < 7%, sodio < 1.5g, dieta mediterranea');
-    if(pat3.includes('osteoporosi'))note.push('Osteoporosi: calcio 1200mg/giorno, vitamina D, proteine adeguate');
-    if(pat3.includes('artrosi')||pat3.includes('artrite'))note.push('Artrosi/artrite: alimenti anti-infiammatori (omega-3, curcuma, verdure)');
-    if(pat3.includes('depressione')||pat3.includes('ansia'))note.push('Benessere mentale: omega-3, triptofano (tacchino, semi), limitare caffeina');
-    if(pat3.includes('obesita'))note.push('Obesita: deficit calorico moderato, proteine calcolate su peso ideale');
-    if(pat3.includes('tiroidea'))note.push('Patologia tiroidea: monitorare metabolismo, aggiustare kcal con il medico');
+    if(pat3.includes('ipertensione'))note.push(T.nutPatIpertNote);
+    if(pat3.includes('diabete tipo 2'))note.push(T.nutPatDiabT2Note);
+    if(pat3.includes('diabete tipo 1'))note.push(T.nutPatDiabT1Note);
+    if(pat3.includes('dislipidemia'))note.push(T.nutPatDislipNote);
+    if(pat3.includes('cardiopatia'))note.push(T.nutPatCardioNote);
+    if(pat3.includes('osteoporosi'))note.push(T.nutPatOsteoNote);
+    if(pat3.includes('artrosi')||pat3.includes('artrite'))note.push(T.nutPatArtrosiNote);
+    if(pat3.includes('depressione')||pat3.includes('ansia'))note.push(T.nutPatDepressioneNote);
+    if(pat3.includes('obesita'))note.push(T.nutPatObesitaNote);
+    if(pat3.includes('tiroidea'))note.push(T.nutPatTiroideaNote);
   }
   if(p.allergie){
     var all=p.allergie.toLowerCase();
-    if(all.includes('lattosio'))note.push('Intolleranza lattosio: sostituire con alternative vegetali o lactose-free');
-    if(all.includes('glutine')||all.includes('celiachia'))note.push('Celiachia: evitare frumento/orzo/segale, usare riso, mais, quinoa, patate');
-    if(all.includes('nichel'))note.push('Allergia nichel: limitare pomodoro, cacao, legumi secchi, frutta secca');
+    if(all.includes('lattosio'))note.push(T.nutAllLattoNote);
+    if(all.includes('glutine')||all.includes('celiachia'))note.push(T.nutAllGlutineNote);
+    if(all.includes('nichel'))note.push(T.nutAllNichelNote);
   }
-  if(p.alcol&&(p.alcol.includes('8-14')||p.alcol.includes('>14')))note.push('Consumo alcol elevato: attenzione alle calorie vuote (~7 kcal/g)');
-  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')note.push('Stress elevato: kcal leggermente aumentate per compensare il cortisolo');
+  if(p.alcol&&(p.alcol.includes('8-14')||p.alcol.includes('>14')))note.push(T.nutNoteAlcol);
+  if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')note.push(T.nutNoteStress);
   // Note automatiche per età, BMI, obiettivo, FC, motivazione
-  if(eta&&eta>65)note.push('Over 65: aumentare proteine a '+protPerKg.toFixed(1)+' g/kg per prevenzione sarcopenia (Bauer 2013). Calcio 1200mg/giorno + vitamina D.');
-  if(p.obiettivo==='Perdere peso'&&bmiVal&&bmiVal>30)note.push('Proteine calcolate su peso ideale ('+pesoCalcolo.toFixed(0)+' kg) per evitare eccesso proteico. Obiettivo: -0.5 kg/settimana (non oltre 1% peso corporeo/settimana).');
-  if(p.obiettivo==='Perdere peso'&&bmiVal&&bmiVal>=25&&bmiVal<=30)note.push('Deficit moderato -20%. Obiettivo: -0.5 kg/settimana. Monitorare peso ogni 7 giorni, stesso giorno e ora.');
-  if(p.obiettivo==='Aumentare massa')note.push('Surplus calorico 15%. Monitorare peso: obiettivo +0.25-0.5 kg/settimana. Se grasso aumenta troppo, ridurre surplus a 10%.');
-  if(p.fc&&+p.fc>80)note.push('FC riposo elevata: possibile sovrallenamento o stress. Considerare riduzione volume allenamento.');
-  if(p.motivazione&&+p.motivazione<5)note.push('Motivazione bassa: semplificare il piano, ridurre vincoli alimentari, focus su piccoli obiettivi raggiungibili.');
-  note.push('Riferimenti: ISSN Position Stand 2017, ACSM Guidelines 11th ed., Mifflin-St Jeor 1990'+(p.bia?.FM?', Katch-McArdle (BIA)':'')+'.');
-  note.push('⚠️ Suggerimenti nutrizionali generici — per un piano personalizzato rivolgersi a un nutrizionista');
+  if(eta&&eta>65)note.push(T.nutNoteOver65.replace('{p}',protPerKg.toFixed(1)));
+  if(p.obiettivo==='Perdere peso'&&bmiVal&&bmiVal>30)note.push(T.nutNotePesoIdeale.replace('{p}',pesoCalcolo.toFixed(0)));
+  if(p.obiettivo==='Perdere peso'&&bmiVal&&bmiVal>=25&&bmiVal<=30)note.push(T.nutNoteDeficitMod);
+  if(p.obiettivo==='Aumentare massa')note.push(T.nutNoteSurplus);
+  if(p.fc&&+p.fc>80)note.push(T.nutNoteFcAlta);
+  if(p.motivazione&&+p.motivazione<5)note.push(T.nutNoteMotBassa);
+  note.push(T.nutNoteRefs+(p.bia?.FM?T.nutNoteRefsBia:'')+'.');
+  note.push(T.nutNoteDisclaimer);
   return{kcal,proteine,carboidrati,grassi,note:note.join('\n'),formula:p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor',protRef:protInfo.ref,grassiRef:grassiInfo.ref};
 };
 const interpPushup=(rip,sesso)=>{if(!rip)return null;const T=gT();const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:T.veryLow,c:'#ef4444',cons:T.consPushupBeg};if(r<20)return{l:T.average,c:'#f59e0b',cons:T.consPushupStd};return{l:T.good,c:'#10b981',cons:T.consPushupAdv};}else{if(r<7)return{l:T.veryLow,c:'#ef4444',cons:T.consPushupBeg};if(r<15)return{l:T.average,c:'#f59e0b',cons:T.consPushupStd};return{l:T.good,c:'#10b981',cons:T.consPushupAdv};}};
