@@ -1097,6 +1097,13 @@ const LANGS={
     wizErrNomeCogn:'Inserisci nome e cognome per continuare.',
     wizErrIncomplete:'Dati incompleti — torna al passo 1.',
     wizErrNoAlt:'Inserire altezza e peso nel passo 1',
+    // Wizard PDF export
+    wizPdfSubtitle:'Valutazione Base — 20 min',wizPdfDateLbl:'Data:',
+    wizPdfClinAna:'Anagrafica & Clinica',wizPdfFuncTest:'Test Funzionali',
+    wizPdfNoteSts:'Note STS',wizPdfRpeRest:'RPE a riposo',wizPdfNoteVal:'Note valutazione',
+    wizPdfMinCardio:'Min cardio',wizPdfMinForza:'Min forza',wizPdfWeek:'SETTIMANA',
+    wizPdfNutGuide:'Linee guida nutrizionali',wizPdfNutFat:'Grassi',wizPdfKcalGg:'kcal/gg',
+    wizPdfFooterTitle:'PT Board · Valutazione Base 20 min',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -1679,6 +1686,13 @@ const LANGS={
     wizErrNomeCogn:'Enter first and last name to continue.',
     wizErrIncomplete:'Incomplete data — return to step 1.',
     wizErrNoAlt:'Enter height and weight in step 1',
+    // Wizard PDF export
+    wizPdfSubtitle:'Base Assessment — 20 min',wizPdfDateLbl:'Date:',
+    wizPdfClinAna:'Profile & Clinical',wizPdfFuncTest:'Functional Tests',
+    wizPdfNoteSts:'STS notes',wizPdfRpeRest:'RPE at rest',wizPdfNoteVal:'Assessment notes',
+    wizPdfMinCardio:'Min cardio',wizPdfMinForza:'Min strength',wizPdfWeek:'WEEK',
+    wizPdfNutGuide:'Nutrition guidelines',wizPdfNutFat:'Fat',wizPdfKcalGg:'kcal/day',
+    wizPdfFooterTitle:'PT Board · Base Assessment 20 min',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2261,6 +2275,13 @@ const LANGS={
     wizErrNomeCogn:'Entrer prénom et nom pour continuer.',
     wizErrIncomplete:'Données incomplètes — retour à l\'étape 1.',
     wizErrNoAlt:"Entrer hauteur et poids à l'étape 1",
+    // Wizard PDF export
+    wizPdfSubtitle:'Évaluation de base — 20 min',wizPdfDateLbl:'Date :',
+    wizPdfClinAna:'Profil & Clinique',wizPdfFuncTest:'Tests fonctionnels',
+    wizPdfNoteSts:'Notes ADS',wizPdfRpeRest:'RPE au repos',wizPdfNoteVal:"Notes d'évaluation",
+    wizPdfMinCardio:'Min cardio',wizPdfMinForza:'Min force',wizPdfWeek:'SEMAINE',
+    wizPdfNutGuide:'Recommandations nutritionnelles',wizPdfNutFat:'Graisses',wizPdfKcalGg:'kcal/jour',
+    wizPdfFooterTitle:'PT Board · Évaluation de base 20 min',
   }},
 };
 const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
@@ -5764,7 +5785,7 @@ function WizardValutazione({onSave,onClose,initialData}){
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Valutazione ${esc(d.nome)} ${esc(d.cognome)}</title>
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${T.valutazione} ${esc(d.nome)} ${esc(d.cognome)}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:13px}
 .pg{max-width:800px;margin:0 auto;padding:40px}.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #3b82f6;padding-bottom:16px;margin-bottom:22px}
 .brand{font-size:22px;font-weight:900;color:#3b82f6}small{display:block;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
@@ -5781,49 +5802,49 @@ function WizardValutazione({onSave,onClose,initialData}){
 .tip{background:#fffbeb;border-left:3px solid #f59e0b;padding:7px 10px;font-size:11px;color:#92400e;border-radius:0 5px 5px 0;margin-top:6px}
 footer{margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}</style></head>
-<body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">← Torna all'app</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">🖨️ Stampa / Salva PDF</button></div><div class="pg">
+<body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div><div class="pg">
 <div class="hdr">
-  <div><div class="brand">PT Board<small>Valutazione Base — 20 min</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">Data: ${fmtDate()}</div></div>
+  <div><div class="brand">PT Board<small>${T.wizPdfSubtitle}</small></div><div style="font-size:11px;color:#64748b;margin-top:8px">${T.wizPdfDateLbl} ${fmtDate()}</div></div>
   <div style="text-align:right"><div style="font-size:20px;font-weight:800">${esc(d.nome)} ${esc(d.cognome)}</div><div style="font-size:11px;color:#64748b">${esc(d.ddn)||''} · ${esc(d.sesso)}</div></div>
 </div>
 <div class="profilo ${pr.code}">
-  <div style="font-size:28px;font-weight:900;color:${pr.c};line-height:1">${pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</div>
+  <div style="font-size:28px;font-weight:900;color:${pr.c};line-height:1">${pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</div>
   <div style="font-size:16px;font-weight:700;margin-top:6px">${pr.l}</div>
   <div style="font-size:12px;color:#475569;margin-top:4px">${prog.desc}</div>
 </div>
 <div class="g3" style="margin-bottom:20px">
   <div class="kpi"><div class="kv">${bmiVal||'—'}</div><div class="kl">BMI · ${bmiLbl}</div></div>
-  <div class="kpi"><div class="kv">${d.peso||'—'} kg</div><div class="kl">Peso attuale</div></div>
-  <div class="kpi"><div class="kv">${pesoTarget||'—'} kg</div><div class="kl">Peso target</div></div>
+  <div class="kpi"><div class="kv">${d.peso||'—'} kg</div><div class="kl">${T.pdfActualWeight}</div></div>
+  <div class="kpi"><div class="kv">${pesoTarget||'—'} kg</div><div class="kl">${T.pdfTargetWeight}</div></div>
 </div>
 <div class="g2" style="margin-bottom:20px">
-<div class="sec"><div class="st">Anagrafica & Clinica</div>
-${[['Altezza',d.altezza?d.altezza+' cm':'—'],['Vita',d.vita?d.vita+' cm':'—'],['PA',d.pa||'—'],['FC riposo',d.fc?d.fc+' bpm':'—'],['FC max',fcMax?fcMax+' bpm':'—'],['FC target 75%',fcMax?Math.round(fcMax*.75)+' bpm':'—'],['Patologie',d.patologie||'—'],['Farmaci',d.farmaci||'—'],['Attività',d.attivita||'—'],['Obiettivo',d.obiettivo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${esc(k)}</span><span class="rv">${esc(v)}</span></div>`).join('')}
+<div class="sec"><div class="st">${T.wizPdfClinAna}</div>
+${[[T.pdfHeight,d.altezza?d.altezza+' cm':'—'],[T.pdfWaist,d.vita?d.vita+' cm':'—'],[T.pdfPA,d.pa||'—'],[T.pdfFCRest,d.fc?d.fc+' bpm':'—'],[T.pdfFCMax,fcMax?fcMax+' bpm':'—'],[T.pdfFCTarget75,fcMax?Math.round(fcMax*.75)+' bpm':'—'],[T.pdfPath,d.patologie||'—'],[T.pdfMeds,d.farmaci||'—'],[T.pdfActivity,d.attivita||'—'],[T.pdfGoal,d.obiettivo||'—']].map(([k,v])=>`<div class="row"><span class="rl">${esc(k)}</span><span class="rv">${esc(v)}</span></div>`).join('')}
 </div>
-<div class="sec"><div class="st">Test Funzionali</div>
-${[['6MWT — Distanza',d.mwtDist?d.mwtDist+' m':'—'],['6MWT — RPE',d.mwtRpe||'—'],['6MWT — Sintomi',d.mwtSintomi||'—'],['STS 30s — Rip.',d.stsRip||'—'],['Note STS',d.stsNote||'—'],['RPE a riposo',d.rpeRiposo||'—'],['Note valutazione',d.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="rl">${esc(k)}</span><span class="rv">${esc(v)}</span></div>`).join('')}
+<div class="sec"><div class="st">${T.wizPdfFuncTest}</div>
+${[[T.pdf6mwtDist,d.mwtDist?d.mwtDist+' m':'—'],[T.pdf6mwtRpe,d.mwtRpe||'—'],[T.pdf6mwtSymp,d.mwtSintomi||'—'],[T.pdfStsSec,d.stsRip||'—'],[T.wizPdfNoteSts,d.stsNote||'—'],[T.wizPdfRpeRest,d.rpeRiposo||'—'],[T.wizPdfNoteVal,d.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="rl">${esc(k)}</span><span class="rv">${esc(v)}</span></div>`).join('')}
 </div></div>
 <div class="sec"><div class="st">${prog.nome}</div>
 <div class="g3" style="margin-bottom:12px">
-  <div class="kpi"><div class="kv" style="font-size:18px">${prog.sedute}</div><div class="kl">Sedute/sett.</div></div>
-  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minCardio}'</div><div class="kl">Min cardio</div></div>
-  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minForza}'</div><div class="kl">Min forza</div></div>
+  <div class="kpi"><div class="kv" style="font-size:18px">${prog.sedute}</div><div class="kl">${T.pdfProgSessions}</div></div>
+  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minCardio}'</div><div class="kl">${T.wizPdfMinCardio}</div></div>
+  <div class="kpi"><div class="kv" style="font-size:18px">${prog.minForza}'</div><div class="kl">${T.wizPdfMinForza}</div></div>
 </div>
-${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">SETTIMANA ${w.num}</div>
-<div style="margin-bottom:3px"><strong style="color:#3b82f6">Cardio:</strong> ${esc(w.cardio)}</div>
-<div><strong style="color:#10b981">Forza:</strong> ${esc(w.forza)}</div>
+${prog.settimane.map(w=>`<div class="wk"><div class="wk-t">${T.wizPdfWeek} ${w.num}</div>
+<div style="margin-bottom:3px"><strong style="color:#3b82f6">${T.pdfCardio}:</strong> ${esc(w.cardio)}</div>
+<div><strong style="color:#10b981">${T.pdfForza}:</strong> ${esc(w.forza)}</div>
 <div class="tip">💡 ${esc(w.note)}</div></div>`).join('')}
 </div>
-${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="background:#fef3c720;border:1px solid #f59e0b40"><div class="st" style="color:#f59e0b">⚠️ Precauzioni cliniche</div>${prog.precauzioni.map(function(p2){return '<div style="font-size:11px;color:#334155;line-height:1.6;padding:3px 0">'+esc(p2)+'</div>';}).join('')}</div>`:''}
-<div class="sec"><div class="st">Linee guida nutrizionali</div>
+${prog.precauzioni&&prog.precauzioni.length>0?`<div class="sec" style="background:#fef3c720;border:1px solid #f59e0b40"><div class="st" style="color:#f59e0b">${T.wizPrecCliniche}</div>${prog.precauzioni.map(function(p2){return '<div style="font-size:11px;color:#334155;line-height:1.6;padding:3px 0">'+esc(p2)+'</div>';}).join('')}</div>`:''}
+<div class="sec"><div class="st">${T.wizPdfNutGuide}</div>
 <div class="g4">
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${nutri.kcal||'—'}</div><div class="kl">kcal/gg</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px">${nutri.proteine||'—'}g</div><div class="kl">Proteine</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${nutri.carboidrati||'—'}g</div><div class="kl">Carboidrati</div></div>
-  <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${nutri.grassi||'—'}g</div><div class="kl">Grassi</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#fb923c">${nutri.kcal||'—'}</div><div class="kl">${T.wizPdfKcalGg}</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px">${nutri.proteine||'—'}g</div><div class="kl">${T.pdfNutProt}</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#f59e0b">${nutri.carboidrati||'—'}g</div><div class="kl">${T.pdfNutCarb}</div></div>
+  <div class="kpi"><div class="kv" style="font-size:16px;color:#10b981">${nutri.grassi||'—'}g</div><div class="kl">${T.wizPdfNutFat}</div></div>
 </div></div>
 <div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:12px">${prog.riferimenti}</div>
-<footer><span>PT Board · Valutazione Base 20 min · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — ${pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span></footer>
+<footer><span>${T.wizPdfFooterTitle} · ${fmtDate()}</span><span>${esc(d.nome)} ${esc(d.cognome)} — ${pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</span></footer>
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');w.document.write(html);w.document.close();
   };
