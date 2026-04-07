@@ -7230,7 +7230,7 @@ function EmailVerifyScreen({user}){
 }
 
 function AuthScreen({onProfileReady}){
-  const [mode,setMode]=useState('login');
+  const [mode,setMode]=useState(function(){try{return new URLSearchParams(window.location.search).get('action')==='register'?'register':'login';}catch(e){return 'login';}});
   const [email,setEmail]=useState('');
   const [pw,setPw]=useState('');
   const [pw2,setPw2]=useState('');
