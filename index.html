@@ -3550,7 +3550,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const b=bmi(p.peso,p.altezza);
   const {l:bl,c:bc}=bmiCat(b);
   const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
-  const fcMax=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
+  const fcMax=p.annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-p.annoNascita))):null;
 
   const upd=(fn)=>onUpdate({...p,...fn(p)});
   const exportSchedaPDF=(scheda)=>{
@@ -3647,7 +3647,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
     const b2=bmi(p.peso,p.altezza);
     const {l:bl2}=bmiCat(b2);
-    const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
+    const fcM=p.annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-p.annoNascita))):null;
     const pesoTarget=p.altezza?(24.9*(p.altezza/100)**2).toFixed(1):null;
     var nomeStudio=trainerProfile&&trainerProfile.nomeStudio?trainerProfile.nomeStudio:'PT Board';
     var brandHtml=trainerProfile&&trainerProfile.logo
@@ -6180,7 +6180,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const bmiVal=d.peso&&d.altezza?bmi(+d.peso,+d.altezza):null;
   const {l:bmiLbl,c:bmiClr}=bmiVal?bmiCat(bmiVal):{l:'—',c:C.muted};
   const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
-  const fcMax=annoNascita?220-(new Date().getFullYear()-annoNascita):null;
+  const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
   const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana}):null;
