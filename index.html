@@ -529,6 +529,11 @@ const LANGS={
     trialDays:'giorni rimasti',seePlans:'💎 Vedi piani',proPlan:'✅ Piano Pro attivo',
     valutazione:'Valutazione 20 min',tutorial:'Tutorial',recent:'Recenti',
     saved:'✓ Salvato',welcome:'Benvenuto in PT Board!',
+    onbWelcome:'Ciao',onbCreateClientMsg:'Crea il tuo primo cliente per iniziare',onbCreateClientBtn:'Crea il tuo primo cliente',
+    onbEvaluateMsg:'Ottimo! Ora valuta',onbEvaluateBtn:'Valuta',
+    onbGenerateMsg:'Perfetto! Genera il programma per',onbGenerateBtn:'Genera programma',
+    onbExportMsg:'Ultimo step! Esporta il PDF per',onbExportBtn:'Esporta PDF',
+    onbStep:'Step',onbOf:'di',
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
@@ -1166,6 +1171,11 @@ const LANGS={
     trialDays:'days left',seePlans:'💎 See plans',proPlan:'✅ Pro Plan active',
     valutazione:'20 min Assessment',tutorial:'Tutorial',recent:'Recent',
     saved:'✓ Saved',welcome:'Welcome to PT Board!',
+    onbWelcome:'Hi',onbCreateClientMsg:'Create your first client to get started',onbCreateClientBtn:'Create your first client',
+    onbEvaluateMsg:'Great! Now assess',onbEvaluateBtn:'Assess',
+    onbGenerateMsg:'Perfect! Generate the program for',onbGenerateBtn:'Generate program',
+    onbExportMsg:'Last step! Export the PDF for',onbExportBtn:'Export PDF',
+    onbStep:'Step',onbOf:'of',
     noResult:'No patients found',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
@@ -1803,6 +1813,11 @@ const LANGS={
     trialDays:'jours restants',seePlans:'💎 Voir les plans',proPlan:'✅ Plan Pro actif',
     valutazione:'Évaluation 20 min',tutorial:'Tutoriel',recent:'Récents',
     saved:'✓ Enregistré',welcome:'Bienvenue sur PT Board !',
+    onbWelcome:'Salut',onbCreateClientMsg:'Cr\u00e9ez votre premier client pour commencer',onbCreateClientBtn:'Cr\u00e9er votre premier client',
+    onbEvaluateMsg:'Super ! Maintenant \u00e9valuez',onbEvaluateBtn:'\u00c9valuer',
+    onbGenerateMsg:'Parfait ! G\u00e9n\u00e9rez le programme pour',onbGenerateBtn:'G\u00e9n\u00e9rer le programme',
+    onbExportMsg:'Derni\u00e8re \u00e9tape ! Exportez le PDF pour',onbExportBtn:'Exporter PDF',
+    onbStep:'\u00c9tape',onbOf:'sur',
     noResult:'Aucun patient trouvé',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
@@ -3186,7 +3201,7 @@ function BarChartComp({data,color=C.blue}){
   return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
 }
 
-function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
+function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep,onCreateClient,onStartWizard,onOpenPatient}){
   const [metricsOpen,setMetricsOpen]=useState(false);
   const today=fmtDate();
   const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
@@ -3195,8 +3210,52 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
   var nextApptLabel='Prossima seduta';
   var nextApptVal=nextAppt?nextAppt.ora:'--:--';
   var nextApptSub=nextAppt?(function(){var pp=patients.find(function(x){return x.id===nextAppt.patientId});return pp?(pp.nome+' '+pp.cognome):'';})():'Nessuna oggi';
+  // Onboarding banner state
+  var showOnboarding=typeof onboardingStep==='number'&&onboardingStep<4;
+  var onbIcon='',onbMsg='',onbBtn='',onbAction=null;
+  if(showOnboarding){
+    var tpName=trainerProfile&&(trainerProfile.nome||trainerProfile.displayName)||'';
+    if(onboardingStep===0){
+      onbIcon='👤';
+      onbMsg=T.onbWelcome+(tpName?' '+tpName:'')+'! '+T.onbCreateClientMsg;
+      onbBtn=T.onbCreateClientBtn+' →';
+      onbAction=function(){if(onCreateClient)onCreateClient();else if(onNavigate)onNavigate('patients');};
+    }else if(onboardingStep===1){
+      var pNoEval=patients.find(function(p){return !(p&&p.test&&(p.test.mwtDist||p.test.stsRip));});
+      var nmEval=pNoEval?(pNoEval.nome+' '+pNoEval.cognome).trim():'';
+      onbIcon='📋';
+      onbMsg=T.onbEvaluateMsg+(nmEval?' '+nmEval:'');
+      onbBtn=T.onbEvaluateBtn+(nmEval?' '+nmEval:'')+' →';
+      onbAction=function(){if(onStartWizard)onStartWizard();};
+    }else if(onboardingStep===2){
+      var pNoProg=patients.find(function(p){return p&&p.test&&(p.test.mwtDist||p.test.stsRip)&&!(p.programma&&p.programma.sedute);});
+      var nmProg=pNoProg?(pNoProg.nome+' '+pNoProg.cognome).trim():'';
+      onbIcon='🏆';
+      onbMsg=T.onbGenerateMsg+(nmProg?' '+nmProg:'');
+      onbBtn=T.onbGenerateBtn+' →';
+      onbAction=function(){if(onOpenPatient&&pNoProg)onOpenPatient(pNoProg.id);};
+    }else if(onboardingStep===3){
+      var pWithProg=patients.find(function(p){return p&&p.programma&&p.programma.sedute;});
+      var nmPdf=pWithProg?(pWithProg.nome+' '+pWithProg.cognome).trim():'';
+      onbIcon='📄';
+      onbMsg=T.onbExportMsg+(nmPdf?' '+nmPdf:'');
+      onbBtn=T.onbExportBtn+' →';
+      onbAction=function(){if(onOpenPatient&&pWithProg)onOpenPatient(pWithProg.id);};
+    }
+  }
   return(
     <div style={{animation:'fadeInUp .3s ease'}}>
+      {showOnboarding&&<div style={{background:'linear-gradient(135deg,rgba(59,130,246,.10),rgba(139,92,246,.08))',border:'1px solid rgba(59,130,246,.2)',borderRadius:16,padding:isMobile?24:32,textAlign:'center',marginBottom:16}}>
+        <div style={{fontSize:isMobile?44:56,lineHeight:1,marginBottom:12}}>{onbIcon}</div>
+        <div style={{fontSize:isMobile?16:20,fontWeight:800,color:C.strong,marginBottom:18,lineHeight:1.35}}>{onbMsg}</div>
+        <button onClick={onbAction} style={{background:C.blue,color:'#fff',border:'none',borderRadius:12,padding:isMobile?'12px 22px':'14px 28px',fontSize:isMobile?14:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 8px 24px rgba(59,130,246,.35)'}}>{onbBtn}</button>
+        <div style={{marginTop:18,display:'flex',alignItems:'center',justifyContent:'center',gap:10,fontSize:11,color:C.muted}}>
+          <span>{T.onbStep} {onboardingStep+1} {T.onbOf} 4</span>
+          <div style={{display:'flex',gap:5}}>
+            {[0,1,2,3].map(function(i){return <div key={i} style={{width:8,height:8,borderRadius:'50%',background:i<=onboardingStep?C.blue:(C.border2||'#374151')}}/>;})}
+          </div>
+        </div>
+      </div>}
       <div style={{marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <div>
           <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{(function(){var h=new Date().getHours();var g=h>=5&&h<12?'Buongiorno':h>=12&&h<18?'Buon pomeriggio':'Buonasera';var n=trainerProfile?.nome||trainerProfile?.displayName||'';return n?g+', '+n+'!':'Dashboard';})()}</h1>
@@ -5340,7 +5399,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               </div>
             </div>
           )}
-          {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile}/>}
+          {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile} onboardingStep={onboardingStep} onCreateClient={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form');}} onStartWizard={()=>{setShowValutazione(true);}} onOpenPatient={(id)=>{setSelectedId(id);setPage('detail');}}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
           {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
