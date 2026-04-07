@@ -3623,136 +3623,166 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const {l:bl2}=bmiCat(b2);
     const fcM=p.annoNascita?220-(new Date().getFullYear()-p.annoNascita):null;
     const pesoTarget=p.altezza?(24.9*(p.altezza/100)**2).toFixed(1):null;
+    var nomeStudio=trainerProfile&&trainerProfile.nomeStudio?trainerProfile.nomeStudio:'PT Board';
+    var brandHtml=trainerProfile&&trainerProfile.logo
+      ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+T.pdfPatientSheet+'</div></div></div>'
+      :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+T.pdfPatientSheet+'</div></div>';
+    var profCode=pr2?pr2.code:'';
+    var profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C'?'#10b981':'#64748b';
+    var profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
+    var profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C'?T.profileGoodShort:'';
+    var renderRows=function(rows){return rows.map(function(kv,i){var k=kv[0],v=kv[1];var bg=i%2===0?'#f8fafc':'#ffffff';return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:'+bg+';border-radius:6px;margin-bottom:3px;gap:10px"><span style="color:#64748b;font-size:11px">'+esc(k)+'</span><span style="font-weight:700;font-size:12px;color:#0f172a;text-align:right">'+(esc(v)||'—')+'</span></div>';}).join('');};
+    var anaRows=[[T.pdfBirthDate,p.ddn],[T.pdfGender,p.sesso],[T.pdfHeight,p.altezza?p.altezza+' cm':'—'],[T.pdfWaist,p.vita?p.vita+' cm':'—'],[T.pdfHips,p.fianchi?p.fianchi+' cm':'—']];
+    var clinRows=[[T.pdfPA,p.pa],[T.pdfFCRest,p.fc?p.fc+' bpm':'—'],[T.pdfFCMax,fcM?fcM+' bpm':'—'],[T.pdfFCTarget60,fcM?Math.round(fcM*0.6)+' bpm':'—'],[T.pdfFCTarget75,fcM?Math.round(fcM*0.75)+' bpm':'—'],[T.pdfPath,p.patologie],[T.pdfMeds,p.farmaci]];
+    var testRows=[[T.pdf6mwtDist,p.test?.mwtDist?p.test.mwtDist+' m':'—'],[T.pdf6mwtRpe,p.test?.mwtRpe||'—'],[T.pdf6mwtSymp,p.test?.mwtSintomi||'—'],[T.pdfStsSec,p.test?.stsRip||'—'],[T.pdfNotes,p.test?.noteVal||'—']];
+    var lifeRows=[[T.pdfActivity,p.attivita],[T.pdfGoal,p.obiettivo],[T.pdfStress,p.stressPercepito],[T.pdfSleep,p.sonno?p.sonno+' ore':'—'],[T.pdfPref,p.preferenze]];
+    var weekBadges=[T.weekAdapt||'Adattamento',T.weekProgress||'Progressione',T.weekPeak||'Carico',T.weekDeload||'Consolidamento'];
+    var weekColors=['#3b82f6','#06b6d4','#8b5cf6','#10b981'];
+    var weeksHtml=p.programma&&p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w,i){
+      var col=weekColors[i%4];
+      var badge=weekBadges[i%4];
+      return '<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid '+col+';border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap"><div style="font-size:22px;font-weight:900;color:'+col+';line-height:1">'+(T.lblWeek||'Settimana')+' '+w.num+'</div><div style="background:'+col+'18;color:'+col+';font-size:9px;font-weight:800;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.8px">'+esc(badge)+'</div></div>'+(w.cardio?'<div style="margin-bottom:6px;font-size:12px;line-height:1.5"><strong style="color:#3b82f6;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfCardio+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.cardio)+'</div></div>':'')+(w.forza?'<div style="margin-bottom:8px;font-size:12px;line-height:1.5"><strong style="color:#10b981;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfForza+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.forza)+'</div></div>':'')+(w.note?'<div style="background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;font-size:11px;color:#92400e;border-radius:0 6px 6px 0">💡 '+esc(w.note)+'</div>':'')+'</div>';
+    }).join(''):(
+      (p.programma&&p.programma.cardio?'<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid #3b82f6;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:9px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+T.pdfCardio+'</div><div style="font-size:12px;color:#0f172a;line-height:1.5">'+esc(p.programma.cardio)+'</div></div>':'')+
+      (p.programma&&p.programma.forza?'<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid #10b981;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:9px;font-weight:800;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+T.pdfForza+'</div><div style="font-size:12px;color:#0f172a;line-height:1.5">'+esc(p.programma.forza)+'</div></div>':'')
+    );
+    var progKpiRows=p.programma?[[T.pdfProgStart,p.programma.dataInizio],[T.pdfProgSessions,p.programma.sedute],[T.pdfProgCardioMin,p.programma.minCardio?p.programma.minCardio+' min':'—'],[T.pdfProgForzaMin,p.programma.minForza?p.programma.minForza+' min':'—'],['RPE target',p.programma.rpeRange||'—'],['Zona FC',p.programma.zonaFC||'—']]:[];
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Report – ${esc(p.nome)} ${esc(p.cognome)}</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff;font-size:13px}
-  .page{max-width:800px;margin:0 auto;padding:40px}
-  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #3b82f6;padding-bottom:20px;margin-bottom:28px}
-  .brand{font-size:22px;font-weight:900;color:#3b82f6;letter-spacing:-0.5px}
-  .brand small{display:block;font-size:10px;font-weight:500;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-  .patient-name{font-size:20px;font-weight:800;color:#1e293b}
-  .patient-meta{font-size:11px;color:#64748b;margin-top:4px}
-  .section{margin-bottom:24px}
-  .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#3b82f6;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #e2e8f0}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-  .row{display:flex;justify-content:space-between;padding:6px 10px;background:#f8fafc;border-radius:6px}
-  .row-label{color:#64748b;font-size:12px}
-  .row-value{font-weight:600;color:#1e293b;font-size:12px}
-  .kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;text-align:center}
-  .kpi-val{font-size:22px;font-weight:900;color:#3b82f6}
-  .kpi-lbl{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
-  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-  .badge-a{background:#fee2e2;color:#ef4444}
-  .badge-b{background:#fef3c7;color:#f59e0b}
-  .badge-c{background:#d1fae5;color:#10b981}
-  .log-item{display:flex;gap:10px;padding:7px 10px;border-bottom:1px solid #f1f5f9;align-items:center}
-  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .note-box{background:#f8fafc;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;color:#475569;line-height:1.6;white-space:pre-wrap}
-  .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}}
-  .no-print{text-align:center;padding:16px;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#0f172a;font-size:13px;background:#ffffff;-webkit-font-smoothing:antialiased}
+.pg{max-width:820px;margin:0 auto;padding:40px 44px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;margin-bottom:6px;gap:20px}
+.hdr-line{height:3px;background:linear-gradient(90deg,#3b82f6,#06b6d4,#10b981);border-radius:2px;margin-bottom:24px}
+.client-name{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-.4px;line-height:1.1}
+.client-meta{font-size:11px;color:#64748b;margin-top:6px;line-height:1.6}
+.prof-badge{display:inline-block;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-top:8px}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.kpi{background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.kpi.bmi{border-left:4px solid #3b82f6;background:linear-gradient(135deg,#eff6ff,#ffffff)}
+.kpi.peso{border-left:4px solid #10b981;background:linear-gradient(135deg,#f0fdf4,#ffffff)}
+.kpi.target{border-left:4px solid #8b5cf6;background:linear-gradient(135deg,#faf5ff,#ffffff)}
+.kpi-val{font-size:24px;font-weight:900;color:#0f172a;line-height:1}
+.kpi-lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;font-weight:600}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sec{margin-bottom:22px}
+.sec-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.8px;padding-bottom:8px;margin-bottom:10px;border-bottom:2px solid #e2e8f0}
+.sec-title .ico{font-size:16px}
+.prog-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.prog-kpi .kpi-val{font-size:18px;color:#3b82f6}
+.nut-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.nut-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.nut-card .ico{font-size:20px;display:block;margin-bottom:4px}
+.nut-card .val{font-size:20px;font-weight:900;line-height:1}
+.nut-card .lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-top:4px}
+.nut-kcal{border-left:4px solid #f97316;background:linear-gradient(180deg,#fff7ed,#ffffff)} .nut-kcal .val{color:#f97316}
+.nut-prot{border-left:4px solid #3b82f6;background:linear-gradient(180deg,#eff6ff,#ffffff)} .nut-prot .val{color:#3b82f6}
+.nut-carb{border-left:4px solid #f59e0b;background:linear-gradient(180deg,#fffbeb,#ffffff)} .nut-carb .val{color:#f59e0b}
+.nut-fat{border-left:4px solid #10b981;background:linear-gradient(180deg,#f0fdf4,#ffffff)} .nut-fat .val{color:#10b981}
+.nut-note{background:#f8fafc;border-left:3px solid #3b82f6;padding:10px 14px;border-radius:0 6px 6px 0;font-size:11px;color:#475569;line-height:1.6;margin-top:10px;white-space:pre-wrap}
+.log-item{display:flex;align-items:center;gap:12px;padding:9px 12px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.log-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px #ffffff,0 0 0 3px currentColor}
+.log-info{flex:1;min-width:0;font-size:12px}
+.log-info b{color:#0f172a;font-weight:700}
+.log-info .meta{color:#64748b;font-size:11px}
+.log-note{font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px}
+.weight-row{display:flex;gap:8px;flex-wrap:wrap}
+.weight-card{background:#ffffff;border:1px solid #e2e8f0;border-left:4px solid #06b6d4;border-radius:8px;padding:10px 14px;min-width:90px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.weight-val{font-size:18px;font-weight:900;color:#06b6d4;line-height:1}
+.weight-date{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-top:4px;font-weight:600}
+.footer-line{height:2px;background:linear-gradient(90deg,#3b82f6,#06b6d4,#10b981);border-radius:1px;margin:28px 0 12px}
+footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}
+footer .center{flex:1;text-align:center;color:#64748b}
+footer .center b{color:#3b82f6;font-weight:700}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:24px 28px}@page{margin:14mm 10mm}}
 </style></head><body>
 <div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div>
-<div class="page">
+<div class="pg">
 
-<div class="header">
-  <div>
-    ${trainerProfile?.logo?`<img src="${trainerProfile.logo}" alt="logo" style="max-height:50px;max-width:160px;object-fit:contain;display:block;margin-bottom:${trainerProfile?.nomeStudio?4:8}px"/>${trainerProfile?.nomeStudio?`<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${esc(trainerProfile.nomeStudio)}</div>`:''}`:`<div class="brand">PT Board <small></small></div>`}
-    <div style="font-size:11px;color:#64748b;margin-top:8px">${T.pdfPatientSheet} · ${fmtDate()}</div>
-  </div>
-  <div style="text-align:right">
-    <div class="patient-name">${esc(p.nome)} ${esc(p.cognome)}</div>
-    <div class="patient-meta">${esc(p.id)} · ${T.assessmentNum}: ${esc(p.dataValutazione)||'—'}</div>
-    ${pr2?`<span class="badge badge-${pr2.code.toLowerCase()}">${pr2.code==='A'?T.profileLowShort:pr2.code==='B'?T.profileMedShort:T.profileGoodShort}</span>`:''}
-  </div>
-</div>
-
-<div class="grid3" style="margin-bottom:28px">
-  <div class="kpi"><div class="kpi-val">${b2||'—'}</div><div class="kpi-lbl">BMI · ${bl2}</div></div>
-  <div class="kpi"><div class="kpi-val">${p.peso||'—'} kg</div><div class="kpi-lbl">${T.pdfActualWeight}</div></div>
-  <div class="kpi"><div class="kpi-val">${pesoTarget||'—'} kg</div><div class="kpi-lbl">${T.pdfTargetWeight}</div></div>
-</div>
-
-<div class="grid">
-<div>
-<div class="section">
-  <div class="section-title">${T.secAna}</div>
-  ${[[T.pdfBirthDate,p.ddn],[T.pdfGender,p.sesso],[T.pdfHeight,p.altezza?p.altezza+' cm':'—'],[T.pdfWaist,p.vita?p.vita+' cm':'—'],[T.pdfHips,p.fianchi?p.fianchi+' cm':'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
-</div>
-<div class="section">
-  <div class="section-title">${T.secClin}</div>
-  ${[[T.pdfPA,p.pa],[T.pdfFCRest,p.fc?p.fc+' bpm':'—'],[T.pdfFCMax,fcM?fcM+' bpm':'—'],[T.pdfFCTarget60,fcM?Math.round(fcM*0.6)+' bpm':'—'],[T.pdfFCTarget75,fcM?Math.round(fcM*0.75)+' bpm':'—'],[T.pdfPath,p.patologie],[T.pdfMeds,p.farmaci]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
-</div>
-</div>
-<div>
-<div class="section">
-  <div class="section-title">${T.secTest}</div>
-  ${[[T.pdf6mwtDist,p.test?.mwtDist?p.test.mwtDist+' m':'—'],[T.pdf6mwtRpe,p.test?.mwtRpe||'—'],[T.pdf6mwtSymp,p.test?.mwtSintomi||'—'],[T.pdfStsSec,p.test?.stsRip||'—'],[T.pdfNotes,p.test?.noteVal||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)}</span></div>`).join('')}
-</div>
-<div class="section">
-  <div class="section-title">${T.secLife}</div>
-  ${[[T.pdfActivity,p.attivita],[T.pdfGoal,p.obiettivo],[T.pdfStress,p.stressPercepito],[T.pdfSleep,p.sonno?p.sonno+' ore':'—'],[T.pdfPref,p.preferenze]].map(([k,v])=>`<div class="row"><span class="row-label">${esc(k)}</span><span class="row-value">${esc(v)||'—'}</span></div>`).join('')}
-</div>
-</div>
-</div>
-
-${p.programma?.cardio||p.programma?.forza?`
-<div class="section">
-  <div class="section-title">${T.secProg}</div>
-  <div class="grid">
-    <div>
-      ${[[T.pdfProgStart,p.programma.dataInizio],[T.pdfProgSessions,p.programma.sedute],[T.pdfProgCardioMin,p.programma.minCardio?p.programma.minCardio+" min":'—'],[T.pdfProgForzaMin,p.programma.minForza?p.programma.minForza+" min":'—'],['RPE target',p.programma.rpeRange||'—'],['Zona FC',p.programma.zonaFC||'—']].map(([k,v])=>`<div class="row"><span class="row-label">${k}</span><span class="row-value">${v||'—'}</span></div>`).join('')}
-    </div>
-    <div>
-      ${p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w){var wLabels={1:T.weekAdapt,2:T.weekProgress,3:T.weekPeak,4:T.weekDeload};return '<div style="margin-bottom:10px;padding:8px;background:#f8fafc;border-radius:6px;border-left:3px solid #3b82f6"><div style="font-size:10px;font-weight:700;color:#0f172a;margin-bottom:4px">'+T.lblWeek+' '+w.num+' — '+(wLabels[w.num]||'')+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#3b82f6">'+T.pdfCardio+':</strong> '+esc(w.cardio)+'</div><div style="font-size:9px;color:#334155;line-height:1.5"><strong style="color:#10b981">'+T.pdfForza+':</strong> '+esc(w.forza)+'</div><div style="font-size:9px;color:#64748b;font-style:italic;line-height:1.5">'+esc(w.note)+'</div></div>';}).join(''):(
-        (p.programma.cardio?'<div style="margin-bottom:8px"><div style="font-size:10px;color:#3b82f6;font-weight:700;text-transform:uppercase;margin-bottom:4px">'+T.pdfCardio+'</div><div class="note-box">'+esc(p.programma.cardio)+'</div></div>':'')+
-        (p.programma.forza?'<div><div style="font-size:10px;color:#10b981;font-weight:700;text-transform:uppercase;margin-bottom:4px">'+T.pdfForza+'</div><div class="note-box" style="border-color:#10b981">'+esc(p.programma.forza)+'</div></div>':'')
-      )}
+  <div class="hdr">
+    ${brandHtml}
+    <div style="text-align:right">
+      <div class="client-name">${esc(p.nome)} ${esc(p.cognome)}</div>
+      <div class="client-meta">${esc(p.id)} &middot; ${T.assessmentNum}: ${esc(p.dataValutazione)||'—'}</div>
+      ${pr2?`<div class="prof-badge" style="background:${profGrad};color:${profBorder};border:1px solid ${profBorder}">${profLbl}${pr2.score?' &middot; '+pr2.score+'/100':''}</div>`:''}
     </div>
   </div>
-</div>`:''}
+  <div class="hdr-line"></div>
 
-${p.nutrizione?.kcal?`
-<div class="section">
-  <div class="section-title">${T.pdfNutSection}</div>
-  <div class="grid3" style="margin-bottom:10px">
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.kcal)}</div><div class="kpi-lbl">${T.pdfNutKcal}</div></div>
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.proteine)||0}g</div><div class="kpi-lbl">${T.pdfNutProt}</div></div>
-    <div class="kpi"><div class="kpi-val" style="font-size:16px">${esc(p.nutrizione.carboidrati)||0}g</div><div class="kpi-lbl">${T.pdfNutCarb}</div></div>
+  <div class="kpi-row">
+    <div class="kpi bmi"><div class="kpi-val">${b2||'—'}</div><div class="kpi-lbl">BMI &middot; ${bl2}</div></div>
+    <div class="kpi peso"><div class="kpi-val">${p.peso||'—'} kg</div><div class="kpi-lbl">${T.pdfActualWeight}</div></div>
+    <div class="kpi target"><div class="kpi-val">${pesoTarget||'—'} kg</div><div class="kpi-lbl">${T.pdfTargetWeight}</div></div>
   </div>
-  ${p.nutrizione.note?`<div class="note-box">${esc(p.nutrizione.note)}</div>`:''}
-</div>`:''}
 
-${(p.log||[]).length>0?`
-<div class="section">
-  <div class="section-title">${T.pdfLastSessions} (${Math.min(p.log.length,10)})</div>
-  ${(p.log||[]).slice().reverse().slice(0,10).map(s=>`
-  <div class="log-item">
-    <div class="dot" style="background:${s.rpe<=3?'#10b981':s.rpe<=6?'#f59e0b':s.rpe<=8?'#fb923c':'#ef4444'}"></div>
-    <div style="flex:1"><span style="font-weight:600">${esc(s.tipo)}</span> <span style="color:#64748b">· ${esc(s.data)} · ${esc(s.durata)} min · RPE ${esc(s.rpe)}</span></div>
-    ${s.note?`<div style="font-size:11px;color:#64748b">${esc(s.note)}</div>`:''}
-  </div>`).join('')}
-</div>`:''}
-
-${(p.progressi||[]).length>1?`
-<div class="section">
-  <div class="section-title">${T.pdfWeightHistory}</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    ${p.progressi.map(x=>`<div class="kpi" style="min-width:90px"><div class="kpi-val" style="font-size:15px">${x.peso} kg</div><div class="kpi-lbl">${x.data}</div></div>`).join('')}
+  <div class="g2" style="margin-bottom:24px">
+    <div class="sec" style="margin-bottom:0">
+      <div class="sec-title"><span class="ico">👤</span>${T.secAna}</div>
+      ${renderRows(anaRows)}
+    </div>
+    <div class="sec" style="margin-bottom:0">
+      <div class="sec-title"><span class="ico">🫀</span>${T.secClin}</div>
+      ${renderRows(clinRows)}
+    </div>
   </div>
-</div>`:''}
 
-<div class="footer">
-  <span>${trainerProfile?.nomeStudio?esc(trainerProfile.nomeStudio):'PT Board'} · ${T.pdfGenerated} ${fmtDate()}</span>
-  <span>${esc(p.nome)} ${esc(p.cognome)} · ${esc(p.id)}</span>
-</div>
+  <div class="g2" style="margin-bottom:24px">
+    <div class="sec" style="margin-bottom:0">
+      <div class="sec-title"><span class="ico">🏃</span>${T.secTest}</div>
+      ${renderRows(testRows)}
+    </div>
+    <div class="sec" style="margin-bottom:0">
+      <div class="sec-title"><span class="ico">🎯</span>${T.secLife}</div>
+      ${renderRows(lifeRows)}
+    </div>
+  </div>
+
+  ${p.programma?.cardio||p.programma?.forza||(p.programma?.settimane&&p.programma.settimane.length>0)?`
+  <div class="sec">
+    <div class="sec-title"><span class="ico">💪</span>${T.secProg}</div>
+    ${progKpiRows.length>0?`<div class="prog-kpi">
+      ${progKpiRows.slice(0,3).map(function(kv){return '<div class="kpi" style="text-align:center"><div class="kpi-val">'+esc(kv[1])+'</div><div class="kpi-lbl">'+esc(kv[0])+'</div></div>';}).join('')}
+    </div>`:''}
+    ${weeksHtml}
+  </div>`:''}
+
+  ${p.nutrizione?.kcal?`
+  <div class="sec">
+    <div class="sec-title"><span class="ico">🥗</span>${T.pdfNutSection}</div>
+    <div class="nut-row">
+      <div class="nut-card nut-kcal"><span class="ico">🔥</span><div class="val">${esc(p.nutrizione.kcal)}</div><div class="lbl">${T.pdfNutKcal}</div></div>
+      <div class="nut-card nut-prot"><span class="ico">🥩</span><div class="val">${esc(p.nutrizione.proteine)||0}g</div><div class="lbl">${T.pdfNutProt}</div></div>
+      <div class="nut-card nut-carb"><span class="ico">🍞</span><div class="val">${esc(p.nutrizione.carboidrati)||0}g</div><div class="lbl">${T.pdfNutCarb}</div></div>
+      <div class="nut-card nut-fat"><span class="ico">🥑</span><div class="val">${esc(p.nutrizione.grassi)||0}g</div><div class="lbl">${T.wizPdfNutFat||'Grassi'}</div></div>
+    </div>
+    ${p.nutrizione.note?`<div class="nut-note">${esc(p.nutrizione.note)}</div>`:''}
+  </div>`:''}
+
+  ${(p.log||[]).length>0?`
+  <div class="sec">
+    <div class="sec-title"><span class="ico">📋</span>${T.pdfLastSessions} (${Math.min(p.log.length,10)})</div>
+    ${(p.log||[]).slice().reverse().slice(0,10).map(function(s){var rpeColor=s.rpe<=3?'#10b981':s.rpe<=6?'#f59e0b':s.rpe<=8?'#fb923c':'#ef4444';return '<div class="log-item"><span class="log-dot" style="background:'+rpeColor+';color:'+rpeColor+'"></span><div class="log-info"><b>'+esc(s.tipo)+'</b> <span class="meta">&middot; '+esc(s.data)+' &middot; '+esc(s.durata)+' min &middot; RPE '+esc(s.rpe)+'</span>'+(s.note?'<div class="log-note">'+esc(s.note)+'</div>':'')+'</div></div>';}).join('')}
+  </div>`:''}
+
+  ${(p.progressi||[]).length>1?`
+  <div class="sec">
+    <div class="sec-title"><span class="ico">📊</span>${T.pdfWeightHistory}</div>
+    <div class="weight-row">
+      ${p.progressi.map(function(x){return '<div class="weight-card"><div class="weight-val">'+x.peso+' kg</div><div class="weight-date">'+esc(x.data)+'</div></div>';}).join('')}
+    </div>
+  </div>`:''}
+
+  <div class="footer-line"></div>
+  <footer>
+    <span>${esc(nomeStudio)}</span>
+    <span class="center">${T.pdfGenerated||'Report'} <b>PT Board</b> &middot; personaltrainerboard.com</span>
+    <span>${fmtDate()}</span>
+  </footer>
+
 </div>${'</body></html>'}`;
     const w=window.open('','_blank');
     w.document.write(html);
     w.document.close();
-    // Non auto-stampa — l'utente clicca il bottone manualmente (evita il blocco su iPhone)
   };
 
   return(
