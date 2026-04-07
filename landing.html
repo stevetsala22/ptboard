@@ -96,6 +96,10 @@ a{color:var(--blue);text-decoration:none}
 .navbar-links a:hover{color:var(--strong)}
 .navbar-cta{display:flex;gap:12px;align-items:center}
 .mobile-menu-btn{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:8px}
+.lang-switcher{display:flex;gap:2px;margin-right:6px}
+.lang-flag{background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;border-radius:6px;opacity:.45;transition:all .2s;line-height:1}
+.lang-flag:hover{opacity:.85}
+.lang-flag.active{opacity:1;background:rgba(59,130,246,.12)}
 
 /* ── HERO ── */
 .hero{position:relative;padding:160px 0 120px;overflow:hidden;min-height:100vh;display:flex;align-items:center}
@@ -349,14 +353,19 @@ a{color:var(--blue);text-decoration:none}
   <div class="container">
     <div class="navbar-logo"><span>PT</span> Board</div>
     <div class="navbar-links">
-      <a href="#features">Funzionalita</a>
-      <a href="#wizard">Valutazione</a>
-      <a href="#pricing">Prezzi</a>
-      <a href="#faq">FAQ</a>
+      <a href="#features" data-i18n="nav.features">Funzionalita</a>
+      <a href="#wizard" data-i18n="nav.wizard">Valutazione</a>
+      <a href="#pricing" data-i18n="nav.pricing">Prezzi</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
     </div>
     <div class="navbar-cta">
-      <a href="/" class="btn btn-ghost btn-sm" onclick="sessionStorage.setItem('entered','1')">Accedi</a>
-      <a href="/" class="btn btn-primary btn-sm" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Prova gratis</a>
+      <div class="lang-switcher">
+        <button class="lang-flag" data-lang="it" onclick="setLang('it')" aria-label="Italiano">&#127470;&#127481;</button>
+        <button class="lang-flag" data-lang="en" onclick="setLang('en')" aria-label="English">&#127468;&#127463;</button>
+        <button class="lang-flag" data-lang="fr" onclick="setLang('fr')" aria-label="Français">&#127467;&#127479;</button>
+      </div>
+      <a href="/" class="btn btn-ghost btn-sm" data-i18n="nav.login" onclick="sessionStorage.setItem('entered','1')">Accedi</a>
+      <a href="/?action=register" class="btn btn-primary btn-sm" data-i18n="nav.cta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Prova gratis</a>
     </div>
     <button class="mobile-menu-btn" onclick="document.querySelector('.navbar-links').style.display=document.querySelector('.navbar-links').style.display==='flex'?'none':'flex'" aria-label="Menu">&#9776;</button>
   </div>
@@ -367,15 +376,15 @@ a{color:var(--blue);text-decoration:none}
   <div class="container">
     <div class="hero-grid">
       <div class="hero-content">
-        <div class="badge hero-badge">&#9889; Il software per Personal Trainer — Made in Italy</div>
-        <h1 class="hero-title">Valuta i tuoi clienti<br/>in <span class="text-gradient">20 minuti.</span><br/>Non in 2 ore.</h1>
-        <p class="hero-desc">Il software all-in-one che trasforma la tua valutazione funzionale in un programma personalizzato di 4 settimane. Automaticamente.</p>
+        <div class="badge hero-badge" data-i18n="hero.badge">&#9889; Il software per Personal Trainer — Made in Italy</div>
+        <h1 class="hero-title" data-i18n="hero.title">Valuta i tuoi clienti<br/>in <span class="text-gradient">20 minuti.</span><br/>Non in 2 ore.</h1>
+        <p class="hero-desc" data-i18n="hero.desc">Il software all-in-one che trasforma la tua valutazione funzionale in un programma personalizzato di 4 settimane. Automaticamente.</p>
         <div class="hero-ctas">
-          <a href="/" class="btn btn-primary btn-lg">Inizia gratis &mdash; 15 giorni &#8594;</a>
-          <a href="#wizard" class="btn btn-ghost btn-lg">Vedi come funziona</a>
+          <a href="/?action=register" class="btn btn-primary btn-lg" data-i18n="hero.ctaPrimary">Inizia gratis &mdash; 15 giorni &#8594;</a>
+          <a href="#wizard" class="btn btn-ghost btn-lg" data-i18n="hero.ctaSecondary">Vedi come funziona</a>
         </div>
         <div class="hero-social-proof">
-          <div style="font-size:14px;color:var(--muted)">Provalo gratis 15 giorni &middot; Nessuna carta richiesta</div>
+          <div style="font-size:14px;color:var(--muted)" data-i18n="hero.proof">Provalo gratis 15 giorni &middot; Nessuna carta richiesta</div>
         </div>
       </div>
       <div class="hero-mockup">
@@ -384,32 +393,32 @@ a{color:var(--blue);text-decoration:none}
           <div style="padding:24px;background:var(--card)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
               <div>
-                <div style="font-size:18px;font-weight:900;color:var(--strong)">Dashboard</div>
+                <div style="font-size:18px;font-weight:900;color:var(--strong)" data-i18n="mockup.dashboard">Dashboard</div>
                 <div style="font-size:12px;color:var(--muted)">13/03/2026</div>
               </div>
-              <div style="padding:6px 14px;border-radius:8px;background:rgba(59,130,246,.1);color:var(--blue);font-size:12px;font-weight:700">&#128202; Export</div>
+              <div style="padding:6px 14px;border-radius:8px;background:rgba(59,130,246,.1);color:var(--blue);font-size:12px;font-weight:700" data-i18n="mockup.export">&#128202; Export</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:16px">
               <div style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(59,130,246,.15));border:1px solid rgba(59,130,246,.2);border-radius:12px;padding:14px;border-left:3px solid var(--blue)">
-                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px">Clienti</div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px" data-i18n="mockup.clients">Clienti</div>
                 <div style="font-size:26px;font-weight:900;color:var(--strong);margin-top:4px">24</div>
               </div>
               <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.15));border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:14px;border-left:3px solid var(--green)">
-                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px">Sedute</div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px" data-i18n="mockup.sessions">Sedute</div>
                 <div style="font-size:26px;font-weight:900;color:var(--strong);margin-top:4px">186</div>
               </div>
               <div style="background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(139,92,246,.15));border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:14px;border-left:3px solid var(--purple)">
-                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px">Oggi</div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px" data-i18n="mockup.today">Oggi</div>
                 <div style="font-size:26px;font-weight:900;color:var(--strong);margin-top:4px">5</div>
               </div>
               <div style="background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(6,182,212,.15));border:1px solid rgba(6,182,212,.2);border-radius:12px;padding:14px;border-left:3px solid var(--cyan)">
-                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px">Prossima</div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px" data-i18n="mockup.next">Prossima</div>
                 <div style="font-size:26px;font-weight:900;color:var(--strong);margin-top:4px">09:30</div>
               </div>
             </div>
             <!-- Chart mockup -->
             <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px">
-              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Progressi peso</div>
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" data-i18n="mockup.weightProgress">Progressi peso</div>
               <svg width="100%" height="80" viewBox="0 0 400 80" preserveAspectRatio="none">
                 <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".3"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
                 <path d="M0,60 C50,55 80,45 120,50 C160,55 200,35 240,30 C280,25 320,20 360,15 L400,12 L400,80 L0,80Z" fill="url(#cg)"/>
@@ -430,12 +439,12 @@ a{color:var(--blue);text-decoration:none}
 <!-- ═══ TRUST BAR ═══ -->
 <div class="trust-bar">
   <div class="container">
-    <div class="trust-item"><span>&#127470;&#127481;</span> Made in Italy</div>
-    <div class="trust-item"><span>&#128274;</span> Dati criptati</div>
-    <div class="trust-item"><span>&#128241;</span> PWA Mobile</div>
-    <div class="trust-item"><span>&#127760;</span> IT / EN / FR</div>
-    <div class="trust-item"><span>&#9889;</span> Zero installazione</div>
-    <div class="trust-item"><span>&#9729;&#65039;</span> Cloud sync</div>
+    <div class="trust-item" data-i18n="trust.italy"><span>&#127470;&#127481;</span> Made in Italy</div>
+    <div class="trust-item" data-i18n="trust.encrypted"><span>&#128274;</span> Dati criptati</div>
+    <div class="trust-item" data-i18n="trust.pwa"><span>&#128241;</span> PWA Mobile</div>
+    <div class="trust-item" data-i18n="trust.langs"><span>&#127760;</span> IT / EN / FR</div>
+    <div class="trust-item" data-i18n="trust.zero"><span>&#9889;</span> Zero installazione</div>
+    <div class="trust-item" data-i18n="trust.cloud"><span>&#9729;&#65039;</span> Cloud sync</div>
   </div>
 </div>
 
@@ -444,34 +453,34 @@ a{color:var(--blue);text-decoration:none}
   <div class="container">
     <div class="problem-grid">
       <div class="animate">
-        <div class="badge" style="margin-bottom:20px">&#128680; Il problema</div>
-        <h2 style="font-size:36px;font-weight:900;color:var(--strong);margin-bottom:12px;letter-spacing:-.5px">Ogni giorno butti via<br/>2 ore in burocrazia.</h2>
-        <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.7">Fogli Excel, schede cartacee, WhatsApp per i promemoria. Conosci la storia. Il tuo tempo vale di piu.</p>
+        <div class="badge" style="margin-bottom:20px" data-i18n="problem.badge">&#128680; Il problema</div>
+        <h2 style="font-size:36px;font-weight:900;color:var(--strong);margin-bottom:12px;letter-spacing:-.5px" data-i18n="problem.title">Ogni giorno butti via<br/>2 ore in burocrazia.</h2>
+        <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.7" data-i18n="problem.desc">Fogli Excel, schede cartacee, WhatsApp per i promemoria. Conosci la storia. Il tuo tempo vale di piu.</p>
         <div class="problem-list">
           <div class="problem-item">
             <div class="icon">&#128196;</div>
-            <div><h4>Valutazioni su carta</h4><p>Schede perse, dati illeggibili, nessuno storico. Quando un cliente torna dopo 3 mesi, riparti da zero.</p></div>
+            <div><h4 data-i18n="problem.item1Title">Valutazioni su carta</h4><p data-i18n="problem.item1Desc">Schede perse, dati illeggibili, nessuno storico. Quando un cliente torna dopo 3 mesi, riparti da zero.</p></div>
           </div>
           <div class="problem-item">
             <div class="icon">&#9203;</div>
-            <div><h4>Programmi copia-incolla</h4><p>Perdi 45 minuti a personalizzare ogni scheda. E alla fine sembrano tutte uguali.</p></div>
+            <div><h4 data-i18n="problem.item2Title">Programmi copia-incolla</h4><p data-i18n="problem.item2Desc">Perdi 45 minuti a personalizzare ogni scheda. E alla fine sembrano tutte uguali.</p></div>
           </div>
           <div class="problem-item">
             <div class="icon">&#128200;</div>
-            <div><h4>Nessun dato oggettivo</h4><p>Senza test standardizzati, non puoi dimostrare i progressi. Il cliente non vede il valore del tuo lavoro.</p></div>
+            <div><h4 data-i18n="problem.item3Title">Nessun dato oggettivo</h4><p data-i18n="problem.item3Desc">Senza test standardizzati, non puoi dimostrare i progressi. Il cliente non vede il valore del tuo lavoro.</p></div>
           </div>
         </div>
       </div>
       <div class="solution-card animate delay-2">
-        <h3>PT Board risolve tutto.</h3>
-        <p>Un unico strumento per valutare, programmare e monitorare. In 20 minuti hai un report professionale che i tuoi competitor non sanno nemmeno fare.</p>
+        <h3 data-i18n="solution.title">PT Board risolve tutto.</h3>
+        <p data-i18n="solution.desc">Un unico strumento per valutare, programmare e monitorare. In 20 minuti hai un report professionale che i tuoi competitor non sanno nemmeno fare.</p>
         <div class="solution-features">
-          <div class="solution-feature"><div class="check">&#10003;</div> Valutazione scientifica fino a 9 step guidati</div>
-          <div class="solution-feature"><div class="check">&#10003;</div> Programma 4 settimane generato automaticamente</div>
-          <div class="solution-feature"><div class="check">&#10003;</div> Report PDF professionale con il tuo brand</div>
-          <div class="solution-feature"><div class="check">&#10003;</div> Classificazione Forma Bassa / Media / Buona basata su evidenze</div>
-          <div class="solution-feature"><div class="check">&#10003;</div> Storico completo di ogni cliente</div>
-          <div class="solution-feature"><div class="check">&#10003;</div> Funziona su telefono, tablet e PC</div>
+          <div class="solution-feature" data-i18n="solution.f1"><div class="check">&#10003;</div> Valutazione scientifica fino a 9 step guidati</div>
+          <div class="solution-feature" data-i18n="solution.f2"><div class="check">&#10003;</div> Programma 4 settimane generato automaticamente</div>
+          <div class="solution-feature" data-i18n="solution.f3"><div class="check">&#10003;</div> Report PDF professionale con il tuo brand</div>
+          <div class="solution-feature" data-i18n="solution.f4"><div class="check">&#10003;</div> Classificazione Forma Bassa / Media / Buona basata su evidenze</div>
+          <div class="solution-feature" data-i18n="solution.f5"><div class="check">&#10003;</div> Storico completo di ogni cliente</div>
+          <div class="solution-feature" data-i18n="solution.f6"><div class="check">&#10003;</div> Funziona su telefono, tablet e PC</div>
         </div>
       </div>
     </div>
@@ -482,64 +491,64 @@ a{color:var(--blue);text-decoration:none}
 <section class="section" id="features" style="background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.02),var(--bg))">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px">&#128171; Funzionalita</div>
-      <h2>Tutto cio che ti serve.<br/>Niente di cio che non serve.</h2>
-      <p>Ogni funzione e stata progettata con Personal Trainer reali. Zero bloat.</p>
+      <div class="badge" style="margin-bottom:16px" data-i18n="features.badge">&#128171; Funzionalita</div>
+      <h2 data-i18n="features.title">Tutto cio che ti serve.<br/>Niente di cio che non serve.</h2>
+      <p data-i18n="features.desc">Ogni funzione e stata progettata con Personal Trainer reali. Zero bloat.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(59,130,246,.1)">&#127919;</div>
-        <h3>Valutazione 20 min</h3>
-        <p>8 step guidati: anagrafica, composizione corporea, 6MWT, STS, test fisici, RPE. Classificazione automatica Forma Bassa / Media / Buona.</p>
-        <span class="feature-tag" style="background:rgba(59,130,246,.1);color:var(--blue)">Core</span>
+        <h3 data-i18n="f1.title">Valutazione 20 min</h3>
+        <p data-i18n="f1.desc">8 step guidati: anagrafica, composizione corporea, 6MWT, STS, test fisici, RPE. Classificazione automatica Forma Bassa / Media / Buona.</p>
+        <span class="feature-tag" style="background:rgba(59,130,246,.1);color:var(--blue)" data-i18n="tag.core">Core</span>
       </div>
       <div class="feature-card animate delay-1">
         <div class="feature-icon" style="background:rgba(16,185,129,.1)">&#128170;</div>
-        <h3>Programma automatico</h3>
-        <p>Dal profilo del cliente, genera un programma di 4 settimane con cardio, forza e nutrizione calibrati.</p>
-        <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)">Auto</span>
+        <h3 data-i18n="f2.title">Programma automatico</h3>
+        <p data-i18n="f2.desc">Dal profilo del cliente, genera un programma di 4 settimane con cardio, forza e nutrizione calibrati.</p>
+        <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)" data-i18n="tag.auto">Auto</span>
       </div>
       <div class="feature-card animate delay-2">
         <div class="feature-icon" style="background:rgba(139,92,246,.1)">&#129302;</div>
-        <h3>AI Coach</h3>
-        <p>Intelligenza artificiale che analizza il profilo e suggerisce un programma personalizzato. In arrivo nei prossimi mesi.</p>
-        <span class="feature-tag" style="background:rgba(139,92,246,.1);color:var(--purple)">In arrivo</span>
+        <h3 data-i18n="f3.title">AI Coach</h3>
+        <p data-i18n="f3.desc">Intelligenza artificiale che analizza il profilo e suggerisce un programma personalizzato. In arrivo nei prossimi mesi.</p>
+        <span class="feature-tag" style="background:rgba(139,92,246,.1);color:var(--purple)" data-i18n="tag.soon">In arrivo</span>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(6,182,212,.1)">&#128225;</div>
-        <h3>BIA integrata</h3>
-        <p>Inserisci i dati del bioimpedenziometro e ottieni interpretazioni automatiche: PhA, ECW/TBW, massa grassa, BCM.</p>
-        <span class="feature-tag" style="background:rgba(6,182,212,.1);color:var(--cyan)">Avanzato</span>
+        <h3 data-i18n="f4.title">BIA integrata</h3>
+        <p data-i18n="f4.desc">Inserisci i dati del bioimpedenziometro e ottieni interpretazioni automatiche: PhA, ECW/TBW, massa grassa, BCM.</p>
+        <span class="feature-tag" style="background:rgba(6,182,212,.1);color:var(--cyan)" data-i18n="tag.advanced">Avanzato</span>
       </div>
       <div class="feature-card animate delay-1">
         <div class="feature-icon" style="background:rgba(245,158,11,.1)">&#128197;</div>
-        <h3>Calendario smart</h3>
-        <p>Gestisci appuntamenti, promemoria email automatici e visualizza le sedute di oggi dalla dashboard.</p>
-        <span class="feature-tag" style="background:rgba(245,158,11,.1);color:var(--yellow)">Core</span>
+        <h3 data-i18n="f5.title">Calendario smart</h3>
+        <p data-i18n="f5.desc">Gestisci appuntamenti, promemoria email automatici e visualizza le sedute di oggi dalla dashboard.</p>
+        <span class="feature-tag" style="background:rgba(245,158,11,.1);color:var(--yellow)" data-i18n="tag.core">Core</span>
       </div>
       <div class="feature-card animate delay-2">
         <div class="feature-icon" style="background:rgba(236,72,153,.1)">&#128203;</div>
-        <h3>Report PDF</h3>
-        <p>Genera schede professionali stampabili con tutti i dati, test, programma e nutrizione. Impressiona i tuoi clienti.</p>
-        <span class="feature-tag" style="background:rgba(236,72,153,.1);color:var(--pink)">Pro</span>
+        <h3 data-i18n="f6.title">Report PDF</h3>
+        <p data-i18n="f6.desc">Genera schede professionali stampabili con tutti i dati, test, programma e nutrizione. Impressiona i tuoi clienti.</p>
+        <span class="feature-tag" style="background:rgba(236,72,153,.1);color:var(--pink)" data-i18n="tag.pro">Pro</span>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(16,185,129,.1)">&#128200;</div>
-        <h3>Tracking progressi</h3>
-        <p>Grafici peso, BMI, RPE sessioni, durata allenamenti. Mostra ai clienti che stanno migliorando con dati reali.</p>
-        <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)">Core</span>
+        <h3 data-i18n="f7.title">Tracking progressi</h3>
+        <p data-i18n="f7.desc">Grafici peso, BMI, RPE sessioni, durata allenamenti. Mostra ai clienti che stanno migliorando con dati reali.</p>
+        <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)" data-i18n="tag.core">Core</span>
       </div>
       <div class="feature-card animate delay-1">
         <div class="feature-icon" style="background:rgba(249,115,22,.1)">&#127869;</div>
-        <h3>Nutrizione</h3>
-        <p>Calcolo kcal, proteine, carboidrati e grassi personalizzati. Macro calibrati sul profilo e obiettivo del cliente.</p>
-        <span class="feature-tag" style="background:rgba(249,115,22,.1);color:var(--orange)">Core</span>
+        <h3 data-i18n="f8.title">Nutrizione</h3>
+        <p data-i18n="f8.desc">Calcolo kcal, proteine, carboidrati e grassi personalizzati. Macro calibrati sul profilo e obiettivo del cliente.</p>
+        <span class="feature-tag" style="background:rgba(249,115,22,.1);color:var(--orange)" data-i18n="tag.core">Core</span>
       </div>
       <div class="feature-card animate delay-2">
         <div class="feature-icon" style="background:rgba(59,130,246,.1)">&#128241;</div>
-        <h3>PWA Mobile</h3>
-        <p>Installa PT Board come un'app nativa sul telefono. Funziona offline, si sincronizza in cloud automaticamente.</p>
-        <span class="feature-tag" style="background:rgba(59,130,246,.1);color:var(--blue)">Free</span>
+        <h3 data-i18n="f9.title">PWA Mobile</h3>
+        <p data-i18n="f9.desc">Installa PT Board come un'app nativa sul telefono. Funziona offline, si sincronizza in cloud automaticamente.</p>
+        <span class="feature-tag" style="background:rgba(59,130,246,.1);color:var(--blue)" data-i18n="tag.free">Free</span>
       </div>
     </div>
   </div>
@@ -549,51 +558,51 @@ a{color:var(--blue);text-decoration:none}
 <section class="section wizard-section" id="wizard">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px">&#127919; La star del prodotto</div>
-      <h2>La valutazione da 20 minuti<br/>che vale 200 euro.</h2>
-      <p>Fino a 9 step guidati che trasformano qualsiasi PT in un professionista clinico. I tuoi competitor usano ancora carta e penna.</p>
-      <p style="margin-top:8px;font-size:15px;color:var(--muted)">3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</p>
+      <div class="badge" style="margin-bottom:16px" data-i18n="wizard.badge">&#127919; La star del prodotto</div>
+      <h2 data-i18n="wizard.title">La valutazione da 20 minuti<br/>che vale 200 euro.</h2>
+      <p data-i18n="wizard.desc">Fino a 9 step guidati che trasformano qualsiasi PT in un professionista clinico. I tuoi competitor usano ancora carta e penna.</p>
+      <p style="margin-top:8px;font-size:15px;color:var(--muted)" data-i18n="wizard.modes">3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</p>
     </div>
     <div class="wizard-grid">
       <div class="wizard-steps animate">
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4>Anagrafica &amp; Clinica</h4><p>Dati personali, patologie, farmaci, PAR-Q</p></div></div>
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4>Composizione &amp; BIA</h4><p>Circonferenze, plicometria, bioimpedenziometria</p></div></div>
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4>6-Minute Walk Test</h4><p>Capacita aerobica con RPE e sintomi</p></div></div>
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4>Sit-to-Stand 30s</h4><p>Forza arti inferiori standardizzata</p></div></div>
-        <div class="wizard-step active"><div class="num">5</div><div class="info"><h4>Test fisici avanzati</h4><p>Push-up, plank, squat, TUG, handgrip</p></div></div>
-        <div class="wizard-step"><div class="num">6</div><div class="info"><h4>RPE &amp; Note finali</h4><p>Percezione sforzo, GAD-7, sonno</p></div></div>
-        <div class="wizard-step"><div class="num">7</div><div class="info"><h4>Classificazione auto</h4><p>Score pesato &#8594; Forma Bassa / Media / Buona</p></div></div>
-        <div class="wizard-step"><div class="num">8</div><div class="info"><h4>Programma 4 settimane</h4><p>Cardio + forza + nutrizione personalizzati</p></div></div>
+        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s1Title">Anagrafica &amp; Clinica</h4><p data-i18n="wizard.s1Desc">Dati personali, patologie, farmaci, PAR-Q</p></div></div>
+        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s2Title">Composizione &amp; BIA</h4><p data-i18n="wizard.s2Desc">Circonferenze, plicometria, bioimpedenziometria</p></div></div>
+        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s3Title">6-Minute Walk Test</h4><p data-i18n="wizard.s3Desc">Capacita aerobica con RPE e sintomi</p></div></div>
+        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s4Title">Sit-to-Stand 30s</h4><p data-i18n="wizard.s4Desc">Forza arti inferiori standardizzata</p></div></div>
+        <div class="wizard-step active"><div class="num">5</div><div class="info"><h4 data-i18n="wizard.s5Title">Test fisici avanzati</h4><p data-i18n="wizard.s5Desc">Push-up, plank, squat, TUG, handgrip</p></div></div>
+        <div class="wizard-step"><div class="num">6</div><div class="info"><h4 data-i18n="wizard.s6Title">RPE &amp; Note finali</h4><p data-i18n="wizard.s6Desc">Percezione sforzo, GAD-7, sonno</p></div></div>
+        <div class="wizard-step"><div class="num">7</div><div class="info"><h4 data-i18n="wizard.s7Title">Classificazione auto</h4><p data-i18n="wizard.s7Desc">Score pesato &#8594; Forma Bassa / Media / Buona</p></div></div>
+        <div class="wizard-step"><div class="num">8</div><div class="info"><h4 data-i18n="wizard.s8Title">Programma 4 settimane</h4><p data-i18n="wizard.s8Desc">Cardio + forza + nutrizione personalizzati</p></div></div>
       </div>
       <div class="wizard-mockup animate delay-2">
         <div class="wizard-mockup-header">
           <div style="width:34px;height:34px;border-radius:10px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:16px">&#128170;</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:var(--strong)">Test Fisici</div>
-            <div style="font-size:11px;color:var(--muted)">Passo 5 di 8</div>
+            <div style="font-size:14px;font-weight:800;color:var(--strong)" data-i18n="wizard.mockTitle">Test Fisici</div>
+            <div style="font-size:11px;color:var(--muted)" data-i18n="wizard.mockStep">Passo 5 di 8</div>
           </div>
         </div>
         <div class="wizard-mockup-progress"><div style="width:62.5%"></div></div>
         <div class="wizard-field">
-          <label>Push-up (ripetizioni)</label>
+          <label data-i18n="wizard.mockPushup">Push-up (ripetizioni)</label>
           <div class="input filled">18</div>
         </div>
         <div class="wizard-field">
-          <label>Plank (secondi)</label>
+          <label data-i18n="wizard.mockPlank">Plank (secondi)</label>
           <div class="input filled">45</div>
         </div>
         <div class="wizard-field">
-          <label>Handgrip (kg)</label>
+          <label data-i18n="wizard.mockHandgrip">Handgrip (kg)</label>
           <div class="input filled">38</div>
         </div>
         <div class="wizard-kpi-row">
-          <div class="wizard-kpi"><div class="val" style="color:var(--green)">Buona</div><div class="lbl">Profilo</div></div>
+          <div class="wizard-kpi"><div class="val" style="color:var(--green)" data-i18n="wizard.mockGood">Buona</div><div class="lbl" data-i18n="wizard.mockProfile">Profilo</div></div>
           <div class="wizard-kpi"><div class="val" style="color:var(--blue)">22.4</div><div class="lbl">BMI</div></div>
-          <div class="wizard-kpi"><div class="val" style="color:var(--cyan)">76</div><div class="lbl">Score</div></div>
+          <div class="wizard-kpi"><div class="val" style="color:var(--cyan)">76</div><div class="lbl" data-i18n="wizard.mockScore">Score</div></div>
         </div>
         <div style="display:flex;gap:10px;margin-top:24px">
-          <div style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);text-align:center;font-size:13px;font-weight:600;color:var(--muted);cursor:default">&#8592; Indietro</div>
-          <div style="flex:1;padding:12px;border-radius:10px;background:var(--blue);text-align:center;font-size:13px;font-weight:700;color:#fff;cursor:default">Avanti &#8594;</div>
+          <div style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);text-align:center;font-size:13px;font-weight:600;color:var(--muted);cursor:default" data-i18n="wizard.mockBack">&#8592; Indietro</div>
+          <div style="flex:1;padding:12px;border-radius:10px;background:var(--blue);text-align:center;font-size:13px;font-weight:700;color:#fff;cursor:default" data-i18n="wizard.mockNext">Avanti &#8594;</div>
         </div>
       </div>
     </div>
@@ -604,94 +613,94 @@ a{color:var(--blue);text-decoration:none}
 <section class="section pricing-section" id="pricing">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px">&#128176; Prezzi trasparenti</div>
-      <h2>Investi meno di un<br/>caffe al giorno.</h2>
-      <p>Il software che costa meno di una singola seduta con un cliente. E te ne fa gestire centinaia.</p>
+      <div class="badge" style="margin-bottom:16px" data-i18n="pricing.badge">&#128176; Prezzi trasparenti</div>
+      <h2 data-i18n="pricing.title">Investi meno di un<br/>caffe al giorno.</h2>
+      <p data-i18n="pricing.desc">Il software che costa meno di una singola seduta con un cliente. E te ne fa gestire centinaia.</p>
     </div>
     <div class="pricing-grid">
       <!-- Trial -->
       <div class="price-card animate">
-        <div class="price-name">Trial</div>
+        <div class="price-name" data-i18n="price.trialName">Trial</div>
         <div class="price-amount">
           <span class="number">0</span>
           <span class="currency">&#8364;</span>
         </div>
-        <div class="price-desc">15 giorni gratis per provare tutto. Nessuna carta richiesta.</div>
+        <div class="price-desc" data-i18n="price.trialDesc">15 giorni gratis per provare tutto. Nessuna carta richiesta.</div>
         <div class="price-features">
-          <div class="price-feature yes"><span class="icon">&#10003;</span> Clienti illimitati</div>
-          <div class="price-feature yes"><span class="icon">&#10003;</span> Valutazione 20 min</div>
-          <div class="price-feature yes"><span class="icon">&#10003;</span> Calendario appuntamenti</div>
-          <div class="price-feature yes"><span class="icon">&#10003;</span> Cloud sync</div>
-          <div class="price-feature yes"><span class="icon">&#10003;</span> Export PDF</div>
-          <div class="price-feature no"><span class="icon">&#10007;</span> AI Coach (in arrivo)</div>
+          <div class="price-feature yes" data-i18n="price.trial.f1"><span class="icon">&#10003;</span> Clienti illimitati</div>
+          <div class="price-feature yes" data-i18n="price.trial.f2"><span class="icon">&#10003;</span> Valutazione 20 min</div>
+          <div class="price-feature yes" data-i18n="price.trial.f3"><span class="icon">&#10003;</span> Calendario appuntamenti</div>
+          <div class="price-feature yes" data-i18n="price.trial.f4"><span class="icon">&#10003;</span> Cloud sync</div>
+          <div class="price-feature yes" data-i18n="price.trial.f5"><span class="icon">&#10003;</span> Export PDF</div>
+          <div class="price-feature no" data-i18n="price.trial.f6"><span class="icon">&#10007;</span> AI Coach (in arrivo)</div>
         </div>
-        <a href="/" class="btn btn-ghost" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis</a>
+        <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.trialCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis</a>
       </div>
       <!-- Pro Mensile -->
       <div class="price-card popular animate delay-1">
-        <div class="price-name">Pro Mensile</div>
+        <div class="price-name" data-i18n="price.proMName">Pro Mensile</div>
         <div class="price-amount">
           <span class="currency">&#8364;</span>
           <span class="number">9,99</span>
-          <span class="period">/mese</span>
+          <span class="period" data-i18n="price.perMonth">/mese</span>
         </div>
-        <div class="price-desc">Tutto incluso per gestire il tuo business da PT. Disdici quando vuoi.</div>
+        <div class="price-desc" data-i18n="price.proMDesc">Tutto incluso per gestire il tuo business da PT. Disdici quando vuoi.</div>
         <div class="price-features">
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Clienti illimitati</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Valutazione completa</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Calendario + promemoria email</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
+          <div class="price-feature yes" data-i18n="price.pro.f1"><span class="icon" style="color:var(--green)">&#10003;</span> Clienti illimitati</div>
+          <div class="price-feature yes" data-i18n="price.pro.f2"><span class="icon" style="color:var(--green)">&#10003;</span> Valutazione completa</div>
+          <div class="price-feature yes" data-i18n="price.pro.f3"><span class="icon" style="color:var(--green)">&#10003;</span> Calendario + promemoria email</div>
+          <div class="price-feature yes" data-i18n="price.pro.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
+          <div class="price-feature yes" data-i18n="price.pro.f5"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
+          <div class="price-feature yes" data-i18n="price.pro.f6"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
+          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
         </div>
-        <a href="/" class="btn btn-primary" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Mensile &#8594;</a>
+        <a href="/?action=register" class="btn btn-primary" style="width:100%" data-i18n="price.proMCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Mensile &#8594;</a>
         <div class="price-divider"></div>
-        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">I competitor costano di piu:</div>
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px" data-i18n="price.competitorTitle">I competitor costano di piu:</div>
         <div class="price-competitor"><span class="name">Mindflex</span><span class="amount">&#8364;49/m</span></div>
         <div class="price-competitor"><span class="name">Trainerize</span><span class="amount">&#8364;35/m</span></div>
         <div class="price-competitor"><span class="name">PT Distinction</span><span class="amount">&#8364;99/m</span></div>
       </div>
       <!-- Pro Annuale -->
       <div class="price-card animate delay-2" style="position:relative">
-        <div style="position:absolute;top:16px;right:16px;background:var(--green);color:#fff;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:.5px">Risparmia 20%</div>
-        <div class="price-name">Pro Annuale</div>
+        <div style="position:absolute;top:16px;right:16px;background:var(--green);color:#fff;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:.5px" data-i18n="price.save20">Risparmia 20%</div>
+        <div class="price-name" data-i18n="price.proYName">Pro Annuale</div>
         <div class="price-amount">
           <span class="currency">&#8364;</span>
           <span class="number">7,99</span>
-          <span class="period">/mese</span>
+          <span class="period" data-i18n="price.perMonth">/mese</span>
         </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">95,88&#8364;/anno</div>
-        <div class="price-desc">Lo stesso piano Pro con 2 mesi gratis. Perfetto per chi vuole risparmiare.</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px" data-i18n="price.proYYear">95,88&#8364;/anno</div>
+        <div class="price-desc" data-i18n="price.proYDesc">Lo stesso piano Pro con 2 mesi gratis. Perfetto per chi vuole risparmiare.</div>
         <div class="price-features">
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Clienti illimitati</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Valutazione completa</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Calendario + promemoria email</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
+          <div class="price-feature yes" data-i18n="price.pro.f1"><span class="icon" style="color:var(--green)">&#10003;</span> Clienti illimitati</div>
+          <div class="price-feature yes" data-i18n="price.pro.f2"><span class="icon" style="color:var(--green)">&#10003;</span> Valutazione completa</div>
+          <div class="price-feature yes" data-i18n="price.pro.f3"><span class="icon" style="color:var(--green)">&#10003;</span> Calendario + promemoria email</div>
+          <div class="price-feature yes" data-i18n="price.pro.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
+          <div class="price-feature yes" data-i18n="price.pro.f5"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
+          <div class="price-feature yes" data-i18n="price.pro.f6"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
+          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
         </div>
-        <a href="/" class="btn btn-primary" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Annuale &#8594;</a>
+        <a href="/?action=register" class="btn btn-primary" style="width:100%" data-i18n="price.proYCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Annuale &#8594;</a>
       </div>
       <!-- Team -->
       <div class="price-card animate delay-3">
-        <div class="price-name">Team</div>
+        <div class="price-name" data-i18n="price.teamName">Team</div>
         <div class="price-amount">
           <span class="currency">&#8364;</span>
           <span class="number">19,99</span>
-          <span class="period">/mese</span>
+          <span class="period" data-i18n="price.perMonth">/mese</span>
         </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">oppure 15,99&#8364;/mese con piano annuale (191,88&#8364;/anno)</div>
-        <div class="price-desc">Per studi con pi&ugrave; Personal Trainer. Fino a 3 PT sullo stesso piano.</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px" data-i18n="price.teamYearAlt">oppure 15,99&#8364;/mese con piano annuale (191,88&#8364;/anno)</div>
+        <div class="price-desc" data-i18n="price.teamDesc">Per studi con pi&ugrave; Personal Trainer. Fino a 3 PT sullo stesso piano.</div>
         <div class="price-features">
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> <strong>Tutto di Pro</strong></div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Fino a 3 PT nel team</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Ogni PT ha i propri clienti isolati</div>
-          <div class="price-feature yes"><span class="icon" style="color:var(--green)">&#10003;</span> Dati separati e sicuri</div>
+          <div class="price-feature yes" data-i18n="price.team.f1"><span class="icon" style="color:var(--green)">&#10003;</span> <strong>Tutto di Pro</strong></div>
+          <div class="price-feature yes" data-i18n="price.team.f2"><span class="icon" style="color:var(--green)">&#10003;</span> Fino a 3 PT nel team</div>
+          <div class="price-feature yes" data-i18n="price.team.f3"><span class="icon" style="color:var(--green)">&#10003;</span> Ogni PT ha i propri clienti isolati</div>
+          <div class="price-feature yes" data-i18n="price.team.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Dati separati e sicuri</div>
         </div>
-        <a href="/" class="btn btn-ghost" style="width:100%" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Team &#8594;</a>
-        <div style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5">Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com</div>
+        <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.teamCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Team &#8594;</a>
+        <div style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5" data-i18n="price.teamNote">Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com</div>
       </div>
     </div>
   </div>
@@ -701,27 +710,27 @@ a{color:var(--blue);text-decoration:none}
 <section class="section" id="testimonials" style="background:linear-gradient(180deg,var(--bg),rgba(16,185,129,.02),var(--bg))">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px">&#128188; Casi d'uso</div>
-      <h2>Per ogni tipo di<br/>Personal Trainer</h2>
+      <div class="badge" style="margin-bottom:16px" data-i18n="testi.badge">&#128188; Casi d'uso</div>
+      <h2 data-i18n="testi.title">Per ogni tipo di<br/>Personal Trainer</h2>
     </div>
     <div class="testimonial-grid">
       <div class="testimonial-card animate" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
         <div style="font-size:36px;margin-bottom:12px">&#127947;&#65039;</div>
-        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px">PT Freelance</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px">Gestisci i tuoi clienti ovunque, dal telefono. Valutazione in 20 minuti, programmi pronti, email automatiche. Tutto in un'app che costa meno di un caffe al giorno.</div>
-        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)">Da 9,99&euro;/mese</div>
+        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t1Name">PT Freelance</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t1Text">Gestisci i tuoi clienti ovunque, dal telefono. Valutazione in 20 minuti, programmi pronti, email automatiche. Tutto in un'app che costa meno di un caffe al giorno.</div>
+        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t1Tag">Da 9,99&euro;/mese</div>
       </div>
       <div class="testimonial-card animate delay-1" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
         <div style="font-size:36px;margin-bottom:12px">&#127970;</div>
-        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px">PT in palestra</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px">Mostra ai clienti i loro progressi con dati reali. Report PDF con il tuo logo, schede allenamento condivisibili su WhatsApp, calendario sedute integrato.</div>
-        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)">Professionale</div>
+        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t2Name">PT in palestra</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t2Text">Mostra ai clienti i loro progressi con dati reali. Report PDF con il tuo logo, schede allenamento condivisibili su WhatsApp, calendario sedute integrato.</div>
+        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t2Tag">Professionale</div>
       </div>
       <div class="testimonial-card animate delay-2" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
         <div style="font-size:36px;margin-bottom:12px">&#128101;</div>
-        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px">Studio con pi&ugrave; trainer</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px">Ogni trainer gestisce i propri clienti in modo indipendente. Dati isolati e sicuri. Dashboard personale. Tutto su un'unica piattaforma.</div>
-        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)">Piano Team</div>
+        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t3Name">Studio con pi&ugrave; trainer</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t3Text">Ogni trainer gestisce i propri clienti in modo indipendente. Dati isolati e sicuri. Dashboard personale. Tutto su un'unica piattaforma.</div>
+        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t3Tag">Piano Team</div>
       </div>
     </div>
   </div>
@@ -731,37 +740,37 @@ a{color:var(--blue);text-decoration:none}
 <section class="section" id="faq">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px">&#10068; FAQ</div>
-      <h2>Domande frequenti</h2>
+      <div class="badge" style="margin-bottom:16px" data-i18n="faq.badge">&#10068; FAQ</div>
+      <h2 data-i18n="faq.title">Domande frequenti</h2>
     </div>
     <div class="faq-list">
       <div class="faq-item open">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Devo installare qualcosa? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">No. PT Board funziona direttamente dal browser. Puoi anche installarlo come app sul telefono (PWA): su iPhone vai su Safari &#8594; Condividi &#8594; Aggiungi alla Home. Su Android il banner appare automaticamente.</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q1">Devo installare qualcosa?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a1">No. PT Board funziona direttamente dal browser. Puoi anche installarlo come app sul telefono (PWA): su iPhone vai su Safari &#8594; Condividi &#8594; Aggiungi alla Home. Su Android il banner appare automaticamente.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">I dati dei miei clienti sono al sicuro? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">Assolutamente. I dati sono salvati su Firebase (infrastruttura Google) con crittografia in transito e a riposo. Inoltre, una copia locale viene mantenuta sul tuo dispositivo per l'accesso offline. Solo tu puoi accedere ai tuoi dati. Puoi eliminare il tuo account e tutti i dati in qualsiasi momento dalla sezione Parametri.</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q2">I dati dei miei clienti sono al sicuro?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a2">Assolutamente. I dati sono salvati su Firebase (infrastruttura Google) con crittografia in transito e a riposo. Inoltre, una copia locale viene mantenuta sul tuo dispositivo per l'accesso offline. Solo tu puoi accedere ai tuoi dati. Puoi eliminare il tuo account e tutti i dati in qualsiasi momento dalla sezione Parametri.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Posso disdire quando voglio? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">S&igrave;, nessun vincolo. Paghi mese per mese tramite carta di credito (gestito da Stripe). Se disdici, continui a usare il piano fino alla fine del periodo pagato. I tuoi dati restano accessibili.</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q3">Posso disdire quando voglio?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a3">S&igrave;, nessun vincolo. Paghi mese per mese tramite carta di credito (gestito da Stripe). Se disdici, continui a usare il piano fino alla fine del periodo pagato. I tuoi dati restano accessibili.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Cosa include la valutazione da 20 minuti? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">Un wizard di fino a 9 step che copre: anagrafica e contatti, parametri clinici e anamnesi, antropometria e composizione corporea (BIA), stile di vita e obiettivi, test funzionali (6MWT, STS 30s, TUG, Single Leg Balance), profilo fitness automatico con score e programma personalizzato. Puoi scegliere tra 3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q4">Cosa include la valutazione da 20 minuti?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a4">Un wizard di fino a 9 step che copre: anagrafica e contatti, parametri clinici e anamnesi, antropometria e composizione corporea (BIA), stile di vita e obiettivi, test funzionali (6MWT, STS 30s, TUG, Single Leg Balance), profilo fitness automatico con score e programma personalizzato. Puoi scegliere tra 3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Funziona anche su iPad / tablet? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">Si. PT Board e completamente responsivo e funziona su qualsiasi dispositivo: smartphone, tablet, laptop e desktop. L'interfaccia si adatta automaticamente.</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q5">Funziona anche su iPad / tablet?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a5">Si. PT Board e completamente responsivo e funziona su qualsiasi dispositivo: smartphone, tablet, laptop e desktop. L'interfaccia si adatta automaticamente.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">In cosa e diverso da Trainerize o PT Distinction? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">PT Board e focalizzato sulla valutazione funzionale scientifica (6MWT, STS, BIA, classificazione pesata). I competitor sono piu orientati al workout tracking generico. In piu, PT Board costa 9,99 euro/mese contro 35-99 euro/mese dei competitor. E no, non siamo inferiori: siamo specializzati.</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q6">In cosa e diverso da Trainerize o PT Distinction?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a6">PT Board e focalizzato sulla valutazione funzionale scientifica (6MWT, STS, BIA, classificazione pesata). I competitor sono piu orientati al workout tracking generico. In piu, PT Board costa 9,99 euro/mese contro 35-99 euro/mese dei competitor. E no, non siamo inferiori: siamo specializzati.</div>
       </div>
       <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">Posso inviare le schede ai miei clienti? <span class="arrow">&#9660;</span></button>
-        <div class="faq-a">Si. Puoi generare un PDF professionale della scheda allenamento e condividerlo via WhatsApp o email. Il PDF include il tuo logo e il nome del tuo studio.</div>
+        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q7">Posso inviare le schede ai miei clienti?</span> <span class="arrow">&#9660;</span></button>
+        <div class="faq-a" data-i18n="faq.a7">Si. Puoi generare un PDF professionale della scheda allenamento e condividerlo via WhatsApp o email. Il PDF include il tuo logo e il nome del tuo studio.</div>
       </div>
     </div>
   </div>
@@ -771,13 +780,13 @@ a{color:var(--blue);text-decoration:none}
 <section class="section cta-section">
   <div class="container">
     <div class="cta-box animate">
-      <h2>Pronto a diventare il PT<br/>che tutti vogliono?</h2>
-      <p>Unisciti ai professionisti che stanno trasformando il loro modo di lavorare. 15 giorni gratis, zero rischi.</p>
+      <h2 data-i18n="ctaFinal.title">Pronto a diventare il PT<br/>che tutti vogliono?</h2>
+      <p data-i18n="ctaFinal.desc">Unisciti ai professionisti che stanno trasformando il loro modo di lavorare. 15 giorni gratis, zero rischi.</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-        <a href="/" class="btn btn-primary btn-lg" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis ora &#8594;</a>
-        <a href="#pricing" class="btn btn-ghost btn-lg">Vedi i piani</a>
+        <a href="/?action=register" class="btn btn-primary btn-lg" data-i18n="ctaFinal.primary" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis ora &#8594;</a>
+        <a href="#pricing" class="btn btn-ghost btn-lg" data-i18n="ctaFinal.secondary">Vedi i piani</a>
       </div>
-      <div style="margin-top:24px;font-size:13px;color:var(--dim)">Nessuna carta di credito richiesta &middot; Setup in 2 minuti &middot; Disdici quando vuoi</div>
+      <div style="margin-top:24px;font-size:13px;color:var(--dim)" data-i18n="ctaFinal.note">Nessuna carta di credito richiesta &middot; Setup in 2 minuti &middot; Disdici quando vuoi</div>
     </div>
   </div>
 </section>
@@ -788,7 +797,7 @@ a{color:var(--blue);text-decoration:none}
     <div class="footer-grid">
       <div>
         <div class="footer-brand"><span>PT</span> Board</div>
-        <p class="footer-desc">Il software all-in-one per Personal Trainer. Valuta, programma e monitora i tuoi clienti come un professionista.</p>
+        <p class="footer-desc" data-i18n="footer.desc">Il software all-in-one per Personal Trainer. Valuta, programma e monitora i tuoi clienti come un professionista.</p>
         <div style="margin-top:16px;display:flex;gap:6px">
           <span style="font-size:20px">&#127470;&#127481;</span>
           <span style="font-size:20px">&#127468;&#127463;</span>
@@ -796,37 +805,38 @@ a{color:var(--blue);text-decoration:none}
         </div>
       </div>
       <div class="footer-col">
-        <h4>Prodotto</h4>
-        <a href="#features">Funzionalita</a>
-        <a href="#wizard">Valutazione 20 min</a>
-        <a href="#pricing">Prezzi</a>
-        <a href="#faq">FAQ</a>
+        <h4 data-i18n="footer.product">Prodotto</h4>
+        <a href="#features" data-i18n="footer.features">Funzionalita</a>
+        <a href="#wizard" data-i18n="footer.wizard">Valutazione 20 min</a>
+        <a href="#pricing" data-i18n="footer.pricing">Prezzi</a>
+        <a href="#faq" data-i18n="footer.faq">FAQ</a>
       </div>
       <div class="footer-col">
-        <h4>Risorse</h4>
-        <a href="/">Accedi all'app</a>
-        <a href="#faq">Centro assistenza</a>
-        <a href="mailto:ptboard.info@gmail.com">Contattaci</a>
+        <h4 data-i18n="footer.resources">Risorse</h4>
+        <a href="/" data-i18n="footer.appLink">Accedi all'app</a>
+        <a href="#faq" data-i18n="footer.helpCenter">Centro assistenza</a>
+        <a href="mailto:ptboard.info@gmail.com" data-i18n="footer.contact">Contattaci</a>
       </div>
       <div class="footer-col">
-        <h4>Legale</h4>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/terms.html">Termini di servizio</a>
-        <a href="/privacy.html">Cookie Policy</a>
+        <h4 data-i18n="footer.legal">Legale</h4>
+        <a href="/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
+        <a href="/terms.html" data-i18n="footer.terms">Termini di servizio</a>
+        <a href="/privacy.html" data-i18n="footer.cookie">Cookie Policy</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>&copy; 2026 PT Board. Tutti i diritti riservati.</span>
-      <span>Made with &#10084;&#65039; in Italy</span>
+      <span data-i18n="footer.copyright">&copy; 2026 PT Board. Tutti i diritti riservati.</span>
+      <span data-i18n="footer.madeWith">Made with &#10084;&#65039; in Italy</span>
     </div>
     <div style="text-align:center;margin-top:16px;font-size:13px">
-      <a href="/privacy.html" style="color:#6b7280;text-decoration:none" onmouseenter="this.style.color='#3b82f6'" onmouseleave="this.style.color='#6b7280'">Privacy Policy</a>
+      <a href="/privacy.html" style="color:#6b7280;text-decoration:none" data-i18n="footer.privacy" onmouseenter="this.style.color='#3b82f6'" onmouseleave="this.style.color='#6b7280'">Privacy Policy</a>
       <span style="color:#374151;margin:0 8px">·</span>
-      <a href="/terms.html" style="color:#6b7280;text-decoration:none" onmouseenter="this.style.color='#3b82f6'" onmouseleave="this.style.color='#6b7280'">Termini di Servizio</a>
+      <a href="/terms.html" style="color:#6b7280;text-decoration:none" data-i18n="footer.terms" onmouseenter="this.style.color='#3b82f6'" onmouseleave="this.style.color='#6b7280'">Termini di Servizio</a>
     </div>
   </div>
 </footer>
 
+<script src="/landing-i18n.js"></script>
 <script>
 // Navbar scroll effect
 var navbar=document.getElementById('navbar');
