@@ -96,10 +96,18 @@ a{color:var(--blue);text-decoration:none}
 .navbar-links a:hover{color:var(--strong)}
 .navbar-cta{display:flex;gap:12px;align-items:center}
 .mobile-menu-btn{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:8px}
-.lang-switcher{display:inline-flex;gap:4px;margin-right:8px;flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:3px}
-.lang-flag{background:transparent;border:none;font-size:20px;cursor:pointer;padding:4px 8px;border-radius:7px;transition:background .2s;line-height:1;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
-.lang-flag:hover{background:rgba(255,255,255,.08)}
-.lang-flag.active{background:rgba(59,130,246,.25);box-shadow:0 0 0 1px rgba(59,130,246,.5)}
+.lang-switcher{position:relative;display:inline-flex;flex-shrink:0;margin-right:8px;font-family:inherit}
+.lang-trigger{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:18px;line-height:1;color:var(--text);transition:background .2s,border-color .2s;font-family:inherit;min-height:36px}
+.lang-trigger:hover{background:rgba(255,255,255,.08);border-color:var(--blue)}
+.lang-trigger .chev{font-size:10px;color:var(--muted);transition:transform .2s}
+.lang-switcher.open .lang-trigger{border-color:var(--blue);background:rgba(59,130,246,.08)}
+.lang-switcher.open .lang-trigger .chev{transform:rotate(180deg)}
+.lang-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03);min-width:160px;display:none;z-index:200}
+.lang-switcher.open .lang-menu{display:block;animation:fadeIn .15s ease}
+.lang-option{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;background:none;border:none;border-radius:8px;cursor:pointer;font-size:14px;color:var(--text);font-family:inherit;text-align:left;transition:background .15s}
+.lang-option:hover{background:rgba(255,255,255,.06)}
+.lang-option .flag{font-size:18px;line-height:1}
+.lang-option.active{background:rgba(59,130,246,.15);color:var(--strong);font-weight:600}
 
 /* ── HERO ── */
 .hero{position:relative;padding:160px 0 120px;overflow:hidden;min-height:100vh;display:flex;align-items:center}
@@ -343,8 +351,9 @@ a{color:var(--blue);text-decoration:none}
   .features-header h2{font-size:24px}
   .cta-box h2{font-size:24px}
   .wizard-kpi-row{grid-template-columns:1fr 1fr}
-  .lang-switcher{gap:2px;padding:2px;margin-right:4px}
-  .lang-flag{font-size:17px;padding:3px 5px;min-width:28px;min-height:28px}
+  .lang-switcher{margin-right:4px}
+  .lang-trigger{padding:5px 8px;font-size:16px;min-height:32px}
+  .lang-menu{min-width:150px}
 }
 </style>
 </head>
@@ -361,10 +370,16 @@ a{color:var(--blue);text-decoration:none}
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
     </div>
     <div class="navbar-cta">
-      <div class="lang-switcher">
-        <button class="lang-flag" data-lang="it" onclick="setLang('it')" aria-label="Italiano">&#127470;&#127481;</button>
-        <button class="lang-flag" data-lang="en" onclick="setLang('en')" aria-label="English">&#127468;&#127463;</button>
-        <button class="lang-flag" data-lang="fr" onclick="setLang('fr')" aria-label="Français">&#127467;&#127479;</button>
+      <div class="lang-switcher" id="langSwitcher">
+        <button type="button" class="lang-trigger" id="langTrigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lingua">
+          <span class="lang-current-flag">&#127470;&#127481;</span>
+          <span class="chev">&#9660;</span>
+        </button>
+        <div class="lang-menu" role="listbox">
+          <button type="button" class="lang-option" data-lang="it" role="option"><span class="flag">&#127470;&#127481;</span> Italiano</button>
+          <button type="button" class="lang-option" data-lang="en" role="option"><span class="flag">&#127468;&#127463;</span> English</button>
+          <button type="button" class="lang-option" data-lang="fr" role="option"><span class="flag">&#127467;&#127479;</span> Français</button>
+        </div>
       </div>
       <a href="/" class="btn btn-ghost btn-sm" data-i18n="nav.login" onclick="sessionStorage.setItem('entered','1')">Accedi</a>
       <a href="/?action=register" class="btn btn-primary btn-sm" data-i18n="nav.cta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Prova gratis</a>
