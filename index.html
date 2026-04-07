@@ -335,6 +335,8 @@ input,select,textarea{background:var(--input-bg);color:var(--text)}
   100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); border-color: transparent; }
 }
 .nav-just-unlocked { animation: unlockGlow 2s ease-out; border: 1px solid transparent !important; border-radius: 10px; }
+@keyframes trial-pulse{0%,100%{opacity:1}50%{opacity:0.7}}
+.trial-urgent{animation:trial-pulse 2.4s ease-in-out infinite}
 button { transition: all .15s ease; }
 button:active { transform: scale(0.97); }
 nav button:hover { background: var(--card) !important; color: var(--text) !important; }
@@ -555,6 +557,11 @@ const LANGS={
     authPhEmail:'mario.rossi@gmail.com',authPhPassword:'Minimo 6 caratteri',authPhConfirm:'Ripeti la password',
     authGoogleBtn:'Accedi con Google',authOr:'oppure',
     demoToast:'👋 Abbiamo aggiunto Sara Demo — provala subito!',
+    trialDaysLeft15:'Trial gratuito: {n} giorni rimasti',
+    trialDaysLeft7:'⏳ Il tuo trial scade tra {n} giorni — Scegli un piano →',
+    trialDaysLeft3:'🔥 Ultimi {n} giorni di trial! Attiva Pro per non perdere i tuoi dati →',
+    trialDaysLeft1:'🔥 Ultimo giorno di trial! Attiva Pro per non perdere i tuoi dati →',
+    trialDaysLeft0:'⚠️ Il tuo trial scade OGGI — Attiva Pro ora →',
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
@@ -1212,6 +1219,11 @@ const LANGS={
     authPhEmail:'john.doe@gmail.com',authPhPassword:'At least 6 characters',authPhConfirm:'Repeat password',
     authGoogleBtn:'Sign in with Google',authOr:'or',
     demoToast:"👋 We've added Sara Demo — try it out now!",
+    trialDaysLeft15:'Free trial: {n} days left',
+    trialDaysLeft7:'⏳ Your trial ends in {n} days — Choose a plan →',
+    trialDaysLeft3:'🔥 Last {n} days of trial! Activate Pro to keep your data →',
+    trialDaysLeft1:'🔥 Last day of trial! Activate Pro to keep your data →',
+    trialDaysLeft0:'⚠️ Your trial ends TODAY — Activate Pro now →',
     noResult:'No patients found',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
@@ -1869,6 +1881,11 @@ const LANGS={
     authPhEmail:'jean.dupont@gmail.com',authPhPassword:'Minimum 6 caract\u00e8res',authPhConfirm:'R\u00e9p\u00e9tez le mot de passe',
     authGoogleBtn:'Se connecter avec Google',authOr:'ou',
     demoToast:"👋 Nous avons ajouté Sara Demo — essayez-la maintenant !",
+    trialDaysLeft15:'Essai gratuit : {n} jours restants',
+    trialDaysLeft7:'⏳ Votre essai se termine dans {n} jours — Choisir un plan →',
+    trialDaysLeft3:'🔥 Derniers {n} jours d\'essai ! Activez Pro pour ne pas perdre vos données →',
+    trialDaysLeft1:'🔥 Dernier jour d\'essai ! Activez Pro pour ne pas perdre vos données →',
+    trialDaysLeft0:'⚠️ Votre essai se termine AUJOURD\'HUI — Activez Pro maintenant →',
     noResult:'Aucun patient trouvé',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
@@ -5488,11 +5505,26 @@ function AppInner({user,profile,setProfile,trialLeft}){
         {/* Trial countdown banner */}
         {user&&trainerProfile&&trainerProfile.email!==ADMIN_EMAIL&&trainerProfile.plan!=='pro'&&trainerProfile.plan!=='team'&&!isTrialExpired(trainerProfile)&&(function(){
           var daysLeft=trialDaysLeft(trainerProfile);
-          var urgent=daysLeft<3;
+          var tier=daysLeft<=0?0:daysLeft<=3?3:daysLeft<=7?7:15;
+          var msgKey=tier===0?'trialDaysLeft0':tier===3?(daysLeft===1?'trialDaysLeft1':'trialDaysLeft3'):tier===7?'trialDaysLeft7':'trialDaysLeft15';
+          var msg=(T[msgKey]||'').replace('{n}',daysLeft);
+          var wrapStyle,textStyle;
+          if(tier===15){
+            wrapStyle={background:'linear-gradient(90deg,'+C.blue+'15,'+C.blue+'08)',borderBottom:'1px solid '+C.blue+'20',padding:'8px 16px',textAlign:'center'};
+            textStyle={fontSize:13,fontWeight:600,color:C.blue};
+          }else if(tier===7){
+            wrapStyle={background:'rgba(245,158,11,.1)',border:'1px solid rgba(245,158,11,.3)',borderRadius:10,padding:'10px 20px',textAlign:'center',margin:'8px 12px'};
+            textStyle={fontSize:14,fontWeight:700,color:'#f59e0b'};
+          }else if(tier===3){
+            wrapStyle={background:'rgba(239,68,68,.1)',border:'1px solid rgba(239,68,68,.3)',borderRadius:10,padding:'10px 20px',textAlign:'center',margin:'8px 12px'};
+            textStyle={fontSize:15,fontWeight:700,color:'#ef4444'};
+          }else{
+            wrapStyle={background:'rgba(127,29,29,.55)',border:'1px solid #b91c1c',borderRadius:10,padding:'12px 20px',textAlign:'center',margin:'8px 12px'};
+            textStyle={fontSize:16,fontWeight:800,color:'#fecaca'};
+          }
           return(
-            <div style={{background:'linear-gradient(90deg,'+C.blue+'15,'+C.blue+'08)',borderBottom:'1px solid '+C.blue+'20',padding:'8px 16px',textAlign:'center'}}>
-              <span style={{fontSize:13,fontWeight:600,color:urgent?C.red:C.blue}}>{urgent?'Il trial scade tra '+daysLeft+' giorni!':'Trial gratuito: '+daysLeft+' giorni rimasti'}</span>
-              {' '}<button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',color:urgent?C.red:C.blue,fontWeight:700,cursor:'pointer',textDecoration:'underline',fontSize:13}}>Vedi piani →</button>
+            <div className={tier<=3?'trial-urgent':undefined} style={wrapStyle}>
+              <button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',padding:0,cursor:'pointer',fontFamily:'inherit',...textStyle}}>{msg}</button>
             </div>
           );
         })()}
