@@ -3187,6 +3187,7 @@ function BarChartComp({data,color=C.blue}){
 }
 
 function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
+  const [metricsOpen,setMetricsOpen]=useState(false);
   const today=fmtDate();
   const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
@@ -3233,7 +3234,11 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
         });
         return(
           <div style={{...S.card,marginTop:14}}>
-            <div style={S.st}>📊 Metriche Business</div>
+            <button type="button" onClick={()=>setMetricsOpen(v=>!v)} aria-expanded={metricsOpen} style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%',background:'none',border:'none',padding:0,margin:0,cursor:'pointer',fontFamily:'inherit',color:'inherit',textAlign:'left'}}>
+              <div style={S.st}>📊 Metriche Business</div>
+              <span style={{fontSize:12,color:C.muted,transition:'transform .25s ease',transform:metricsOpen?'rotate(180deg)':'rotate(0deg)',display:'inline-block',marginLeft:8}}>▼</span>
+            </button>
+            <div style={{overflow:'hidden',maxHeight:metricsOpen?2000:0,opacity:metricsOpen?1:0,transition:'max-height .35s ease, opacity .25s ease',marginTop:metricsOpen?12:0}}>
             {noData?(
               <div style={{textAlign:'center',padding:'24px 0',color:C.muted,fontSize:13}}>📈 Inizia ad aggiungere sedute per vedere le metriche</div>
             ):(
@@ -3249,6 +3254,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile}){
                 <BarChartComp data={weekData} color={C.blue}/>
               </>
             )}
+            </div>
           </div>
         );
       })()}
