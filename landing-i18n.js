@@ -12,6 +12,8 @@ TR.en['hero.desc']='The all-in-one software that turns your functional assessmen
 TR.en['hero.ctaPrimary']='Start free &mdash; 15 days &#8594;';
 TR.en['hero.ctaSecondary']='See how it works';
 TR.en['hero.proof']='15-day free trial &middot; No credit card required';
+TR.en['hero.imgDashAlt']='PT Board Dashboard';
+TR.en['hero.imgMobileAlt']='PT Board Mobile';
 TR.en['mockup.dashboard']='Dashboard';
 TR.en['mockup.export']='&#128202; Export';
 TR.en['mockup.clients']='Clients';
@@ -197,6 +199,8 @@ TR.fr['hero.desc']='Le logiciel tout-en-un qui transforme votre \u00e9valuation 
 TR.fr['hero.ctaPrimary']='Commencer gratuitement &mdash; 15 jours &#8594;';
 TR.fr['hero.ctaSecondary']='Voir comment \u00e7a marche';
 TR.fr['hero.proof']='Essai gratuit 15 jours &middot; Sans carte de cr\u00e9dit';
+TR.fr['hero.imgDashAlt']='Tableau de bord PT Board';
+TR.fr['hero.imgMobileAlt']='PT Board Mobile';
 TR.fr['mockup.dashboard']='Tableau de bord';
 TR.fr['mockup.export']='&#128202; Exporter';
 TR.fr['mockup.clients']='Clients';
@@ -388,6 +392,13 @@ function applyLang(lang){
     if(!(k in TR_ORIG))TR_ORIG[k]=el.innerHTML;
     var t=lang==='it'?TR_ORIG[k]:(TR[lang]&&TR[lang][k]);
     if(t!==undefined&&t!==null)el.innerHTML=t;
+  });
+  document.querySelectorAll('[data-i18n-alt]').forEach(function(el){
+    var k=el.getAttribute('data-i18n-alt');
+    var origKey='__alt__'+k;
+    if(!(origKey in TR_ORIG))TR_ORIG[origKey]=el.getAttribute('alt')||'';
+    var t=lang==='it'?TR_ORIG[origKey]:(TR[lang]&&TR[lang][k]);
+    if(t!==undefined&&t!==null)el.setAttribute('alt',t);
   });
   // Update dropdown trigger flag
   var cur=document.querySelector('.lang-current-flag');
