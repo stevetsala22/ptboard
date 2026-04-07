@@ -552,6 +552,8 @@ const LANGS={
     nudgeGenNow:'Genera programma →',
     nudgeBookNow:'Prenota →',
     nudgeReevalNow:'Rivaluta →',
+    authPhEmail:'mario.rossi@gmail.com',authPhPassword:'Minimo 6 caratteri',authPhConfirm:'Ripeti la password',
+    authGoogleBtn:'Accedi con Google',authOr:'oppure',
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
@@ -1206,6 +1208,8 @@ const LANGS={
     nudgeGenNow:'Generate program →',
     nudgeBookNow:'Book →',
     nudgeReevalNow:'Reassess →',
+    authPhEmail:'john.doe@gmail.com',authPhPassword:'At least 6 characters',authPhConfirm:'Repeat password',
+    authGoogleBtn:'Sign in with Google',authOr:'or',
     noResult:'No patients found',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
@@ -1860,6 +1864,8 @@ const LANGS={
     nudgeGenNow:'G\u00e9n\u00e9rer le programme →',
     nudgeBookNow:'R\u00e9server →',
     nudgeReevalNow:'R\u00e9\u00e9valuer →',
+    authPhEmail:'jean.dupont@gmail.com',authPhPassword:'Minimum 6 caract\u00e8res',authPhConfirm:'R\u00e9p\u00e9tez le mot de passe',
+    authGoogleBtn:'Se connecter avec Google',authOr:'ou',
     noResult:'Aucun patient trouvé',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
@@ -7532,14 +7538,11 @@ function EmailVerifyScreen({user}){
 }
 
 function AuthScreen({onProfileReady}){
-  const [mode,setMode]=useState(function(){try{return new URLSearchParams(window.location.search).get('action')==='register'?'register':'login';}catch(e){return 'login';}});
+  const T=gT();
+  const [mode,setMode]=useState(function(){try{return new URLSearchParams(window.location.search).get('action')==='login'?'login':'register';}catch(e){return 'register';}});
   const [email,setEmail]=useState('');
   const [pw,setPw]=useState('');
   const [pw2,setPw2]=useState('');
-  const [nome,setNome]=useState('');
-  const [cognome,setCognome]=useState('');
-  const [telefono,setTelefono]=useState('');
-  const [citta,setCitta]=useState('');
   const [gdpr,setGdpr]=useState(false);
   const [err,setErr]=useState('');
   const [msg,setMsg]=useState('');
@@ -7552,15 +7555,39 @@ function AuthScreen({onProfileReady}){
     if(code==='auth/email-already-in-use') return 'Email già registrata';
     if(code==='auth/weak-password') return 'Password troppo corta (minimo 6 caratteri)';
     if(code==='auth/invalid-email') return 'Email non valida';
+    if(code==='auth/popup-closed-by-user') return '';
+    if(code==='auth/popup-blocked') return 'Popup bloccato dal browser. Abilita i popup e riprova.';
     return 'Errore. Riprova.';
   };
 
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','login',{method:'email'});}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}if(!nome.trim()||!cognome.trim()){setErr('Inserisci nome e cognome');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});await c.user.updateProfile({displayName:nome+' '+cognome});const profile={email,displayName:nome+' '+cognome,nome:nome.trim(),cognome:cognome.trim(),telefono:telefono.trim(),citta:citta.trim(),plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,nome.trim(),1);await c.user.sendEmailVerification();if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});const profile={email,displayName:'',nome:'',cognome:'',telefono:'',citta:'',plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,'',1);await c.user.sendEmailVerification();if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doGoogle=async()=>{
+    setErr('');setLoading(true);
+    try{
+      const provider=new firebase.auth.GoogleAuthProvider();
+      const result=await fbAuth.signInWithPopup(provider);
+      const user=result.user;
+      const existing=await fbGetUserProfile(user.uid);
+      if(!existing){
+        const dn=user.displayName||'';
+        const profile={email:user.email||'',displayName:dn,nome:dn.split(' ')[0]||'',cognome:dn.split(' ').slice(1).join(' ')||'',telefono:'',citta:'',plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};
+        await fbSaveUserProfile(user.uid,profile);
+        sendBrevoEmail(user.email||'',profile.nome,1);
+        if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'google'});
+        if(onProfileReady)onProfileReady(profile);
+      }else{
+        if(typeof gtag!=='undefined')gtag('event','login',{method:'google'});
+      }
+    }catch(e){setErr(errMap(e.code));}
+    setLoading(false);
+  };
   const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
   const btn={width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1};
+  const googleBtn={width:'100%',padding:'12px',borderRadius:10,border:'1px solid #d1d5db',background:'#ffffff',color:'#1f2937',fontSize:14,fontWeight:600,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',justifyContent:'center',gap:10,opacity:loading?0.6:1};
+  const googleSvg=(<svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>);
 
   return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
@@ -7572,7 +7599,7 @@ function AuthScreen({onProfileReady}){
         <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:28}}>
           {mode!=='reset'&&(
             <div style={{display:'flex',gap:4,background:'#080d1a',borderRadius:9,padding:4,marginBottom:22}}>
-              {[['login','Accedi'],['register','Registrati']].map(([m,l])=>(
+              {[['register','Crea account'],['login','Accedi']].map(([m,l])=>(
                 <button key={m} onClick={()=>{setMode(m);setErr('');setMsg('');}} style={{flex:1,padding:'8px',borderRadius:7,border:'none',background:mode===m?'#3b82f6':'transparent',color:mode===m?'#fff':'#64748b',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',transition:'all .2s'}}>{l}</button>
               ))}
             </div>
@@ -7583,16 +7610,20 @@ function AuthScreen({onProfileReady}){
               <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
             </div>
           )}
-          {mode==='register'&&<input style={inp} placeholder="Nome *" value={nome} onChange={e=>setNome(e.target.value)}/>}
-          {mode==='register'&&<input style={inp} placeholder="Cognome *" value={cognome} onChange={e=>setCognome(e.target.value)}/>}
-          {mode==='register'&&<input style={inp} placeholder="Telefono (opzionale)" type="tel" value={telefono} onChange={e=>setTelefono(e.target.value)}/>}
-          {mode==='register'&&<input style={inp} placeholder="Città (opzionale)" value={citta} onChange={e=>setCitta(e.target.value)}/>}
-          <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
-          {mode!=='reset'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder="Password" type={showPw?'text':'password'} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/><button type="button" onClick={()=>setShowPw(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw?'🙈':'👁'}</button></div>}
-          {mode==='register'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder="Conferma password" type={showPw2?'text':'password'} value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/><button type="button" onClick={()=>setShowPw2(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw2?'🙈':'👁'}</button></div>}
-          {mode==='register'&&<label style={{display:'flex',alignItems:'flex-start',gap:8,fontSize:12,color:'#64748b',marginBottom:12,cursor:'pointer',lineHeight:1.5}}>
-            <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)} style={{marginTop:2,flexShrink:0,accentColor:'#3b82f6'}}/>
-            <span>Accetto la <a href="/privacy.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Privacy Policy</a> e i <a href="/terms.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Termini di Servizio</a></span>
+          {mode!=='reset'&&<>
+            <button type="button" style={googleBtn} onClick={doGoogle} disabled={loading}>{googleSvg}<span>{T.authGoogleBtn}</span></button>
+            <div style={{display:'flex',alignItems:'center',gap:10,margin:'14px 0'}}>
+              <div style={{flex:1,height:1,background:'#1e2d47'}}/>
+              <span style={{fontSize:11,color:'#64748b',textTransform:'uppercase',letterSpacing:1}}>{T.authOr}</span>
+              <div style={{flex:1,height:1,background:'#1e2d47'}}/>
+            </div>
+          </>}
+          <input style={inp} placeholder={T.authPhEmail} type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():mode==='register'?doRegister():doReset())}/>
+          {mode!=='reset'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder={T.authPhPassword} type={showPw?'text':'password'} value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(mode==='login'?doLogin():doRegister())}/><button type="button" onClick={()=>setShowPw(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw?'🙈':'👁'}</button></div>}
+          {mode==='register'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder={T.authPhConfirm} type={showPw2?'text':'password'} value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/><button type="button" onClick={()=>setShowPw2(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw2?'🙈':'👁'}</button></div>}
+          {mode==='register'&&<label style={{display:'flex',alignItems:'center',gap:8,fontSize:11,color:'#64748b',marginBottom:12,cursor:'pointer',lineHeight:1.4}}>
+            <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)} style={{flexShrink:0,accentColor:'#3b82f6'}}/>
+            <span>Accetto <a href="/privacy.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Privacy</a> e <a href="/terms.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Termini</a></span>
           </label>}
           {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
           {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
