@@ -252,6 +252,69 @@ img{max-width:100%;height:auto}
 .footer-col a:hover{color:var(--blue)}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:24px;border-top:1px solid var(--border);font-size:12px;color:var(--dim)}
 
+/* ── DEMO INTERACTIVE SECTION ── */
+.demo-section{position:relative;padding:80px 0;background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.03),var(--bg))}
+.demo-wrap{max-width:700px;margin:0 auto;padding:0 24px}
+.demo-card{background:#0c1225;border:1px solid #1a2547;border-radius:24px;padding:40px;box-shadow:0 24px 64px rgba(0,0,0,.4);position:relative;overflow:hidden}
+.demo-stepper{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px}
+.demo-stepper .dot{width:30px;height:30px;border-radius:50%;background:#1a2547;color:#64748b;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .3s ease}
+.demo-stepper .dot.active{background:var(--blue);color:#fff;box-shadow:0 0 0 4px rgba(59,130,246,.2)}
+.demo-stepper .dot.done{background:var(--green);color:#fff}
+.demo-stepper .line{width:36px;height:2px;background:#1a2547;transition:background .3s}
+.demo-stepper .line.done{background:var(--green)}
+.demo-step{animation:demoFade .35s ease}
+@keyframes demoFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.demo-step-title{font-size:22px;font-weight:800;color:var(--strong);margin-bottom:6px;letter-spacing:-.3px}
+.demo-step-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.demo-field{display:flex;flex-direction:column;gap:5px}
+.demo-field.full{grid-column:1 / -1}
+.demo-field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.demo-field input,.demo-field select{width:100%;padding:11px 14px;border-radius:8px;background:#050a18;border:1px solid #1a2547;color:#e2e8f0;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s}
+.demo-field input:focus,.demo-field select:focus{border-color:var(--blue)}
+.demo-info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:#cbd5e1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.demo-info-box .badge-num{font-size:18px;font-weight:900;color:var(--blue)}
+.demo-info-box.green{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25)} .demo-info-box.green .badge-num{color:var(--green)}
+.demo-info-box.yellow{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)} .demo-info-box.yellow .badge-num{color:var(--yellow)}
+.demo-info-box.red{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)} .demo-info-box.red .badge-num{color:var(--red)}
+.demo-bar-wrap{margin-top:10px}
+.demo-bar-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:5px}
+.demo-bar-label b{color:var(--strong);font-weight:700}
+.demo-bar{height:8px;background:#1a2547;border-radius:4px;overflow:hidden}
+.demo-bar>div{height:100%;border-radius:4px;background:var(--blue);transition:width .6s cubic-bezier(.22,1,.36,1),background .3s}
+.demo-actions{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
+.demo-btn{padding:11px 22px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s ease}
+.demo-btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.demo-btn-primary:hover{background:#2563eb;transform:translateY(-1px)}
+.demo-btn-primary:disabled{background:#334155;color:#64748b;cursor:not-allowed;box-shadow:none;transform:none}
+.demo-btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.demo-btn-ghost:hover{color:var(--strong);border-color:var(--blue)}
+.demo-result{position:relative}
+.demo-profile-box{padding:28px 24px;border-radius:16px;text-align:center;margin-bottom:20px;border:2px solid;position:relative}
+.demo-profile-box.A{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));border-color:#ef4444;color:#fca5a5}
+.demo-profile-box.B{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:#f59e0b;color:#fcd34d}
+.demo-profile-box.C{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border-color:#10b981;color:#6ee7b7}
+.demo-profile-name{font-size:24px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.demo-profile-score{font-size:46px;font-weight:900;color:var(--strong);margin-top:10px;line-height:1;font-variant-numeric:tabular-nums}
+.demo-profile-score small{font-size:18px;color:var(--muted);font-weight:700}
+.demo-profile-bar{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;margin-top:18px}
+.demo-profile-bar>div{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+.demo-comp{display:flex;flex-direction:column;gap:14px;margin-bottom:18px}
+.demo-mini-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.demo-mini{background:#050a18;border:1px solid #1a2547;border-radius:12px;padding:14px}
+.demo-mini-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
+.demo-mini-val{font-size:14px;color:var(--strong);font-weight:600;line-height:1.4}
+
+/* Paywall overlay on result step */
+.demo-paywall{margin-top:8px;background:linear-gradient(180deg,rgba(12,18,37,.4),rgba(12,18,37,.95) 60%);border-radius:16px;padding:38px 24px 8px;text-align:center;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.demo-paywall .pw-icon{font-size:38px;margin-bottom:8px}
+.demo-paywall h4{font-size:18px;font-weight:800;color:var(--strong);margin-bottom:6px;letter-spacing:-.3px}
+.demo-paywall p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;max-width:440px;margin-left:auto;margin-right:auto}
+.demo-paywall p b{color:#cbd5e1;font-weight:700}
+.demo-paywall .pw-btn{display:inline-block;background:var(--blue);color:#fff;padding:14px 30px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(59,130,246,.35);transition:all .15s}
+.demo-paywall .pw-btn:hover{background:#2563eb;transform:translateY(-1px)}
+.demo-paywall .pw-note{font-size:11px;color:var(--dim);margin-top:14px}
+
 /* ── RESPONSIVE ── */
 @media(max-width:968px){
   .hero-grid,.problem-grid,.wizard-grid{grid-template-columns:1fr;gap:40px}
@@ -353,6 +416,25 @@ img{max-width:100%;height:auto}
   .hero-mockup>div{overflow:hidden;border-radius:16px;padding-bottom:0}
   .hero-badge{font-size:11px !important;padding:5px 12px !important}
   .hero-mobile-img{width:100px!important;bottom:0!important;right:0!important;border-radius:12px!important}
+
+  /* Demo section mobile */
+  .demo-section{padding:50px 0}
+  .demo-wrap{padding:0 16px}
+  .demo-card{padding:24px 20px;border-radius:18px}
+  .demo-grid{grid-template-columns:1fr;gap:12px}
+  .demo-mini-row{grid-template-columns:1fr;gap:8px}
+  .demo-step-title{font-size:18px}
+  .demo-step-sub{font-size:12px;margin-bottom:18px}
+  .demo-stepper .dot{width:26px;height:26px;font-size:12px}
+  .demo-stepper .line{width:24px}
+  .demo-profile-name{font-size:20px}
+  .demo-profile-score{font-size:38px}
+  .demo-paywall{padding:30px 16px 8px}
+  .demo-paywall h4{font-size:16px}
+  .demo-paywall p{font-size:12px}
+  .demo-paywall .pw-btn{padding:12px 22px;font-size:14px;width:100%}
+  .demo-actions{margin-top:22px}
+  .demo-btn{padding:10px 18px;font-size:13px}
 }
 @media(max-width:480px){
   .hero{padding:88px 0 48px}
@@ -646,6 +728,117 @@ img{max-width:100%;height:auto}
   </div>
 </section>
 
+<!-- ═══ DEMO INTERACTIVE ═══ -->
+<section class="demo-section" id="demo">
+  <div class="demo-wrap">
+    <div style="text-align:center;margin-bottom:36px" class="animate">
+      <div class="badge" style="margin-bottom:14px" data-i18n="demo.badge">&#9889; Provala ora</div>
+      <h2 style="font-size:34px;font-weight:900;color:var(--strong);margin-bottom:10px;letter-spacing:-1px;line-height:1.15" data-i18n="demo.title">Prova la valutazione &mdash; gratis, senza account</h2>
+      <p style="font-size:15px;color:var(--muted);max-width:520px;margin:0 auto" data-i18n="demo.subtitle">Compila i campi, vedi il risultato calcolato in tempo reale come nell'app vera. Per esportare il PDF basta creare un account.</p>
+    </div>
+    <div class="demo-card animate delay-1">
+      <div class="demo-stepper">
+        <div class="dot active" id="demoDot1">1</div>
+        <div class="line" id="demoLine1"></div>
+        <div class="dot" id="demoDot2">2</div>
+        <div class="line" id="demoLine2"></div>
+        <div class="dot" id="demoDot3">3</div>
+      </div>
+      <!-- STEP 1 — Dati cliente -->
+      <div class="demo-step" id="demoStep1">
+        <div class="demo-step-title" data-i18n="demo.s1Title">&#128100; Dati cliente</div>
+        <div class="demo-step-sub" data-i18n="demo.s1Sub">Inserisci i dati anagrafici del tuo cliente. BMI e composizione corporea sono calcolati in tempo reale.</div>
+        <div class="demo-grid">
+          <div class="demo-field"><label data-i18n="demo.fldFirst">Nome</label><input id="demoNome" type="text" placeholder="Sara"/></div>
+          <div class="demo-field"><label data-i18n="demo.fldLast">Cognome</label><input id="demoCognome" type="text" placeholder="Rossi"/></div>
+          <div class="demo-field"><label data-i18n="demo.fldSex">Sesso</label><select id="demoSesso"><option value="F">F</option><option value="M">M</option></select></div>
+          <div class="demo-field"><label data-i18n="demo.fldAge">Et&agrave;</label><input id="demoEta" type="number" min="14" max="99" placeholder="34"/></div>
+          <div class="demo-field"><label data-i18n="demo.fldWeight">Peso (kg)</label><input id="demoPeso" type="number" min="30" max="220" placeholder="62"/></div>
+          <div class="demo-field"><label data-i18n="demo.fldHeight">Altezza (cm)</label><input id="demoAltezza" type="number" min="120" max="220" placeholder="165"/></div>
+        </div>
+        <div class="demo-info-box" id="demoBmiBox" style="display:none">
+          <span class="badge-num" id="demoBmiVal">—</span>
+          <span><b style="color:#cbd5e1" data-i18n="demo.lblBmi">BMI:</b> <span id="demoBmiLbl">—</span></span>
+        </div>
+        <div class="demo-info-box" id="demoFmBox" style="display:none">
+          <span class="badge-num" id="demoFmVal">—</span>
+          <span><b style="color:#cbd5e1" data-i18n="demo.lblFm">Massa grassa stimata:</b> <span id="demoFmLbl">—</span></span>
+        </div>
+        <div class="demo-actions">
+          <span></span>
+          <button class="demo-btn demo-btn-primary" id="demoNext1" data-i18n="demo.next">Avanti &rarr;</button>
+        </div>
+      </div>
+      <!-- STEP 2 — Test 6MWT + STS -->
+      <div class="demo-step" id="demoStep2" style="display:none">
+        <div class="demo-step-title" data-i18n="demo.s2Title">&#127939; Test funzionali</div>
+        <div class="demo-step-sub" data-i18n="demo.s2Sub">6MWT: cammina pi&ugrave; veloce possibile per 6 minuti, segna la distanza. STS: alzate da seduto in 30 secondi.</div>
+        <div class="demo-grid">
+          <div class="demo-field full"><label data-i18n="demo.fldMwt">6MWT &mdash; Distanza percorsa (m)</label><input id="demoMwt" type="number" min="0" max="900" placeholder="520"/></div>
+          <div class="demo-field"><label data-i18n="demo.fldRpe">RPE durante il test (0-10)</label><input id="demoRpe" type="number" min="0" max="10" placeholder="5"/></div>
+          <div class="demo-field"><label data-i18n="demo.fldSts">STS 30s (ripetizioni)</label><input id="demoSts" type="number" min="0" max="50" placeholder="14"/></div>
+          <div class="demo-field full"><label data-i18n="demo.fldSymp">Sintomi durante il test</label><select id="demoSymp"><option value="NO" data-i18n="demo.sympNo">NO</option><option value="dispneaL" data-i18n="demo.sympDispL">Dispnea lieve</option><option value="dispneaM" data-i18n="demo.sympDispM">Dispnea moderata</option><option value="dolore" data-i18n="demo.sympPain">Dolore toracico</option><option value="vertigini" data-i18n="demo.sympDizzy">Vertigini</option></select></div>
+        </div>
+        <div class="demo-bar-wrap" style="margin-top:16px">
+          <div class="demo-bar-label"><span data-i18n="demo.previewAerobic">Anteprima capacit&agrave; aerobica</span><b id="demoMwtScoreLbl">— / 100</b></div>
+          <div class="demo-bar"><div id="demoMwtBar" style="width:0%"></div></div>
+        </div>
+        <div class="demo-actions">
+          <button class="demo-btn demo-btn-ghost" id="demoBack2" data-i18n="demo.back">&larr; Indietro</button>
+          <button class="demo-btn demo-btn-primary" id="demoNext2" data-i18n="demo.seeResult">Vedi risultato &rarr;</button>
+        </div>
+      </div>
+      <!-- STEP 3 — Risultato -->
+      <div class="demo-step" id="demoStep3" style="display:none">
+        <div class="demo-step-title" data-i18n="demo.s3Title">&#128202; Il tuo risultato</div>
+        <div class="demo-step-sub" data-i18n="demo.s3Sub">Profilo fitness calcolato dai dati che hai inserito.</div>
+        <div class="demo-result">
+          <div class="demo-profile-box" id="demoProfBox">
+            <div class="demo-profile-name" id="demoProfName">—</div>
+            <div class="demo-profile-score"><span id="demoProfScore">0</span><small>/100</small></div>
+            <div class="demo-profile-bar"><div id="demoProfBar" style="width:0%;background:#10b981"></div></div>
+          </div>
+          <div class="demo-comp">
+            <div class="demo-bar-wrap">
+              <div class="demo-bar-label"><span>&#127939; <span data-i18n="demo.compAerobic">Capacit&agrave; aerobica (6MWT)</span></span><b id="demoBar1Lbl">0/100</b></div>
+              <div class="demo-bar"><div id="demoBar1" style="width:0%"></div></div>
+            </div>
+            <div class="demo-bar-wrap">
+              <div class="demo-bar-label"><span>&#128170; <span data-i18n="demo.compStrength">Forza arti inferiori (STS)</span></span><b id="demoBar2Lbl">0/100</b></div>
+              <div class="demo-bar"><div id="demoBar2" style="width:0%"></div></div>
+            </div>
+            <div class="demo-bar-wrap">
+              <div class="demo-bar-label"><span>&#128207; <span data-i18n="demo.compBody">Composizione corporea (FM%)</span></span><b id="demoBar3Lbl">0/100</b></div>
+              <div class="demo-bar"><div id="demoBar3" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="demo-mini-row">
+            <div class="demo-mini">
+              <div class="demo-mini-title" data-i18n="demo.miniProgram">Programma 4 settimane</div>
+              <div class="demo-mini-val" id="demoProgVal">—</div>
+            </div>
+            <div class="demo-mini">
+              <div class="demo-mini-title" data-i18n="demo.miniNutri">Nutrizione</div>
+              <div class="demo-mini-val" id="demoNutriVal">—</div>
+            </div>
+          </div>
+          <div class="demo-paywall">
+            <div class="pw-icon">&#128196;</div>
+            <h4 data-i18n="demo.pwTitle">Esporta il PDF professionale per il tuo cliente</h4>
+            <p><span data-i18n="demo.pwBody1">Non perdere questo risultato &mdash; salva il profilo di</span> <b id="demoPwName">Sara Rossi</b> <span data-i18n="demo.pwBody2">nel tuo account</span></p>
+            <a href="/?action=register" class="pw-btn" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')" data-i18n="demo.pwCta">Crea account gratis &rarr;</a>
+            <div class="pw-note" data-i18n="demo.pwNote">Nessuna carta di credito &middot; 15 giorni gratis &middot; I tuoi dati ti aspettano</div>
+          </div>
+        </div>
+        <div class="demo-actions">
+          <button class="demo-btn demo-btn-ghost" id="demoBack3" data-i18n="demo.back">&larr; Indietro</button>
+          <button class="demo-btn demo-btn-ghost" id="demoRestart" data-i18n="demo.restart">&#8635; Ricomincia</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ PRICING ═══ -->
 <section class="section pricing-section" id="pricing">
   <div class="container">
@@ -874,6 +1067,7 @@ img{max-width:100%;height:auto}
 </footer>
 
 <script src="/landing-i18n.js"></script>
+<script src="/landing-demo.js"></script>
 <script>
 // Navbar scroll effect
 var navbar=document.getElementById('navbar');
