@@ -3387,6 +3387,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const upd=(fn)=>onUpdate({...p,...fn(p)});
   const exportSchedaPDF=(scheda)=>{
     if(typeof gtag!=='undefined')gtag('event','export_pdf',{type:'scheda'});
+    try{localStorage.setItem('ptboard_first_pdf_exported','1');}catch(e){}
     const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
     const dataOggi=scheda.data||fmtDate();
     const logoHtml=trainerProfile?.logo?'<div style="display:flex;align-items:center;gap:12px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px"/><div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div></div>':'<div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div>';
@@ -4986,6 +4987,16 @@ function App(){
   return <AppInner user={user} profile={profile} setProfile={setProfile} trialLeft={trialDaysLeft(profile)}/>;
 }
 
+function getOnboardingStep(patients){
+  try{if(localStorage.getItem('ptboard_first_pdf_exported')==='1')return 4;}catch(e){}
+  if(!patients||patients.length===0)return 0;
+  var hasEval=patients.some(function(p){return p&&p.test&&(p.test.mwtDist||p.test.stsRip);});
+  if(!hasEval)return 1;
+  var hasProg=patients.some(function(p){return p&&p.programma&&p.programma.sedute;});
+  if(!hasProg)return 2;
+  return 3;
+}
+
 function AppInner({user,profile,setProfile,trialLeft}){
   var trainerProfile=profile;
   var tpNome=trainerProfile?.nome||trainerProfile?.displayName||'';
@@ -5125,6 +5136,15 @@ function AppInner({user,profile,setProfile,trialLeft}){
     }
   },[isNew,patients,T]);
 
+  const onboardingStep=getOnboardingStep(patients);
+  const onboardingActive=onboardingStep<4;
+  const isNavLocked=function(id){
+    if(!onboardingActive)return false;
+    if(id==='home'||id==='dash'||id==='patients')return false;
+    if(id==='calendar')return onboardingStep<1;
+    if(id==='exercises')return onboardingStep<3;
+    return false;
+  };
   const navItems=[
     {id:'home',icon:'🏠',l:'Home',tip:'Torna alla home'},
     {id:'dash',icon:'⊞',l:T.dashboard,tip:'Panoramica clienti e statistiche'},
@@ -5160,12 +5180,13 @@ function AppInner({user,profile,setProfile,trialLeft}){
         </div>
         <div style={S.nav}>
           <div style={{...S.navlbl,color:isLight?'#475569':'#cbd5e1'}}>Menu</div>
-          {navItems.map(n=>{const act=page===n.id||((page==='detail'||page==='form')&&n.id==='patients');return(
+          {navItems.map(n=>{const act=page===n.id||((page==='detail'||page==='form')&&n.id==='patients');const locked=isNavLocked(n.id);return(
             <div key={n.id} className="tt">
-              <button style={{...S.navi(act),color:act?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9'),background:act?(isLight?C.blue+'15':C.blue+'30'):'transparent'}} onClick={()=>{setPage(n.id);setSelectedId(null);setSidebarOpen(false);}}>
+              <button disabled={locked} aria-disabled={locked} style={{...S.navi(act),color:locked?(isLight?'#94a3b8':'#64748b'):(act?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9')),background:act?(isLight?C.blue+'15':C.blue+'30'):'transparent',opacity:locked?0.4:1,cursor:locked?'not-allowed':'pointer'}} onClick={()=>{if(locked)return;setPage(n.id);setSelectedId(null);setSidebarOpen(false);}}>
                 <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
+                {locked&&<span style={{marginLeft:'auto',fontSize:12}}>🔒</span>}
               </button>
-              <span className="tp">{n.tip}</span>
+              <span className="tp">{locked?'Completa gli step precedenti per sbloccare':n.tip}</span>
             </div>
           );})}
           <div className="tt">
@@ -5939,6 +5960,7 @@ function WizardValutazione({onSave,onClose,initialData}){
   const exportPDF=()=>{
     if(!prog||!pr)return;
     if(typeof gtag!=='undefined')gtag('event','export_pdf',{type:'wizard'});
+    try{localStorage.setItem('ptboard_first_pdf_exported','1');}catch(e){}
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${T.valutazione} ${esc(d.nome)} ${esc(d.cognome)}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#1e293b;font-size:13px}
 .pg{max-width:800px;margin:0 auto;padding:40px}.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #3b82f6;padding-bottom:16px;margin-bottom:22px}
