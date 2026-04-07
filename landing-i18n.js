@@ -373,6 +373,7 @@ TR.fr['footer.madeWith']='Made with &#10084;&#65039; in Italy';
 
 // Store original IT content on first run, then apply requested language
 var TR_ORIG={};
+var LANG_FLAGS={it:'\uD83C\uDDEE\uD83C\uDDF9',en:'\uD83C\uDDEC\uD83C\uDDE7',fr:'\uD83C\uDDEB\uD83C\uDDF7'};
 function detectLang(){
   var s=localStorage.getItem('pt_landing_lang');
   if(s&&(s==='it'||TR[s]))return s;
@@ -388,7 +389,11 @@ function applyLang(lang){
     var t=lang==='it'?TR_ORIG[k]:(TR[lang]&&TR[lang][k]);
     if(t!==undefined&&t!==null)el.innerHTML=t;
   });
-  document.querySelectorAll('.lang-flag').forEach(function(b){
+  // Update dropdown trigger flag
+  var cur=document.querySelector('.lang-current-flag');
+  if(cur&&LANG_FLAGS[lang])cur.textContent=LANG_FLAGS[lang];
+  // Mark active option
+  document.querySelectorAll('.lang-option').forEach(function(b){
     if(b.getAttribute('data-lang')===lang)b.classList.add('active');
     else b.classList.remove('active');
   });
@@ -397,8 +402,43 @@ function setLang(lang){
   try{localStorage.setItem('pt_landing_lang',lang);}catch(e){}
   applyLang(lang);
 }
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',function(){applyLang(detectLang());});
-}else{
+function initLangSwitcher(){
+  var sw=document.getElementById('langSwitcher');
+  var trig=document.getElementById('langTrigger');
+  if(!sw||!trig)return;
+  trig.addEventListener('click',function(e){
+    e.stopPropagation();
+    var open=sw.classList.toggle('open');
+    trig.setAttribute('aria-expanded',open?'true':'false');
+  });
+  sw.querySelectorAll('.lang-option').forEach(function(o){
+    o.addEventListener('click',function(e){
+      e.stopPropagation();
+      var lang=o.getAttribute('data-lang');
+      setLang(lang);
+      sw.classList.remove('open');
+      trig.setAttribute('aria-expanded','false');
+    });
+  });
+  document.addEventListener('click',function(e){
+    if(!sw.contains(e.target)){
+      sw.classList.remove('open');
+      trig.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&sw.classList.contains('open')){
+      sw.classList.remove('open');
+      trig.setAttribute('aria-expanded','false');
+    }
+  });
+}
+function initI18n(){
   applyLang(detectLang());
+  initLangSwitcher();
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',initI18n);
+}else{
+  initI18n();
 }
