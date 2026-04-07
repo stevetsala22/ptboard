@@ -554,6 +554,7 @@ const LANGS={
     nudgeReevalNow:'Rivaluta →',
     authPhEmail:'mario.rossi@gmail.com',authPhPassword:'Minimo 6 caratteri',authPhConfirm:'Ripeti la password',
     authGoogleBtn:'Accedi con Google',authOr:'oppure',
+    demoToast:'👋 Abbiamo aggiunto Sara Demo — provala subito!',
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
@@ -1210,6 +1211,7 @@ const LANGS={
     nudgeReevalNow:'Reassess →',
     authPhEmail:'john.doe@gmail.com',authPhPassword:'At least 6 characters',authPhConfirm:'Repeat password',
     authGoogleBtn:'Sign in with Google',authOr:'or',
+    demoToast:"👋 We've added Sara Demo — try it out now!",
     noResult:'No patients found',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
@@ -1866,6 +1868,7 @@ const LANGS={
     nudgeReevalNow:'R\u00e9\u00e9valuer →',
     authPhEmail:'jean.dupont@gmail.com',authPhPassword:'Minimum 6 caract\u00e8res',authPhConfirm:'R\u00e9p\u00e9tez le mot de passe',
     authGoogleBtn:'Se connecter avec Google',authOr:'ou',
+    demoToast:"👋 Nous avons ajouté Sara Demo — essayez-la maintenant !",
     noResult:'Aucun patient trouvé',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
@@ -7560,8 +7563,30 @@ function AuthScreen({onProfileReady}){
     return 'Errore. Riprova.';
   };
 
+  const buildDemoPatient=()=>{
+    var today=fmtDate();
+    return {id:'DEMO-001',nome:'Sara',cognome:'Demo',sesso:'F',ddn:'15/03/1990',annoNascita:1990,
+      altezza:165,peso:62,vita:72,fianchi:95,pa:'120/80',fc:68,
+      patologie:'',farmaci:'',attivita:'Poco attiva',obiettivo:'Perdere peso',
+      stressPercepito:'Medio',sonno:'7',preferenze:'',sintomiSforzo:'NO',allergie:'',
+      email:'',telefono:'',
+      dataValutazione:today,createdAt:today,
+      test:{mwtDist:'520',mwtRpe:'5',mwtSintomi:'NO',stsRip:'14',stsNote:'',noteVal:''},
+      programma:{},nutrizione:{},progressi:[],schede:[],log:[]};
+  };
+  const seedDemoIfEmpty=async(uid)=>{
+    try{
+      const existingData=await fbLoad(uid);
+      if(existingData&&existingData.patients&&existingData.patients.length>0)return false;
+      const demoData={patients:[buildDemoPatient()],bookings:[],exercises:[]};
+      save(demoData);
+      await fbSave(uid,demoData);
+      return true;
+    }catch(e){console.warn('seedDemo',e);return false;}
+  };
+
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','login',{method:'email'});}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});const profile={email,displayName:'',nome:'',cognome:'',telefono:'',citta:'',plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,'',1);await c.user.sendEmailVerification();if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});const profile={email,displayName:'',nome:'',cognome:'',telefono:'',citta:'',plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,'',1);await c.user.sendEmailVerification();const seeded=await seedDemoIfEmpty(c.user.uid);if(seeded)showToast(T.demoToast,'success',5000);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doGoogle=async()=>{
     setErr('');setLoading(true);
     try{
@@ -7575,6 +7600,8 @@ function AuthScreen({onProfileReady}){
         await fbSaveUserProfile(user.uid,profile);
         sendBrevoEmail(user.email||'',profile.nome,1);
         if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'google'});
+        const seeded=await seedDemoIfEmpty(user.uid);
+        if(seeded)showToast(T.demoToast,'success',5000);
         if(onProfileReady)onProfileReady(profile);
       }else{
         if(typeof gtag!=='undefined')gtag('event','login',{method:'google'});
