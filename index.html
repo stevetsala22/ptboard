@@ -544,6 +544,14 @@ const LANGS={
     onbToast2:'🏆 Prima valutazione completata! Genera il programma.',
     onbToast3:'💪 Programma generato! Esporta il PDF.',
     onbToast4:'🚀 Complimenti! Hai sbloccato PT Board al 100%!',
+    nudgeNoEval:'non ha ancora una valutazione',
+    nudgeGenProg:'Il programma di {name} è pronto da generare',
+    nudgeBookSession:'Prenota una seduta con {name}',
+    nudgeReeval:'È il momento di rivalutare {name}',
+    nudgeEvalNow:'Valuta ora →',
+    nudgeGenNow:'Genera programma →',
+    nudgeBookNow:'Prenota →',
+    nudgeReevalNow:'Rivaluta →',
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
@@ -1190,6 +1198,14 @@ const LANGS={
     onbToast2:'🏆 First assessment completed! Generate the program.',
     onbToast3:'💪 Program generated! Export the PDF.',
     onbToast4:'🚀 Congratulations! You have unlocked PT Board 100%!',
+    nudgeNoEval:"doesn't have an assessment yet",
+    nudgeGenProg:"{name}'s program is ready to be generated",
+    nudgeBookSession:'Book a session with {name}',
+    nudgeReeval:'Time to reassess {name}',
+    nudgeEvalNow:'Assess now →',
+    nudgeGenNow:'Generate program →',
+    nudgeBookNow:'Book →',
+    nudgeReevalNow:'Reassess →',
     noResult:'No patients found',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
@@ -1836,6 +1852,14 @@ const LANGS={
     onbToast2:'🏆 Premi\u00e8re \u00e9valuation termin\u00e9e ! G\u00e9n\u00e9rez le programme.',
     onbToast3:'💪 Programme g\u00e9n\u00e9r\u00e9 ! Exportez le PDF.',
     onbToast4:'🚀 F\u00e9licitations ! Vous avez d\u00e9bloqu\u00e9 PT Board \u00e0 100% !',
+    nudgeNoEval:"n'a pas encore d'\u00e9valuation",
+    nudgeGenProg:'Le programme de {name} est pr\u00eat \u00e0 \u00eatre g\u00e9n\u00e9r\u00e9',
+    nudgeBookSession:'R\u00e9servez une s\u00e9ance avec {name}',
+    nudgeReeval:"C'est le moment de r\u00e9\u00e9valuer {name}",
+    nudgeEvalNow:'\u00c9valuer maintenant →',
+    nudgeGenNow:'G\u00e9n\u00e9rer le programme →',
+    nudgeBookNow:'R\u00e9server →',
+    nudgeReevalNow:'R\u00e9\u00e9valuer →',
     noResult:'Aucun patient trouvé',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
@@ -3219,7 +3243,7 @@ function BarChartComp({data,color=C.blue}){
   return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
 }
 
-function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep,onCreateClient,onStartWizard,onOpenPatient}){
+function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep,onCreateClient,onStartWizard,onOpenPatient,onValuta}){
   const [metricsOpen,setMetricsOpen]=useState(false);
   const today=fmtDate();
   const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
@@ -3228,7 +3252,11 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
   var nextApptLabel='Prossima seduta';
   var nextApptVal=nextAppt?nextAppt.ora:'--:--';
   var nextApptSub=nextAppt?(function(){var pp=patients.find(function(x){return x.id===nextAppt.patientId});return pp?(pp.nome+' '+pp.cognome):'';})():'Nessuna oggi';
-  // Onboarding banner state
+  var hasAssessment=function(p){return !!(p&&p.test&&(p.test.mwtDist||p.test.stsRip));};
+  var hasProgram=function(p){return !!(p&&p.programma&&p.programma.sedute);};
+  var fullName=function(p){return p?(p.nome+' '+p.cognome).trim():'';};
+  var parseItDate=function(s){if(!s)return 0;var m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);if(m)return new Date(+m[3],+m[2]-1,+m[1]).getTime();var t=Date.parse(s);return isNaN(t)?0:t;};
+
   var showOnboarding=typeof onboardingStep==='number'&&onboardingStep<4;
   var onbIcon='',onbMsg='',onbBtn='',onbAction=null;
   if(showOnboarding){
@@ -3239,26 +3267,55 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
       onbBtn=T.onbCreateClientBtn+' →';
       onbAction=function(){if(onCreateClient)onCreateClient();else if(onNavigate)onNavigate('patients');};
     }else if(onboardingStep===1){
-      var pNoEval=patients.find(function(p){return !(p&&p.test&&(p.test.mwtDist||p.test.stsRip));});
-      var nmEval=pNoEval?(pNoEval.nome+' '+pNoEval.cognome).trim():'';
+      var pNoEval=patients.find(function(p){return !hasAssessment(p);});
+      var nmEval=fullName(pNoEval);
       onbIcon='📋';
       onbMsg=T.onbEvaluateMsg+(nmEval?' '+nmEval:'');
       onbBtn=T.onbEvaluateBtn+(nmEval?' '+nmEval:'')+' →';
       onbAction=function(){if(onStartWizard)onStartWizard();};
     }else if(onboardingStep===2){
-      var pNoProg=patients.find(function(p){return p&&p.test&&(p.test.mwtDist||p.test.stsRip)&&!(p.programma&&p.programma.sedute);});
-      var nmProg=pNoProg?(pNoProg.nome+' '+pNoProg.cognome).trim():'';
+      var pNoProg=patients.find(function(p){return hasAssessment(p)&&!hasProgram(p);});
+      var nmProg=fullName(pNoProg);
       onbIcon='🏆';
       onbMsg=T.onbGenerateMsg+(nmProg?' '+nmProg:'');
       onbBtn=T.onbGenerateBtn+' →';
       onbAction=function(){if(onOpenPatient&&pNoProg)onOpenPatient(pNoProg.id);};
     }else if(onboardingStep===3){
-      var pWithProg=patients.find(function(p){return p&&p.programma&&p.programma.sedute;});
-      var nmPdf=pWithProg?(pWithProg.nome+' '+pWithProg.cognome).trim():'';
+      var pWithProg=patients.find(hasProgram);
+      var nmPdf=fullName(pWithProg);
       onbIcon='📄';
       onbMsg=T.onbExportMsg+(nmPdf?' '+nmPdf:'');
       onbBtn=T.onbExportBtn+' →';
       onbAction=function(){if(onOpenPatient&&pWithProg)onOpenPatient(pWithProg.id);};
+    }
+  }
+  var topNudge=null;
+  if(onboardingStep===4&&patients.length>0){
+    var nowTs=Date.now();
+    var in7=nowTs+7*86400000;
+    var cutoff30=nowTs-30*86400000;
+    var sortedByOld=patients.slice().sort(function(a,b2){return(a.id||0)-(b2.id||0);});
+    var nudgeRules=[
+      {icon:'📋',msgKey:'nudgeNoEval',btnKey:'nudgeEvalNow',
+        match:function(p){return !hasAssessment(p);},
+        act:function(p){if(onValuta)onValuta(p);else if(onStartWizard)onStartWizard();}},
+      {icon:'🏆',msgKey:'nudgeGenProg',btnKey:'nudgeGenNow',
+        match:function(p){return hasAssessment(p)&&!hasProgram(p);},
+        act:function(p){if(onOpenPatient)onOpenPatient(p.id);}},
+      {icon:'📅',msgKey:'nudgeBookSession',btnKey:'nudgeBookNow',
+        match:function(p){if(!hasProgram(p))return false;var hasUpcoming=(bookings||[]).some(function(b2){if(b2.patientId!==p.id)return false;var t=new Date(b2.data).getTime();return !isNaN(t)&&t>=nowTs&&t<=in7;});return !hasUpcoming;},
+        act:function(){if(onNavigate)onNavigate('calendar');}},
+      {icon:'🔄',msgKey:'nudgeReeval',btnKey:'nudgeReevalNow',
+        match:function(p){if(!hasAssessment(p))return false;var ts=parseItDate(p.dataValutazione);return ts>0&&ts<cutoff30;},
+        act:function(p){if(onValuta)onValuta(p);else if(onStartWizard)onStartWizard();}},
+    ];
+    for(var ri=0;ri<nudgeRules.length&&!topNudge;ri++){
+      var rule=nudgeRules[ri];
+      var matched=sortedByOld.find(rule.match);
+      if(matched){
+        var nm=fullName(matched);
+        topNudge={icon:rule.icon,name:nm,msg:T[rule.msgKey].replace('{name}',nm),btn:T[rule.btnKey],action:(function(r,p){return function(){r.act(p);};})(rule,matched)};
+      }
     }
   }
   return(
@@ -3273,6 +3330,14 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
             {[0,1,2,3].map(function(i){return <div key={i} style={{width:8,height:8,borderRadius:'50%',background:i<=onboardingStep?C.blue:(C.border2||'#374151')}}/>;})}
           </div>
         </div>
+      </div>}
+      {topNudge&&<div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:14,padding:isMobile?16:20,display:'flex',alignItems:'center',gap:isMobile?12:16,marginBottom:16,flexWrap:isMobile?'wrap':'nowrap'}}>
+        <div style={{fontSize:isMobile?24:28,lineHeight:1,flexShrink:0}}>{topNudge.icon}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:isMobile?13:14,fontWeight:800,color:C.strong,marginBottom:2}}>{topNudge.name}</div>
+          <div style={{fontSize:isMobile?12:13,color:C.muted,lineHeight:1.45}}>{topNudge.msg}</div>
+        </div>
+        <button onClick={topNudge.action} style={{...S.btn(),whiteSpace:'nowrap',flexShrink:0}}>{topNudge.btn}</button>
       </div>}
       <div style={{marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <div>
@@ -5437,7 +5502,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               </div>
             </div>
           )}
-          {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile} onboardingStep={onboardingStep} onCreateClient={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form');}} onStartWizard={()=>{setShowValutazione(true);}} onOpenPatient={(id)=>{setSelectedId(id);setPage('detail');}}/>}
+          {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile} onboardingStep={onboardingStep} onCreateClient={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form');}} onStartWizard={()=>{setShowValutazione(true);}} onOpenPatient={(id)=>{setSelectedId(id);setPage('detail');}} onValuta={(p)=>{setReevalPatient(p);setShowValutazione(true);}}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
           {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
