@@ -1003,6 +1003,13 @@ const LANGS={
     wizStepSts:'🪑 Sit-to-Stand 30s',wizStepPushPlank:'💪 Push-up & Plank',wizStepPhysTest:'💪 Test Fisici',
     wizStepMovQuality:'🏃 Qualità del Movimento',wizStepRpeNote:'😮‍💨 RPE & Note',wizStepClass:'📊 Classificazione',
     wizStepClassProg:'📊 Classificazione & Programma',wizStepProg4:'🏆 Programma 4 Settimane',
+    // Stima automatica test
+    stimaBtn:'🔮 Stima dai dati anagrafici',
+    stimaBadge:'⚡ Valore stimato — sostituisci con il test reale per maggiore precisione',
+    stimaAsk:'Alcuni test non sono stati compilati. Vuoi stimarli automaticamente per avere un profilo completo?',
+    stimaComplete:'Stima e completa →',
+    stimaNote:'* Valori stimati da dati anagrafici — si consiglia di completare i test per maggiore precisione',
+    stimaIncomplete:'Per stimare servono: età, sesso, peso, altezza, attività',
     // Header
     wizClientEval:'Valutazione Cliente',wizStepN:'Passo {n} di {tot}',
     wizCloseConfirm:'Chiudere la valutazione? I dati non salvati andranno persi.',
@@ -1676,6 +1683,13 @@ const LANGS={
     wizStepSts:'🪑 Sit-to-Stand 30s',wizStepPushPlank:'💪 Push-up & Plank',wizStepPhysTest:'💪 Physical Tests',
     wizStepMovQuality:'🏃 Movement Quality',wizStepRpeNote:'😮‍💨 RPE & Notes',wizStepClass:'📊 Classification',
     wizStepClassProg:'📊 Classification & Program',wizStepProg4:'🏆 4-Week Program',
+    // Auto test estimation
+    stimaBtn:'🔮 Estimate from profile data',
+    stimaBadge:'⚡ Estimated value — replace with the actual test for greater accuracy',
+    stimaAsk:'Some tests have not been filled in. Do you want to estimate them automatically for a complete profile?',
+    stimaComplete:'Estimate and complete →',
+    stimaNote:'* Values estimated from profile data — completing the tests is recommended for greater accuracy',
+    stimaIncomplete:'To estimate: age, sex, weight, height and activity level are required',
     // Header
     wizClientEval:'Client Assessment',wizStepN:'Step {n} of {tot}',
     wizCloseConfirm:'Close the assessment? Unsaved data will be lost.',
@@ -2349,6 +2363,13 @@ const LANGS={
     wizStepSts:'🪑 Sit-to-Stand 30s',wizStepPushPlank:'💪 Pompes & Planche',wizStepPhysTest:'💪 Tests Physiques',
     wizStepMovQuality:'🏃 Qualité du Mouvement',wizStepRpeNote:'😮‍💨 RPE & Notes',wizStepClass:'📊 Classification',
     wizStepClassProg:'📊 Classification & Programme',wizStepProg4:'🏆 Programme 4 Semaines',
+    // Estimation automatique des tests
+    stimaBtn:'🔮 Estimer depuis le profil',
+    stimaBadge:'⚡ Valeur estimée — remplacez par le test réel pour plus de précision',
+    stimaAsk:"Certains tests n'ont pas été remplis. Souhaitez-vous les estimer automatiquement pour un profil complet ?",
+    stimaComplete:'Estimer et compléter →',
+    stimaNote:'* Valeurs estimées à partir des données du profil — il est conseillé de compléter les tests pour plus de précision',
+    stimaIncomplete:"Pour estimer : âge, sexe, poids, taille et niveau d'activité requis",
     // Header
     wizClientEval:'Évaluation Client',wizStepN:'Étape {n} sur {tot}',
     wizCloseConfirm:"Fermer l'évaluation ? Les données non sauvegardées seront perdues.",
@@ -2606,6 +2627,59 @@ function getMwtNorm(sesso,eta){return getNormInterp((mwtNorms[sesso]||mwtNorms['
 function getStsNorm(sesso,eta){return getNormInterp((stsNorms[sesso]||stsNorms['M']),eta);}
 function getHgNorm(sesso,eta){return getNormInterp((hgNorms[sesso]||hgNorms['M']),eta);}
 function getTugNorm(eta){return getNormInterp(tugNorms,eta);}
+
+// ── STIMA AUTOMATICA TEST da dati anagrafici ─────────────────────────────────
+// Stima i valori di tutti i test partendo da {eta, sesso, peso, altezza, attivita}
+// Formule: 6MWT Enright & Sherrill 1998, STS Jones 1999, Push-up ACSM, Plank norme medie,
+// Handgrip Dodds 2014 (getHgNorm), TUG Bohannon 2006 (getTugNorm).
+function stimaTest(params){
+  var eta=+params.eta||40;
+  var sesso=params.sesso==='F'?'F':'M';
+  var peso=+params.peso||70;
+  var altezza=+params.altezza||170;
+  var att=params.attivita||'Moderata';
+  // Normalizza attività: gestisci sia "Moderata" che "Moderatamente attiva"
+  if(att==='Moderatamente attiva')att='Moderata';
+  // Fattori moltiplicativi per livello attività
+  var f6={Sedentaria:0.85,'Poco attiva':0.92,Moderata:1.0,Attiva:1.08,'Molto attiva':1.15}[att]||1.0;
+  var fSts={Sedentaria:0.75,'Poco attiva':0.9,Moderata:1.0,Attiva:1.15,'Molto attiva':1.3}[att]||1.0;
+  var fHg={Sedentaria:0.85,'Poco attiva':0.95,Moderata:1.0,Attiva:1.1,'Molto attiva':1.15}[att]||1.0;
+  var fTug={Sedentaria:1.2,'Poco attiva':1.1,Moderata:1.0,Attiva:0.85,'Molto attiva':0.8}[att]||1.0;
+  // 6MWT — Enright & Sherrill 1998 (in metri)
+  var mwt;
+  if(sesso==='M')mwt=(7.57*altezza)-(5.02*eta)-(1.76*peso)-309;
+  else mwt=(2.11*altezza)-(2.29*peso)-(5.78*eta)+667;
+  mwt=Math.round(mwt*f6);
+  if(mwt<200)mwt=200;
+  if(mwt>800)mwt=800;
+  // STS 30s — Jones 1999 (ripetizioni)
+  var stsTbl={
+    M:{20:20,30:18,40:16,50:14,60:12,70:10,80:8},
+    F:{20:17,30:16,40:14,50:13,60:11,70:9,80:7}
+  };
+  var bandSts=eta<30?20:eta<40?30:eta<50?40:eta<60?50:eta<70?60:eta<80?70:80;
+  var sts=Math.round((stsTbl[sesso][bandSts]||10)*fSts);
+  if(sts<4)sts=4;
+  // Push-up — norme ACSM (ripetizioni)
+  var pushTbl={
+    M:{20:28,30:22,40:17,50:13,60:10,70:8},
+    F:{20:20,30:16,40:12,50:9,60:6,70:5}
+  };
+  var bandPush=eta<30?20:eta<40?30:eta<50?40:eta<60?50:eta<70?60:70;
+  var push=Math.round((pushTbl[sesso][bandPush]||5)*fSts);
+  if(push<2)push=2;
+  // Plank — norme medie per età (secondi); donne -15%
+  var plankTbl={20:75,30:65,40:55,50:45,60:35,70:25,80:18};
+  var bandPlank=eta<30?20:eta<40?30:eta<50?40:eta<60?50:eta<70?60:eta<80?70:80;
+  var plank=plankTbl[bandPlank]||30;
+  plank=Math.round(plank*fSts*(sesso==='F'?0.85:1));
+  if(plank<10)plank=10;
+  // Handgrip — Dodds 2014 (kg)
+  var hg=Math.round(getHgNorm(sesso,eta)*fHg);
+  // TUG — Bohannon 2006 (secondi, meno è meglio)
+  var tug=+(getTugNorm(eta)*fTug).toFixed(1);
+  return {mwtDist:mwt,stsRip:sts,pushupRip:push,plankSec:plank,handgrip:hg,tugSec:tug};
+}
 
 // ── CLASSIFICAZIONE PESATA SCIENTIFICA ────────────────────────────────────────
 const calcScore=(test,sesso,extra,eta)=>{
@@ -6480,8 +6554,16 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     sqDepth:'',sqCompensi:'nessuno',sqDolore:'no',affondo:'',noteMovimento:'',
     biaR:'',biaXc:'',biaPhA:'',biaTBW:'',biaFFM:'',biaFM:'',biaBCM:'',biaECW:'',biaBMR:'',
   });
-  const upd=k=>e=>setD(x=>({...x,[k]:e.target.value}));
-  const set=(k,v)=>setD(x=>({...x,[k]:v}));
+  // Stima automatica: tracciamo quali campi sono stati riempiti via stima
+  const [stimati,setStimati]=useState({});
+  const upd=k=>e=>{
+    setD(x=>({...x,[k]:e.target.value}));
+    if(stimati[k])setStimati(s=>{var n=Object.assign({},s);delete n[k];return n;});
+  };
+  const set=(k,v)=>{
+    setD(x=>({...x,[k]:v}));
+    if(stimati[k])setStimati(s=>{var n=Object.assign({},s);delete n[k];return n;});
+  };
 
   const bmiVal=d.peso&&d.altezza?bmi(+d.peso,+d.altezza):null;
   const {l:bmiLbl,c:bmiClr}=bmiVal?bmiCat(bmiVal):{l:'—',c:C.muted};
@@ -6492,6 +6574,34 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
+
+  // Stima automatica test — controlla se i dati anagrafici sono completi
+  const datiStimaOK=!!(eta&&d.sesso&&+d.peso>0&&+d.altezza>0&&d.attivita);
+  const applicaStima=function(fields){
+    if(!datiStimaOK)return;
+    var s=stimaTest({eta:eta,sesso:d.sesso,peso:d.peso,altezza:d.altezza,attivita:d.attivita});
+    setD(function(x){
+      var n=Object.assign({},x);
+      fields.forEach(function(f){
+        if(s[f]!==undefined&&s[f]!==null)n[f]=String(s[f]);
+      });
+      return n;
+    });
+    setStimati(function(prev){
+      var ns=Object.assign({},prev);
+      fields.forEach(function(f){if(s[f]!==undefined&&s[f]!==null)ns[f]=true;});
+      return ns;
+    });
+  };
+  const StimaBtn=function(props){
+    if(!datiStimaOK)return <div style={{fontSize:11,color:C.muted,fontStyle:'italic',marginTop:8,padding:'6px 10px',background:C.bg,borderRadius:6,border:'1px dashed '+C.border2}}>{T.stimaIncomplete}</div>;
+    return <button type="button" onClick={function(){applicaStima(props.fields);}} style={{padding:'8px 14px',borderRadius:8,background:'#8b5cf615',border:'1px solid #8b5cf640',color:'#8b5cf6',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',marginTop:8,alignSelf:'flex-start'}}>{T.stimaBtn}</button>;
+  };
+  const StimaBadge=function(props){
+    var any=(props.fields||[]).some(function(f){return stimati[f];});
+    if(!any)return null;
+    return <div style={{fontSize:10,color:'#92400e',marginTop:8,padding:'6px 10px',background:'#fef3c7',borderRadius:6,border:'1px solid #fde68a',fontWeight:600}}>{T.stimaBadge}</div>;
+  };
 
   const STEPS_BASE=[1,3,4,5,7,8];
   const STEPS_COMPLETA=[1,2,3,4,5,6,7,8,9];
@@ -6615,6 +6725,7 @@ footer .center b{color:#3b82f6;font-weight:700}
     <div class="sec" style="margin-bottom:0">
       <div class="sec-title"><span class="ico">🏃</span>${T.wizPdfFuncTest}</div>
       ${renderRows(testRows)}
+      ${Object.keys(stimati).length>0?'<div style="margin-top:8px;padding:8px 12px;background:#fef3c7;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;font-size:10px;color:#92400e;font-style:italic;line-height:1.5">'+esc(T.stimaNote)+'</div>':''}
     </div>
   </div>
 
@@ -7014,6 +7125,10 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizMwtDist} name="mwtDist" type="number" val={d.mwtDist} ph="320" onChange={upd('mwtDist')}/>
                 <WizIn lbl={T.wizMwtRpe} name="mwtRpe" type="number" val={d.mwtRpe} ph={T.wizMwtRpePh} onChange={upd('mwtRpe')}/>
               </div>
+              <div style={{display:'flex',flexDirection:'column'}}>
+                <StimaBtn fields={['mwtDist']}/>
+                <StimaBadge fields={['mwtDist']}/>
+              </div>
               <WizIn lbl={T.wizMwtSint} name="mwtSintomi" val={d.mwtSintomi} opts={['NO',{v:'Dispnea lieve',l:T.wizMwtDispMild},{v:'Dispnea moderata',l:T.wizMwtDispMod},{v:'Affaticamento gambe',l:T.wizMwtFatigue},{v:'Dolore',l:T.wizMwtPain},{v:'Test interrotto',l:T.wizMwtStopped}]} onChange={upd('mwtSintomi')}/>
               {d.mwtDist&&(()=>{var mwtC=+d.mwtDist<300?C.red:+d.mwtDist<=450?C.yellow:C.green;return<div style={{background:mwtC+'10',border:'1px solid '+mwtC+'30',borderRadius:10,padding:'10px 14px',marginTop:4}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -7070,6 +7185,10 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizStsRipLbl} name="stsRip" type="number" val={d.stsRip} ph="12" onChange={upd('stsRip')}/>
                 <WizIn lbl={T.wizStsNote} name="stsNote" val={d.stsNote} ph={T.wizStsNotePh} onChange={upd('stsNote')}/>
               </div>
+              <div style={{display:'flex',flexDirection:'column'}}>
+                <StimaBtn fields={['stsRip']}/>
+                <StimaBadge fields={['stsRip']}/>
+              </div>
               {d.stsRip&&(()=>{var stsC=+d.stsRip<10?C.red:+d.stsRip<=15?C.yellow:C.green;return<div style={{background:stsC+'10',border:'1px solid '+stsC+'30',borderRadius:10,padding:'10px 14px',marginTop:4}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
                   <div style={{width:36,height:36,borderRadius:10,background:stsC+'20',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:900,color:stsC,flexShrink:0}}>{d.stsRip}</div>
@@ -7112,6 +7231,10 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizPushupRip} name="pushupRip" type="number" val={d.pushupRip} ph="15" onChange={upd('pushupRip')}/>
                 <WizIn lbl={T.wizPushupNote} name="pushupNote" val={d.pushupNote} ph={T.wizPushupNotePh} onChange={upd('pushupNote')}/>
               </div>
+              <div style={{display:'flex',flexDirection:'column'}}>
+                <StimaBtn fields={['pushupRip']}/>
+                <StimaBadge fields={['pushupRip']}/>
+              </div>
               {d.pushupRip&&(()=>{const i=interpPushup(d.pushupRip,d.sesso);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
@@ -7124,6 +7247,10 @@ footer .center b{color:#3b82f6;font-weight:700}
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizPlankProto}</div>
               <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
+              <div style={{display:'flex',flexDirection:'column'}}>
+                <StimaBtn fields={['plankSec']}/>
+                <StimaBadge fields={['plankSec']}/>
+              </div>
               {d.plankSec&&(()=>{const i=interpPlank(d.plankSec);return i&&<InterpBox interp={i} icon="📊"/>})()}
             </div>
 
@@ -7168,6 +7295,10 @@ footer .center b{color:#3b82f6;font-weight:700}
               <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
                 <WizIn lbl={T.wizTugSec} name="tugSec" type="number" val={d.tugSec} ph="9.5" onChange={upd('tugSec')}/>
                 <WizIn lbl={T.wizHandgrip} name="handgrip" type="number" val={d.handgrip} ph="42" onChange={upd('handgrip')}/>
+              </div>
+              <div style={{display:'flex',flexDirection:'column'}}>
+                <StimaBtn fields={['tugSec','handgrip']}/>
+                <StimaBadge fields={['tugSec','handgrip']}/>
               </div>
               {d.handgrip&&<InterpBox interp={interpHandgrip(d.handgrip,d.sesso,eta)} icon="✊"/>}
               {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<InterpBox interp={i} icon="⏱"/>})()}
@@ -7287,6 +7418,13 @@ footer .center b{color:#3b82f6;font-weight:700}
 
           {/* STEP 8 — Classificazione */}
           {step===8&&<div>
+            {(!d.mwtDist||!d.stsRip)&&datiStimaOK&&<div style={{background:'#fef3c7',border:'1px solid #fde68a',borderRadius:12,padding:'14px 16px',marginBottom:14,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+              <div style={{fontSize:24,flexShrink:0}}>🔮</div>
+              <div style={{flex:1,minWidth:200}}>
+                <div style={{fontSize:13,fontWeight:700,color:'#92400e',lineHeight:1.5}}>{T.stimaAsk}</div>
+              </div>
+              <button type="button" onClick={function(){applicaStima(['mwtDist','stsRip','pushupRip','plankSec','handgrip','tugSec']);}} style={{padding:'10px 16px',borderRadius:8,background:'#f59e0b',color:'#fff',border:'none',fontWeight:800,fontSize:12,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>{T.stimaComplete}</button>
+            </div>}
             {!pr?<div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:12,padding:28,textAlign:'center',color:C.muted}}>
               <div style={{fontSize:32,marginBottom:8}}>⚠️</div>
               <div style={{fontSize:14}}>{T.wizNoClassif}</div>
