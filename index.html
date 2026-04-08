@@ -595,6 +595,15 @@ const LANGS={
     exTitle:'Libreria Esercizi',exNew:'+ Nuovo esercizio',exName:'Nome',
     exCat:'Categoria',exDesc:'Descrizione / note tecniche',exMuscle:'Muscoli',
     exAdd:'Nuovo esercizio',exEdit:'Modifica esercizio',exAll:'Tutti',
+    exEquip:'Attrezzatura',exPrimary:'Gruppo muscolare',exMove:'Tipo movimento',
+    equipGym:'Palestra',equipHome:'Home gym',equipBody:'Corpo libero',equipAny:'Qualsiasi',
+    musPetto:'Petto',musDorso:'Dorso',musSpalle:'Spalle',musBicipiti:'Bicipiti',musTricipiti:'Tricipiti',
+    musQuadricipiti:'Quadricipiti',musFemorali:'Femorali',musGlutei:'Glutei',musPolpacci:'Polpacci',
+    musCore:'Core',musCardio:'Cardio',musFullbody:'Full body',
+    movePush:'Push',movePull:'Pull',moveLegs:'Legs',moveCore:'Core',moveCardio:'Cardio',
+    genEquipTitle:'Scegli attrezzatura',genEquipLabel:'Attrezzatura disponibile',
+    genEquipFull:'Palestra completa',genEquipHome:'Home gym',genEquipBody:'Corpo libero',
+    genEquipConfirm:'Genera scheda',
     fProgStart:'Data inizio',fProgSessions:'Sedute/sett.',fProgCardioMin:'Min cardio/sett.',
     fProgForzaMin:'Min forza/sett.',fProgCardio:'Desc. cardio',fProgForza:'Desc. forza',fProgNote:'Note',
     nutKcal:'Kcal/giorno',nutProt:'Proteine (g)',nutCarb:'Carboidrati (g)',nutFat:'Grassi (g)',
@@ -1254,6 +1263,15 @@ const LANGS={
     calTitle:'Appointment calendar',calNew:'+ New appointment',
     calPat:'Patient',calDate:'Date',calTime:'Time',calDur:'Duration (min)',calType:'Type',calNote:'Notes',
     calStatus:'Status',calConf:'Confirmed',calPend:'Pending',calCanc:'Cancelled',
+    exEquip:'Equipment',exPrimary:'Muscle group',exMove:'Movement type',
+    equipGym:'Gym',equipHome:'Home gym',equipBody:'Bodyweight',equipAny:'Any',
+    musPetto:'Chest',musDorso:'Back',musSpalle:'Shoulders',musBicipiti:'Biceps',musTricipiti:'Triceps',
+    musQuadricipiti:'Quadriceps',musFemorali:'Hamstrings',musGlutei:'Glutes',musPolpacci:'Calves',
+    musCore:'Core',musCardio:'Cardio',musFullbody:'Full body',
+    movePush:'Push',movePull:'Pull',moveLegs:'Legs',moveCore:'Core',moveCardio:'Cardio',
+    genEquipTitle:'Select equipment',genEquipLabel:'Available equipment',
+    genEquipFull:'Full gym',genEquipHome:'Home gym',genEquipBody:'Bodyweight',
+    genEquipConfirm:'Generate plan',
     exTitle:'Exercise Library',exNew:'+ New exercise',exName:'Name',
     exCat:'Category',exDesc:'Description / technical notes',exMuscle:'Muscles',
     exAdd:'New exercise',exEdit:'Edit exercise',exAll:'All',
@@ -1916,6 +1934,15 @@ const LANGS={
     calTitle:'Calendrier de rendez-vous',calNew:'+ Nouveau rendez-vous',
     calPat:'Patient',calDate:'Date',calTime:'Heure',calDur:'Durée (min)',calType:'Type',calNote:'Notes',
     calStatus:'Statut',calConf:'Confirmé',calPend:'En attente',calCanc:'Annulé',
+    exEquip:'Équipement',exPrimary:'Groupe musculaire',exMove:'Type de mouvement',
+    equipGym:'Salle',equipHome:'Home gym',equipBody:'Poids du corps',equipAny:'Tout',
+    musPetto:'Pectoraux',musDorso:'Dos',musSpalle:'Épaules',musBicipiti:'Biceps',musTricipiti:'Triceps',
+    musQuadricipiti:'Quadriceps',musFemorali:'Ischio-jambiers',musGlutei:'Fessiers',musPolpacci:'Mollets',
+    musCore:'Core',musCardio:'Cardio',musFullbody:'Corps entier',
+    movePush:'Poussée',movePull:'Tirage',moveLegs:'Jambes',moveCore:'Core',moveCardio:'Cardio',
+    genEquipTitle:"Choisir l'équipement",genEquipLabel:'Équipement disponible',
+    genEquipFull:'Salle complète',genEquipHome:'Home gym',genEquipBody:'Poids du corps',
+    genEquipConfirm:'Générer la fiche',
     exTitle:"Bibliothèque d'exercices",exNew:'+ Nouvel exercice',exName:'Nom',
     exCat:'Catégorie',exDesc:'Description / notes techniques',exMuscle:'Muscles',
     exAdd:'Nouvel exercice',exEdit:"Modifier l'exercice",exAll:'Tous',
@@ -3571,6 +3598,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [openSections,setOpenSections]=useState({ana:true,test:false,prog:false});
   const [showPesoModal,setShowPesoModal]=useState(false);
   const [showSchedaModal,setShowSchedaModal]=useState(false);
+  const [showGenEquipModal,setShowGenEquipModal]=useState(false);
+  const [genEquip,setGenEquip]=useState('gym');
   const [newPeso,setNewPeso]=useState({data:fmtDate(),peso:'',nota:''});
   const [completingId,setCompletingId]=useState(null);
   const [completingRpe,setCompletingRpe]=useState('');
@@ -4374,7 +4403,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             {openSchede&&<div>
               <div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:10}}>
                 {(p.test?.mwtDist||p.test?.stsRip)?<div style={{textAlign:'center',margin:'0'}}>
-                  <button style={{width:'100%',padding:'16px',borderRadius:12,background:'linear-gradient(135deg,'+C.blue+',#2563eb)',color:'#fff',fontSize:15,fontWeight:800,border:'none',cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}} onClick={()=>{var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma},exercises);upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');}}>{T.generateWorkout}</button>
+                  <button style={{width:'100%',padding:'16px',borderRadius:12,background:'linear-gradient(135deg,'+C.blue+',#2563eb)',color:'#fff',fontSize:15,fontWeight:800,border:'none',cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}} onClick={()=>setShowGenEquipModal(true)}>{T.generateWorkout}</button>
                   <div style={{fontSize:11,color:C.muted,marginTop:6}}>{T.generateHelp}</div>
                 </div>:<div style={{textAlign:'center',padding:20,background:C.bg,borderRadius:12,margin:'0'}}>
                   <div style={{fontSize:13,color:C.muted}}>{T.needTest}</div>
@@ -4587,6 +4616,22 @@ footer .center b{color:#3b82f6;font-weight:700}
       </Modal>}
 
       {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)}/>}
+      {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <FF label={T.genEquipLabel} name="genEquip" value={genEquip} onChange={e=>setGenEquip(e.target.value)} options={[{v:'gym',l:T.genEquipFull},{v:'home',l:T.genEquipHome},{v:'body',l:T.genEquipBody}]}/>
+        </div>
+        <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
+          <button style={S.btn('ghost')} onClick={()=>setShowGenEquipModal(false)}>{T.cancel}</button>
+          <button style={S.btn()} onClick={()=>{
+            var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+            var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
+            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip},exercises);
+            upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
+            showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');
+            setShowGenEquipModal(false);
+          }}>{T.genEquipConfirm}</button>
+        </div>
+      </Modal>}
     </div>
   );
 }
@@ -4965,13 +5010,13 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
 function ExercisesPage({exercises,setExercises,T}){
   const [showModal,setShowModal]=useState(false);
   const [editing,setEditing]=useState(null);
-  const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio'});
+  const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio',equip:'any',primary:'fullbody',move:'push'});
   const [filter,setFilter]=useState('Tutti');
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   const cats=['Tutti'].concat(Array.from(new Set(exercises.map(e=>e.cat))));
   const filtered=filter==='Tutti'?exercises:exercises.filter(e=>e.cat===filter);
-  const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio'});setEditing(null);setShowModal(true)};
-  const openEdit=(ex)=>{setForm({...ex});setEditing(ex.id);setShowModal(true)};
+  const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio',equip:'any',primary:'fullbody',move:'push'});setEditing(null);setShowModal(true)};
+  const openEdit=(ex)=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio',equip:'any',primary:'fullbody',move:'push',...ex});setEditing(ex.id);setShowModal(true)};
   const save=()=>{
     if(editing)setExercises(es=>es.map(e=>e.id===editing?{...form,id:editing}:e));
     else setExercises(es=>[...es,{...form,id:'E'+Date.now()}]);
@@ -5011,6 +5056,11 @@ function ExercisesPage({exercises,setExercises,T}){
               <FF label="Muscoli" name="muscoli" value={form.muscoli} onChange={upd}/>
             </div>
             <FF label="Livello" name="livello" value={form.livello} onChange={upd} options={['base','intermedio','avanzato']}/>
+            <div style={S.grid(2)}>
+              <FF label={T.exEquip} name="equip" value={form.equip} onChange={upd} options={[{v:'gym',l:T.equipGym},{v:'home',l:T.equipHome},{v:'body',l:T.equipBody},{v:'any',l:T.equipAny}]}/>
+              <FF label={T.exMove} name="move" value={form.move} onChange={upd} options={[{v:'push',l:T.movePush},{v:'pull',l:T.movePull},{v:'legs',l:T.moveLegs},{v:'core',l:T.moveCore},{v:'cardio',l:T.moveCardio}]}/>
+            </div>
+            <FF label={T.exPrimary} name="primary" value={form.primary} onChange={upd} options={[{v:'petto',l:T.musPetto},{v:'dorso',l:T.musDorso},{v:'spalle',l:T.musSpalle},{v:'bicipiti',l:T.musBicipiti},{v:'tricipiti',l:T.musTricipiti},{v:'quadricipiti',l:T.musQuadricipiti},{v:'femorali',l:T.musFemorali},{v:'glutei',l:T.musGlutei},{v:'polpacci',l:T.musPolpacci},{v:'core',l:T.musCore},{v:'cardio',l:T.musCardio},{v:'fullbody',l:T.musFullbody}]}/>
             <FF label="Descrizione / note tecniche" name="desc" type="textarea" value={form.desc} onChange={upd}/>
           </div>
           <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
