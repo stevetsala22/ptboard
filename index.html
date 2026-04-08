@@ -987,6 +987,17 @@ const LANGS={
     gpDescFmt:'Programma personalizzato per {sex} di {eta} anni. Obiettivo: {ob}. Profilo: {pr} (score {score}/100).',
     gpDescPrec:' Attenzione: {n} precauzioni cliniche.',
     gpUomo:'uomo',gpDonna:'donna',
+    // generaProgramma — Focus adattamenti test-based
+    gpFocusAerobic:'Focus prioritario: capacità aerobica',
+    gpFocusLower:'Priorità lower body: aggiungere 1-2 esercizi gambe extra',
+    gpFocusUpper:'Priorità upper body push: progressione push-up + petto',
+    gpFocusCore:'Aggiungere 10 min core a ogni seduta',
+    gpFocusGrip:'Aggiungere esercizi presa: farmer walk, dead hang',
+    gpFocusBalance:'Esercizi equilibrio 5 min a inizio seduta',
+    gpFocusFcRecov:'Intensità cardio ridotta: più LISS, meno HIIT (recupero FC lento)',
+    gpFocusAnxiety:'Inserire 5 min respirazione/stretching a fine seduta',
+    gpFocusSleep:'Volume ridotto per ottimizzare recupero (sonno insufficiente)',
+    gpFocusFat:'Focus deficit calorico + volume cardio (FM% alta)',
     // WizardValutazione — Type selection cards
     wizSelectType:'Seleziona il tipo di valutazione',
     wizSelectDesc:'Scegli in base al tempo disponibile e al livello del cliente',
@@ -1667,6 +1678,17 @@ const LANGS={
     gpDescFmt:'Personalized program for {sex} aged {eta}. Goal: {ob}. Profile: {pr} (score {score}/100).',
     gpDescPrec:' Attention: {n} clinical precautions.',
     gpUomo:'man',gpDonna:'woman',
+    // generaProgramma — Test-based focus adaptations
+    gpFocusAerobic:'Priority focus: aerobic capacity',
+    gpFocusLower:'Lower body priority: add 1-2 extra leg exercises',
+    gpFocusUpper:'Upper body push priority: push-up and chest progression',
+    gpFocusCore:'Add 10 min of core work every session',
+    gpFocusGrip:'Add grip work: farmer walk, dead hang',
+    gpFocusBalance:'Balance exercises 5 min at start of session',
+    gpFocusFcRecov:'Reduced cardio intensity: more LISS, less HIIT (slow HR recovery)',
+    gpFocusAnxiety:'Add 5 min breathing/stretching at end of session',
+    gpFocusSleep:'Reduced volume to optimize recovery (insufficient sleep)',
+    gpFocusFat:'Focus on caloric deficit + cardio volume (high body fat)',
     // WizardValutazione — Type selection cards
     wizSelectType:'Select assessment type',
     wizSelectDesc:'Choose based on time available and client level',
@@ -2347,6 +2369,17 @@ const LANGS={
     gpDescFmt:'Programme personnalisé pour {sex} de {eta} ans. Objectif : {ob}. Profil : {pr} (score {score}/100).',
     gpDescPrec:" Attention : {n} précautions cliniques.",
     gpUomo:'homme',gpDonna:'femme',
+    // generaProgramma — Adaptations ciblées basées sur les tests
+    gpFocusAerobic:'Focus prioritaire : capacité aérobie',
+    gpFocusLower:'Priorité bas du corps : ajouter 1-2 exercices jambes',
+    gpFocusUpper:'Priorité haut du corps : progression pompes et pectoraux',
+    gpFocusCore:'Ajouter 10 min de gainage à chaque séance',
+    gpFocusGrip:"Ajouter exercices de préhension : farmer walk, dead hang",
+    gpFocusBalance:"Exercices d'équilibre 5 min au début de la séance",
+    gpFocusFcRecov:'Intensité cardio réduite : plus de LISS, moins de HIIT (récupération FC lente)',
+    gpFocusAnxiety:'Ajouter 5 min de respiration/étirement en fin de séance',
+    gpFocusSleep:'Volume réduit pour optimiser la récupération (sommeil insuffisant)',
+    gpFocusFat:'Focus déficit calorique + volume cardio (masse grasse élevée)',
     // WizardValutazione — Type selection cards
     wizSelectType:"Sélectionner le type d'évaluation",
     wizSelectDesc:'Choisir selon le temps disponible et le niveau du client',
@@ -6266,6 +6299,7 @@ var generaProgramma = function(params) {
   var score = params.score || 50;
   var attivita = params.attivita || 'Sedentaria';
   var seduteDisponibili = params.seduteSettimana ? +params.seduteSettimana : null;
+  var testResults = params.testResults || {};
   // ── FREQUENZA (ACSM Guidelines 11th ed.) ──
   var sedute, minCardio, minForza;
   if (profilo === 'A') { sedute = 3; minCardio = 75; minForza = 40; }
@@ -6396,6 +6430,105 @@ var generaProgramma = function(params) {
       ];
     }
   }
+  // ── ANALISI PUNTI DEBOLI (test-based) ──
+  // Confronta ogni test con la norma per età/sesso. Ratio < 0.7 = critico, 0.7-0.9 = debole.
+  // Per TUG (meno è meglio) si inverte il rapporto.
+  var focusNotes = [];
+  var forzaNoteExtra = [];
+  var hasWeakness = false;
+  // 6MWT — capacità aerobica
+  if (testResults.mwtDist && +testResults.mwtDist > 0) {
+    var r6 = +testResults.mwtDist / getMwtNorm(sesso, eta);
+    if (r6 < 0.7) {
+      minCardio = Math.round(minCardio * 1.2);
+      focusNotes.push(T.gpFocusAerobic);
+      hasWeakness = true;
+    }
+  }
+  // STS — forza lower body
+  if (testResults.stsRip && +testResults.stsRip > 0) {
+    var rSts = +testResults.stsRip / getStsNorm(sesso, eta);
+    if (rSts < 0.7) {
+      forzaNoteExtra.push(T.gpFocusLower);
+      focusNotes.push(T.gpFocusLower);
+      // Riduce ripetizioni gambe (-2 rip, +1 serie) per focus forza
+      if (typeof ripBase === 'number') ripBase = Math.max(4, ripBase - 2);
+      serieBase = serieBase + 1;
+      hasWeakness = true;
+    }
+  }
+  // Push-up — forza upper body
+  if (testResults.pushupRip && +testResults.pushupRip > 0) {
+    var pushM = sesso === 'M';
+    var pushCritical = pushM ? +testResults.pushupRip < 10 : +testResults.pushupRip < 7;
+    if (pushCritical) {
+      forzaNoteExtra.push(T.gpFocusUpper);
+      focusNotes.push(T.gpFocusUpper);
+      hasWeakness = true;
+    }
+  }
+  // Plank — core
+  if (testResults.plankSec && +testResults.plankSec > 0) {
+    if (+testResults.plankSec < 30) {
+      focusNotes.push(T.gpFocusCore);
+      hasWeakness = true;
+    }
+  }
+  // Handgrip — forza prensile
+  if (testResults.handgrip && +testResults.handgrip > 0) {
+    var rHg = +testResults.handgrip / getHgNorm(sesso, eta);
+    if (rHg < 0.7) {
+      forzaNoteExtra.push(T.gpFocusGrip);
+      focusNotes.push(T.gpFocusGrip);
+      hasWeakness = true;
+    }
+  }
+  // TUG — equilibrio (lento/alto = scarso, ratio norm/val)
+  if (testResults.tugSec && +testResults.tugSec > 0) {
+    var rTug = getTugNorm(eta) / +testResults.tugSec;
+    if (rTug < 0.7) {
+      focusNotes.push(T.gpFocusBalance);
+      // Riduce intensità: RPE max -1
+      rpeMax = Math.max(rpeMin + 1, rpeMax - 1);
+      hasWeakness = true;
+    }
+  }
+  // Recupero FC — delta fcPost-fcRecup < 6 = lento
+  if (testResults.fcRecup && +testResults.fcRecup > 0) {
+    if (+testResults.fcRecup < 6) {
+      focusNotes.push(T.gpFocusFcRecov);
+      // Riduce zona FC target (-5% al limite superiore) e riduce minCardio leggermente
+      zonaFC = zonaFC.replace(/(\d+)-(\d+)/, function(_, lo, hi) { return lo + '-' + Math.max(+lo + 5, +hi - 5); });
+      hasWeakness = true;
+    }
+  }
+  // GAD-7 — ansia (>=10 = moderata+)
+  if (testResults.gad7 !== undefined && testResults.gad7 !== '' && testResults.gad7 !== null) {
+    if (+testResults.gad7 >= 10) {
+      focusNotes.push(T.gpFocusAnxiety);
+      rpeMax = Math.max(rpeMin + 1, rpeMax - 1);
+      hasWeakness = true;
+    }
+  }
+  // Sonno insufficiente (< 6 ore)
+  if (testResults.sonno && +testResults.sonno > 0) {
+    if (+testResults.sonno < 6) {
+      focusNotes.push(T.gpFocusSleep);
+      minCardio = Math.round(minCardio * 0.9);
+      minForza = Math.round(minForza * 0.9);
+      hasWeakness = true;
+    }
+  }
+  // FM% alta (ACSM: M > 25, F > 32)
+  if (testResults.massaGrassa && +testResults.massaGrassa > 0) {
+    var fmHigh = sesso === 'M' ? +testResults.massaGrassa > 25 : +testResults.massaGrassa > 32;
+    if (fmHigh) {
+      focusNotes.push(T.gpFocusFat);
+      minCardio = Math.round(minCardio * 1.15);
+      hasWeakness = true;
+    }
+  }
+
   // ── PRECAUZIONI PATOLOGIE ──
   var precauzioni = [];
   if (patologie.includes('ipertensione')) precauzioni.push(T.gpPrecIpert);
@@ -6411,15 +6544,27 @@ var generaProgramma = function(params) {
   if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOver60);
   // ── SETTIMANE ──
   var settimane = [];
+  // Dedup focus notes mantenendo l'ordine di inserimento
+  var focusNotesUniq = [];
+  focusNotes.forEach(function(n) { if (focusNotesUniq.indexOf(n) === -1) focusNotesUniq.push(n); });
+  var forzaNoteExtraUniq = [];
+  forzaNoteExtra.forEach(function(n) { if (forzaNoteExtraUniq.indexOf(n) === -1) forzaNoteExtraUniq.push(n); });
+  var focusSuffix = focusNotesUniq.length > 0 ? ' Focus: ' + focusNotesUniq.join(' · ') + '.' : '';
   for (var w = 0; w < 4; w++) {
+    var baseNote = w === 0 ? T.gpWeek1Note :
+                   w === 1 ? T.gpWeek2Note :
+                   w === 2 ? T.gpWeek3Note :
+                             T.gpWeek4Note;
+    var weekForza = forzaDesc[w] || forzaDesc[forzaDesc.length - 1];
+    // Aggiungi le note forza extra (lower body, upper body, grip) alla descrizione forza
+    if (forzaNoteExtraUniq.length > 0) {
+      weekForza = weekForza + ' — ' + forzaNoteExtraUniq.join(' · ');
+    }
     settimane.push({
       num: w + 1,
       cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
-      forza: forzaDesc[w] || forzaDesc[forzaDesc.length - 1],
-      note: w === 0 ? T.gpWeek1Note :
-            w === 1 ? T.gpWeek2Note :
-            w === 2 ? T.gpWeek3Note :
-            T.gpWeek4Note
+      forza: weekForza,
+      note: baseNote + focusSuffix
     });
   }
   var nomeObiettivo = obiettivo || T.gpDefSalute;
@@ -6440,6 +6585,8 @@ var generaProgramma = function(params) {
     ripBase: ripBase,
     settimane: settimane,
     precauzioni: precauzioni,
+    focusNotes: focusNotesUniq,
+    hasWeakness: hasWeakness,
     riferimenti: 'ACSM Guidelines for Exercise Testing and Prescription (11th ed.) \u00b7 ISSN Position Stand 2017 \u00b7 WHO Physical Activity Guidelines 2020'
   };
 };
@@ -6571,7 +6718,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
-  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana}):null;
+  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
