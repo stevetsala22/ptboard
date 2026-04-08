@@ -586,7 +586,7 @@ const LANGS={
     actSed:'Sedentaria',actLight:'Poco attiva',actMod:'Moderatamente attiva',actActive:'Attiva',
     strLow:'Basso',strMed:'Medio',strHigh:'Alto',
     symNo:'NO',symYes:'SI',
-    profileLow:'🔴 Forma Bassa',profileMed:'🟡 Forma Media',profileGood:'🟢 Buona Forma',
+    profileLow:'🔴 Forma Bassa',profileMed:'🟡 Forma Media',profileGood:'🟢 Buona Forma',profileExcellent:'🔵 Ottima Forma',
     profileCode:'Profilo',
     bmiUnder:'Sottopeso',bmiNormal:'Normopeso',bmiOver:'Sovrappeso',bmiOb1:'Obesità I',bmiOb2:'Obesità II+',
     calTitle:'Calendario appuntamenti',calNew:'+ Nuovo appuntamento',
@@ -739,7 +739,7 @@ const LANGS={
     tooltipStartAssess:'Avvia nuova valutazione',tooltipDownloadReport:'Scarica report completo',
     tooltipEditClient:'Modifica cliente',tooltipDeleteClient:'Elimina cliente definitivamente',tooltipWhatsapp:'Scrivi su WhatsApp',
     waMessage:'Ciao {name}! Ti scrivo da PT Board.',
-    profileLowShort:'Forma Bassa',profileMedShort:'Forma Media',profileGoodShort:'Buona Forma',
+    profileLowShort:'Forma Bassa',profileMedShort:'Forma Media',profileGoodShort:'Buona Forma',profileExcellentShort:'Ottima Forma',
     // Panoramica
     bodyMassIndex:'Body Mass Index',belowTarget:'sotto target',targetLabel:'target',
     lblHRrest:'FC RIPOSO',weightLossNeeded:'Calo necessario',
@@ -964,6 +964,15 @@ const LANGS={
     gpForzaCOtherW2:'Aumento carico +5-10%. Aggiungere esercizio accessorio per gruppo',
     gpForzaCOtherW3:'Volume alto: {s} serie x 8-10 rip. Compound: stacco, panca, squat',
     gpForzaCOtherW4:'Deload parziale: {s} serie x 12 rip, carico -20%. Mobilita',
+    // generaProgramma — C+ (atleta) cardio e forza
+    gpCardioCPlusW1:'HIIT 4x4 min {zona} RPE 7-8 con 3 min recupero attivo. 2-3 sessioni/sett, {min} min totali',
+    gpCardioCPlusW2:'Intervalli piramidali 30/60/90/60/30s alta intensita + Tabata finale 4 min ({zona})',
+    gpCardioCPlusW3:'HIIT polarizzato: 80% basso + 20% alto ({zona}). {min} min settimanali. Aggiungere LISS lungo 45 min',
+    gpCardioCPlusW4:'Deload attivo: 50% volume. 1 HIIT + 2 LISS supercompensazione ({zona})',
+    gpForzaCPlusW1:'Compound heavy ondulati: squat/panca/stacco {s}x{r} @ RPE 7-8. Rec {rec}s. Forza + ipertrofia + potenza',
+    gpForzaCPlusW2:'Progressione carico +2.5-5 kg compound. {s}x{r}, rec {rec}s + AMRAP finale ultima serie',
+    gpForzaCPlusW3:'Picco intensita: {s}x{r} @ RPE 8-9, cluster sets sui compound. Rec {rec}s. Monitorare CNS',
+    gpForzaCPlusW4:'Deload: -30% volume, mantenere intensita. Test 1RM o AMRAP per progressione',
     // generaProgramma — Precauzioni patologie
     gpPrecIpert:'Ipertensione: evitare Valsalva, monitorare PA prima e dopo. No isometria prolungata. Preferire circuiti a bassa intensita.',
     gpPrecDiabT2:'Diabete T2: allenarsi 1-3h dopo il pasto. Portare snack glucidico. Monitorare glicemia se insulino-trattato. No esercizio a digiuno.',
@@ -1277,7 +1286,7 @@ const LANGS={
     actSed:'Sedentary',actLight:'Slightly active',actMod:'Moderately active',actActive:'Active',
     strLow:'Low',strMed:'Medium',strHigh:'High',
     symNo:'NO',symYes:'YES',
-    profileLow:'🔴 Low Fitness',profileMed:'🟡 Medium Fitness',profileGood:'🟢 Good Fitness',
+    profileLow:'🔴 Low Fitness',profileMed:'🟡 Medium Fitness',profileGood:'🟢 Good Fitness',profileExcellent:'🔵 Excellent Fitness',
     profileCode:'Profile',
     bmiUnder:'Underweight',bmiNormal:'Normal weight',bmiOver:'Overweight',bmiOb1:'Obesity I',bmiOb2:'Obesity II+',
     calTitle:'Appointment calendar',calNew:'+ New appointment',
@@ -1430,7 +1439,7 @@ const LANGS={
     tooltipStartAssess:'Start new assessment',tooltipDownloadReport:'Download full report',
     tooltipEditClient:'Edit client',tooltipDeleteClient:'Delete client permanently',tooltipWhatsapp:'Write on WhatsApp',
     waMessage:'Hi {name}! Writing from PT Board.',
-    profileLowShort:'Low Fitness',profileMedShort:'Medium Fitness',profileGoodShort:'Good Fitness',
+    profileLowShort:'Low Fitness',profileMedShort:'Medium Fitness',profileGoodShort:'Good Fitness',profileExcellentShort:'Excellent Fitness',
     // Panoramica
     bodyMassIndex:'Body Mass Index',belowTarget:'below target',targetLabel:'target',
     lblHRrest:'RESTING HR',weightLossNeeded:'Weight loss needed',
@@ -1655,6 +1664,15 @@ const LANGS={
     gpForzaCOtherW2:'+5-10% load. Add accessory exercise per group',
     gpForzaCOtherW3:'High volume: {s} sets x 8-10 reps. Compound: deadlift, bench, squat',
     gpForzaCOtherW4:'Partial deload: {s} sets x 12 reps, -20% load. Mobility',
+    // generaProgramma — C+ (athlete) cardio and strength
+    gpCardioCPlusW1:'HIIT 4x4 min {zona} RPE 7-8 with 3 min active recovery. 2-3 sessions/week, {min} total min',
+    gpCardioCPlusW2:'Pyramid intervals 30/60/90/60/30s high intensity + final Tabata 4 min ({zona})',
+    gpCardioCPlusW3:'Polarized HIIT: 80% easy + 20% hard ({zona}). {min} weekly min. Add long LISS 45 min',
+    gpCardioCPlusW4:'Active deload: 50% volume. 1 HIIT + 2 LISS for supercompensation ({zona})',
+    gpForzaCPlusW1:'Heavy undulating compound: squat/bench/deadlift {s}x{r} @ RPE 7-8. Rec {rec}s. Strength + hypertrophy + power',
+    gpForzaCPlusW2:'Load progression +2.5-5 kg on main lifts. {s}x{r}, rec {rec}s + final set AMRAP',
+    gpForzaCPlusW3:'Intensity peak: {s}x{r} @ RPE 8-9, cluster sets on compounds. Rec {rec}s. Monitor CNS',
+    gpForzaCPlusW4:'Deload: -30% volume, keep intensity. Test 1RM or AMRAP for progression',
     // generaProgramma — Precauzioni patologie
     gpPrecIpert:'Hypertension: avoid Valsalva, monitor BP before and after. No prolonged isometric. Prefer low-intensity circuits.',
     gpPrecDiabT2:'Diabetes T2: train 1-3h after meal. Carry glucose snack. Monitor glycemia if insulin-treated. No exercise on empty stomach.',
@@ -1968,7 +1986,7 @@ const LANGS={
     actSed:'Sédentaire',actLight:'Peu actif',actMod:'Modérément actif',actActive:'Actif',
     strLow:'Bas',strMed:'Moyen',strHigh:'Élevé',
     symNo:'NON',symYes:'OUI',
-    profileLow:'🔴 Forme Faible',profileMed:'🟡 Forme Moyenne',profileGood:'🟢 Bonne Forme',
+    profileLow:'🔴 Forme Faible',profileMed:'🟡 Forme Moyenne',profileGood:'🟢 Bonne Forme',profileExcellent:'🔵 Excellente Forme',
     profileCode:'Profil',
     bmiUnder:'Insuffisance pondérale',bmiNormal:'Poids normal',bmiOver:'Surpoids',bmiOb1:'Obésité I',bmiOb2:'Obésité II+',
     calTitle:'Calendrier de rendez-vous',calNew:'+ Nouveau rendez-vous',
@@ -2121,7 +2139,7 @@ const LANGS={
     tooltipStartAssess:'Démarrer nouvelle évaluation',tooltipDownloadReport:'Télécharger rapport complet',
     tooltipEditClient:'Modifier client',tooltipDeleteClient:'Supprimer client définitivement',tooltipWhatsapp:'Écrire sur WhatsApp',
     waMessage:"Salut {name} ! J'écris depuis PT Board.",
-    profileLowShort:'Forme Basse',profileMedShort:'Forme Moyenne',profileGoodShort:'Bonne Forme',
+    profileLowShort:'Forme Basse',profileMedShort:'Forme Moyenne',profileGoodShort:'Bonne Forme',profileExcellentShort:'Excellente Forme',
     // Panoramica
     bodyMassIndex:'IMC',belowTarget:"sous l'objectif",targetLabel:'objectif',
     lblHRrest:'FC REPOS',weightLossNeeded:'Perte de poids requise',
@@ -2346,6 +2364,15 @@ const LANGS={
     gpForzaCOtherW2:'+5-10% charge. Ajouter exercice accessoire par groupe',
     gpForzaCOtherW3:'Volume élevé : {s} séries x 8-10 rép. Compound : soulevé, presse, squat',
     gpForzaCOtherW4:'Deload partiel : {s} séries x 12 rép, charge -20%. Mobilité',
+    // generaProgramma — C+ (athlète) cardio et force
+    gpCardioCPlusW1:'HIIT 4x4 min {zona} RPE 7-8 avec 3 min récupération active. 2-3 séances/sem, {min} min totales',
+    gpCardioCPlusW2:'Intervalles pyramidaux 30/60/90/60/30s haute intensité + Tabata final 4 min ({zona})',
+    gpCardioCPlusW3:'HIIT polarisé : 80% bas + 20% haut ({zona}). {min} min hebdomadaires. Ajouter LISS long 45 min',
+    gpCardioCPlusW4:'Deload actif : 50% volume. 1 HIIT + 2 LISS pour surcompensation ({zona})',
+    gpForzaCPlusW1:'Compound lourds ondulés : squat/bench/deadlift {s}x{r} @ RPE 7-8. Rec {rec}s. Force + hypertrophie + puissance',
+    gpForzaCPlusW2:'Progression charge +2.5-5 kg compounds. {s}x{r}, rec {rec}s + AMRAP dernière série',
+    gpForzaCPlusW3:'Pic intensité : {s}x{r} @ RPE 8-9, cluster sets sur compounds. Rec {rec}s. Surveiller SNC',
+    gpForzaCPlusW4:'Deload : -30% volume, maintenir intensité. Test 1RM ou AMRAP pour progression',
     // generaProgramma — Precauzioni patologie
     gpPrecIpert:'Hypertension : éviter Valsalva, surveiller TA avant et après. Pas d\'isométrie prolongée. Préférer circuits basse intensité.',
     gpPrecDiabT2:"Diabète T2 : s'entraîner 1-3h après le repas. Apporter une collation glucidique. Surveiller glycémie si insuline. Pas d\\'exercice à jeun.",
@@ -2723,11 +2750,12 @@ const calcScore=(test,sesso,extra,eta)=>{
   const m=sesso==='M';
   const components=[];
   // 1. CAPACITÀ AEROBICA (peso 40%) — 6MWT — Bohannon & Crouch 2017
+  // Scoring granulare per discriminare meglio la fascia alta
   if(test?.mwtDist&&+test.mwtDist>0){
     const d=+test.mwtDist;
     const norm=getMwtNorm(sesso,eta);
     const ratio=d/norm;
-    const s=ratio>=1.1?100:ratio>=0.9?80:ratio>=0.7?60:ratio>=0.5?40:20;
+    const s=ratio>=1.3?100:ratio>=1.2?95:ratio>=1.1?90:ratio>=1.0?80:ratio>=0.9?70:ratio>=0.8?55:ratio>=0.7?40:ratio>=0.5?25:10;
     components.push({id:'aerobica',label:'Capacita aerobica (6MWT)',w:40,score:s,val:d+'m (norma '+Math.round(norm)+'m per '+(m?'uomo':'donna')+' '+eta+' anni)',icon:'🚶'});
   }
   // 2. FORZA (peso 30%) — media STS + Handgrip
@@ -2737,7 +2765,7 @@ const calcScore=(test,sesso,extra,eta)=>{
     const rip=+test.stsRip;
     const norm=getStsNorm(sesso,eta);
     const ratio=rip/norm;
-    stsS=ratio>=1.2?100:ratio>=1.0?80:ratio>=0.8?60:ratio>=0.6?40:20;
+    stsS=ratio>=1.3?100:ratio>=1.2?95:ratio>=1.1?90:ratio>=1.0?80:ratio>=0.8?60:ratio>=0.6?40:20;
   }
   // Handgrip — Dodds 2014
   const hg=test?.handgrip&&+test.handgrip>0?+test.handgrip:null;
@@ -2745,7 +2773,7 @@ const calcScore=(test,sesso,extra,eta)=>{
   if(hg!==null){
     const norm=getHgNorm(sesso,eta);
     const ratio=hg/norm;
-    hgS=ratio>=1.2?100:ratio>=1.0?80:ratio>=0.8?60:ratio>=0.6?40:20;
+    hgS=ratio>=1.3?100:ratio>=1.2?95:ratio>=1.1?90:ratio>=1.0?80:ratio>=0.8?60:ratio>=0.6?40:20;
   }
   let forzaScore=null,forzaVal='';
   if(stsS!==null&&hgS!==null){forzaScore=Math.round((stsS+hgS)/2);forzaVal='STS '+test.stsRip+' rip + HG '+hg+'kg';}
@@ -2753,20 +2781,21 @@ const calcScore=(test,sesso,extra,eta)=>{
   else if(hgS!==null){forzaScore=hgS;forzaVal='HG '+hg+'kg';}
   if(forzaScore!==null) components.push({id:'forza',label:'Forza (STS + Handgrip)',w:30,score:forzaScore,val:forzaVal,icon:'💪'});
   // 3. COMPOSIZIONE CORPOREA (peso 20%) — FM% — ACSM/ACE con modulazione età
+  // Scoring più granulare per la fascia fitness
   const fm=extra?.biaFM?+extra.biaFM:(test?.massaGrassa?+test.massaGrassa:(test?.biaFM?+test.biaFM:null));
   if(fm!==null&&fm>0){
     let cs;
     const fmAdjust=Math.max(0,Math.floor((eta-30)/10));
-    if(m){cs=fm<6+fmAdjust?100:fm<14+fmAdjust?85:fm<18+fmAdjust?70:fm<25+fmAdjust?50:25;}
-    else{cs=fm<14+fmAdjust?100:fm<21+fmAdjust?85:fm<25+fmAdjust?70:fm<32+fmAdjust?50:25;}
+    if(m){cs=fm<6+fmAdjust?100:fm<10+fmAdjust?95:fm<14+fmAdjust?85:fm<18+fmAdjust?70:fm<25+fmAdjust?50:25;}
+    else{cs=fm<14+fmAdjust?100:fm<18+fmAdjust?95:fm<21+fmAdjust?85:fm<25+fmAdjust?70:fm<32+fmAdjust?50:25;}
     components.push({id:'corpo',label:'Composizione corporea (FM%)',w:20,score:cs,val:fm+'%',icon:'📏'});
   }
-  // 4. EQUILIBRIO (peso 10%) — TUG — Bohannon 2006
+  // 4. EQUILIBRIO (peso 10%) — TUG — Bohannon 2006 (meno è meglio)
   if(test?.tugSec&&+test.tugSec>0){
     const t=+test.tugSec;
     const norm=getTugNorm(eta);
     const ratio=t/norm;
-    const ts=ratio<=0.85?100:ratio<=1.0?80:ratio<=1.3?55:ratio<=1.6?30:10;
+    const ts=ratio<=0.7?100:ratio<=0.8?95:ratio<=0.85?90:ratio<=1.0?80:ratio<=1.3?55:ratio<=1.6?30:10;
     components.push({id:'equilibrio',label:'Equilibrio (TUG)',w:10,score:ts,val:t+'s (norma '+norm.toFixed(1)+'s per '+eta+' anni)',icon:'⏱'});
   }
   // Minimo: almeno 6MWT o STS
@@ -2779,9 +2808,10 @@ const calcScore=(test,sesso,extra,eta)=>{
   const allIds=['aerobica','forza','corpo','equilibrio'];
   const missing=allIds.filter(id=>!components.find(c=>c.id===id));
   const missingLabels={aerobica:'6MWT',forza:'STS o Handgrip',corpo:'FM% (BIA o plicometria)',equilibrio:'TUG'};
-  // Risultato — soglie aggiornate per norme età
+  // Risultato — soglie aggiornate per norme età, con livello C+ per atleti
   let code,l,c,bg;
-  if(score>=75){code='C';l=gT().profileGood;c=C.green;bg='#d1fae5';}
+  if(score>=90){code='C+';l=gT().profileExcellent;c='#3b82f6';bg='#dbeafe';}
+  else if(score>=75){code='C';l=gT().profileGood;c=C.green;bg='#d1fae5';}
   else if(score>=45){code='B';l=gT().profileMed;c=C.yellow;bg='#fef3c7';}
   else{code='A';l=gT().profileLow;c=C.red;bg='#fee2e2';}
   return{code,l,c,bg,score,components,missing:missing.map(id=>missingLabels[id])};
@@ -3743,9 +3773,9 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div>';
     const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
     const profCode=pr?pr.code:'';
-    const profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C'?'#10b981':'#64748b';
-    const profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
-    const profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C'?T.profileGoodShort:'';
+    const profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C+'?'#3b82f6':profCode==='C'?'#10b981':'#64748b';
+    const profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C+'?'linear-gradient(135deg,#eff6ff,#dbeafe)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
+    const profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C+'?T.profileExcellentShort:profCode==='C'?T.profileGoodShort:'';
     const numEx=(scheda.esercizi||[]).length;
     const hasSezioni=(scheda.esercizi||[]).some(function(ex){return ex.sezione;});
     const equipVal=scheda.config?.equip||'gym';
@@ -3931,9 +3961,9 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+T.pdfPatientSheet+'</div></div></div>'
       :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+T.pdfPatientSheet+'</div></div>';
     var profCode=pr2?pr2.code:'';
-    var profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C'?'#10b981':'#64748b';
-    var profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
-    var profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C'?T.profileGoodShort:'';
+    var profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C+'?'#3b82f6':profCode==='C'?'#10b981':'#64748b';
+    var profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C+'?'linear-gradient(135deg,#eff6ff,#dbeafe)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
+    var profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C+'?T.profileExcellentShort:profCode==='C'?T.profileGoodShort:'';
     var renderRows=function(rows){return rows.map(function(kv,i){var k=kv[0],v=kv[1];var bg=i%2===0?'#f8fafc':'#ffffff';return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:'+bg+';border-radius:6px;margin-bottom:3px;gap:10px"><span style="color:#64748b;font-size:11px">'+esc(k)+'</span><span style="font-weight:700;font-size:12px;color:#0f172a;text-align:right">'+(esc(v)||'—')+'</span></div>';}).join('');};
     var anaRows=[[T.pdfBirthDate,p.ddn],[T.pdfGender,p.sesso],[T.pdfHeight,p.altezza?p.altezza+' cm':'—'],[T.pdfWaist,p.vita?p.vita+' cm':'—'],[T.pdfHips,p.fianchi?p.fianchi+' cm':'—']];
     var clinRows=[[T.pdfPA,p.pa],[T.pdfFCRest,p.fc?p.fc+' bpm':'—'],[T.pdfFCMax,fcM?fcM+' bpm':'—'],[T.pdfFCTarget60,fcM?Math.round(fcM*0.6)+' bpm':'—'],[T.pdfFCTarget75,fcM?Math.round(fcM*0.75)+' bpm':'—'],[T.pdfPath,p.patologie],[T.pdfMeds,p.farmaci]];
@@ -4101,7 +4131,7 @@ footer .center b{color:#3b82f6;font-weight:700}
               <div style={{fontSize:17,fontWeight:800,color:C.strong,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nome} {p.cognome}</div>
               <div style={{fontSize:11,color:C.muted,marginTop:2,display:'flex',alignItems:'center',gap:6}}>
                 <span>{p.id}</span>
-                {pr&&<span style={S.tag(pr.c,pr.bg)}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</span>}
+                {pr&&<span style={S.tag(pr.c,pr.bg)}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort}</span>}
               </div>
             </div>
           </div>
@@ -4120,7 +4150,7 @@ footer .center b{color:#3b82f6;font-weight:700}
           <div style={{flex:1,minWidth:0}}>
             <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
               <h1 style={{fontSize:18,fontWeight:800,color:C.strong,margin:0}}>{p.nome} {p.cognome}</h1>
-              {pr&&<span style={S.tag(pr.c,pr.bg)}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</span>}
+              {pr&&<span style={S.tag(pr.c,pr.bg)}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort}</span>}
             </div>
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.id} · {p.dataValutazione}</div>
           </div>
@@ -4268,7 +4298,7 @@ footer .center b{color:#3b82f6;font-weight:700}
           {/* Profilo risultante */}
           <div style={{...S.card,border:'2px solid '+(pr?.c||C.border2)+'40',background:(pr?.c||C.border2)+'08'}}>
             <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:pr?12:0}}>
-              {pr?<React.Fragment><span style={{fontSize:22,fontWeight:900,color:pr.c}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</span><div style={{flex:1}}>
+              {pr?<React.Fragment><span style={{fontSize:22,fontWeight:900,color:pr.c}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort}</span><div style={{flex:1}}>
                 <div style={{display:'flex',alignItems:'baseline',gap:8}}><div style={{fontSize:16,fontWeight:700,color:C.strong}}>{pr.l}</div><div style={{fontSize:20,fontWeight:900,color:pr.c}}>{pr.score}/100</div></div>
                 <div style={{fontSize:12,color:C.muted,marginTop:3}}>{T.weightedScore} · {p.dataValutazione}</div>
               </div></React.Fragment>
@@ -4512,7 +4542,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             if(v1.profilo&&v2.profilo&&v1.profilo!==v2.profilo){
               var order2={A:1,B:2,C:3};
               if((order2[v2.profilo]||0)>(order2[v1.profilo]||0)){
-                badges=badges.concat([{icon:'🎯',text:T.advancedFrom+' '+(v1.profilo==='A'?T.profileLowShort:v1.profilo==='B'?T.profileMedShort:T.profileGoodShort)+' '+T.advancedTo+' '+(v2.profilo==='A'?T.profileLowShort:v2.profilo==='B'?T.profileMedShort:T.profileGoodShort),color:C.purple}]);
+                badges=badges.concat([{icon:'🎯',text:T.advancedFrom+' '+(v1.profilo==='A'?T.profileLowShort:v1.profilo==='B'?T.profileMedShort:v1.profilo==='C+'?T.profileExcellentShort:T.profileGoodShort)+' '+T.advancedTo+' '+(v2.profilo==='A'?T.profileLowShort:v2.profilo==='B'?T.profileMedShort:v2.profilo==='C+'?T.profileExcellentShort:T.profileGoodShort),color:C.purple}]);
               }
             }
             if(badges.length===0)return null;
@@ -4544,7 +4574,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                           {v.peso?'Peso: '+v.peso+' kg  ':''}
                           {v.mwtDist?'6MWT: '+v.mwtDist+' m  ':''}
                           {v.stsRip?'STS: '+v.stsRip+' rip  ':''}
-                          {v.profilo?''+(v.profilo==='A'?T.profileLowShort:v.profilo==='B'?T.profileMedShort:T.profileGoodShort):''}
+                          {v.profilo?''+(v.profilo==='A'?T.profileLowShort:v.profilo==='B'?T.profileMedShort:v.profilo==='C+'?T.profileExcellentShort:T.profileGoodShort):''}
                         </div>
                       </div>
                       {v.score&&<div style={{fontSize:18,fontWeight:800,color:C.blue}}>{v.score}<span style={{fontSize:10,color:C.muted,fontWeight:400}}>/100</span></div>}
@@ -6304,6 +6334,7 @@ var generaProgramma = function(params) {
   var sedute, minCardio, minForza;
   if (profilo === 'A') { sedute = 3; minCardio = 75; minForza = 40; }
   else if (profilo === 'B') { sedute = 4; minCardio = 120; minForza = 60; }
+  else if (profilo === 'C+') { sedute = 6; minCardio = 180; minForza = 120; }
   else { sedute = 5; minCardio = 150; minForza = 90; }
   if (seduteDisponibili && seduteDisponibili < sedute) sedute = seduteDisponibili;
   if (eta > 65) { minCardio = Math.round(minCardio * 0.85); minForza = Math.round(minForza * 0.8); }
@@ -6316,10 +6347,17 @@ var generaProgramma = function(params) {
   var rpeMin, rpeMax, recSec, serieBase, ripBase;
   if (profilo === 'A') { rpeMin = 2; rpeMax = 4; recSec = 90; serieBase = 2; ripBase = 10; }
   else if (profilo === 'B') { rpeMin = 4; rpeMax = 6; recSec = 60; serieBase = 3; ripBase = 12; }
+  else if (profilo === 'C+') { rpeMin = 6; rpeMax = 9; recSec = 45; serieBase = 5; ripBase = 8; }
   else { rpeMin = 5; rpeMax = 8; recSec = 45; serieBase = 4; ripBase = 10; }
-  // ── MODIFICATORI OBIETTIVO per intensita (solo B e C — Profilo A protetto) ──
+  // ── MODIFICATORI OBIETTIVO per intensita (solo B/C/C+ — Profilo A protetto) ──
   var ripRange = '' + ripBase;
-  if (profilo !== 'A') {
+  if (profilo === 'C+') {
+    // C+ mantiene volume/intensita atletica; adatta solo ripRange agli obiettivi
+    ripRange = '6-10';
+    if (obiettivo === 'Perdere peso') { ripBase = 10; ripRange = '8-12'; recSec = 40; }
+    else if (obiettivo === 'Aumentare massa') { ripBase = 8; ripRange = '6-10'; recSec = 60; }
+    else if (obiettivo === 'Forza') { ripBase = 4; ripRange = '3-6'; recSec = 150; }
+  } else if (profilo !== 'A') {
     if (obiettivo === 'Perdere peso') { ripBase = 12; recSec = 45; ripRange = profilo === 'B' ? '12-15' : '10-15'; }
     else if (obiettivo === 'Aumentare massa') { ripBase = 10; recSec = 60; ripRange = '8-12'; }
     else if (obiettivo === 'Forza') { ripBase = profilo === 'B' ? 6 : 5; recSec = profilo === 'B' ? 90 : 120; ripRange = profilo === 'B' ? '6-8' : '3-6'; }
@@ -6328,6 +6366,7 @@ var generaProgramma = function(params) {
   var zonaFC;
   if (profilo === 'A') zonaFC = '55-65% FC max';
   else if (profilo === 'B') zonaFC = '60-70% FC max';
+  else if (profilo === 'C+') zonaFC = '70-85% FC max';
   else zonaFC = '65-75% FC max';
   // Ridurre zona FC per massa (cardio non deve interferire con ipertrofia)
   if (obiettivo === 'Aumentare massa') zonaFC = profilo === 'A' ? '50-60% FC max' : '55-65% FC max';
@@ -6357,6 +6396,14 @@ var generaProgramma = function(params) {
         T.gpCardioBOtherW4.replace('{min}',Math.round(minCardio/sedute + 5)).replace('{zona}',zonaFC)
       ];
     }
+  } else if (profilo === 'C+') {
+    var minPerSess = Math.round(minCardio/sedute);
+    cardioDesc = [
+      T.gpCardioCPlusW1.replace('{zona}',zonaFC).replace('{min}',minCardio),
+      T.gpCardioCPlusW2.replace('{zona}',zonaFC),
+      T.gpCardioCPlusW3.replace('{zona}',zonaFC).replace('{min}',minCardio),
+      T.gpCardioCPlusW4.replace('{zona}',zonaFC)
+    ];
   } else {
     if (obiettivo === 'Perdere peso') {
       cardioDesc = [
@@ -6406,6 +6453,13 @@ var generaProgramma = function(params) {
         T.gpForzaBOtherW4.replace('{s}',serieBase)
       ];
     }
+  } else if (profilo === 'C+') {
+    forzaDesc = [
+      T.gpForzaCPlusW1.replace(/\{s\}/g,serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+      T.gpForzaCPlusW2.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec),
+      T.gpForzaCPlusW3.replace('{s}',serieBase).replace('{r}',ripRange).replace('{rec}',recSec+15),
+      T.gpForzaCPlusW4.replace('{s}',serieBase-1).replace('{r}',ripRange).replace('{rec}',recSec)
+    ];
   } else {
     if (obiettivo === 'Aumentare massa') {
       forzaDesc = [
@@ -6568,7 +6622,7 @@ var generaProgramma = function(params) {
     });
   }
   var nomeObiettivo = obiettivo || T.gpDefSalute;
-  var nomeProfilo = profilo === 'A' ? T.profileLowShort : profilo === 'B' ? T.profileMedShort : T.profileGoodShort;
+  var nomeProfilo = profilo === 'A' ? T.profileLowShort : profilo === 'B' ? T.profileMedShort : profilo === 'C+' ? T.profileExcellentShort : T.profileGoodShort;
   var nome = T.gpNomeFmt.replace('{ob}', nomeObiettivo).replace('{pr}', nomeProfilo);
   var desc = T.gpDescFmt.replace('{sex}', sesso === 'M' ? T.gpUomo : T.gpDonna).replace('{eta}', eta).replace('{ob}', nomeObiettivo).replace('{pr}', nomeProfilo).replace('{score}', score);
   if (precauzioni.length > 0) desc += T.gpDescPrec.replace('{n}', precauzioni.length);
@@ -6769,9 +6823,9 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     var brandHtml=trainerProfile&&trainerProfile.logo
       ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+T.wizPdfSubtitle+'</div></div></div>'
       :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+T.wizPdfSubtitle+'</div></div>';
-    var profGrad=pr.code==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':pr.code==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':'linear-gradient(135deg,#f0fdf4,#d1fae5)';
-    var profBorder=pr.code==='A'?'#ef4444':pr.code==='B'?'#f59e0b':'#10b981';
-    var profLbl=pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort;
+    var profGrad=pr.code==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':pr.code==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':pr.code==='C+'?'linear-gradient(135deg,#eff6ff,#dbeafe)':'linear-gradient(135deg,#f0fdf4,#d1fae5)';
+    var profBorder=pr.code==='A'?'#ef4444':pr.code==='B'?'#f59e0b':pr.code==='C+'?'#3b82f6':'#10b981';
+    var profLbl=pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort;
     var componentsHtml=(pr.components||[]).map(function(comp){
       var barC=comp.score>=70?'#10b981':comp.score>=40?'#f59e0b':'#ef4444';
       return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><div style="font-size:11px;font-weight:600;color:#0f172a">'+(comp.icon||'')+' '+esc(comp.label)+'</div><div style="font-size:10px;color:#64748b">'+esc(comp.val)+' &middot; <span style="font-weight:800;color:'+barC+'">'+comp.score+'/100</span></div></div><div style="height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:'+comp.score+'%;height:100%;background:'+barC+';border-radius:4px"></div></div></div>';
@@ -7350,7 +7404,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             </div>
             {/* Preview profilo */}
             {d.mwtDist&&d.stsRip&&pr&&<div style={{background:pr.bg,border:'2px solid '+pr.c+'40',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
-              <div style={{fontSize:18,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</div>
+              <div style={{fontSize:18,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{pr.l}</div>
                 <div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.wizScoreLbl.replace('{n}',pr.score)}</div>
@@ -7578,7 +7632,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             </div>:<>
               <div style={{background:pr.bg,border:'2px solid '+pr.c+'50',borderRadius:16,padding:28,textAlign:'center',marginBottom:18}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,marginBottom:12}}>
-                  <div style={{fontSize:28,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</div>
+                  <div style={{fontSize:28,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort}</div>
                   <div style={{textAlign:'left'}}>
                     <div style={{fontSize:36,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.score}<span style={{fontSize:16,fontWeight:600}}>/100</span></div>
                     <div style={{fontSize:15,fontWeight:700,color:C.strong,marginTop:4}}>{pr.l}</div>
@@ -7638,7 +7692,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 {[['A',C.red,T.wizCritA,T.wizCritADesc],['B',C.yellow,T.wizCritB,T.wizCritBDesc],['C',C.green,T.wizCritC,T.wizCritCDesc]].map(function(item){var p2=item[0],c2=item[1],v=item[2],desc=item[3];return(
                   <div key={p2} style={{display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+C.border}}>
                     <div style={{width:28,height:28,borderRadius:8,background:c2+'20',border:'1px solid '+c2+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:900,color:c2,flexShrink:0}}>{p2==='A'?'1':p2==='B'?'2':'3'}</div>
-                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{p2==='A'?T.profileLowShort:p2==='B'?T.profileMedShort:T.profileGoodShort} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
+                    <div><div style={{fontSize:12,fontWeight:700,color:C.text}}>{p2==='A'?T.profileLowShort:p2==='B'?T.profileMedShort:p2==='C+'?T.profileExcellentShort:T.profileGoodShort} — {v}</div><div style={{fontSize:11,color:C.muted}}>{desc}</div></div>
                   </div>
                 );})}
               </div>
