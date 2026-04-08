@@ -3638,7 +3638,9 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const numEx=(scheda.esercizi||[]).length;
     const fontSize=numEx>10?'9px':'10px';
     const headerFontSize='8px';
-    const needsPageBreak=numEx>14;
+    const hasSezioni=(scheda.esercizi||[]).some(function(ex){return ex.sezione;});
+    const needsPageBreak=!hasSezioni&&numEx>14;
+    var currentSezione='';
     const righe=(scheda.esercizi||[]).map((ex,ei)=>{
       const eInfo=exercises.find(e=>e.id===ex.eId)||{};
       const nome=eInfo.nome||ex.eId||'';
@@ -3652,7 +3654,13 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       if(cat==='cardio'){ripCol=(ex.reps||'15')+' min';recCol='—';}
       if(cat==='core'&&String(ex.reps).indexOf('s')!==-1){ripCol=ex.reps;}
       const pageBreakStyle=needsPageBreak&&ei===Math.ceil(numEx/2)?'page-break-before:always;':'';
-      return'<tr style="background:'+bg+';'+pageBreakStyle+'">'+
+      var sectionHeaderRow='';
+      if(ex.sezione&&ex.sezione!==currentSezione){
+        var secBrk=currentSezione!==''?'page-break-before:always;':'';
+        sectionHeaderRow='<tr><td colspan="7" style="'+secBrk+'padding:14px 10px 8px;font-size:11px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:.8px;background:#eff6ff;border-top:2px solid #3b82f6;border-bottom:1px solid #dbeafe">'+esc(ex.sezione)+'</td></tr>';
+        currentSezione=ex.sezione;
+      }
+      return sectionHeaderRow+'<tr style="background:'+bg+';'+pageBreakStyle+'">'+
         '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';font-weight:700;color:#3b82f6;text-align:center">'+String(ei+1)+'</td>'+
         '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';font-weight:600;color:#1e293b">'+esc(nome)+'</td>'+
         '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#64748b">'+esc(gruppo)+'</td>'+
@@ -4443,8 +4451,11 @@ footer .center b{color:#3b82f6;font-weight:700}
                       const eInfo=exercises.find(function(x){return x.id===ex.eId;})||{};
                       const isSwapOpen=swapTarget && swapTarget.si===si && swapTarget.ei===ei;
                       const alts=isSwapOpen?trovaAlternative(eInfo,scheda.config?.equip||'gym',pr?.code||'B',exercises,5):[];
+                      const showSecHeader=ex.sezione && (ei===0 || scheda.esercizi[ei-1].sezione !== ex.sezione);
                       return(
-                        <div key={ei} style={{position:'relative'}}>
+                        <React.Fragment key={ei}>
+                          {showSecHeader&&<div style={{marginTop:ei>0?16:8,marginBottom:8,padding:'8px 12px',background:'linear-gradient(90deg,'+C.blue+'20,'+C.blue+'05)',borderLeft:'3px solid '+C.blue,borderRadius:6,fontSize:12,fontWeight:800,color:C.blue,textTransform:'uppercase',letterSpacing:0.8}}>{ex.sezione}</div>}
+                          <div style={{position:'relative'}}>
                           <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',background:ei%2===0?C.bg:'transparent',borderRadius:8,marginBottom:2}}>
                             <div style={{width:28,height:28,borderRadius:8,background:C.blue+'10',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:800,color:C.blue,flexShrink:0}}>{ei+1}</div>
                             <div style={{flex:1}}>
@@ -4486,7 +4497,8 @@ footer .center b{color:#3b82f6;font-weight:700}
                             })}
                             <button style={{display:'block',width:'100%',textAlign:'center',padding:'6px 10px',marginTop:4,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,cursor:'pointer',fontSize:11,color:C.muted,fontFamily:'inherit'}} onClick={()=>setSwapTarget(null)}>{T.cancel}</button>
                           </div>}
-                        </div>
+                          </div>
+                        </React.Fragment>
                       );
                     })}
                     {scheda.note&&<div style={{fontSize:11,color:C.muted,fontStyle:'italic',padding:'8px 12px',marginTop:8,borderTop:'1px solid '+C.border2}}>{scheda.note}</div>}
@@ -5967,13 +5979,17 @@ var generaSchedaAuto = function(params, esercizi) {
   var equipLabel = equip === 'gym' ? 'Palestra' : equip === 'home' ? 'Home gym' : 'Corpo libero';
   var noteText = 'Scheda generata automaticamente (' + equipLabel + '). ' + nomeProfilo + ' \u2014 Obiettivo: ' + nomeObiettivo + '. Registrare RPE e carichi.';
 
-  // ── GENERA SCHEDE (una per ogni giorno dello split) ──
+  // ── GENERA SCHEDE ──
+  // Split singolo (Full Body): una scheda con gli esercizi piatti.
+  // Split multi-giorno (Upper/Lower, PPL): UNA sola scheda con sezioni interne
+  // (ogni esercizio ha `sezione: day.name`) — il PT stampa un solo PDF.
   var schedeGenerate = [];
   var numSchede = params.schedeEsistenti || 0;
-  days.forEach(function(day) {
+  if (days.length === 1) {
+    var day1 = days[0];
     var usati = [];
     var schedaEsercizi = [];
-    day.slots.forEach(function(slot) {
+    day1.slots.forEach(function(slot) {
       var scelto = pick(usati, slot);
       if (!scelto) return;
       usati.push(scelto.id);
@@ -5984,8 +6000,7 @@ var generaSchedaAuto = function(params, esercizi) {
       }
       schedaEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label});
     });
-    // Cardio alla fine (solo ultimo giorno dello split o Full Body)
-    if (day.addCardio) {
+    if (day1.addCardio) {
       var cardioEx = pick(usati, {cat:'Cardio'});
       if (cardioEx) {
         usati.push(cardioEx.id);
@@ -5995,17 +6010,56 @@ var generaSchedaAuto = function(params, esercizi) {
     numSchede++;
     var codice = profilo + numSchede.toString().padStart(2, '0');
     schedeGenerate.push({
-      nome: day.name + ' \u2014 ' + nomeObiettivo,
+      nome: day1.name + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codice,
       split: splitType,
-      splitDay: day.name,
+      splitDay: day1.name,
       tipo: splitType,
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
       config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip}
     });
-  });
+  } else {
+    // Multi-giorno: unisci in UNA sola scheda con sezioni
+    var tuttiEsercizi = [];
+    var usatiGlobale = [];
+    var sezioniNomi = [];
+    days.forEach(function(day) {
+      sezioniNomi.push(day.name);
+      day.slots.forEach(function(slot) {
+        var scelto = pick(usatiGlobale, slot);
+        if (!scelto) return;
+        usatiGlobale.push(scelto.id);
+        var serie = serieBase, rip = ripBase, rec = recSec;
+        if ((scelto.primary === 'core') || scelto.cat === 'Core') {
+          serie = Math.max(2, serie - 1);
+          rip = typeof rip === 'number' ? rip + 5 : rip;
+        }
+        tuttiEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label, sezione:day.name});
+      });
+      if (day.addCardio) {
+        var cardioExMulti = pick(usatiGlobale, {cat:'Cardio'});
+        if (cardioExMulti) {
+          usatiGlobale.push(cardioExMulti.id);
+          tuttiEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name});
+        }
+      }
+    });
+    numSchede++;
+    var codiceCombo = profilo + numSchede.toString().padStart(2, '0');
+    schedeGenerate.push({
+      nome: splitType + ' \u2014 ' + nomeObiettivo,
+      codice: 'SCH-' + codiceCombo,
+      split: splitType,
+      splitDay: sezioniNomi.join(' + '),
+      tipo: splitType,
+      data: new Date().toLocaleDateString('it-IT'),
+      esercizi: tuttiEsercizi,
+      note: noteText,
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi}
+    });
+  }
   return schedeGenerate;
 };
 
