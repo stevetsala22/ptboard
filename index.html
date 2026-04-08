@@ -3631,76 +3631,178 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     try{localStorage.setItem('ptboard_first_pdf_exported','1');}catch(e){}
     const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
     const dataOggi=scheda.data||fmtDate();
-    const logoHtml=trainerProfile?.logo?'<div style="display:flex;align-items:center;gap:12px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px"/><div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div></div>':'<div><div style="font-size:16px;font-weight:800;color:#0f172a">'+esc(nomeStudio)+'</div><div style="font-size:10px;color:#64748b">'+T.schedaTitle+'</div></div>';
+    const brandHtml=trainerProfile?.logo
+      ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain;border-radius:6px"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div></div>'
+      :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div>';
     const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
-    const profiloLbl=pr?pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort:'—';
-    const profiloClr=pr?pr.code==='A'?'#ef4444':pr.code==='B'?'#f59e0b':'#10b981':'#64748b';
+    const profCode=pr?pr.code:'';
+    const profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C'?'#10b981':'#64748b';
+    const profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
+    const profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C'?T.profileGoodShort:'';
     const numEx=(scheda.esercizi||[]).length;
-    const fontSize=numEx>10?'9px':'10px';
-    const headerFontSize='8px';
-    const needsPageBreak=numEx>14;
-    const righe=(scheda.esercizi||[]).map((ex,ei)=>{
-      const eInfo=exercises.find(e=>e.id===ex.eId)||{};
-      const nome=eInfo.nome||ex.eId||'';
-      const gruppo=(eInfo.muscoli||eInfo.target||eInfo.gruppo||'').toString();
-      const cat=(eInfo.categoria||'').toLowerCase();
-      const livello=eInfo.livello||'';
-      const livClr=livello==='base'?'#10b981':livello==='intermedio'?'#f59e0b':'#ef4444';
-      const bg=ei%2===0?'#f8fafc':'#ffffff';
-      var ripCol=ex.reps||'—';
-      var recCol=ex.rec?ex.rec+'s':'—';
-      if(cat==='cardio'){ripCol=(ex.reps||'15')+' min';recCol='—';}
-      if(cat==='core'&&String(ex.reps).indexOf('s')!==-1){ripCol=ex.reps;}
-      const pageBreakStyle=needsPageBreak&&ei===Math.ceil(numEx/2)?'page-break-before:always;':'';
-      return'<tr style="background:'+bg+';'+pageBreakStyle+'">'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';font-weight:700;color:#3b82f6;text-align:center">'+String(ei+1)+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';font-weight:600;color:#1e293b">'+esc(nome)+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#64748b">'+esc(gruppo)+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+'"><span style="color:'+livClr+';font-weight:600">'+(livello?esc(livello):'—')+'</span></td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#1e293b">'+(ex.serie||'—')+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#1e293b">'+esc(String(ripCol))+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:'+fontSize+';color:#1e293b">'+esc(String(recCol))+'</td>'+
-      '</tr>';
-    }).join('');
-    const noteHtml=scheda.note?'<div style="margin-top:20px;background:#f0fdf4;border-left:3px solid #10b981;padding:12px;border-radius:0 8px 8px 0"><div style="font-size:9px;color:#374151;font-style:italic">'+esc(scheda.note)+'</div></div>':'';
-    const fileName='Scheda_'+(p.nome||'').replace(/\s/g,'_')+'_'+(p.cognome||'').replace(/\s/g,'_')+'_'+(scheda.codice||'SCH')+'.pdf';
-    const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+esc(scheda.nome)+' — '+esc(p.nome)+' '+esc(p.cognome)+'</title>'+
-      '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b;font-size:13px}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}@page{margin:20mm 15mm}</style></head><body>'+
-      '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid #3b82f6">'+
-      '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfBackToApp+'</button>'+
-      '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfPrint+'</button></div>'+
-      '<div style="max-width:800px;margin:0 auto;padding:40px">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;margin-bottom:20px">'+
-      '<div>'+logoHtml+'</div>'+
-      '<div style="text-align:right;font-size:12px;color:#64748b">'+esc(dataOggi)+'</div>'+
+    const hasSezioni=(scheda.esercizi||[]).some(function(ex){return ex.sezione;});
+    const equipVal=scheda.config?.equip||'gym';
+    const equipLabel=equipVal==='gym'?'Palestra':equipVal==='home'?'Home gym':'Corpo libero';
+    // Icone sezioni (Upper / Lower / Push / Pull / Legs / Full Body)
+    const sectionIcon=function(name){
+      var n=(name||'').toLowerCase();
+      if(n.indexOf('upper')!==-1)return{ico:'\uD83D\uDCAA',color:'#3b82f6',grad:'linear-gradient(90deg,#eff6ff,#ffffff)'};
+      if(n.indexOf('lower')!==-1)return{ico:'\uD83E\uDDB5',color:'#10b981',grad:'linear-gradient(90deg,#f0fdf4,#ffffff)'};
+      if(n.indexOf('push')!==-1)return{ico:'\uD83C\uDFCB\uFE0F',color:'#f97316',grad:'linear-gradient(90deg,#fff7ed,#ffffff)'};
+      if(n.indexOf('pull')!==-1)return{ico:'\uD83D\uDD17',color:'#8b5cf6',grad:'linear-gradient(90deg,#faf5ff,#ffffff)'};
+      if(n.indexOf('legs')!==-1)return{ico:'\uD83E\uDDB5',color:'#06b6d4',grad:'linear-gradient(90deg,#ecfeff,#ffffff)'};
+      return{ico:'\uD83D\uDCAA',color:'#3b82f6',grad:'linear-gradient(90deg,#eff6ff,#ffffff)'};
+    };
+    var currentSezione='';
+    // Raggruppa esercizi in blocchi: ogni blocco = una tabella (una sezione o tutto).
+    // Costruiamo un array di {nome, righe:[...]} poi renderizziamo.
+    var blocks=[];
+    (scheda.esercizi||[]).forEach(function(ex,ei){
+      const eInfo=exercises.find(function(e){return e.id===ex.eId;})||{};
+      if(ex.sezione&&ex.sezione!==currentSezione){
+        blocks.push({nome:ex.sezione,righe:[]});
+        currentSezione=ex.sezione;
+      } else if(!ex.sezione&&blocks.length===0){
+        blocks.push({nome:null,righe:[]});
+      }
+      blocks[blocks.length-1].righe.push({ex:ex,eInfo:eInfo,ei:ei});
+    });
+    const buildTable=function(block,blockIdx){
+      var header='';
+      if(block.nome){
+        var si=sectionIcon(block.nome);
+        var pageBrk=blockIdx>0?'page-break-before:always;':'';
+        header='<div class="section-hdr" style="'+pageBrk+'background:'+si.grad+';border-left:5px solid '+si.color+';color:'+si.color+'"><span class="section-ico">'+si.ico+'</span>'+esc(block.nome.toUpperCase())+'</div>';
+      }
+      var rowsHtml=block.righe.map(function(r){
+        var ex=r.ex,eInfo=r.eInfo,ei=r.ei;
+        var nome=eInfo.nome||ex.eId||'';
+        var gruppo=(eInfo.muscoli||eInfo.target||eInfo.gruppo||'').toString();
+        var cat=(eInfo.cat||eInfo.categoria||'').toLowerCase();
+        var primary=(eInfo.primary||'').toLowerCase();
+        var isCardio=cat==='cardio'||primary==='cardio';
+        var isCore=cat==='core'||primary==='core';
+        var livello=eInfo.livello||'';
+        var livBg=livello==='base'?'#d1fae5':livello==='intermedio'?'#fef3c7':livello==='avanzato'?'#fee2e2':'#f1f5f9';
+        var livClr=livello==='base'?'#10b981':livello==='intermedio'?'#f59e0b':livello==='avanzato'?'#ef4444':'#64748b';
+        var ripCol=ex.reps||'—';
+        var recCol=ex.rec?ex.rec+'s':'—';
+        if(isCardio){ripCol=String(ex.reps||'15').indexOf('min')!==-1?ex.reps:(ex.reps||'15')+' min';recCol='—';}
+        if(isCore&&String(ex.reps).indexOf('s')!==-1){ripCol=ex.reps;}
+        var rowBg=ei%2===0?'#f8fafc':'#ffffff';
+        var rowClass='';
+        if(isCardio){rowBg='#ecfeff';rowClass='cardio-row';}
+        else if(isCore){rowBg='#faf5ff';rowClass='core-row';}
+        var nomePrefix='';
+        if(isCardio)nomePrefix='\uD83C\uDFC3 ';
+        else if(isCore)nomePrefix='\uD83E\uDDF1 ';
+        return '<tr class="'+rowClass+'" style="background:'+rowBg+'">'+
+          '<td class="num-cell"><div class="num-circle">'+String(ei+1)+'</div></td>'+
+          '<td class="ex-cell"><b>'+nomePrefix+esc(nome)+'</b>'+(ex.note?'<div class="ex-note">'+esc(ex.note)+'</div>':'')+'</td>'+
+          '<td class="grp-cell">'+esc(gruppo)+'</td>'+
+          '<td class="lv-cell">'+(livello?'<span class="lv-badge" style="background:'+livBg+';color:'+livClr+'">'+esc(livello)+'</span>':'—')+'</td>'+
+          '<td class="n-cell">'+(ex.serie||'—')+'</td>'+
+          '<td class="n-cell">'+esc(String(ripCol))+'</td>'+
+          '<td class="n-cell">'+esc(String(recCol))+'</td>'+
+        '</tr>';
+      }).join('');
+      return header+
+        '<table class="ex-table"><thead><tr>'+
+        '<th class="th-num">#</th>'+
+        '<th>'+esc(T.tblExercise)+'</th>'+
+        '<th>'+esc(T.tblGroup)+'</th>'+
+        '<th>'+esc(T.tblLevel)+'</th>'+
+        '<th>'+esc(T.tblSets)+'</th>'+
+        '<th>'+esc(T.tblReps)+'</th>'+
+        '<th>'+esc(T.tblRest)+'</th>'+
+        '</tr></thead><tbody>'+rowsHtml+'</tbody></table>';
+    };
+    const tablesHtml=numEx===0
+      ? '<div class="empty-state">'+esc(T.schedaEmpty)+'</div>'
+      : blocks.map(function(b,i){return buildTable(b,i);}).join('');
+    const noteHtml=scheda.note?'<div class="notes-box"><div class="notes-ico">\uD83D\uDCDD</div><div class="notes-text">'+esc(scheda.note)+'</div></div>':'';
+    const headerMeta=(eta?T.pdfAge+': '+eta:'')+(p.sesso?' \u00B7 '+esc(p.sesso):'')+(p.obiettivo?' \u00B7 '+esc(p.obiettivo):'');
+    const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+esc(scheda.nome)+' \u2014 '+esc(p.nome)+' '+esc(p.cognome)+'</title>'+
+      '<style>'+
+      '*{box-sizing:border-box;margin:0;padding:0}'+
+      'body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#0f172a;font-size:13px;background:#ffffff;-webkit-font-smoothing:antialiased}'+
+      '.pg{max-width:820px;margin:0 auto;padding:40px 44px}'+
+      '.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;margin-bottom:6px;gap:20px}'+
+      '.client-name{font-size:22px;font-weight:800;color:#0f172a;letter-spacing:-.4px;line-height:1.1}'+
+      '.client-meta{font-size:11px;color:#64748b;margin-top:6px;line-height:1.6}'+
+      '.prof-badge{display:inline-block;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-top:8px}'+
+      '.hdr-line{height:3px;background:linear-gradient(90deg,#3b82f6,#06b6d4,#10b981);border-radius:2px;margin-bottom:22px}'+
+      '.scheda-title{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-.3px;margin-bottom:4px}'+
+      '.scheda-sub{font-size:11px;color:#64748b;margin-bottom:16px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}'+
+      '.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}'+
+      '.kpi{background:#ffffff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}'+
+      '.kpi.split{border-left:4px solid #3b82f6;background:linear-gradient(135deg,#eff6ff,#ffffff)}'+
+      '.kpi.sets{border-left:4px solid #10b981;background:linear-gradient(135deg,#f0fdf4,#ffffff)}'+
+      '.kpi.rest{border-left:4px solid #f59e0b;background:linear-gradient(135deg,#fffbeb,#ffffff)}'+
+      '.kpi.equip{border-left:4px solid #8b5cf6;background:linear-gradient(135deg,#faf5ff,#ffffff)}'+
+      '.kpi-val{font-size:18px;font-weight:900;color:#0f172a;line-height:1.1}'+
+      '.kpi.split .kpi-val{color:#3b82f6}'+
+      '.kpi.sets .kpi-val{color:#10b981}'+
+      '.kpi.rest .kpi-val{color:#f59e0b}'+
+      '.kpi.equip .kpi-val{color:#8b5cf6}'+
+      '.kpi-lbl{font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;font-weight:600}'+
+      '.section-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;margin:20px 0 12px;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:1.2px;box-shadow:0 1px 3px rgba(0,0,0,.06)}'+
+      '.section-ico{font-size:18px;line-height:1}'+
+      '.ex-table{width:100%;border-collapse:separate;border-spacing:0;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid #e2e8f0;margin-bottom:14px}'+
+      '.ex-table thead tr{background:linear-gradient(90deg,#3b82f6,#06b6d4)}'+
+      '.ex-table th{text-align:left;color:#ffffff;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;padding:10px 10px}'+
+      '.ex-table th.th-num{text-align:center;width:36px}'+
+      '.ex-table td{padding:9px 10px;border-bottom:1px solid #e2e8f0;font-size:10px;color:#0f172a;vertical-align:middle}'+
+      '.ex-table tbody tr:last-child td{border-bottom:none}'+
+      '.num-cell{text-align:center;width:36px}'+
+      '.num-circle{width:22px;height:22px;border-radius:50%;background:#3b82f6;color:#ffffff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;line-height:1}'+
+      '.cardio-row .num-circle{background:#06b6d4}'+
+      '.core-row .num-circle{background:#8b5cf6}'+
+      '.ex-cell b{font-weight:700;color:#0f172a}'+
+      '.ex-note{font-size:9px;color:#64748b;margin-top:2px;font-style:italic}'+
+      '.grp-cell{font-size:9px;color:#64748b}'+
+      '.lv-badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}'+
+      '.n-cell{font-weight:700;color:#0f172a}'+
+      '.empty-state{padding:40px;text-align:center;color:#64748b;font-size:14px;background:#f8fafc;border-radius:10px}'+
+      '.notes-box{margin-top:16px;background:linear-gradient(135deg,#f0fdf4,#ffffff);border-left:4px solid #10b981;border-radius:0 10px 10px 0;padding:12px 16px;display:flex;gap:10px;align-items:flex-start;box-shadow:0 1px 3px rgba(0,0,0,.06)}'+
+      '.notes-ico{font-size:16px;line-height:1}'+
+      '.notes-text{font-size:11px;color:#475569;line-height:1.6;font-style:italic;flex:1}'+
+      '.footer-line{height:2px;background:linear-gradient(90deg,#3b82f6,#06b6d4,#10b981);border-radius:1px;margin:28px 0 12px}'+
+      'footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}'+
+      'footer .center{flex:1;text-align:center;color:#64748b}'+
+      'footer .center b{color:#3b82f6;font-weight:700}'+
+      '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:24px 28px}@page{margin:14mm 10mm}}'+
+      '</style></head><body>'+
+      '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6">'+
+      '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+esc(T.pdfBackToApp)+'</button>'+
+      '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+esc(T.pdfPrint)+'</button></div>'+
+      '<div class="pg">'+
+      '<div class="hdr">'+
+      brandHtml+
+      '<div style="text-align:right">'+
+      '<div class="client-name">'+esc(p.nome)+' '+esc(p.cognome)+'</div>'+
+      '<div class="client-meta">'+headerMeta+'</div>'+
+      (profLbl?'<div class="prof-badge" style="background:'+profGrad+';color:'+profBorder+';border:1px solid '+profBorder+'">'+esc(profLbl)+'</div>':'')+
       '</div>'+
-      '<div style="height:2px;background:#3b82f6;margin-bottom:20px"></div>'+
-      '<div style="background:#f8fafc;border-radius:8px;padding:16px;margin-bottom:20px;display:flex;justify-content:space-between">'+
-      '<div><div style="font-size:14px;font-weight:700;color:#0f172a">'+esc(p.nome)+' '+esc(p.cognome)+'</div><div style="font-size:11px;color:#64748b;margin-top:4px">'+(eta?T.pdfAge+': '+eta:'')+(p.sesso?' \u00b7 '+esc(p.sesso):'')+'</div></div>'+
-      '<div style="text-align:right"><div style="font-size:11px;color:#64748b">'+T.pdfGoal+': <strong>'+esc(p.obiettivo||'\u2014')+'</strong></div><div style="font-size:11px;margin-top:4px">'+T.profileCode+': <span style="color:'+profiloClr+';font-weight:700">'+esc(profiloLbl)+'</span></div></div>'+
       '</div>'+
-      '<div style="margin-bottom:16px"><div style="font-size:18px;font-weight:800;color:#0f172a">'+esc(scheda.nome)+'</div>'+
-      '<div style="font-size:11px;color:#64748b;margin-top:4px">'+(scheda.codice?esc(scheda.codice)+' \u00b7 ':'')+esc(scheda.split||'')+' \u00b7 '+esc(dataOggi)+'</div>'+
-      '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'+
-      '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#3b82f620;color:#3b82f6">'+(scheda.config?.tipo||'Full Body')+'</span>'+
-      '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#10b98120;color:#10b981">'+(scheda.config?.serie||3)+'\u00d7'+(scheda.config?.rip||10)+'</span>'+
-      '<span style="padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;background:#f59e0b20;color:#f59e0b">Rec '+(scheda.config?.rec||60)+'s</span>'+
-      '</div></div>'+
-      (numEx===0?'<div style="padding:32px;text-align:center;color:#64748b;font-size:15px">'+T.schedaEmpty+'</div>':
-      '<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#3b82f6">'+
-      '<th style="text-align:center;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">#</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblExercise+'</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblGroup+'</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblLevel+'</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblSets+'</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblReps+'</th>'+
-      '<th style="text-align:left;color:#fff;font-size:'+headerFontSize+';font-weight:700;text-transform:uppercase;padding:8px 10px">'+T.tblRest+'</th>'+
-      '</tr></thead><tbody>'+righe+'</tbody></table>')+
+      '<div class="hdr-line"></div>'+
+      '<div class="scheda-title">'+esc(scheda.nome)+'</div>'+
+      '<div class="scheda-sub">'+(scheda.codice?esc(scheda.codice)+' \u00B7 ':'')+esc(dataOggi)+'</div>'+
+      '<div class="kpi-row">'+
+      '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||'Full Body')+'</div><div class="kpi-lbl">Split</div></div>'+
+      '<div class="kpi sets"><div class="kpi-val">'+(scheda.config?.serie||3)+'\u00D7'+(scheda.config?.rip||10)+'</div><div class="kpi-lbl">Serie \u00D7 Rip</div></div>'+
+      '<div class="kpi rest"><div class="kpi-val">'+(scheda.config?.rec||60)+'s</div><div class="kpi-lbl">Recupero</div></div>'+
+      '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">Attrezzatura</div></div>'+
+      '</div>'+
+      tablesHtml+
       noteHtml+
-      '<div style="margin-top:40px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between">'+
-      '<div style="font-size:8px;color:#94a3b8">'+T.generatedWith+' \u2014 personaltrainerboard.com</div>'+
-      '<div style="font-size:8px;color:#94a3b8">Pagina 1/1</div>'+
-      '</div></div></body></html>';
+      '<div class="footer-line"></div>'+
+      '<footer>'+
+      '<span>'+esc(nomeStudio)+'</span>'+
+      '<span class="center">'+esc(T.generatedWith||'Generata con')+' <b>PT Board</b> \u00B7 personaltrainerboard.com</span>'+
+      '<span>'+esc(dataOggi)+'</span>'+
+      '</footer>'+
+      '</div></body></html>';
     const w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
   };
 
@@ -4443,8 +4545,11 @@ footer .center b{color:#3b82f6;font-weight:700}
                       const eInfo=exercises.find(function(x){return x.id===ex.eId;})||{};
                       const isSwapOpen=swapTarget && swapTarget.si===si && swapTarget.ei===ei;
                       const alts=isSwapOpen?trovaAlternative(eInfo,scheda.config?.equip||'gym',pr?.code||'B',exercises,5):[];
+                      const showSecHeader=ex.sezione && (ei===0 || scheda.esercizi[ei-1].sezione !== ex.sezione);
                       return(
-                        <div key={ei} style={{position:'relative'}}>
+                        <React.Fragment key={ei}>
+                          {showSecHeader&&<div style={{marginTop:ei>0?16:8,marginBottom:8,padding:'8px 12px',background:'linear-gradient(90deg,'+C.blue+'20,'+C.blue+'05)',borderLeft:'3px solid '+C.blue,borderRadius:6,fontSize:12,fontWeight:800,color:C.blue,textTransform:'uppercase',letterSpacing:0.8}}>{ex.sezione}</div>}
+                          <div style={{position:'relative'}}>
                           <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',background:ei%2===0?C.bg:'transparent',borderRadius:8,marginBottom:2}}>
                             <div style={{width:28,height:28,borderRadius:8,background:C.blue+'10',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:800,color:C.blue,flexShrink:0}}>{ei+1}</div>
                             <div style={{flex:1}}>
@@ -4486,7 +4591,8 @@ footer .center b{color:#3b82f6;font-weight:700}
                             })}
                             <button style={{display:'block',width:'100%',textAlign:'center',padding:'6px 10px',marginTop:4,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,cursor:'pointer',fontSize:11,color:C.muted,fontFamily:'inherit'}} onClick={()=>setSwapTarget(null)}>{T.cancel}</button>
                           </div>}
-                        </div>
+                          </div>
+                        </React.Fragment>
                       );
                     })}
                     {scheda.note&&<div style={{fontSize:11,color:C.muted,fontStyle:'italic',padding:'8px 12px',marginTop:8,borderTop:'1px solid '+C.border2}}>{scheda.note}</div>}
@@ -5967,13 +6073,17 @@ var generaSchedaAuto = function(params, esercizi) {
   var equipLabel = equip === 'gym' ? 'Palestra' : equip === 'home' ? 'Home gym' : 'Corpo libero';
   var noteText = 'Scheda generata automaticamente (' + equipLabel + '). ' + nomeProfilo + ' \u2014 Obiettivo: ' + nomeObiettivo + '. Registrare RPE e carichi.';
 
-  // ── GENERA SCHEDE (una per ogni giorno dello split) ──
+  // ── GENERA SCHEDE ──
+  // Split singolo (Full Body): una scheda con gli esercizi piatti.
+  // Split multi-giorno (Upper/Lower, PPL): UNA sola scheda con sezioni interne
+  // (ogni esercizio ha `sezione: day.name`) — il PT stampa un solo PDF.
   var schedeGenerate = [];
   var numSchede = params.schedeEsistenti || 0;
-  days.forEach(function(day) {
+  if (days.length === 1) {
+    var day1 = days[0];
     var usati = [];
     var schedaEsercizi = [];
-    day.slots.forEach(function(slot) {
+    day1.slots.forEach(function(slot) {
       var scelto = pick(usati, slot);
       if (!scelto) return;
       usati.push(scelto.id);
@@ -5984,8 +6094,7 @@ var generaSchedaAuto = function(params, esercizi) {
       }
       schedaEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label});
     });
-    // Cardio alla fine (solo ultimo giorno dello split o Full Body)
-    if (day.addCardio) {
+    if (day1.addCardio) {
       var cardioEx = pick(usati, {cat:'Cardio'});
       if (cardioEx) {
         usati.push(cardioEx.id);
@@ -5995,17 +6104,56 @@ var generaSchedaAuto = function(params, esercizi) {
     numSchede++;
     var codice = profilo + numSchede.toString().padStart(2, '0');
     schedeGenerate.push({
-      nome: day.name + ' \u2014 ' + nomeObiettivo,
+      nome: day1.name + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codice,
       split: splitType,
-      splitDay: day.name,
+      splitDay: day1.name,
       tipo: splitType,
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
       config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip}
     });
-  });
+  } else {
+    // Multi-giorno: unisci in UNA sola scheda con sezioni
+    var tuttiEsercizi = [];
+    var usatiGlobale = [];
+    var sezioniNomi = [];
+    days.forEach(function(day) {
+      sezioniNomi.push(day.name);
+      day.slots.forEach(function(slot) {
+        var scelto = pick(usatiGlobale, slot);
+        if (!scelto) return;
+        usatiGlobale.push(scelto.id);
+        var serie = serieBase, rip = ripBase, rec = recSec;
+        if ((scelto.primary === 'core') || scelto.cat === 'Core') {
+          serie = Math.max(2, serie - 1);
+          rip = typeof rip === 'number' ? rip + 5 : rip;
+        }
+        tuttiEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label, sezione:day.name});
+      });
+      if (day.addCardio) {
+        var cardioExMulti = pick(usatiGlobale, {cat:'Cardio'});
+        if (cardioExMulti) {
+          usatiGlobale.push(cardioExMulti.id);
+          tuttiEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name});
+        }
+      }
+    });
+    numSchede++;
+    var codiceCombo = profilo + numSchede.toString().padStart(2, '0');
+    schedeGenerate.push({
+      nome: splitType + ' \u2014 ' + nomeObiettivo,
+      codice: 'SCH-' + codiceCombo,
+      split: splitType,
+      splitDay: sezioniNomi.join(' + '),
+      tipo: splitType,
+      data: new Date().toLocaleDateString('it-IT'),
+      esercizi: tuttiEsercizi,
+      note: noteText,
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi}
+    });
+  }
   return schedeGenerate;
 };
 
