@@ -6067,18 +6067,87 @@ var generaSchedaAuto = function(params, esercizi) {
     return true;
   });
 
-  // ── SERIE/RIP/REC per esercizio (modulati da profilo + obiettivo + eta) ──
-  // serieBase qui = serie per esercizio (non più volume totale)
-  var serieBase, ripBase, recSec;
-  if (profilo === 'A') { serieBase = 2; ripBase = 13; recSec = 75; }
-  else if (profilo === 'B') { serieBase = 3; ripBase = 12; recSec = 60; }
-  else if (profilo === 'C+') { serieBase = 4; ripBase = 8; recSec = 50; }
-  else { serieBase = 3; ripBase = 10; recSec = 55; }
-  if (obiettivo === 'Aumentare massa') { ripBase = 10; recSec += 15; }
-  else if (obiettivo === 'Forza') { serieBase += 1; ripBase = Math.max(4, ripBase - 3); recSec += 30; }
-  else if (obiettivo === 'Perdere peso') { serieBase = Math.max(2, serieBase - 1); ripBase += 4; recSec = Math.max(30, recSec - 15); }
-  if (eta > 65) { recSec += 15; ripBase = Math.max(8, ripBase - 2); }
-  if (eta > 75) { serieBase = Math.min(serieBase, 2); }
+  // ── PARAMETRI PER-CATEGORIA ──
+  // Ogni esercizio viene classificato come compound, big, small, core.
+  // Serie × Rip × Rec sono diversi per ciascuna categoria + profilo.
+  // Compound detection via keyword sui nomi esercizi
+  var compoundKeywords = ['panca','squat','stacco','military','leg press','hip thrust','rematore bilanciere','deadlift','bench press','overhead press','front squat','back squat'];
+  function isCompound(ex) {
+    if (!ex || !ex.nome) return false;
+    var n = ex.nome.toLowerCase();
+    for (var i = 0; i < compoundKeywords.length; i++) {
+      if (n.indexOf(compoundKeywords[i]) !== -1) return true;
+    }
+    return false;
+  }
+  function classifyExercise(ex) {
+    if (!ex) return 'big';
+    if (isCompound(ex)) return 'compound';
+    var p = (ex.primary || '').toLowerCase();
+    if (p === 'core' || (ex.cat === 'Core')) return 'core';
+    if (p === 'petto' || p === 'dorso' || p === 'quadricipiti' || p === 'femorali' || p === 'glutei') return 'big';
+    if (p === 'bicipiti' || p === 'tricipiti' || p === 'spalle' || p === 'polpacci') return 'small';
+    return 'big';
+  }
+  // Tabella base serie × rip × rec per (categoria, profilo)
+  // (valori dalla spec: ranges medi)
+  var exParams = {
+    compound: {
+      A:   {serie:3, rip:10, rec:120},
+      B:   {serie:3, rip:8,  rec:90},
+      C:   {serie:4, rip:7,  rec:75},
+      'C+':{serie:4, rip:6,  rec:60}
+    },
+    big: {
+      A:   {serie:2, rip:12, rec:90},
+      B:   {serie:3, rip:10, rec:65},
+      C:   {serie:3, rip:10, rec:50},
+      'C+':{serie:4, rip:9,  rec:45}
+    },
+    small: {
+      A:   {serie:2, rip:13, rec:75},
+      B:   {serie:3, rip:12, rec:50},
+      C:   {serie:3, rip:13, rec:40},
+      'C+':{serie:3, rip:11, rec:30}
+    },
+    core: {
+      A:   {serie:3, rip:17, rec:35},
+      B:   {serie:3, rip:17, rec:35},
+      C:   {serie:3, rip:17, rec:35},
+      'C+':{serie:3, rip:17, rec:35}
+    }
+  };
+  // Parametri finali per categoria, con modificatori obiettivo e età
+  function exParamsFor(category) {
+    var tbl = exParams[category] || exParams.big;
+    var b = tbl[profilo] || tbl.B;
+    var serie = b.serie, rip = b.rip, rec = b.rec;
+    if (obiettivo === 'Forza') {
+      if (category === 'compound') { serie += 1; rip = Math.max(3, rip - 2); }
+      rec += 15;
+    } else if (obiettivo === 'Aumentare massa') {
+      serie += 1;
+      rec += 15;
+    } else if (obiettivo === 'Perdere peso') {
+      serie = Math.max(2, serie - 1);
+      rip += 3;
+      rec = Math.max(20, rec - 10);
+    } else if (obiettivo === 'Resistenza') {
+      serie = Math.max(2, serie - 1);
+      rip += 5;
+    }
+    // Modificatori età (applicati a tutte le categorie tranne core)
+    if (category !== 'core') {
+      if (eta > 65) { rec += 15; rip = Math.max(6, rip - 2); }
+      if (eta > 75) { serie = Math.min(serie, 2); }
+    }
+    return {serie: serie, rip: rip, rec: rec};
+  }
+  // Valori rappresentativi (categoria big) per il config della scheda (usati nei badge UI)
+  var bigParams = exParamsFor('big');
+  var serieBase = bigParams.serie;
+  var ripBase = bigParams.rip;
+  var recSec = bigParams.rec;
 
   // ── DETERMINA SPLIT in base all'obiettivo ──
   var splitType;
@@ -6204,19 +6273,7 @@ var generaSchedaAuto = function(params, esercizi) {
     'Legs':      ['quadricipiti','femorali','glutei','polpacci']
   };
 
-  // ── LOGICA TEMPO REALISTICA (per-esercizio con compound detection) ──
-  // Formule ACSM/NSCA:
-  // Normale:  45s setup + serie × (rip × 3s) + (serie-1) × recIsol
-  // Compound: 90s setup + serie × (rip × 4s) + (serie-1) × recComp
-  var recIsol = ({A:90, B:60, C:45, 'C+':30}[profilo]) || 60;
-  var recComp = ({A:120, B:90, C:75, 'C+':60}[profilo]) || 90;
-  // Modificatori obiettivo sul recupero
-  var recMod = 0;
-  if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') recMod = 15;
-  else if (obiettivo === 'Perdere peso') recMod = -10;
-  recIsol = Math.max(15, recIsol + recMod);
-  recComp = Math.max(30, recComp + recMod);
-
+  // ── CARDIO durata e budget tempo ──
   // Cardio minuti base per profilo, modulati da obiettivo
   var cardioBaseMin = ({A:10, B:15, C:15, 'C+':20}[profilo]) || 15;
   if (obiettivo === 'Perdere peso') cardioBaseMin += 5;
@@ -6229,42 +6286,35 @@ var generaSchedaAuto = function(params, esercizi) {
   // Tempo residuo per la parte forza (in secondi)
   var tempoDisponibileSec = Math.max(300, (durataSeduta - warmupMin - cardioBaseMin) * 60);
 
-  // Safety cap: mai più di 10 esercizi per sezione
-  var MAX_SLOTS_PER_DAY = 10;
+  // Safety cap: mai più di 8 esercizi per sezione (spec)
+  var MAX_SLOTS_PER_DAY = 8;
   var MIN_SLOTS_PER_DAY = 3;
 
-  // Compound detection via keyword sui nomi esercizi
-  var compoundKeywords = ['squat','panca','stacco','military','lat machine','lento','distensione','bench press','deadlift','overhead','pull-up','chin-up','push-up','trazioni','dip','rematore','pressa','hack','front','good morning','thruster','clean','snatch','affondo','affondi'];
-  function isCompound(ex) {
-    if (!ex || !ex.nome) return false;
-    var n = ex.nome.toLowerCase();
-    for (var i = 0; i < compoundKeywords.length; i++) {
-      if (n.indexOf(compoundKeywords[i]) !== -1) return true;
-    }
-    return false;
-  }
-
-  // Tempo (in secondi) per un esercizio già scelto
-  function tempoEsercizioSec(ex, serie, rip) {
+  // ── TEMPO per esercizio (secondi) ──
+  // Categoria determina setup + work per rep:
+  // compound: setup 90s, work rip×4s
+  // big:      setup 45s, work rip×3s
+  // small:    setup 30s, work rip×3s
+  // core:     setup 20s, work rip×2s
+  // Recupero = (serie-1) × rec dell'esercizio
+  function tempoEsercizioSec(ex, category, serie, rip, rec) {
     var s = Math.max(1, +serie || 3);
-    // rip può essere numero o stringa ('30s' per core, '15 min' per cardio)
+    var r = +rec;
+    if (!(r > 0)) r = category === 'core' ? 30 : 60;
+    var setup = category === 'compound' ? 90 : category === 'big' ? 45 : category === 'small' ? 30 : 20;
+    var timePerRep = category === 'compound' ? 4 : category === 'core' ? 2 : 3;
     var ripNum;
     if (typeof rip === 'number') ripNum = rip;
     else {
       var p = parseInt(rip, 10);
       ripNum = isNaN(p) ? 10 : p;
-      // Se la stringa contiene 's' (secondi isometrici), considera ~rip secondi di lavoro
-      if (typeof rip === 'string' && rip.indexOf('s') !== -1 && ripNum > 10 && ripNum < 120) {
-        // Isometrico: il "rip" è già in secondi, non moltiplicare per 3
-        if (isCompound(ex)) return 90 + s * ripNum + Math.max(0, s - 1) * recComp;
-        return 45 + s * ripNum + Math.max(0, s - 1) * recIsol;
+      // Isometrico ('30s' per plank ecc.) — rip è già in secondi di lavoro
+      if (typeof rip === 'string' && rip.indexOf('s') !== -1 && ripNum > 5 && ripNum < 120) {
+        return setup + s * ripNum + Math.max(0, s - 1) * r;
       }
     }
     if (ripNum < 1 || ripNum > 50) ripNum = 10; // safety
-    if (isCompound(ex)) {
-      return 90 + (s * ripNum * 4) + Math.max(0, s - 1) * recComp;
-    }
-    return 45 + (s * ripNum * 3) + Math.max(0, s - 1) * recIsol;
+    return setup + (s * ripNum * timePerRep) + Math.max(0, s - 1) * r;
   }
 
   // Flag globale: true se almeno un giorno è stato trimato per durata
@@ -6314,8 +6364,8 @@ var generaSchedaAuto = function(params, esercizi) {
   }
 
   // ── Trim post-selezione per tempo reale ──
-  // Riceve l'array di esercizi-scheda già scelti e rimuove i non-compound
-  // dalla coda finché il tempo accumulato rientra nel budget o si raggiunge il min.
+  // Rimuove dalla coda prima isolamento piccolo (small), poi accessori grandi (big),
+  // mai compound. Ferma al budget o a MIN_SLOTS_PER_DAY esercizi.
   // Ritorna {esercizi, tempoSec, trimmed}.
   function trimPerTempo(schedaEsercizi, budgetSec, minNonCardio) {
     function lookup(eId) {
@@ -6325,28 +6375,49 @@ var generaSchedaAuto = function(params, esercizi) {
     function isCardioEntry(e) { return e && (e.note || '').indexOf('Cardio') !== -1; }
     var times = schedaEsercizi.map(function(e) {
       if (isCardioEntry(e)) return 0;
-      return tempoEsercizioSec(lookup(e.eId), +e.serie || 3, e.reps);
+      return tempoEsercizioSec(lookup(e.eId), e.category || classifyExercise(lookup(e.eId)), +e.serie || 3, e.reps, +e.rec);
     });
     var total = times.reduce(function(a, b) { return a + b; }, 0);
     var nonCardioLen = schedaEsercizi.filter(function(e) { return !isCardioEntry(e); }).length;
     var trimmed = false;
-    while (total > budgetSec && nonCardioLen > minNonCardio) {
-      // Trova l'ultimo esercizio non-cardio e non-compound
-      var removeIdx = -1;
-      for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
-        var e = schedaEsercizi[i];
-        if (isCardioEntry(e)) continue;
-        var ex = lookup(e.eId);
-        if (!isCompound(ex)) { removeIdx = i; break; }
+    // Ordine di categorie da rimuovere (per priorità crescente): small, core, big, compound
+    // In realtà: small prima, poi big (non compound), poi core. Compound mai rimossi.
+    var trimOrder = ['small','big','core'];
+    for (var phase = 0; phase < trimOrder.length; phase++) {
+      var targetCat = trimOrder[phase];
+      while (total > budgetSec && nonCardioLen > minNonCardio) {
+        var removeIdx = -1;
+        for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
+          var e = schedaEsercizi[i];
+          if (isCardioEntry(e)) continue;
+          var cat = e.category || classifyExercise(lookup(e.eId));
+          if (cat === targetCat) { removeIdx = i; break; }
+        }
+        if (removeIdx === -1) break; // nessun esercizio di questa categoria da rimuovere
+        total -= times[removeIdx];
+        schedaEsercizi.splice(removeIdx, 1);
+        times.splice(removeIdx, 1);
+        nonCardioLen--;
+        trimmed = true;
       }
-      if (removeIdx === -1) break; // solo compound rimasti
-      total -= times[removeIdx];
-      schedaEsercizi.splice(removeIdx, 1);
-      times.splice(removeIdx, 1);
-      nonCardioLen--;
-      trimmed = true;
+      if (total <= budgetSec || nonCardioLen <= minNonCardio) break;
     }
     return {esercizi: schedaEsercizi, tempoSec: total, trimmed: trimmed};
+  }
+
+  // ── Ordina esercizi di una sezione: compound → big → small → core → cardio ──
+  function ordinaEsercizi(arr) {
+    var rank = {compound:0, big:1, small:2, core:3};
+    return arr.slice().sort(function(a, b) {
+      var aCardio = (a.note || '').indexOf('Cardio') !== -1;
+      var bCardio = (b.note || '').indexOf('Cardio') !== -1;
+      if (aCardio && !bCardio) return 1;
+      if (!aCardio && bCardio) return -1;
+      var ra = rank[a.category] != null ? rank[a.category] : 1;
+      var rb = rank[b.category] != null ? rank[b.category] : 1;
+      if (ra !== rb) return ra - rb;
+      return 0; // stabile
+    });
   }
 
   var days;
@@ -6394,14 +6465,14 @@ var generaSchedaAuto = function(params, esercizi) {
       var scelto = pick(usati, slot);
       if (!scelto) return;
       usati.push(scelto.id);
-      var serie = serieBase, rip = ripBase, rec = recSec;
-      if ((scelto.primary === 'core') || scelto.cat === 'Core') {
-        serie = Math.max(2, serie - 1);
-        rip = typeof rip === 'number' ? rip + 5 : rip;
-      }
-      schedaEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label});
+      // Classifica e applica parametri per-categoria
+      var category = classifyExercise(scelto);
+      var p = exParamsFor(category);
+      schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slot.label, category:category});
     });
-    // Trim per tempo: rimuove non-compound dalla coda finché rientra nel budget
+    // Ordina: compound → big → small → core (prima del trim per stabilità)
+    schedaEsercizi = ordinaEsercizi(schedaEsercizi);
+    // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound
     var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
     schedaEsercizi = trimFB.esercizi;
     if (trimFB.trimmed) volumeWasTrimmed = true;
@@ -6410,7 +6481,7 @@ var generaSchedaAuto = function(params, esercizi) {
       var cardioEx = pick(usati, {cat:'Cardio'});
       if (cardioEx) {
         usati.push(cardioEx.id);
-        schedaEsercizi.push({eId:cardioEx.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio'});
+        schedaEsercizi.push({eId:cardioEx.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', category:'cardio'});
       }
     }
     numSchede++;
@@ -6443,13 +6514,13 @@ var generaSchedaAuto = function(params, esercizi) {
         var scelto = pick(usatiGlobale, slot);
         if (!scelto) return;
         usatiGlobale.push(scelto.id);
-        var serie = serieBase, rip = ripBase, rec = recSec;
-        if ((scelto.primary === 'core') || scelto.cat === 'Core') {
-          serie = Math.max(2, serie - 1);
-          rip = typeof rip === 'number' ? rip + 5 : rip;
-        }
-        dayEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label, sezione:day.name});
+        // Classifica e applica parametri per-categoria
+        var category = classifyExercise(scelto);
+        var p = exParamsFor(category);
+        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slot.label, sezione:day.name, category:category});
       });
+      // Ordina: compound → big → small → core
+      dayEsercizi = ordinaEsercizi(dayEsercizi);
       // Trim per tempo del singolo giorno
       var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
       dayEsercizi = trimDay.esercizi;
@@ -6460,7 +6531,7 @@ var generaSchedaAuto = function(params, esercizi) {
         var cardioExMulti = pick(usatiGlobale, {cat:'Cardio'});
         if (cardioExMulti) {
           usatiGlobale.push(cardioExMulti.id);
-          dayEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name});
+          dayEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name, category:'cardio'});
         }
       }
       tuttiEsercizi = tuttiEsercizi.concat(dayEsercizi);
