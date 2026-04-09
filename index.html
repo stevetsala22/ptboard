@@ -606,6 +606,7 @@ const LANGS={
     genEquipConfirm:'Genera scheda',
     genDurationLabel:'Durata seduta',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
     volumeAdaptedNote:'Volume adattato alla durata della seduta ({min} min).',
+    schedaDurata:'Durata stimata',
     swapExercise:'Sostituisci esercizio',swapAlternatives:'Alternative',
     swapNone:'Nessuna alternativa disponibile',swapDone:'Sostituito con',
     fProgStart:'Data inizio',fProgSessions:'Sedute/sett.',fProgCardioMin:'Min cardio/sett.',
@@ -1305,6 +1306,7 @@ const LANGS={
     genEquipConfirm:'Generate plan',
     genDurationLabel:'Session duration',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
     volumeAdaptedNote:'Volume adapted to session duration ({min} min).',
+    schedaDurata:'Estimated duration',
     swapExercise:'Swap exercise',swapAlternatives:'Alternatives',
     swapNone:'No alternatives available',swapDone:'Swapped with',
     exTitle:'Exercise Library',exNew:'+ New exercise',exName:'Name',
@@ -2007,6 +2009,7 @@ const LANGS={
     genEquipConfirm:'Générer la fiche',
     genDurationLabel:'Durée de la séance',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
     volumeAdaptedNote:'Volume adapté à la durée de la séance ({min} min).',
+    schedaDurata:'Durée estimée',
     swapExercise:"Remplacer l'exercice",swapAlternatives:'Alternatives',
     swapNone:'Aucune alternative disponible',swapDone:'Remplacé par',
     exTitle:"Bibliothèque d'exercices",exNew:'+ Nouvel exercice',exName:'Nom',
@@ -3925,7 +3928,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '</div>'+
       '</div>'+
       '<div class="hdr-line"></div>'+
-      '<div class="scheda-title">'+esc(scheda.nome)+'</div>'+
+      '<div class="scheda-title">'+esc(scheda.nome)+((scheda.config&&(scheda.config.tempoStimato||scheda.config.stimaMin))?' <span style="font-size:13px;font-weight:700;color:#8b5cf6;margin-left:10px;letter-spacing:0">\u23F1 '+esc(T.schedaDurata||'Durata stimata')+': ~'+(scheda.config.tempoStimato||scheda.config.stimaMin)+' min</span>':'')+'</div>'+
       '<div class="scheda-sub">'+(scheda.codice?esc(scheda.codice)+' \u00B7 ':'')+esc(dataOggi)+'</div>'+
       '<div class="kpi-row">'+
       '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||'Full Body')+'</div><div class="kpi-lbl">Split</div></div>'+
@@ -4679,7 +4682,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                       <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.blue+'15',color:C.blue}}>{scheda.config?.tipo || 'Full Body'}</span>
                       <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.green+'15',color:C.green}}>{scheda.config?.serie || 3}x{scheda.config?.rip || 10}</span>
                       <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:'#f59e0b15',color:'#f59e0b'}}>Rec {scheda.config?.rec || 60}s</span>
-                      {scheda.config?.stimaMin&&<span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.purple+'15',color:C.purple}}>{'\u23F1 ~'+scheda.config.stimaMin+' min'}</span>}
+                      {(scheda.config?.tempoStimato||scheda.config?.stimaMin)&&<span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.purple+'15',color:C.purple}}>{'\u23F1 '+(T.schedaDurata||'Durata stimata')+': ~'+(scheda.config.tempoStimato||scheda.config.stimaMin)+' min'}</span>}
                     </div>
                     {scheda.esercizi?.map((ex,ei)=>{
                       const eInfo=exercises.find(function(x){return x.id===ex.eId;})||{};
@@ -6201,37 +6204,76 @@ var generaSchedaAuto = function(params, esercizi) {
     'Legs':      ['quadricipiti','femorali','glutei','polpacci']
   };
 
-  // ── TEMPO STIMATO PER ESERCIZIO (secondi) ──
-  // Parametri standard per la stima del tempo — indipendenti dal reale serieBase/ripBase
-  // della scheda per mantenere consistenza con le linee guida ACSM/NSCA.
-  // Formula: setup + serie × (rip × 3s + recupero)
-  var teSerie = {A:3, B:3, C:4, 'C+':5}[profilo] || 3;
-  var teRip   = {A:10, B:12, C:10, 'C+':8}[profilo] || 10;
-  var teRec   = {A:90, B:60, C:45, 'C+':45}[profilo] || 60;
-  var tempoPerEsSec = 60 + teSerie * (teRip * 3 + teRec);
-  var tempoPerEsMin = tempoPerEsSec / 60;
+  // ── LOGICA TEMPO REALISTICA (per-esercizio con compound detection) ──
+  // Formule ACSM/NSCA:
+  // Normale:  45s setup + serie × (rip × 3s) + (serie-1) × recIsol
+  // Compound: 90s setup + serie × (rip × 4s) + (serie-1) × recComp
+  var recIsol = ({A:90, B:60, C:45, 'C+':30}[profilo]) || 60;
+  var recComp = ({A:120, B:90, C:75, 'C+':60}[profilo]) || 90;
+  // Modificatori obiettivo sul recupero
+  var recMod = 0;
+  if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') recMod = 15;
+  else if (obiettivo === 'Perdere peso') recMod = -10;
+  recIsol = Math.max(15, recIsol + recMod);
+  recComp = Math.max(30, recComp + recMod);
+
   // Cardio minuti base per profilo, modulati da obiettivo
   var cardioBaseMin = ({A:10, B:15, C:15, 'C+':20}[profilo]) || 15;
   if (obiettivo === 'Perdere peso') cardioBaseMin += 5;
   else if (obiettivo === 'Aumentare massa') cardioBaseMin = Math.max(5, cardioBaseMin - 5);
+  else if (obiettivo === 'Resistenza') cardioBaseMin += 10;
   // Cap cardio: mai più di ~1/3 della seduta, min 5
   cardioBaseMin = Math.max(5, Math.min(cardioBaseMin, Math.floor(durataSeduta / 3)));
   // Riscaldamento fisso
   var warmupMin = 5;
-  // Tempo residuo per la parte forza
-  var tempoForzaMin = Math.max(5, durataSeduta - warmupMin - cardioBaseMin);
-  // Max esercizi di forza per sezione (clamp 3-10)
-  var maxEx = Math.floor(tempoForzaMin / tempoPerEsMin);
-  maxEx = Math.max(3, Math.min(10, maxEx));
+  // Tempo residuo per la parte forza (in secondi)
+  var tempoDisponibileSec = Math.max(300, (durataSeduta - warmupMin - cardioBaseMin) * 60);
+
+  // Safety cap: mai più di 10 esercizi per sezione
+  var MAX_SLOTS_PER_DAY = 10;
+  var MIN_SLOTS_PER_DAY = 3;
+
+  // Compound detection via keyword sui nomi esercizi
+  var compoundKeywords = ['squat','panca','stacco','military','lat machine','lento','distensione','bench press','deadlift','overhead','pull-up','chin-up','push-up','trazioni','dip','rematore','pressa','hack','front','good morning','thruster','clean','snatch','affondo','affondi'];
+  function isCompound(ex) {
+    if (!ex || !ex.nome) return false;
+    var n = ex.nome.toLowerCase();
+    for (var i = 0; i < compoundKeywords.length; i++) {
+      if (n.indexOf(compoundKeywords[i]) !== -1) return true;
+    }
+    return false;
+  }
+
+  // Tempo (in secondi) per un esercizio già scelto
+  function tempoEsercizioSec(ex, serie, rip) {
+    var s = Math.max(1, +serie || 3);
+    // rip può essere numero o stringa ('30s' per core, '15 min' per cardio)
+    var ripNum;
+    if (typeof rip === 'number') ripNum = rip;
+    else {
+      var p = parseInt(rip, 10);
+      ripNum = isNaN(p) ? 10 : p;
+      // Se la stringa contiene 's' (secondi isometrici), considera ~rip secondi di lavoro
+      if (typeof rip === 'string' && rip.indexOf('s') !== -1 && ripNum > 10 && ripNum < 120) {
+        // Isometrico: il "rip" è già in secondi, non moltiplicare per 3
+        if (isCompound(ex)) return 90 + s * ripNum + Math.max(0, s - 1) * recComp;
+        return 45 + s * ripNum + Math.max(0, s - 1) * recIsol;
+      }
+    }
+    if (ripNum < 1 || ripNum > 50) ripNum = 10; // safety
+    if (isCompound(ex)) {
+      return 90 + (s * ripNum * 4) + Math.max(0, s - 1) * recComp;
+    }
+    return 45 + (s * ripNum * 3) + Math.max(0, s - 1) * recIsol;
+  }
 
   // Flag globale: true se almeno un giorno è stato trimato per durata
   var volumeWasTrimmed = false;
 
   // ── Costruzione slot giornata da tabella volume ──
-  // maxEx è "solo forza" (cardio è contato separatamente in cardioBaseMin).
-  // Trimming round-robin: prima il compound di ogni gruppo (round 0),
-  // poi le accessorie (round 1, 2...), ordinati per priorità entro lo stesso round.
-  function buildDaySlots(dayName, addCardio) {
+  // Safety cap MAX_SLOTS_PER_DAY (10). Il trim per tempo avviene DOPO la selezione
+  // degli esercizi reali, in base al compound detection.
+  function buildDaySlots(dayName) {
     var groups = dayGroups[dayName] || [];
     var slots = [];
     groups.forEach(function(g) {
@@ -6244,13 +6286,8 @@ var generaSchedaAuto = function(params, esercizi) {
         slots.push({primary:gf.primary, move:gf.move, label:label, group:g, round:i, priority:(groupPriority[g] || 5)});
       }
     });
-    // Trim a maxEx se serve (cardio NON incluso in maxEx)
-    if (slots.length > maxEx) {
-      volumeWasTrimmed = true;
-      // Ordina: round ASC (prima i compound di tutti i gruppi), poi priorità DESC
-      // (tieni prima i big compound), poi idx originale per stabilità.
-      // Questo garantisce che con maxEx piccolo si mantiene almeno 1 esercizio
-      // per i gruppi a priorità più alta (big > med > core > small).
+    // Safety cap a MAX_SLOTS_PER_DAY: round-robin (compound prima, poi accessorie)
+    if (slots.length > MAX_SLOTS_PER_DAY) {
       var keepIds = slots.slice()
         .map(function(s, idx) { return {s:s, idx:idx}; })
         .sort(function(a, b) {
@@ -6258,15 +6295,14 @@ var generaSchedaAuto = function(params, esercizi) {
           if (b.s.priority !== a.s.priority) return b.s.priority - a.s.priority;
           return a.idx - b.idx;
         })
-        .slice(0, maxEx)
+        .slice(0, MAX_SLOTS_PER_DAY)
         .map(function(o) { return o.idx; });
       keepIds.sort(function(a, b) { return a - b; });
       slots = keepIds.map(function(i) { return slots[i]; });
     }
-    // Clamp MIN 3: se il volume ha prodotto meno di 3 slot, aggiungi extra
-    // peschi dai gruppi big presenti nel day (in ordine ciclico).
+    // Clamp MIN_SLOTS_PER_DAY: pad con slot extra dai gruppi big
     var safety = 0;
-    while (slots.length < 3 && groups.length > 0 && safety < 20) {
+    while (slots.length < MIN_SLOTS_PER_DAY && groups.length > 0 && safety < 20) {
       var bigGroups = groups.filter(function(g) { return groupClass[g] === 'big'; });
       var pool = bigGroups.length ? bigGroups : groups;
       var pickGroup = pool[slots.length % pool.length];
@@ -6277,28 +6313,60 @@ var generaSchedaAuto = function(params, esercizi) {
     return slots;
   }
 
+  // ── Trim post-selezione per tempo reale ──
+  // Riceve l'array di esercizi-scheda già scelti e rimuove i non-compound
+  // dalla coda finché il tempo accumulato rientra nel budget o si raggiunge il min.
+  // Ritorna {esercizi, tempoSec, trimmed}.
+  function trimPerTempo(schedaEsercizi, budgetSec, minNonCardio) {
+    function lookup(eId) {
+      for (var i = 0; i < esercizi.length; i++) if (esercizi[i].id === eId) return esercizi[i];
+      return null;
+    }
+    function isCardioEntry(e) { return e && (e.note || '').indexOf('Cardio') !== -1; }
+    var times = schedaEsercizi.map(function(e) {
+      if (isCardioEntry(e)) return 0;
+      return tempoEsercizioSec(lookup(e.eId), +e.serie || 3, e.reps);
+    });
+    var total = times.reduce(function(a, b) { return a + b; }, 0);
+    var nonCardioLen = schedaEsercizi.filter(function(e) { return !isCardioEntry(e); }).length;
+    var trimmed = false;
+    while (total > budgetSec && nonCardioLen > minNonCardio) {
+      // Trova l'ultimo esercizio non-cardio e non-compound
+      var removeIdx = -1;
+      for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
+        var e = schedaEsercizi[i];
+        if (isCardioEntry(e)) continue;
+        var ex = lookup(e.eId);
+        if (!isCompound(ex)) { removeIdx = i; break; }
+      }
+      if (removeIdx === -1) break; // solo compound rimasti
+      total -= times[removeIdx];
+      schedaEsercizi.splice(removeIdx, 1);
+      times.splice(removeIdx, 1);
+      nonCardioLen--;
+      trimmed = true;
+    }
+    return {esercizi: schedaEsercizi, tempoSec: total, trimmed: trimmed};
+  }
+
   var days;
   if (splitType === 'Full Body') {
-    days = [{name:'Full Body', slots: buildDaySlots('Full Body', true), addCardio:true}];
+    days = [{name:'Full Body', slots: buildDaySlots('Full Body'), addCardio:true}];
   } else if (splitType === 'Upper / Lower') {
     days = [
-      {name:'Upper A', slots: buildDaySlots('Upper A', false), addCardio:false},
-      {name:'Lower B', slots: buildDaySlots('Lower B', true),  addCardio:true}
+      {name:'Upper A', slots: buildDaySlots('Upper A'), addCardio:false},
+      {name:'Lower B', slots: buildDaySlots('Lower B'), addCardio:true}
     ];
   } else {
     days = [
-      {name:'Push', slots: buildDaySlots('Push', false), addCardio:false},
-      {name:'Pull', slots: buildDaySlots('Pull', false), addCardio:false},
-      {name:'Legs', slots: buildDaySlots('Legs', true),  addCardio:true}
+      {name:'Push', slots: buildDaySlots('Push'), addCardio:false},
+      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:false},
+      {name:'Legs', slots: buildDaySlots('Legs'), addCardio:true}
     ];
   }
 
-  // ── CARDIO: usa cardioBaseMin già computato per la stima tempo ──
+  // ── CARDIO durata reale (stringa per il campo reps) ──
   var cardioDur = cardioBaseMin + ' min';
-  // Helper per calcolare il tempo stimato di una seduta (warmup + cardio + forza×numEx)
-  function stimaSedutaMin(numExForza) {
-    return Math.round(warmupMin + cardioBaseMin + numExForza * tempoPerEsMin);
-  }
 
   // ── NOME SCHEDA e NOTE ──
   var nomeObiettivo = obiettivo || 'Generale';
@@ -6333,6 +6401,11 @@ var generaSchedaAuto = function(params, esercizi) {
       }
       schedaEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label});
     });
+    // Trim per tempo: rimuove non-compound dalla coda finché rientra nel budget
+    var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
+    schedaEsercizi = trimFB.esercizi;
+    if (trimFB.trimmed) volumeWasTrimmed = true;
+    var tempoForzaSecFB = trimFB.tempoSec;
     if (day1.addCardio) {
       var cardioEx = pick(usati, {cat:'Cardio'});
       if (cardioEx) {
@@ -6342,9 +6415,8 @@ var generaSchedaAuto = function(params, esercizi) {
     }
     numSchede++;
     var codice = profilo + numSchede.toString().padStart(2, '0');
-    // Stima tempo: solo slot forza (escludi cardio), che è addCardio ? -1 : 0
-    var numForzaFB = day1.slots.length;
-    var stimaMinFB = stimaSedutaMin(numForzaFB);
+    // Tempo stimato totale (minuti): warmup + cardio + forza
+    var tempoStimatoFB = Math.round(warmupMin + cardioBaseMin + tempoForzaSecFB / 60);
     schedeGenerate.push({
       nome: day1.name + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codice,
@@ -6354,15 +6426,19 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, stimaMin:stimaMinFB}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB}
     });
   } else {
-    // Multi-giorno: unisci in UNA sola scheda con sezioni
+    // Multi-giorno: ogni giorno viene trimato per tempo separatamente,
+    // poi tutti gli esercizi vengono uniti in UNA sola scheda con sezioni.
     var tuttiEsercizi = [];
     var usatiGlobale = [];
     var sezioniNomi = [];
+    var maxTempoForzaSec = 0; // per calcolare tempoStimato rappresentativo
     days.forEach(function(day) {
       sezioniNomi.push(day.name);
+      // Picking locale per la giornata
+      var dayEsercizi = [];
       day.slots.forEach(function(slot) {
         var scelto = pick(usatiGlobale, slot);
         if (!scelto) return;
@@ -6372,24 +6448,27 @@ var generaSchedaAuto = function(params, esercizi) {
           serie = Math.max(2, serie - 1);
           rip = typeof rip === 'number' ? rip + 5 : rip;
         }
-        tuttiEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label, sezione:day.name});
+        dayEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label, sezione:day.name});
       });
+      // Trim per tempo del singolo giorno
+      var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
+      dayEsercizi = trimDay.esercizi;
+      if (trimDay.trimmed) volumeWasTrimmed = true;
+      if (trimDay.tempoSec > maxTempoForzaSec) maxTempoForzaSec = trimDay.tempoSec;
+      // Aggiungi cardio alla fine del giorno (non rientra nel budget forza)
       if (day.addCardio) {
         var cardioExMulti = pick(usatiGlobale, {cat:'Cardio'});
         if (cardioExMulti) {
           usatiGlobale.push(cardioExMulti.id);
-          tuttiEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name});
+          dayEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name});
         }
       }
+      tuttiEsercizi = tuttiEsercizi.concat(dayEsercizi);
     });
     numSchede++;
     var codiceCombo = profilo + numSchede.toString().padStart(2, '0');
-    // Stima tempo: usa il giorno con più slot come rappresentativo (le sedute sono pari)
-    var maxSlotsPerDay = 0;
-    days.forEach(function(day) {
-      if (day.slots.length > maxSlotsPerDay) maxSlotsPerDay = day.slots.length;
-    });
-    var stimaMinMulti = stimaSedutaMin(maxSlotsPerDay);
+    // Tempo stimato: warmup + cardio + forza del giorno più pesante
+    var tempoStimatoMulti = Math.round(warmupMin + cardioBaseMin + maxTempoForzaSec / 60);
     schedeGenerate.push({
       nome: splitType + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codiceCombo,
@@ -6399,7 +6478,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, stimaMin:stimaMinMulti}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti}
     });
   }
   return schedeGenerate;
