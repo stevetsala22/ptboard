@@ -4679,6 +4679,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                       <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.blue+'15',color:C.blue}}>{scheda.config?.tipo || 'Full Body'}</span>
                       <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.green+'15',color:C.green}}>{scheda.config?.serie || 3}x{scheda.config?.rip || 10}</span>
                       <span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:'#f59e0b15',color:'#f59e0b'}}>Rec {scheda.config?.rec || 60}s</span>
+                      {scheda.config?.stimaMin&&<span style={{padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:700,background:C.purple+'15',color:C.purple}}>{'\u23F1 ~'+scheda.config.stimaMin+' min'}</span>}
                     </div>
                     {scheda.esercizi?.map((ex,ei)=>{
                       const eInfo=exercises.find(function(x){return x.id===ex.eId;})||{};
@@ -6200,14 +6201,36 @@ var generaSchedaAuto = function(params, esercizi) {
     'Legs':      ['quadricipiti','femorali','glutei','polpacci']
   };
 
-  // ── Limite esercizi per durata seduta ──
-  var maxExPerDuration = {30:4, 45:6, 60:8, 90:12};
-  var maxEx = maxExPerDuration[durataSeduta] || 8;
+  // ── TEMPO STIMATO PER ESERCIZIO (secondi) ──
+  // Parametri standard per la stima del tempo — indipendenti dal reale serieBase/ripBase
+  // della scheda per mantenere consistenza con le linee guida ACSM/NSCA.
+  // Formula: setup + serie × (rip × 3s + recupero)
+  var teSerie = {A:3, B:3, C:4, 'C+':5}[profilo] || 3;
+  var teRip   = {A:10, B:12, C:10, 'C+':8}[profilo] || 10;
+  var teRec   = {A:90, B:60, C:45, 'C+':45}[profilo] || 60;
+  var tempoPerEsSec = 60 + teSerie * (teRip * 3 + teRec);
+  var tempoPerEsMin = tempoPerEsSec / 60;
+  // Cardio minuti base per profilo, modulati da obiettivo
+  var cardioBaseMin = ({A:10, B:15, C:15, 'C+':20}[profilo]) || 15;
+  if (obiettivo === 'Perdere peso') cardioBaseMin += 5;
+  else if (obiettivo === 'Aumentare massa') cardioBaseMin = Math.max(5, cardioBaseMin - 5);
+  // Cap cardio: mai più di ~1/3 della seduta, min 5
+  cardioBaseMin = Math.max(5, Math.min(cardioBaseMin, Math.floor(durataSeduta / 3)));
+  // Riscaldamento fisso
+  var warmupMin = 5;
+  // Tempo residuo per la parte forza
+  var tempoForzaMin = Math.max(5, durataSeduta - warmupMin - cardioBaseMin);
+  // Max esercizi di forza per sezione (clamp 3-10)
+  var maxEx = Math.floor(tempoForzaMin / tempoPerEsMin);
+  maxEx = Math.max(3, Math.min(10, maxEx));
 
   // Flag globale: true se almeno un giorno è stato trimato per durata
   var volumeWasTrimmed = false;
 
   // ── Costruzione slot giornata da tabella volume ──
+  // maxEx è "solo forza" (cardio è contato separatamente in cardioBaseMin).
+  // Trimming round-robin: prima il compound di ogni gruppo (round 0),
+  // poi le accessorie (round 1, 2...), ordinati per priorità entro lo stesso round.
   function buildDaySlots(dayName, addCardio) {
     var groups = dayGroups[dayName] || [];
     var slots = [];
@@ -6218,25 +6241,38 @@ var generaSchedaAuto = function(params, esercizi) {
       var gf = groupFilters[g];
       for (var i = 0; i < n; i++) {
         var label = gf.label + (n > 1 ? ' ' + (i+1) : '');
-        slots.push({primary:gf.primary, move:gf.move, label:label, group:g, priority:groupPriority[g] || 5});
+        slots.push({primary:gf.primary, move:gf.move, label:label, group:g, round:i, priority:(groupPriority[g] || 5)});
       }
     });
-    // Budget cardio: riserva 1 slot se la giornata include cardio
-    var availableSlots = addCardio ? maxEx - 1 : maxEx;
-    if (availableSlots < 1) availableSlots = 1;
-    if (slots.length > availableSlots) {
+    // Trim a maxEx se serve (cardio NON incluso in maxEx)
+    if (slots.length > maxEx) {
       volumeWasTrimmed = true;
-      // Ordina per priorità decrescente, taglia in coda, poi rimetti in ordine originale
+      // Ordina: round ASC (prima i compound di tutti i gruppi), poi priorità DESC
+      // (tieni prima i big compound), poi idx originale per stabilità.
+      // Questo garantisce che con maxEx piccolo si mantiene almeno 1 esercizio
+      // per i gruppi a priorità più alta (big > med > core > small).
       var keepIds = slots.slice()
         .map(function(s, idx) { return {s:s, idx:idx}; })
         .sort(function(a, b) {
+          if (a.s.round !== b.s.round) return a.s.round - b.s.round;
           if (b.s.priority !== a.s.priority) return b.s.priority - a.s.priority;
           return a.idx - b.idx;
         })
-        .slice(0, availableSlots)
+        .slice(0, maxEx)
         .map(function(o) { return o.idx; });
       keepIds.sort(function(a, b) { return a - b; });
       slots = keepIds.map(function(i) { return slots[i]; });
+    }
+    // Clamp MIN 3: se il volume ha prodotto meno di 3 slot, aggiungi extra
+    // peschi dai gruppi big presenti nel day (in ordine ciclico).
+    var safety = 0;
+    while (slots.length < 3 && groups.length > 0 && safety < 20) {
+      var bigGroups = groups.filter(function(g) { return groupClass[g] === 'big'; });
+      var pool = bigGroups.length ? bigGroups : groups;
+      var pickGroup = pool[slots.length % pool.length];
+      var gf2 = groupFilters[pickGroup];
+      slots.push({primary:gf2.primary, move:gf2.move, label:gf2.label + ' extra', group:pickGroup, round:99, priority:(groupPriority[pickGroup] || 5)});
+      safety++;
     }
     return slots;
   }
@@ -6257,14 +6293,12 @@ var generaSchedaAuto = function(params, esercizi) {
     ];
   }
 
-  // ── CARDIO durata in base al profilo, obiettivo e durata seduta ──
-  var cardioMinDefault = profilo === 'A' ? 12 : profilo === 'B' ? 18 : profilo === 'C+' ? 20 : 25;
-  if (obiettivo === 'Perdere peso') cardioMinDefault = profilo === 'A' ? 20 : profilo === 'B' ? 30 : 40;
-  else if (obiettivo === 'Resistenza') cardioMinDefault = profilo === 'A' ? 20 : profilo === 'B' ? 25 : 35;
-  // Limite cardio in base alla durata seduta (tempo residuo)
-  var cardioMaxByDur = durataSeduta === 30 ? 5 : durataSeduta === 45 ? 10 : durataSeduta === 60 ? 15 : 25;
-  var cardioMin = Math.min(cardioMinDefault, cardioMaxByDur);
-  var cardioDur = cardioMin + ' min';
+  // ── CARDIO: usa cardioBaseMin già computato per la stima tempo ──
+  var cardioDur = cardioBaseMin + ' min';
+  // Helper per calcolare il tempo stimato di una seduta (warmup + cardio + forza×numEx)
+  function stimaSedutaMin(numExForza) {
+    return Math.round(warmupMin + cardioBaseMin + numExForza * tempoPerEsMin);
+  }
 
   // ── NOME SCHEDA e NOTE ──
   var nomeObiettivo = obiettivo || 'Generale';
@@ -6308,6 +6342,9 @@ var generaSchedaAuto = function(params, esercizi) {
     }
     numSchede++;
     var codice = profilo + numSchede.toString().padStart(2, '0');
+    // Stima tempo: solo slot forza (escludi cardio), che è addCardio ? -1 : 0
+    var numForzaFB = day1.slots.length;
+    var stimaMinFB = stimaSedutaMin(numForzaFB);
     schedeGenerate.push({
       nome: day1.name + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codice,
@@ -6317,7 +6354,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, stimaMin:stimaMinFB}
     });
   } else {
     // Multi-giorno: unisci in UNA sola scheda con sezioni
@@ -6347,6 +6384,12 @@ var generaSchedaAuto = function(params, esercizi) {
     });
     numSchede++;
     var codiceCombo = profilo + numSchede.toString().padStart(2, '0');
+    // Stima tempo: usa il giorno con più slot come rappresentativo (le sedute sono pari)
+    var maxSlotsPerDay = 0;
+    days.forEach(function(day) {
+      if (day.slots.length > maxSlotsPerDay) maxSlotsPerDay = day.slots.length;
+    });
+    var stimaMinMulti = stimaSedutaMin(maxSlotsPerDay);
     schedeGenerate.push({
       nome: splitType + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codiceCombo,
@@ -6356,7 +6399,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, stimaMin:stimaMinMulti}
     });
   }
   return schedeGenerate;
