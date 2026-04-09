@@ -604,6 +604,8 @@ const LANGS={
     genEquipTitle:'Scegli attrezzatura',genEquipLabel:'Attrezzatura disponibile',
     genEquipFull:'Palestra completa',genEquipHome:'Home gym',genEquipBody:'Corpo libero',
     genEquipConfirm:'Genera scheda',
+    genDurationLabel:'Durata seduta',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
+    volumeAdaptedNote:'Volume adattato alla durata della seduta ({min} min).',
     swapExercise:'Sostituisci esercizio',swapAlternatives:'Alternative',
     swapNone:'Nessuna alternativa disponibile',swapDone:'Sostituito con',
     fProgStart:'Data inizio',fProgSessions:'Sedute/sett.',fProgCardioMin:'Min cardio/sett.',
@@ -1301,6 +1303,8 @@ const LANGS={
     genEquipTitle:'Select equipment',genEquipLabel:'Available equipment',
     genEquipFull:'Full gym',genEquipHome:'Home gym',genEquipBody:'Bodyweight',
     genEquipConfirm:'Generate plan',
+    genDurationLabel:'Session duration',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
+    volumeAdaptedNote:'Volume adapted to session duration ({min} min).',
     swapExercise:'Swap exercise',swapAlternatives:'Alternatives',
     swapNone:'No alternatives available',swapDone:'Swapped with',
     exTitle:'Exercise Library',exNew:'+ New exercise',exName:'Name',
@@ -2001,6 +2005,8 @@ const LANGS={
     genEquipTitle:"Choisir l'équipement",genEquipLabel:'Équipement disponible',
     genEquipFull:'Salle complète',genEquipHome:'Home gym',genEquipBody:'Poids du corps',
     genEquipConfirm:'Générer la fiche',
+    genDurationLabel:'Durée de la séance',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
+    volumeAdaptedNote:'Volume adapté à la durée de la séance ({min} min).',
     swapExercise:"Remplacer l'exercice",swapAlternatives:'Alternatives',
     swapNone:'Aucune alternative disponible',swapDone:'Remplacé par',
     exTitle:"Bibliothèque d'exercices",exNew:'+ Nouvel exercice',exName:'Nom',
@@ -3743,6 +3749,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [showSchedaModal,setShowSchedaModal]=useState(false);
   const [showGenEquipModal,setShowGenEquipModal]=useState(false);
   const [genEquip,setGenEquip]=useState('gym');
+  const [genDuration,setGenDuration]=useState('60');
   const [swapTarget,setSwapTarget]=useState(null);
   const [newPeso,setNewPeso]=useState({data:fmtDate(),peso:'',nota:''});
   const [completingId,setCompletingId]=useState(null);
@@ -4888,13 +4895,14 @@ footer .center b{color:#3b82f6;font-weight:700}
       {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <FF label={T.genEquipLabel} name="genEquip" value={genEquip} onChange={e=>setGenEquip(e.target.value)} options={[{v:'gym',l:T.genEquipFull},{v:'home',l:T.genEquipHome},{v:'body',l:T.genEquipBody}]}/>
+          <FF label={T.genDurationLabel} name="genDuration" value={genDuration} onChange={e=>setGenDuration(e.target.value)} options={[{v:'30',l:T.genDur30},{v:'45',l:T.genDur45},{v:'60',l:T.genDur60},{v:'90',l:T.genDur90}]}/>
         </div>
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
           <button style={S.btn('ghost')} onClick={()=>setShowGenEquipModal(false)}>{T.cancel}</button>
           <button style={S.btn()} onClick={()=>{
             var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
-            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip},exercises);
+            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T},exercises);
             upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
             showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');
             setShowGenEquipModal(false);
@@ -6022,6 +6030,8 @@ var generaSchedaAuto = function(params, esercizi) {
   var eta = params.eta || 50;
   var patologie = (params.patologie || '').toLowerCase();
   var equip = params.equip || 'gym';
+  var durataSeduta = +params.durataSeduta || 60;
+  var TParam = params.T || null;
 
   // ── LIVELLI PERMESSI per profilo ──
   var livelliPermessi;
@@ -6053,16 +6063,16 @@ var generaSchedaAuto = function(params, esercizi) {
     return true;
   });
 
-  // ── SERIE/RIP/REC per profilo, modulati da obiettivo ──
+  // ── SERIE/RIP/REC per esercizio (modulati da profilo + obiettivo + eta) ──
+  // serieBase qui = serie per esercizio (non più volume totale)
   var serieBase, ripBase, recSec;
-  if (profilo === 'A') { serieBase = 3; ripBase = 13; recSec = 75; }
+  if (profilo === 'A') { serieBase = 2; ripBase = 13; recSec = 75; }
   else if (profilo === 'B') { serieBase = 3; ripBase = 12; recSec = 60; }
-  else { serieBase = 4; ripBase = 9; recSec = 55; }
-  if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
-    serieBase += 1; ripBase = Math.max(5, ripBase - 2); recSec += 15;
-  } else if (obiettivo === 'Perdere peso') {
-    serieBase = Math.max(2, serieBase - 1); ripBase += 3; recSec = Math.max(30, recSec - 15);
-  }
+  else if (profilo === 'C+') { serieBase = 4; ripBase = 8; recSec = 50; }
+  else { serieBase = 3; ripBase = 10; recSec = 55; }
+  if (obiettivo === 'Aumentare massa') { ripBase = 10; recSec += 15; }
+  else if (obiettivo === 'Forza') { serieBase += 1; ripBase = Math.max(4, ripBase - 3); recSec += 30; }
+  else if (obiettivo === 'Perdere peso') { serieBase = Math.max(2, serieBase - 1); ripBase += 4; recSec = Math.max(30, recSec - 15); }
   if (eta > 65) { recSec += 15; ripBase = Math.max(8, ripBase - 2); }
   if (eta > 75) { serieBase = Math.min(serieBase, 2); }
 
@@ -6076,6 +6086,45 @@ var generaSchedaAuto = function(params, esercizi) {
     splitType = 'Push / Pull / Legs';
   } else {
     splitType = 'Full Body';
+  }
+
+  // ── VOLUME TARGET per gruppo muscolare (serie/settimana) ──
+  // Modulato da profilo: più alto = atleta
+  var volTbl = {
+    'A':  {big: 9,  med: 7,  core: 6},
+    'B':  {big: 13, med: 9,  core: 8},
+    'C':  {big: 17, med: 11, core: 10},
+    'C+': {big: 19, med: 13, core: 12}
+  };
+  var volObjMod = {
+    'Perdere peso': -1,
+    'Aumentare massa': 1,
+    'Forza': -1,
+    'Salute': -1,
+    'Benessere': -1,
+    'Riabilitazione': -2,
+    'Resistenza': 0,
+    'Performance': 1
+  };
+  var vt = volTbl[profilo] || volTbl['B'];
+  var objMod = volObjMod[obiettivo] || 0;
+  var volBig = Math.max(4, vt.big + objMod);
+  var volMed = Math.max(3, vt.med + objMod);
+  var volCore = Math.max(2, vt.core + objMod);
+
+  // ── Frequenza gruppi per settimana in base allo split ──
+  // Full Body 3x/sett (ogni gruppo 3x), Upper/Lower 4x (ogni gruppo 2x), PPL 6x (ogni gruppo 2x).
+  function groupFreq() {
+    if (splitType === 'Full Body') return 3;
+    return 2;
+  }
+
+  // ── Numero esercizi per gruppo per seduta ──
+  function calcNumEx(volumeTot, category) {
+    var seriePerSess = volumeTot / Math.max(1, groupFreq());
+    var spe = category === 'core' ? Math.max(2, serieBase - 1) : serieBase;
+    var n = Math.round(seriePerSess / spe);
+    return Math.max(1, Math.min(3, n));
   }
 
   // ── HELPER: pick random exercise matching primary/move/cat filters ──
@@ -6118,92 +6167,116 @@ var generaSchedaAuto = function(params, esercizi) {
     return c[Math.floor(Math.random() * c.length)];
   }
 
-  // ── SLOT TEMPLATES ──
-  var fbSlots = [
-    {primary:['petto'], move:['push'], label:'Push petto'},
-    {primary:['dorso'], move:['pull'], label:'Pull dorso'},
-    {primary:['quadricipiti'], move:['legs'], label:'Gambe quadricipiti'},
-    {primary:['femorali','glutei'], move:['legs'], label:'Femorali / Glutei'},
-    {primary:['spalle'], label:'Spalle'},
-    {primary:['core'], move:['core'], label:'Core'}
-  ];
-  var upperSlots = [
-    {primary:['petto'], move:['push'], label:'Petto compound'},
-    {primary:['petto'], move:['push'], label:'Petto accessorio'},
-    {primary:['dorso'], move:['pull'], label:'Dorso compound'},
-    {primary:['dorso'], move:['pull'], label:'Dorso accessorio'},
-    {primary:['spalle'], move:['push'], label:'Spalle push'},
-    {primary:['bicipiti'], move:['pull'], label:'Bicipiti'},
-    {primary:['tricipiti'], move:['push'], label:'Tricipiti'},
-    {primary:['core'], move:['core'], label:'Core'}
-  ];
-  var lowerSlots = [
-    {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti compound'},
-    {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti accessorio'},
-    {primary:['femorali','glutei'], move:['legs'], label:'Femorali / Glutei compound'},
-    {primary:['femorali'], move:['legs'], label:'Femorali isolamento'},
-    {primary:['polpacci'], label:'Polpacci'},
-    {primary:['glutei'], label:'Glutei isolamento'},
-    {primary:['core'], move:['core'], label:'Core'}
-  ];
-  var pushSlots = [
-    {primary:['petto'], move:['push'], label:'Petto compound'},
-    {primary:['petto'], move:['push'], label:'Petto accessorio'},
-    {primary:['spalle'], move:['push'], label:'Spalle push'},
-    {primary:['spalle'], move:['push'], label:'Spalle accessorio'},
-    {primary:['tricipiti'], move:['push'], label:'Tricipiti 1'},
-    {primary:['tricipiti'], move:['push'], label:'Tricipiti 2'}
-  ];
-  var pullSlots = [
-    {primary:['dorso'], move:['pull'], label:'Dorso compound'},
-    {primary:['dorso'], move:['pull'], label:'Dorso accessorio'},
-    {primary:['dorso'], move:['pull'], label:'Tirata orizzontale'},
-    {primary:['spalle'], move:['pull'], label:'Deltoidi posteriori'},
-    {primary:['bicipiti'], move:['pull'], label:'Bicipiti 1'},
-    {primary:['bicipiti'], move:['pull'], label:'Bicipiti 2'}
-  ];
-  var legsSlots = [
-    {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti compound'},
-    {primary:['femorali','glutei'], move:['legs'], label:'Femorali compound'},
-    {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti accessorio'},
-    {primary:['glutei'], label:'Glutei isolamento'},
-    {primary:['femorali'], move:['legs'], label:'Femorali accessorio'},
-    {primary:['polpacci'], label:'Polpacci'},
-    {primary:['core'], move:['core'], label:'Core'}
-  ];
+  // ── Mappa gruppo → filtri, classe volume, priorità (per trimming) ──
+  var groupFilters = {
+    petto:        {primary:['petto'],        move:['push'], label:'Petto'},
+    dorso:        {primary:['dorso'],        move:['pull'], label:'Dorso'},
+    quadricipiti: {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti'},
+    femorali:     {primary:['femorali','glutei'], move:['legs'], label:'Femorali / Glutei'},
+    glutei:       {primary:['glutei','femorali'], move:['legs'], label:'Glutei'},
+    spalle:       {primary:['spalle'],                       label:'Spalle'},
+    bicipiti:     {primary:['bicipiti'],     move:['pull'], label:'Bicipiti'},
+    tricipiti:    {primary:['tricipiti'],    move:['push'], label:'Tricipiti'},
+    polpacci:     {primary:['polpacci'],                     label:'Polpacci'},
+    core:         {primary:['core'],         move:['core'], label:'Core'}
+  };
+  var groupClass = {
+    petto:'big', dorso:'big', quadricipiti:'big', femorali:'big', glutei:'big',
+    spalle:'med', bicipiti:'med', tricipiti:'med', polpacci:'med',
+    core:'core'
+  };
+  // Priorità: alto = si tiene, basso = si taglia per primo
+  var groupPriority = {
+    petto:10, dorso:10, quadricipiti:10, femorali:9,
+    glutei:7, spalle:7, core:6,
+    tricipiti:4, bicipiti:4, polpacci:3
+  };
+  var dayGroups = {
+    'Full Body': ['petto','dorso','quadricipiti','femorali','spalle','core'],
+    'Upper A':   ['petto','dorso','spalle','bicipiti','tricipiti','core'],
+    'Lower B':   ['quadricipiti','femorali','glutei','polpacci','core'],
+    'Push':      ['petto','spalle','tricipiti','core'],
+    'Pull':      ['dorso','bicipiti','core'],
+    'Legs':      ['quadricipiti','femorali','glutei','polpacci']
+  };
+
+  // ── Limite esercizi per durata seduta ──
+  var maxExPerDuration = {30:4, 45:6, 60:8, 90:12};
+  var maxEx = maxExPerDuration[durataSeduta] || 8;
+
+  // Flag globale: true se almeno un giorno è stato trimato per durata
+  var volumeWasTrimmed = false;
+
+  // ── Costruzione slot giornata da tabella volume ──
+  function buildDaySlots(dayName, addCardio) {
+    var groups = dayGroups[dayName] || [];
+    var slots = [];
+    groups.forEach(function(g) {
+      var cls = groupClass[g];
+      var vol = cls === 'big' ? volBig : cls === 'core' ? volCore : volMed;
+      var n = calcNumEx(vol, cls);
+      var gf = groupFilters[g];
+      for (var i = 0; i < n; i++) {
+        var label = gf.label + (n > 1 ? ' ' + (i+1) : '');
+        slots.push({primary:gf.primary, move:gf.move, label:label, group:g, priority:groupPriority[g] || 5});
+      }
+    });
+    // Budget cardio: riserva 1 slot se la giornata include cardio
+    var availableSlots = addCardio ? maxEx - 1 : maxEx;
+    if (availableSlots < 1) availableSlots = 1;
+    if (slots.length > availableSlots) {
+      volumeWasTrimmed = true;
+      // Ordina per priorità decrescente, taglia in coda, poi rimetti in ordine originale
+      var keepIds = slots.slice()
+        .map(function(s, idx) { return {s:s, idx:idx}; })
+        .sort(function(a, b) {
+          if (b.s.priority !== a.s.priority) return b.s.priority - a.s.priority;
+          return a.idx - b.idx;
+        })
+        .slice(0, availableSlots)
+        .map(function(o) { return o.idx; });
+      keepIds.sort(function(a, b) { return a - b; });
+      slots = keepIds.map(function(i) { return slots[i]; });
+    }
+    return slots;
+  }
 
   var days;
   if (splitType === 'Full Body') {
-    days = [{name:'Full Body', slots:fbSlots, addCardio:true}];
+    days = [{name:'Full Body', slots: buildDaySlots('Full Body', true), addCardio:true}];
   } else if (splitType === 'Upper / Lower') {
     days = [
-      {name:'Upper A', slots:upperSlots, addCardio:false},
-      {name:'Lower B', slots:lowerSlots, addCardio:true}
+      {name:'Upper A', slots: buildDaySlots('Upper A', false), addCardio:false},
+      {name:'Lower B', slots: buildDaySlots('Lower B', true),  addCardio:true}
     ];
   } else {
     days = [
-      {name:'Push', slots:pushSlots, addCardio:false},
-      {name:'Pull', slots:pullSlots, addCardio:false},
-      {name:'Legs', slots:legsSlots, addCardio:true}
+      {name:'Push', slots: buildDaySlots('Push', false), addCardio:false},
+      {name:'Pull', slots: buildDaySlots('Pull', false), addCardio:false},
+      {name:'Legs', slots: buildDaySlots('Legs', true),  addCardio:true}
     ];
   }
 
-  // ── CARDIO durata in base al profilo e obiettivo ──
-  var cardioDur;
-  if (profilo === 'A') cardioDur = '12 min';
-  else if (profilo === 'B') cardioDur = '18 min';
-  else cardioDur = '25 min';
-  if (obiettivo === 'Perdere peso') {
-    cardioDur = profilo === 'A' ? '20 min' : profilo === 'B' ? '30 min' : '40 min';
-  } else if (obiettivo === 'Resistenza') {
-    cardioDur = profilo === 'A' ? '20 min' : profilo === 'B' ? '25 min' : '35 min';
-  }
+  // ── CARDIO durata in base al profilo, obiettivo e durata seduta ──
+  var cardioMinDefault = profilo === 'A' ? 12 : profilo === 'B' ? 18 : profilo === 'C+' ? 20 : 25;
+  if (obiettivo === 'Perdere peso') cardioMinDefault = profilo === 'A' ? 20 : profilo === 'B' ? 30 : 40;
+  else if (obiettivo === 'Resistenza') cardioMinDefault = profilo === 'A' ? 20 : profilo === 'B' ? 25 : 35;
+  // Limite cardio in base alla durata seduta (tempo residuo)
+  var cardioMaxByDur = durataSeduta === 30 ? 5 : durataSeduta === 45 ? 10 : durataSeduta === 60 ? 15 : 25;
+  var cardioMin = Math.min(cardioMinDefault, cardioMaxByDur);
+  var cardioDur = cardioMin + ' min';
 
-  // ── NOME SCHEDA ──
+  // ── NOME SCHEDA e NOTE ──
   var nomeObiettivo = obiettivo || 'Generale';
-  var nomeProfilo = profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : 'Buona Forma';
+  var nomeProfilo = profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : profilo === 'C+' ? 'Ottima Forma' : 'Buona Forma';
   var equipLabel = equip === 'gym' ? 'Palestra' : equip === 'home' ? 'Home gym' : 'Corpo libero';
-  var noteText = 'Scheda generata automaticamente (' + equipLabel + '). ' + nomeProfilo + ' \u2014 Obiettivo: ' + nomeObiettivo + '. Registrare RPE e carichi.';
+  var noteText = 'Scheda generata automaticamente (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 Obiettivo: ' + nomeObiettivo + '. Registrare RPE e carichi.';
+  if (volumeWasTrimmed) {
+    var trimNote = TParam && TParam.volumeAdaptedNote
+      ? TParam.volumeAdaptedNote.replace('{min}', durataSeduta)
+      : 'Volume adattato alla durata della seduta (' + durataSeduta + ' min).';
+    noteText += ' ' + trimNote;
+  }
 
   // ── GENERA SCHEDE ──
   // Split singolo (Full Body): una scheda con gli esercizi piatti.
@@ -6244,7 +6317,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta}
     });
   } else {
     // Multi-giorno: unisci in UNA sola scheda con sezioni
@@ -6283,7 +6356,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta}
     });
   }
   return schedeGenerate;
