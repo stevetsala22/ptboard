@@ -6161,60 +6161,25 @@ var generaSchedaAuto = function(params, esercizi) {
     splitType = 'Full Body';
   }
 
-  // ── VOLUME TARGET per gruppo muscolare (serie/settimana) ──
-  // Modulato da profilo: più alto = atleta
-  var volTbl = {
-    'A':  {big: 9,  med: 7,  core: 6},
-    'B':  {big: 13, med: 9,  core: 8},
-    'C':  {big: 17, med: 11, core: 10},
-    'C+': {big: 19, med: 13, core: 12}
-  };
-  var volObjMod = {
-    'Perdere peso': -1,
-    'Aumentare massa': 1,
-    'Forza': -1,
-    'Salute': -1,
-    'Benessere': -1,
-    'Riabilitazione': -2,
-    'Resistenza': 0,
-    'Performance': 1
-  };
-  var vt = volTbl[profilo] || volTbl['B'];
-  var objMod = volObjMod[obiettivo] || 0;
-  var volBig = Math.max(4, vt.big + objMod);
-  var volMed = Math.max(3, vt.med + objMod);
-  var volCore = Math.max(2, vt.core + objMod);
-
-  // ── Frequenza gruppi per settimana in base allo split ──
-  // Full Body 3x/sett (ogni gruppo 3x), Upper/Lower 4x (ogni gruppo 2x), PPL 6x (ogni gruppo 2x).
-  function groupFreq() {
-    if (splitType === 'Full Body') return 3;
-    return 2;
-  }
-
-  // ── Numero esercizi per gruppo per seduta ──
-  function calcNumEx(volumeTot, category) {
-    var seriePerSess = volumeTot / Math.max(1, groupFreq());
-    var spe = category === 'core' ? Math.max(2, serieBase - 1) : serieBase;
-    var n = Math.round(seriePerSess / spe);
-    return Math.max(1, Math.min(3, n));
-  }
-
   // ── HELPER: pick random exercise matching primary/move/cat filters ──
+  // Se filters.preferCompound === true, prova prima a pescare tra i soli compound.
   function pick(used, filters) {
-    function tryFilter(f) {
+    function tryFilter(f, compoundOnly) {
       return libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
         if (f.cat && ex.cat !== f.cat) return false;
         if (f.primary && f.primary.length && f.primary.indexOf(ex.primary || '') === -1) return false;
         if (f.move && f.move.length && f.move.indexOf(ex.move || '') === -1) return false;
+        if (compoundOnly && !isCompound(ex)) return false;
         return true;
       });
     }
-    var c = tryFilter(filters);
+    var c = [];
+    if (filters.preferCompound) c = tryFilter(filters, true);
+    if (!c.length) c = tryFilter(filters, false);
     // Fallback 1: ignora move, mantieni primary
     if (!c.length && filters.move) {
-      c = tryFilter({cat:filters.cat, primary:filters.primary});
+      c = tryFilter({cat:filters.cat, primary:filters.primary}, false);
     }
     // Fallback 2: ignora primary, cerca per text muscoli legacy
     if (!c.length && filters.muscoliLegacy) {
@@ -6239,39 +6204,6 @@ var generaSchedaAuto = function(params, esercizi) {
     if (!c.length) return null;
     return c[Math.floor(Math.random() * c.length)];
   }
-
-  // ── Mappa gruppo → filtri, classe volume, priorità (per trimming) ──
-  var groupFilters = {
-    petto:        {primary:['petto'],        move:['push'], label:'Petto'},
-    dorso:        {primary:['dorso'],        move:['pull'], label:'Dorso'},
-    quadricipiti: {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti'},
-    femorali:     {primary:['femorali','glutei'], move:['legs'], label:'Femorali / Glutei'},
-    glutei:       {primary:['glutei','femorali'], move:['legs'], label:'Glutei'},
-    spalle:       {primary:['spalle'],                       label:'Spalle'},
-    bicipiti:     {primary:['bicipiti'],     move:['pull'], label:'Bicipiti'},
-    tricipiti:    {primary:['tricipiti'],    move:['push'], label:'Tricipiti'},
-    polpacci:     {primary:['polpacci'],                     label:'Polpacci'},
-    core:         {primary:['core'],         move:['core'], label:'Core'}
-  };
-  var groupClass = {
-    petto:'big', dorso:'big', quadricipiti:'big', femorali:'big', glutei:'big',
-    spalle:'med', bicipiti:'med', tricipiti:'med', polpacci:'med',
-    core:'core'
-  };
-  // Priorità: alto = si tiene, basso = si taglia per primo
-  var groupPriority = {
-    petto:10, dorso:10, quadricipiti:10, femorali:9,
-    glutei:7, spalle:7, core:6,
-    tricipiti:4, bicipiti:4, polpacci:3
-  };
-  var dayGroups = {
-    'Full Body': ['petto','dorso','quadricipiti','femorali','spalle','core'],
-    'Upper A':   ['petto','dorso','spalle','bicipiti','tricipiti','core'],
-    'Lower B':   ['quadricipiti','femorali','glutei','polpacci','core'],
-    'Push':      ['petto','spalle','tricipiti','core'],
-    'Pull':      ['dorso','bicipiti','core'],
-    'Legs':      ['quadricipiti','femorali','glutei','polpacci']
-  };
 
   // ── CARDIO durata e budget tempo ──
   // Cardio minuti base per profilo, modulati da obiettivo
@@ -6320,46 +6252,100 @@ var generaSchedaAuto = function(params, esercizi) {
   // Flag globale: true se almeno un giorno è stato trimato per durata
   var volumeWasTrimmed = false;
 
-  // ── Costruzione slot giornata da tabella volume ──
-  // Safety cap MAX_SLOTS_PER_DAY (10). Il trim per tempo avviene DOPO la selezione
-  // degli esercizi reali, in base al compound detection.
+  // ── Costruzione slot giornata da template espliciti (spec) ──
+  // Upper: 1 compound petto + 1 dorso + 1 spalle + 1 bicipiti + 1 tricipiti + 1 core = 6
+  // Lower: 1 compound gambe + 1 glutei + 1 femorali + 1 polpacci + 1 core = 5
+  // Push: 1 compound petto + 1 petto accessorio + 1 spalle + 1 tricipiti = 4
+  // Pull: 1 dorso compound + 1 dorso accessorio + 1 bicipiti + 1 trapezio = 4
+  // Legs: 1 compound quad + 1 glutei + 1 femorali + 1 polpacci = 4
+  // Full Body: 5 base (A/forza), 6 (peso/benessere con +glutei), 7 (default con +glutei+petto accessorio)
+  // Modificatori durata: 30 min → rimuovi isolamento piccolo; 90 min → +1-2 accessori
   function buildDaySlots(dayName) {
-    var groups = dayGroups[dayName] || [];
     var slots = [];
-    groups.forEach(function(g) {
-      var cls = groupClass[g];
-      var vol = cls === 'big' ? volBig : cls === 'core' ? volCore : volMed;
-      var n = calcNumEx(vol, cls);
-      var gf = groupFilters[g];
-      for (var i = 0; i < n; i++) {
-        var label = gf.label + (n > 1 ? ' ' + (i+1) : '');
-        slots.push({primary:gf.primary, move:gf.move, label:label, group:g, round:i, priority:(groupPriority[g] || 5)});
+    if (dayName === 'Full Body') {
+      // Base: gambe + petto + dorso + spalle + core (5 slot — minimo per profilo A/forza)
+      slots.push({primary:['quadricipiti','femorali','glutei'], move:['legs'], label:'Gambe compound', preferCompound:true});
+      slots.push({primary:['petto'], move:['push'], label:'Petto', preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso', preferCompound:true});
+      slots.push({primary:['spalle'], label:'Spalle'});
+      slots.push({primary:['core'], move:['core'], label:'Core'});
+      // Bonus glutei per profilo non-A, obiettivo non-forza
+      if (profilo !== 'A' && obiettivo !== 'Forza') {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
+        // +1 petto accessorio per massa/resistenza/performance → 7
+        if (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance') {
+          slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+        }
       }
-    });
-    // Safety cap a MAX_SLOTS_PER_DAY: round-robin (compound prima, poi accessorie)
-    if (slots.length > MAX_SLOTS_PER_DAY) {
-      var keepIds = slots.slice()
-        .map(function(s, idx) { return {s:s, idx:idx}; })
-        .sort(function(a, b) {
-          if (a.s.round !== b.s.round) return a.s.round - b.s.round;
-          if (b.s.priority !== a.s.priority) return b.s.priority - a.s.priority;
-          return a.idx - b.idx;
-        })
-        .slice(0, MAX_SLOTS_PER_DAY)
-        .map(function(o) { return o.idx; });
-      keepIds.sort(function(a, b) { return a - b; });
-      slots = keepIds.map(function(i) { return slots[i]; });
+    } else if (dayName === 'Upper A') {
+      slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+      slots.push({primary:['spalle'], label:'Spalle'});
+      slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+      slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
+      slots.push({primary:['core'], move:['core'], label:'Core'});
+    } else if (dayName === 'Lower B') {
+      slots.push({primary:['quadricipiti'], move:['legs'], label:'Gambe compound', preferCompound:true});
+      slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+      slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
+      slots.push({primary:['polpacci'], label:'Polpacci'});
+      slots.push({primary:['core'], move:['core'], label:'Core'});
+    } else if (dayName === 'Push') {
+      slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+      slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+      slots.push({primary:['spalle'], label:'Spalle'});
+      slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
+    } else if (dayName === 'Pull') {
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+      slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+      slots.push({primary:['spalle'], label:'Trapezio / Deltoidi'});
+    } else if (dayName === 'Legs') {
+      slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti compound', preferCompound:true});
+      slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+      slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
+      slots.push({primary:['polpacci'], label:'Polpacci'});
     }
-    // Clamp MIN_SLOTS_PER_DAY: pad con slot extra dai gruppi big
-    var safety = 0;
-    while (slots.length < MIN_SLOTS_PER_DAY && groups.length > 0 && safety < 20) {
-      var bigGroups = groups.filter(function(g) { return groupClass[g] === 'big'; });
-      var pool = bigGroups.length ? bigGroups : groups;
-      var pickGroup = pool[slots.length % pool.length];
-      var gf2 = groupFilters[pickGroup];
-      slots.push({primary:gf2.primary, move:gf2.move, label:gf2.label + ' extra', group:pickGroup, round:99, priority:(groupPriority[pickGroup] || 5)});
-      safety++;
+
+    // Forza su Full Body: togli isolamento piccoli (meno esercizi, più serie)
+    if (dayName === 'Full Body' && obiettivo === 'Forza') {
+      slots = slots.filter(function(s) {
+        var isSmall = s.primary && s.primary.length === 1 &&
+                      (s.primary[0] === 'bicipiti' || s.primary[0] === 'tricipiti' || s.primary[0] === 'polpacci');
+        return !isSmall;
+      });
     }
+    // Durata >= 90 min: aggiungi 1-2 accessori alla sezione
+    if (durataSeduta >= 90) {
+      if (dayName === 'Upper A') {
+        slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+      } else if (dayName === 'Lower B') {
+        slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti accessorio'});
+        slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali accessorio'});
+      } else if (dayName === 'Push') {
+        slots.push({primary:['spalle'], label:'Spalle accessorio'});
+        slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti accessorio'});
+      } else if (dayName === 'Pull') {
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'});
+        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti extra'});
+      } else if (dayName === 'Legs') {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei accessorio'});
+        slots.push({primary:['polpacci'], label:'Polpacci extra'});
+      } else if (dayName === 'Full Body') {
+        slots.push({primary:['petto'], move:['push'], label:'Petto extra'});
+      }
+    }
+    // Durata <= 30 min: togli isolamento piccoli (bicipiti/tricipiti/polpacci puri)
+    if (durataSeduta <= 30) {
+      slots = slots.filter(function(s) {
+        var onlySmall = s.primary && s.primary.length === 1 &&
+                        (s.primary[0] === 'bicipiti' || s.primary[0] === 'tricipiti' || s.primary[0] === 'polpacci');
+        return !onlySmall;
+      });
+    }
+    // Safety cap max MAX_SLOTS_PER_DAY (8) e min MIN_SLOTS_PER_DAY (3)
+    if (slots.length > MAX_SLOTS_PER_DAY) slots = slots.slice(0, MAX_SLOTS_PER_DAY);
     return slots;
   }
 
