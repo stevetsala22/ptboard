@@ -6224,6 +6224,7 @@ var generaSchedaAuto = function(params, esercizi) {
 
   // Safety cap: mai più di 8 esercizi per sezione (spec)
   var MAX_SLOTS_PER_DAY = 8;
+  var MAX_SLOTS_PER_DAY_EFF = eta >= 70 ? 5 : MAX_SLOTS_PER_DAY;
   var MIN_SLOTS_PER_DAY = 3;
 
   // ── TEMPO per esercizio (secondi) ──
@@ -6265,38 +6266,68 @@ var generaSchedaAuto = function(params, esercizi) {
   // Full Body: 5 base (A/forza), 6 (peso/benessere con +glutei), 7 (default con +glutei+petto accessorio)
   // Modificatori durata: 30 min → rimuovi isolamento piccolo; 90 min → +1-2 accessori
   function buildDaySlots(dayName) {
+    var isFemale = sesso === 'F' || sesso === 'Donna';
     var slots = [];
     if (dayName === 'Full Body') {
-      // Base: gambe + petto + dorso + spalle + core (5 slot — minimo per profilo A/forza)
+      // Base per tutti
       slots.push({primary:['quadricipiti','femorali','glutei'], move:['legs'], label:'Gambe compound', preferCompound:true});
-      slots.push({primary:['petto'], move:['push'], label:'Petto', preferCompound:true});
       slots.push({primary:['dorso'], move:['pull'], label:'Dorso', preferCompound:true});
       slots.push({primary:['spalle'], label:'Spalle'});
       slots.push({primary:['core'], move:['core'], label:'Core'});
-      // Bonus glutei per profilo non-A, obiettivo non-forza
+      if (isFemale) {
+        // Donna: +1 glutei compound, petto solo se 90 min
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
+        if (durataSeduta >= 90) slots.push({primary:['petto'], move:['push'], label:'Petto'});
+      } else {
+        // Uomo: petto compound standard
+        slots.push({primary:['petto'], move:['push'], label:'Petto', preferCompound:true});
+      }
+      // Bonus per profilo non-A, non-forza
       if (profilo !== 'A' && obiettivo !== 'Forza') {
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
-        // +1 petto accessorio per massa/resistenza/performance → 7
-        if (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance') {
-          slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+        if (isFemale) {
+          slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
+        } else {
+          slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
+          if (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance') {
+            slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+          }
         }
       }
     } else if (dayName === 'Upper A') {
-      slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
-      slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
-      slots.push({primary:['spalle'], label:'Spalle'});
-      slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
-      slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
-      slots.push({primary:['core'], move:['core'], label:'Core'});
+      if (isFemale) {
+        // Donna: max 1 petto, +1 dorso extra
+        slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+        slots.push({primary:['spalle'], label:'Spalle'});
+        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+        slots.push({primary:['core'], move:['core'], label:'Core'});
+      } else {
+        // Uomo: 2 petto + 2 dorso
+        slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+        slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+        slots.push({primary:['spalle'], label:'Spalle'});
+        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+        slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
+        slots.push({primary:['core'], move:['core'], label:'Core'});
+      }
     } else if (dayName === 'Lower B') {
       slots.push({primary:['quadricipiti'], move:['legs'], label:'Gambe compound', preferCompound:true});
-      slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
       slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
       slots.push({primary:['polpacci'], label:'Polpacci'});
       slots.push({primary:['core'], move:['core'], label:'Core'});
+      if (isFemale) {
+        // Donna: +1 glutei compound (hip thrust/ponte glutei)
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
+        slots.push({primary:['glutei'], label:'Glutei isolamento'});
+      } else {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+      }
     } else if (dayName === 'Push') {
       slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
-      slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+      if (!isFemale) slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
       slots.push({primary:['spalle'], label:'Spalle'});
       slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
     } else if (dayName === 'Pull') {
@@ -6306,12 +6337,37 @@ var generaSchedaAuto = function(params, esercizi) {
       slots.push({primary:['spalle'], label:'Trapezio / Deltoidi'});
     } else if (dayName === 'Legs') {
       slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti compound', preferCompound:true});
-      slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
       slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
-      slots.push({primary:['polpacci'], label:'Polpacci'});
+      if (isFemale) {
+        // Donna PPL Legs: 2 glutei (1 compound + 1 isolamento)
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
+        slots.push({primary:['glutei'], label:'Glutei isolamento'});
+        slots.push({primary:['polpacci'], label:'Polpacci'});
+      } else {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+        slots.push({primary:['polpacci'], label:'Polpacci'});
+      }
     }
 
-    // Forza su Full Body: togli isolamento piccoli (meno esercizi, più serie)
+    // ── PART 2: Modificatori età ──
+    // Over 60: escludi esplosivi, aggiungi equilibrio se mancante
+    if (eta >= 60) {
+      // Aggiungi slot equilibrio se non c'è core/equilibrio
+      var hasBalance = slots.some(function(s) { return s.label && s.label.indexOf('quilibri') !== -1; });
+      if (!hasBalance) {
+        slots.push({primary:['core'], move:['core'], label:'Equilibrio / Stabilita'});
+      }
+    }
+    // Over 70: max 5 esercizi per seduta
+    if (eta >= 70) {
+      MAX_SLOTS_PER_DAY_EFF = 5;
+    }
+    // Under 30 + C/C+ + Performance: ammetti esplosivi
+    if (eta < 30 && (profilo === 'C' || profilo === 'C+') && obiettivo === 'Performance') {
+      slots.push({primary:['quadricipiti'], move:['legs'], label:'Esplosivo (jump/box)'});
+    }
+
+    // ── Forza su Full Body: togli isolamento piccoli ──
     if (dayName === 'Full Body' && obiettivo === 'Forza') {
       slots = slots.filter(function(s) {
         var isSmall = s.primary && s.primary.length === 1 &&
@@ -6319,28 +6375,27 @@ var generaSchedaAuto = function(params, esercizi) {
         return !isSmall;
       });
     }
-    // Durata >= 90 min: aggiungi 1-2 accessori alla sezione
+    // Durata >= 90 min: aggiungi 1-2 accessori
     if (durataSeduta >= 90) {
       if (dayName === 'Upper A') {
-        slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
-        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+        if (isFemale) { slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'}); }
+        else { slots.push({primary:['petto'], move:['push'], label:'Petto extra'}); slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'}); }
       } else if (dayName === 'Lower B') {
         slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti accessorio'});
         slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali accessorio'});
       } else if (dayName === 'Push') {
         slots.push({primary:['spalle'], label:'Spalle accessorio'});
-        slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti accessorio'});
       } else if (dayName === 'Pull') {
         slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'});
         slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti extra'});
       } else if (dayName === 'Legs') {
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei accessorio'});
-        slots.push({primary:['polpacci'], label:'Polpacci extra'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei extra'});
       } else if (dayName === 'Full Body') {
-        slots.push({primary:['petto'], move:['push'], label:'Petto extra'});
+        if (isFemale) { slots.push({primary:['glutei'], label:'Glutei extra'}); }
+        else { slots.push({primary:['petto'], move:['push'], label:'Petto extra'}); }
       }
     }
-    // Durata <= 30 min: togli isolamento piccoli (bicipiti/tricipiti/polpacci puri)
+    // Durata <= 30 min: togli isolamento piccoli
     if (durataSeduta <= 30) {
       slots = slots.filter(function(s) {
         var onlySmall = s.primary && s.primary.length === 1 &&
@@ -6348,9 +6403,84 @@ var generaSchedaAuto = function(params, esercizi) {
         return !onlySmall;
       });
     }
-    // Safety cap max MAX_SLOTS_PER_DAY (8) e min MIN_SLOTS_PER_DAY (3)
-    if (slots.length > MAX_SLOTS_PER_DAY) slots = slots.slice(0, MAX_SLOTS_PER_DAY);
+    // Safety cap — MAX_SLOTS_PER_DAY_EFF può essere ridotto per over 70
+    if (slots.length > MAX_SLOTS_PER_DAY_EFF) slots = slots.slice(0, MAX_SLOTS_PER_DAY_EFF);
     return slots;
+  }
+
+  // ── PART 2: Over 60 livello restrizione ──
+  // Over 60: forza livello base + escludi esplosivi
+  if (eta >= 60) {
+    livelliPermessi = ['base'];
+    // Aggiungi esplosivi alla lista esclusi
+    esclusiNomi = esclusiNomi.concat(['jump squat', 'box jump', 'burpee', 'jump', 'esplosivo', 'plyometric']);
+    // Ricomputa libCompat con livello ristretto
+    libCompat = esercizi.filter(function(ex) {
+      if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
+      var eq = ex.equip || 'any';
+      if (equipAmmessi.indexOf(eq) === -1) return false;
+      var nmLow = (ex.nome || '').toLowerCase();
+      for (var i = 0; i < esclusiNomi.length; i++) {
+        if (nmLow.indexOf(esclusiNomi[i]) !== -1) return false;
+      }
+      return true;
+    });
+  }
+
+  // ── PART 3: Modificatori test individuali ──
+  // Dopo la costruzione slot, aggiungi/sostituisci in base ai test deboli
+  var testObj = params.test || {};
+  var testSlotExtras = []; // slot extra da aggiungere a tutte le sezioni di forza
+  if (testObj.stsRip && +testObj.stsRip > 0) {
+    var rSts = +testObj.stsRip / getStsNorm(sesso, eta);
+    if (rSts < 0.8) testSlotExtras.push({primary:['quadricipiti'], move:['legs'], label:'Gambe extra (STS basso)', preferCompound:true});
+  }
+  if (testObj.pushupRip && +testObj.pushupRip > 0) {
+    var pushCrit = sesso === 'M' ? +testObj.pushupRip < 15 : +testObj.pushupRip < 10;
+    if (pushCrit) testSlotExtras.push({primary:['petto'], move:['push'], label:'Push extra (push-up bassi)'});
+  }
+  if (testObj.handgrip && +testObj.handgrip > 0) {
+    var rHg = +testObj.handgrip / getHgNorm(sesso, eta);
+    if (rHg < 0.8) testSlotExtras.push({primary:['dorso','femorali'], label:'Farmer walk / Dead hang (grip basso)'});
+  }
+  if (testObj.plankSec && +testObj.plankSec > 0 && +testObj.plankSec < 30) {
+    testSlotExtras.push({primary:['core'], move:['core'], label:'Core extra (plank basso)'});
+  }
+  if (testObj.tugSec && +testObj.tugSec > 0) {
+    var rTug = +testObj.tugSec / getTugNorm(eta);
+    if (rTug > 1.2) testSlotExtras.push({primary:['core'], move:['core'], label:'Equilibrio (TUG alto)'});
+  }
+  var mwtExtraCardio = 0;
+  if (testObj.mwtDist && +testObj.mwtDist > 0) {
+    var r6 = +testObj.mwtDist / getMwtNorm(sesso, eta);
+    if (r6 < 0.8) mwtExtraCardio = 5;
+  }
+  if (mwtExtraCardio > 0) cardioBaseMin = Math.min(cardioBaseMin + mwtExtraCardio, Math.floor(durataSeduta / 3));
+
+  // ── PART 5: Cardio intelligente per equip ──
+  // Filtra cardio per tipo attrezzatura per il pick
+  function pickCardio(used) {
+    // Prima prova a filtrare cardio per equip appropriato
+    var cardioPool = libCompat.filter(function(ex) {
+      if (used.indexOf(ex.id) !== -1) return false;
+      if (ex.cat !== 'Cardio') return false;
+      return true;
+    });
+    var eqPref = [];
+    if (equip === 'gym') eqPref = ['tapis','cyclette','ellittica','bike','ergometro','rowing'];
+    else if (equip === 'home') eqPref = ['corda','camminata','walking','step'];
+    else eqPref = ['camminata','corsa','walking','running','jumping'];
+    // Prova a trovare uno match per preferenza equip
+    if (eqPref.length && cardioPool.length) {
+      var preferred = cardioPool.filter(function(ex) {
+        var nm = (ex.nome || '').toLowerCase();
+        return eqPref.some(function(k) { return nm.indexOf(k) !== -1; });
+      });
+      if (preferred.length) return preferred[Math.floor(Math.random() * preferred.length)];
+    }
+    // Fallback: qualsiasi cardio
+    if (cardioPool.length) return cardioPool[Math.floor(Math.random() * cardioPool.length)];
+    return pick(used, {cat:'Cardio'});
   }
 
   // ── Trim post-selezione per tempo reale ──
@@ -6460,6 +6590,16 @@ var generaSchedaAuto = function(params, esercizi) {
       var p = exParamsFor(category);
       schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slot.label, category:category});
     });
+    // PART 3: Aggiungi slot extra dai test deboli
+    testSlotExtras.forEach(function(slot) {
+      var scelto = pick(usati, slot);
+      if (scelto) {
+        usati.push(scelto.id);
+        var category = classifyExercise(scelto);
+        var p = exParamsFor(category);
+        schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slot.label, category:category});
+      }
+    });
     // Ordina: compound → big → small → core (prima del trim per stabilità)
     schedaEsercizi = ordinaEsercizi(schedaEsercizi);
     // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound
@@ -6468,7 +6608,7 @@ var generaSchedaAuto = function(params, esercizi) {
     if (trimFB.trimmed) volumeWasTrimmed = true;
     var tempoForzaSecFB = trimFB.tempoSec;
     if (day1.addCardio) {
-      var cardioEx = pick(usati, {cat:'Cardio'});
+      var cardioEx = pickCardio(usati);
       if (cardioEx) {
         usati.push(cardioEx.id);
         schedaEsercizi.push({eId:cardioEx.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', category:'cardio'});
@@ -6509,6 +6649,16 @@ var generaSchedaAuto = function(params, esercizi) {
         var p = exParamsFor(category);
         dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slot.label, sezione:day.name, category:category});
       });
+      // PART 3: Aggiungi slot extra dai test deboli
+      testSlotExtras.forEach(function(slot) {
+        var scelto = pick(usatiGlobale, slot);
+        if (scelto) {
+          usatiGlobale.push(scelto.id);
+          var category = classifyExercise(scelto);
+          var p = exParamsFor(category);
+          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slot.label, sezione:day.name, category:category});
+        }
+      });
       // Ordina: compound → big → small → core
       dayEsercizi = ordinaEsercizi(dayEsercizi);
       // Trim per tempo del singolo giorno
@@ -6518,7 +6668,7 @@ var generaSchedaAuto = function(params, esercizi) {
       if (trimDay.tempoSec > maxTempoForzaSec) maxTempoForzaSec = trimDay.tempoSec;
       // Aggiungi cardio alla fine del giorno (non rientra nel budget forza)
       if (day.addCardio) {
-        var cardioExMulti = pick(usatiGlobale, {cat:'Cardio'});
+        var cardioExMulti = pickCardio(usatiGlobale);
         if (cardioExMulti) {
           usatiGlobale.push(cardioExMulti.id);
           dayEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name, category:'cardio'});
@@ -6740,6 +6890,27 @@ var generaProgramma = function(params) {
       ];
     }
   }
+  // ── PART 6: Collegamento forza alla scheda generata ──
+  // Sovrascriviamo le forzaDesc: il programma referenzia la scheda, non elenca esercizi generici.
+  var splitLabel = (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') ? 'Upper A + Lower B' :
+                   obiettivo === 'Performance' ? 'Push + Pull + Legs' : 'Full Body';
+  forzaDesc = [
+    'Esegui la scheda generata (' + splitLabel + '). Serie\u00d7Rip come indicato. Carico: inizia al 60% del massimale percepito. Registra RPE e carichi.',
+    'Stessa scheda. Aumenta carico del 5% su tutti gli esercizi. Recupero invariato.',
+    'Stessa scheda. +1 serie sui compound. Carico stabile o +5%. Picco volume.',
+    'Stessa scheda. -1 serie su tutto. Carico -20%. Deload. Rivalutare score.'
+  ];
+
+  // ── PART 8: Avviso sedute insufficienti ──
+  var seduteWarning = '';
+  if (seduteDisponibili) {
+    if ((obiettivo === 'Aumentare massa' || obiettivo === 'Forza') && seduteDisponibili < 3) {
+      seduteWarning = 'Per risultati ottimali di ' + (obiettivo === 'Forza' ? 'forza' : 'ipertrofia') + ' si consigliano almeno 3-4 sedute/settimana.';
+    } else if (obiettivo === 'Perdere peso' && seduteDisponibili < 2) {
+      seduteWarning = 'Per un deficit efficace si consigliano almeno 3 sedute/settimana.';
+    }
+  }
+
   // ── ANALISI PUNTI DEBOLI (test-based) ──
   // Confronta ogni test con la norma per età/sesso. Ratio < 0.7 = critico, 0.7-0.9 = debole.
   // Per TUG (meno è meglio) si inverte il rapporto.
@@ -6860,6 +7031,10 @@ var generaProgramma = function(params) {
   var forzaNoteExtraUniq = [];
   forzaNoteExtra.forEach(function(n) { if (forzaNoteExtraUniq.indexOf(n) === -1) forzaNoteExtraUniq.push(n); });
   var focusSuffix = focusNotesUniq.length > 0 ? ' Focus: ' + focusNotesUniq.join(' · ') + '.' : '';
+  // PART 7: Note patologie e ansia/depressione integrate nelle settimane
+  var breathingNote = (patologie.includes('depressione') || patologie.includes('ansia') || (+testResults.gad7 >= 10))
+    ? ' 5 min respirazione diaframmatica a fine seduta.' : '';
+  var weaknessNote = hasWeakness ? ' Focus su aree deboli: mantenere tecnica perfetta prima di aumentare carico.' : '';
   for (var w = 0; w < 4; w++) {
     var baseNote = w === 0 ? T.gpWeek1Note :
                    w === 1 ? T.gpWeek2Note :
@@ -6870,11 +7045,14 @@ var generaProgramma = function(params) {
     if (forzaNoteExtraUniq.length > 0) {
       weekForza = weekForza + ' — ' + forzaNoteExtraUniq.join(' · ');
     }
+    var extraNote = focusSuffix + breathingNote;
+    // Sett 1: aggiungi focus punti deboli + warning sedute
+    if (w === 0) extraNote += weaknessNote + (seduteWarning ? ' ' + seduteWarning : '');
     settimane.push({
       num: w + 1,
       cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
       forza: weekForza,
-      note: baseNote + focusSuffix
+      note: baseNote + extraNote
     });
   }
   var nomeObiettivo = obiettivo || T.gpDefSalute;
