@@ -4910,9 +4910,10 @@ footer .center b{color:#3b82f6;font-weight:700}
           <button style={S.btn()} onClick={()=>{
             var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
-            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T},exercises);
+            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
             upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
             showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');
+            if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast('Sesso non specificato \u2014 scheda generata con parametri neutri','warning');}
             setShowGenEquipModal(false);
           }}>{T.genEquipConfirm}</button>
         </div>
@@ -6034,6 +6035,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
 var generaSchedaAuto = function(params, esercizi) {
   var profilo = params.profilo;
   var obiettivo = params.obiettivo;
+  var sessoWarning = !params.sesso;
   var sesso = params.sesso || 'M';
   var eta = params.eta || 50;
   var patologie = (params.patologie || '').toLowerCase();
@@ -6671,7 +6673,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB, sessoWarning:sessoWarning}
     });
   } else {
     // Multi-giorno: ogni giorno viene trimato per tempo separatamente,
@@ -6756,7 +6758,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning}
     });
   }
   return schedeGenerate;
@@ -7229,7 +7231,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const [wizardType,setWizardType]=useState(null);
   const [step,setStep]=useState(1);
   const [d,setD]=useState({
-    nome:initialData?.nome||'',cognome:initialData?.cognome||'',ddn:initialData?.ddn||'',sesso:initialData?.sesso||'F',
+    nome:initialData?.nome||'',cognome:initialData?.cognome||'',ddn:initialData?.ddn||'',sesso:initialData?.sesso||'',
     email:'',telefono:'',professione:'',attvLavorativa:'Sedentario',
     contEmerg:'',medicoBase:'',
     altezza:'',peso:'',vita:'',pa:'',fc:'',
@@ -7569,7 +7571,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
                   &#127874; {T.wizEtaCalc} <b>{eta} {T.wizYears}</b>
                 </div>}
-                <WizIn lbl={T.fGender} name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
+                <WizIn lbl={T.fGender} name="sesso" val={d.sesso} opts={[{v:'',l:T.wizSelectPh},{v:'F',l:T.gF||'F'},{v:'M',l:T.gM||'M'}]} onChange={upd('sesso')}/>
                 <WizIn lbl={T.wizEmail} name="email" type="email" val={d.email} onChange={upd('email')}/>
                 <WizIn lbl={T.wizPhone} name="telefono" val={d.telefono} onChange={upd('telefono')}/>
                 <WizIn lbl={T.wizProfession} name="professione" val={d.professione} opts={[{v:'Studente',l:T.wizProfStudent},{v:'Insegnante',l:T.wizProfTeacher},{v:'Medico/Infermiere',l:T.wizProfHealth},{v:'Impiegato',l:T.wizProfOffice},{v:'Dirigente',l:T.wizProfManager},{v:'Libero professionista',l:T.wizProfFreelancer},{v:'Operaio',l:T.wizProfWorker},{v:'Artigiano',l:T.wizProfCraftsman},{v:'Commerciante',l:T.wizProfTrader},{v:'Pensionato',l:T.wizProfRetired},{v:'Disoccupato',l:T.wizProfUnemployed},{v:'Altro',l:T.wizOptOther}]} onChange={upd('professione')}/>
