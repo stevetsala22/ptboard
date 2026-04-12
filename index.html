@@ -4903,7 +4903,7 @@ footer .center b{color:#3b82f6;font-weight:700}
       {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <FF label={T.genEquipLabel} name="genEquip" value={genEquip} onChange={e=>setGenEquip(e.target.value)} options={[{v:'gym',l:T.genEquipFull},{v:'home',l:T.genEquipHome},{v:'body',l:T.genEquipBody}]}/>
-          <FF label={T.genDurationLabel} name="genDuration" value={genDuration} onChange={e=>setGenDuration(e.target.value)} options={[{v:'30',l:T.genDur30},{v:'45',l:T.genDur45},{v:'60',l:T.genDur60},{v:'90',l:T.genDur90}]}/>
+          <FF label={T.genDurationLabel} name="genDuration" value={genDuration} onChange={e=>setGenDuration(e.target.value)} options={[{v:'45',l:T.genDur45},{v:'60',l:T.genDur60},{v:'90',l:T.genDur90}]}/>
         </div>
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
           <button style={S.btn('ghost')} onClick={()=>setShowGenEquipModal(false)}>{T.cancel}</button>
@@ -6154,6 +6154,11 @@ var generaSchedaAuto = function(params, esercizi) {
       if (eta > 65) { rec += 15; rip = Math.max(6, rip - 2); }
       if (eta > 75) { serie = Math.min(serie, 2); }
     }
+    // Scala recuperi e serie in base alla durata (ipertrofia ottimale ACSM)
+    if (durataSeduta >= 60 && category === 'compound') { serie = Math.min(serie + 1, 4); rec += 45; }
+    if (durataSeduta >= 60 && category === 'big')      { rec += 20; }
+    if (durataSeduta >= 90 && category === 'compound') { rec += 30; }
+    if (durataSeduta >= 90 && category === 'big')      { rec += 20; }
     return {serie: serie, rip: rip, rec: rec};
   }
   // Valori rappresentativi (categoria big) per il config della scheda (usati nei badge UI)
@@ -7679,7 +7684,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizObPrincipale} name="obiettivo" val={d.obiettivo} opts={[{v:'Perdere peso',l:T.wizGoalLoseWeight},{v:'Aumentare massa',l:T.wizGoalGainMass},{v:'Resistenza',l:T.wizGoalEndurance},{v:'Forza',l:T.wizGoalStrength},{v:'Salute',l:T.wizGoalHealth},{v:'Riabilitazione',l:T.wizGoalRehab},{v:'Performance',l:T.wizGoalPerf},{v:'Benessere',l:T.wizGoalWellness}]} onChange={upd('obiettivo')}/>
                 <WizIn lbl={T.wizOrizzonte} name="orizzonte" val={d.orizzonte} opts={[{v:'1 mese',l:T.wizHor1m},{v:'3 mesi',l:T.wizHor3m},{v:'6 mesi',l:T.wizHor6m},{v:'1 anno',l:T.wizHor1y},{v:'Lungo termine',l:T.wizHorLong}]} onChange={upd('orizzonte')}/>
                 <WizIn lbl={T.wizSeduteSett} name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
-                <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
+                <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
               </div>
             </WizSection>
 
