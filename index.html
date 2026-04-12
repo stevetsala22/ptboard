@@ -6681,7 +6681,8 @@ var generaSchedaAuto = function(params, esercizi) {
     var tuttiEsercizi = [];
     var usatiGlobale = [];
     var sezioniNomi = [];
-    var maxTempoForzaSec = 0; // per calcolare tempoStimato rappresentativo
+    var maxTempoForzaSec = 0;
+    var maxDayHasCardio = false;
     days.forEach(function(day) {
       sezioniNomi.push(day.name);
       // Picking locale per la giornata
@@ -6734,7 +6735,10 @@ var generaSchedaAuto = function(params, esercizi) {
       var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
       dayEsercizi = trimDay.esercizi;
       if (trimDay.trimmed) volumeWasTrimmed = true;
-      if (trimDay.tempoSec > maxTempoForzaSec) maxTempoForzaSec = trimDay.tempoSec;
+      if (trimDay.tempoSec > maxTempoForzaSec) {
+        maxTempoForzaSec = trimDay.tempoSec;
+        maxDayHasCardio = day.addCardio;
+      }
       // Aggiungi cardio alla fine del giorno (non rientra nel budget forza)
       if (day.addCardio) {
         var cardioExMulti = pickCardio(usatiGlobale);
@@ -6748,7 +6752,7 @@ var generaSchedaAuto = function(params, esercizi) {
     numSchede++;
     var codiceCombo = profilo + numSchede.toString().padStart(2, '0');
     // Tempo stimato: warmup + cardio + forza del giorno più pesante
-    var tempoStimatoMulti = Math.round(warmupMin + cardioBaseMin + maxTempoForzaSec / 60);
+    var tempoStimatoMulti = Math.round(warmupMin + (maxDayHasCardio ? cardioBaseMin : 0) + maxTempoForzaSec / 60);
     schedeGenerate.push({
       nome: splitType + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codiceCombo,
