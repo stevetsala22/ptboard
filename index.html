@@ -6965,8 +6965,16 @@ var generaProgramma = function(params) {
   }
   // ── PART 6: Collegamento forza alla scheda generata ──
   // Sovrascriviamo le forzaDesc: il programma referenzia la scheda, non elenca esercizi generici.
-  var splitLabel = (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') ? 'Upper A + Lower B' :
-                   obiettivo === 'Performance' ? 'Push + Pull + Legs' : 'Full Body';
+  var splitLabel;
+  if (profilo === 'A') {
+    splitLabel = 'Full Body';
+  } else if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
+    splitLabel = 'Upper A + Lower B';
+  } else if (obiettivo === 'Performance') {
+    splitLabel = 'Push + Pull + Legs';
+  } else {
+    splitLabel = 'Full Body';
+  }
   forzaDesc = [
     'Esegui la scheda generata (' + splitLabel + '). Serie\u00d7Rip come indicato. Carico: inizia al 60% del massimale percepito. Registra RPE e carichi.',
     'Stessa scheda. Aumenta carico del 5% su tutti gli esercizi. Recupero invariato.',
