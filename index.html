@@ -3277,22 +3277,25 @@ const INIT_EXERCISES=[
   {id:'E90',nome:'Runner Passo Salita',cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Tapis roulant con inclinazione — camminata in salita intensa',livello:'intermedio',equip:'gym',primary:'cardio',move:'cardio'},
   // ── CORPO LIBERO — PLIOMETRIA ──
   {id:'E91',nome:'Jump Squat',cat:'Funzionale',muscoli:'Quadricipiti, Glutei',desc:'Squat esplosivo con salto — pliometria arti inferiori',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs'},
+  // Polpacci body
+  {id:'E92',nome:'Calf Raise Corpo Libero',cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni a corpo libero su gradino o pavimento',livello:'base',equip:'body',primary:'polpacci',move:'legs'},
+  {id:'E93',nome:'Calf Raise Monopodalico',cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento tallone su una gamba — intensità maggiore',livello:'intermedio',equip:'body',primary:'polpacci',move:'legs'},
   // Dorso body
-  {id:'E92',nome:'Trazioni',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — corpo libero verticale',livello:'avanzato',equip:'body',primary:'dorso',move:'pull'},
-  {id:'E93',nome:'Inverted Row',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Rematore invertito sotto tavolo o barra bassa',livello:'intermedio',equip:'body',primary:'dorso',move:'pull'},
-  {id:'E94',nome:'Superman',cat:'Forza',muscoli:'Lombari, Glutei',desc:'Estensione prona a terra — catena posteriore',livello:'base',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E94',nome:'Trazioni',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — tirata verticale corpo libero',livello:'avanzato',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E95',nome:'Inverted Row',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Rematore invertito sotto tavolo o barra bassa',livello:'intermedio',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E96',nome:'Superman',cat:'Forza',muscoli:'Lombari, Glutei',desc:'Estensione prona a terra — catena posteriore lombari',livello:'base',equip:'body',primary:'dorso',move:'pull'},
   // Bicipiti body
-  {id:'E95',nome:'Chin-up',cat:'Forza',muscoli:'Bicipiti, Dorsali',desc:'Trazioni presa supina — enfasi bicipiti',livello:'avanzato',equip:'body',primary:'bicipiti',move:'pull'},
-  {id:'E96',nome:'Curl Asciugamano',cat:'Forza',muscoli:'Bicipiti',desc:'Curl con asciugamano o elastico — bicipiti a corpo libero',livello:'base',equip:'body',primary:'bicipiti',move:'pull'},
+  {id:'E97',nome:'Chin-up',cat:'Forza',muscoli:'Bicipiti, Dorsali',desc:'Trazioni presa supina — enfasi bicipiti',livello:'avanzato',equip:'body',primary:'bicipiti',move:'pull'},
+  {id:'E98',nome:'Curl Asciugamano',cat:'Forza',muscoli:'Bicipiti',desc:'Curl isometrico con asciugamano o elastico',livello:'base',equip:'body',primary:'bicipiti',move:'pull'},
   // Tricipiti body
-  {id:'E97',nome:'Diamond Push-up',cat:'Forza',muscoli:'Tricipiti, Pettorali',desc:'Flessioni con mani a diamante — isolamento tricipiti',livello:'intermedio',equip:'body',primary:'tricipiti',move:'push'},
-  {id:'E98',nome:'Tricep Dip Sedia',cat:'Forza',muscoli:'Tricipiti',desc:'Dip su sedia o bordo panca — tricipiti a corpo libero',livello:'base',equip:'body',primary:'tricipiti',move:'push'},
+  {id:'E99',nome:'Diamond Push-up',cat:'Forza',muscoli:'Tricipiti, Pettorali',desc:'Flessioni con mani a diamante — isolamento tricipiti',livello:'intermedio',equip:'body',primary:'tricipiti',move:'push'},
+  {id:'E100',nome:'Tricep Dip Sedia',cat:'Forza',muscoli:'Tricipiti',desc:'Dip su sedia o bordo panca — tricipiti a corpo libero',livello:'base',equip:'body',primary:'tricipiti',move:'push'},
   // Spalle body
-  {id:'E99',nome:'Pike Push-up',cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Push-up con bacino alto — enfasi deltoide anteriore',livello:'intermedio',equip:'body',primary:'spalle',move:'push'},
-  {id:'E100',nome:'Shoulder Tap',cat:'Forza',muscoli:'Spalle, Core',desc:'Plank con tocco alternato delle spalle — stabilita',livello:'base',equip:'body',primary:'spalle',move:'push'},
-  // Glutei body extra
-  {id:'E101',nome:'Donkey Kick',cat:'Forza',muscoli:'Glutei',desc:'Calcio asinello quadrupedia — isolamento gluteo',livello:'base',equip:'body',primary:'glutei',move:'legs'},
-  {id:'E102',nome:'Hip Thrust Monopodalico',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Ponte glutei su una gamba — unilaterale avanzato',livello:'avanzato',equip:'body',primary:'glutei',move:'legs'},
+  {id:'E101',nome:'Pike Push-up',cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Push-up con bacino alto — enfasi deltoide anteriore',livello:'intermedio',equip:'body',primary:'spalle',move:'push'},
+  {id:'E102',nome:'Shoulder Tap',cat:'Forza',muscoli:'Spalle, Core',desc:'Plank con tocco alternato delle spalle — stabilita scapolare',livello:'base',equip:'body',primary:'spalle',move:'push'},
+  // Glutei body
+  {id:'E103',nome:'Donkey Kick',cat:'Forza',muscoli:'Glutei',desc:'Calcio asinello in quadrupedia — isolamento gluteo medio',livello:'base',equip:'body',primary:'glutei',move:'legs'},
+  {id:'E104',nome:'Ponte Glutei Monopodalico',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Hip thrust su una gamba a terra — unilaterale intermedio',livello:'intermedio',equip:'body',primary:'glutei',move:'legs'},
 ];
 
 const INIT_PATIENTS=[];
@@ -6087,6 +6090,9 @@ var generaSchedaAuto = function(params, esercizi) {
   if (patologie.includes('ernia')) esclusiNomi = esclusiNomi.concat(['squat', 'romanian deadlift', 'hip hinge', 'stacco']);
   if (patologie.includes('artrosi') && patologie.includes('ginocchio')) esclusiNomi = esclusiNomi.concat(['squat', 'affondi', 'affondo']);
   if (patologie.includes('spalla') || patologie.includes('cuffia')) esclusiNomi = esclusiNomi.concat(['push-up', 'military press', 'lento avanti']);
+  if (obiettivo !== 'Performance' && profilo !== 'C+') {
+    esclusiNomi = esclusiNomi.concat(['jump squat','box jump','burpee','jump lunge']);
+  }
 
   // ── LIBRERIA COMPATIBILE: filtra per livello, equip, patologie ──
   var libCompat = esercizi.filter(function(ex) {
@@ -6678,9 +6684,9 @@ var generaSchedaAuto = function(params, esercizi) {
       // Classifica e applica parametri per-categoria
       var category = classifyExercise(scelto);
       var p = exParamsFor(category);
-      var slotLabel = slot.label;
-      if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
-      schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, category:category});
+      var _slotLabel = slot.label;
+      if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+      schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, category:category});
     });
     // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
     testExtrasForDay('Full Body').forEach(function(slot) {
@@ -6689,9 +6695,9 @@ var generaSchedaAuto = function(params, esercizi) {
         usati.push(scelto.id);
         var category = classifyExercise(scelto);
         var p = exParamsFor(category);
-        var slotLabel = slot.label;
-        if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
-        schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, category:category});
+        var _slotLabel = slot.label;
+        if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+        schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, category:category});
       }
     });
     // Ordina: compound → big → small → core (prima del trim per stabilità)
@@ -6742,9 +6748,9 @@ var generaSchedaAuto = function(params, esercizi) {
         // Classifica e applica parametri per-categoria
         var category = classifyExercise(scelto);
         var p = exParamsFor(category);
-        var slotLabel = slot.label;
-        if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
-        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, sezione:day.name, category:category});
+        var _slotLabel = slot.label;
+        if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, category:category});
       });
       // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
       testExtrasForDay(day.name).forEach(function(slot) {
@@ -6753,9 +6759,9 @@ var generaSchedaAuto = function(params, esercizi) {
           usatiGlobale.push(scelto.id);
           var category = classifyExercise(scelto);
           var p = exParamsFor(category);
-          var slotLabel = slot.label;
-          if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
-          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, sezione:day.name, category:category});
+          var _slotLabel = slot.label;
+          if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, category:category});
         }
       });
       // BUG 5: Verifica Lower abbia almeno 1 femorali reale
