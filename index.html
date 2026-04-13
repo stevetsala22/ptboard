@@ -4929,7 +4929,14 @@ footer .center b{color:#3b82f6;font-weight:700}
           <button style={S.btn()} onClick={()=>{
             var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
-            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+            var nuoveSchede;
+            try {
+              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+            } catch(err) {
+              console.error('generaSchedaAuto error:',err);
+              showToast(T.schedaGenError||'Errore generazione scheda','error');
+              return;
+            }
             upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
             showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');
             if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast('Sesso non specificato \u2014 scheda generata con parametri neutri','warning');}
@@ -6643,10 +6650,10 @@ var generaSchedaAuto = function(params, esercizi) {
   var cardioDur = cardioBaseMin + ' min';
 
   // ── NOME SCHEDA e NOTE ──
-  var nomeObiettivo = obiettivo || (T.gpDefSalute || 'Generale');
-  var nomeProfilo = profilo === 'A' ? (T.profileLowShort || 'Forma Bassa') : profilo === 'B' ? (T.profileMedShort || 'Forma Media') : profilo === 'C+' ? (T.profileExcellentShort || 'Ottima Forma') : (T.profileGoodShort || 'Buona Forma');
-  var equipLabel = equip === 'gym' ? (T.equipGym || 'Palestra') : equip === 'home' ? (T.equipHome || 'Home gym') : (T.equipBody || 'Corpo libero');
-  var noteText = (T.schedaNoteAuto || 'Scheda generata automaticamente') + ' (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 ' + (T.schedaNoteOb || 'Obiettivo') + ': ' + nomeObiettivo + '. ' + (T.schedaNoteRpe || 'Registrare RPE e carichi.');
+  var nomeObiettivo = obiettivo || (TParam && TParam.gpDefSalute || 'Generale');
+  var nomeProfilo = profilo === 'A' ? (TParam && TParam.profileLowShort || 'Forma Bassa') : profilo === 'B' ? (TParam && TParam.profileMedShort || 'Forma Media') : profilo === 'C+' ? (TParam && TParam.profileExcellentShort || 'Ottima Forma') : (TParam && TParam.profileGoodShort || 'Buona Forma');
+  var equipLabel = equip === 'gym' ? (TParam && TParam.equipGym || 'Palestra') : equip === 'home' ? (TParam && TParam.equipHome || 'Home gym') : (TParam && TParam.equipBody || 'Corpo libero');
+  var noteText = (TParam && TParam.schedaNoteAuto || 'Scheda generata automaticamente') + ' (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 ' + (TParam && TParam.schedaNoteOb || 'Obiettivo') + ': ' + nomeObiettivo + '. ' + (TParam && TParam.schedaNoteRpe || 'Registrare RPE e carichi.');
   if (volumeWasTrimmed) {
     var trimNote = TParam && TParam.volumeAdaptedNote
       ? TParam.volumeAdaptedNote.replace('{min}', durataSeduta)
