@@ -1002,6 +1002,7 @@ const LANGS={
     gpNomeFmt:'Programma {ob} — {pr}',
     gpDescFmt:'Programma personalizzato per {sex} di {eta} anni. Obiettivo: {ob}. Profilo: {pr} (score {score}/100).',
     gpDescPrec:' Attenzione: {n} precauzioni cliniche.',
+    schedaNoteAuto:'Scheda generata automaticamente',schedaNoteOb:'Obiettivo',schedaNoteRpe:'Registrare RPE e carichi',
     gpUomo:'uomo',gpDonna:'donna',
     // generaProgramma — Focus adattamenti test-based
     gpFocusAerobic:'Focus prioritario: capacità aerobica',
@@ -1705,6 +1706,7 @@ const LANGS={
     gpNomeFmt:'{ob} Program — {pr}',
     gpDescFmt:'Personalized program for {sex} aged {eta}. Goal: {ob}. Profile: {pr} (score {score}/100).',
     gpDescPrec:' Attention: {n} clinical precautions.',
+    schedaNoteAuto:'Automatically generated workout',schedaNoteOb:'Goal',schedaNoteRpe:'Record RPE and weights',
     gpUomo:'man',gpDonna:'woman',
     // generaProgramma — Test-based focus adaptations
     gpFocusAerobic:'Priority focus: aerobic capacity',
@@ -2408,6 +2410,7 @@ const LANGS={
     gpNomeFmt:'Programme {ob} — {pr}',
     gpDescFmt:'Programme personnalisé pour {sex} de {eta} ans. Objectif : {ob}. Profil : {pr} (score {score}/100).',
     gpDescPrec:" Attention : {n} précautions cliniques.",
+    schedaNoteAuto:'Séance générée automatiquement',schedaNoteOb:'Objectif',schedaNoteRpe:'Enregistrer RPE et charges',
     gpUomo:'homme',gpDonna:'femme',
     // generaProgramma — Adaptations ciblées basées sur les tests
     gpFocusAerobic:'Focus prioritaire : capacité aérobie',
@@ -6635,10 +6638,10 @@ var generaSchedaAuto = function(params, esercizi) {
   var cardioDur = cardioBaseMin + ' min';
 
   // ── NOME SCHEDA e NOTE ──
-  var nomeObiettivo = obiettivo || 'Generale';
-  var nomeProfilo = profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : profilo === 'C+' ? 'Ottima Forma' : 'Buona Forma';
-  var equipLabel = equip === 'gym' ? 'Palestra' : equip === 'home' ? 'Home gym' : 'Corpo libero';
-  var noteText = 'Scheda generata automaticamente (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 Obiettivo: ' + nomeObiettivo + '. Registrare RPE e carichi.';
+  var nomeObiettivo = obiettivo || (T.gpDefSalute || 'Generale');
+  var nomeProfilo = profilo === 'A' ? (T.profileLowShort || 'Forma Bassa') : profilo === 'B' ? (T.profileMedShort || 'Forma Media') : profilo === 'C+' ? (T.profileExcellentShort || 'Ottima Forma') : (T.profileGoodShort || 'Buona Forma');
+  var equipLabel = equip === 'gym' ? (T.equipGym || 'Palestra') : equip === 'home' ? (T.equipHome || 'Home gym') : (T.equipBody || 'Corpo libero');
+  var noteText = (T.schedaNoteAuto || 'Scheda generata automaticamente') + ' (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 ' + (T.schedaNoteOb || 'Obiettivo') + ': ' + nomeObiettivo + '. ' + (T.schedaNoteRpe || 'Registrare RPE e carichi.');
   if (volumeWasTrimmed) {
     var trimNote = TParam && TParam.volumeAdaptedNote
       ? TParam.volumeAdaptedNote.replace('{min}', durataSeduta)
