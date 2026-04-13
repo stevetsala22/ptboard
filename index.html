@@ -3805,7 +3805,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain;border-radius:6px"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div></div>'
       :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div>';
     const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
-    const profCode=pr?pr.code:'';
+    const profCode=scheda.config?.profilo||(pr?pr.code:'');
     const profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C+'?'#3b82f6':profCode==='C'?'#10b981':'#64748b';
     const profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C+'?'linear-gradient(135deg,#eff6ff,#dbeafe)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
     const profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C+'?T.profileExcellentShort:profCode==='C'?T.profileGoodShort:'';
@@ -6705,7 +6705,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB, sessoWarning:sessoWarning}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB, sessoWarning:sessoWarning, profilo:profilo}
     });
   } else {
     // Multi-giorno: ogni giorno viene trimato per tempo separatamente,
@@ -6794,7 +6794,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning, profilo:profilo}
     });
   }
   return schedeGenerate;
