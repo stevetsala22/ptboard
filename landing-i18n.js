@@ -103,8 +103,8 @@ TR.en['solution.f4']='<div class="check">&#10003;</div> Low / Medium / Good Fitn
 TR.en['solution.f5']='<div class="check">&#10003;</div> Complete history of every client';
 TR.en['solution.f6']='<div class="check">&#10003;</div> Works on phone, tablet and PC';
 TR.en['features.badge']='&#128171; Features';
-TR.en['features.title']='Everything you need.<br/>Nothing you do not.';
-TR.en['features.desc']='Every feature was designed with real Personal Trainers. Zero bloat.';
+TR.en['features.title']='Professional tools.<br/>Measurable results.';
+TR.en['features.desc']='Everything you need to work smarter — and nothing that slows you down.';
 TR.en['f1.title']='20-min Assessment';
 TR.en['f1.desc']='8 guided steps: profile, body composition, 6MWT, STS, physical tests, RPE. Automatic Low / Medium / Good Fitness classification.';
 TR.en['f2.title']='Automatic program';
@@ -349,8 +349,8 @@ TR.fr['solution.f4']='<div class="check">&#10003;</div> Classification Forme Bas
 TR.fr['solution.f5']='<div class="check">&#10003;</div> Historique complet de chaque client';
 TR.fr['solution.f6']='<div class="check">&#10003;</div> Fonctionne sur t\u00e9l\u00e9phone, tablette et PC';
 TR.fr['features.badge']='&#128171; Fonctionnalit\u00e9s';
-TR.fr['features.title']='Tout ce dont vous avez besoin.<br/>Rien de superflu.';
-TR.fr['features.desc']='Chaque fonction a \u00e9t\u00e9 con\u00e7ue avec de vrais Personal Trainers. Z\u00e9ro bloat.';
+TR.fr['features.title']='Outils professionnels.<br/>R\u00e9sultats mesurables.';
+TR.fr['features.desc']='Tout ce dont vous avez besoin pour travailler mieux \u2014 rien de plus, rien de moins.';
 TR.fr['f1.title']='\u00c9valuation 20 min';
 TR.fr['f1.desc']='8 \u00e9tapes guid\u00e9es : profil, composition corporelle, 6MWT, STS, tests physiques, RPE. Classification automatique Forme Basse / Moyenne / Bonne.';
 TR.fr['f2.title']='Programme automatique';
