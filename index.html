@@ -6265,12 +6265,12 @@ var generaSchedaAuto = function(params, esercizi) {
         return true;
       });
     }
-    if (!c.length) return null;
     // Escludi sempre pliometrici se obiettivo non è Performance/C+
     if (obiettivo !== 'Performance' && profilo !== 'C+') {
       var cNonPlyo = c.filter(function(ex) { return !isPlyometric(ex); });
       if (cNonPlyo.length) c = cNonPlyo;
     }
+    if (!c.length) return null;
     return c[Math.floor(Math.random() * c.length)];
   }
 
@@ -6671,7 +6671,9 @@ var generaSchedaAuto = function(params, esercizi) {
       // Classifica e applica parametri per-categoria
       var category = classifyExercise(scelto);
       var p = exParamsFor(category);
-      schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:(slot.preferCompound && !isCompound(scelto)) ? slot.label.replace(' compound','').replace('compound ','') : slot.label, category:category});
+      var slotLabel = slot.label;
+      if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
+      schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, category:category});
     });
     // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
     testExtrasForDay('Full Body').forEach(function(slot) {
@@ -6680,7 +6682,9 @@ var generaSchedaAuto = function(params, esercizi) {
         usati.push(scelto.id);
         var category = classifyExercise(scelto);
         var p = exParamsFor(category);
-        schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:(slot.preferCompound && !isCompound(scelto)) ? slot.label.replace(' compound','').replace('compound ','') : slot.label, category:category});
+        var slotLabel = slot.label;
+        if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
+        schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, category:category});
       }
     });
     // Ordina: compound → big → small → core (prima del trim per stabilità)
@@ -6731,7 +6735,9 @@ var generaSchedaAuto = function(params, esercizi) {
         // Classifica e applica parametri per-categoria
         var category = classifyExercise(scelto);
         var p = exParamsFor(category);
-        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:(slot.preferCompound && !isCompound(scelto)) ? slot.label.replace(' compound','').replace('compound ','') : slot.label, sezione:day.name, category:category});
+        var slotLabel = slot.label;
+        if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
+        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, sezione:day.name, category:category});
       });
       // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
       testExtrasForDay(day.name).forEach(function(slot) {
@@ -6740,7 +6746,9 @@ var generaSchedaAuto = function(params, esercizi) {
           usatiGlobale.push(scelto.id);
           var category = classifyExercise(scelto);
           var p = exParamsFor(category);
-          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:(slot.preferCompound && !isCompound(scelto)) ? slot.label.replace(' compound','').replace('compound ','') : slot.label, sezione:day.name, category:category});
+          var slotLabel = slot.label;
+          if (slot.preferCompound && !isCompound(scelto)) { slotLabel = slotLabel.replace(' compound','').replace('compound ',''); }
+          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:slotLabel, sezione:day.name, category:category});
         }
       });
       // BUG 5: Verifica Lower abbia almeno 1 femorali reale
