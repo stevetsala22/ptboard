@@ -3274,6 +3274,22 @@ const INIT_EXERCISES=[
   {id:'E90',nome:'Runner Passo Salita',cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Tapis roulant con inclinazione — camminata in salita intensa',livello:'intermedio',equip:'gym',primary:'cardio',move:'cardio'},
   // ── CORPO LIBERO — PLIOMETRIA ──
   {id:'E91',nome:'Jump Squat',cat:'Funzionale',muscoli:'Quadricipiti, Glutei',desc:'Squat esplosivo con salto — pliometria arti inferiori',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs'},
+  // Dorso body
+  {id:'E92',nome:'Trazioni',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — corpo libero verticale',livello:'avanzato',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E93',nome:'Inverted Row',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Rematore invertito sotto tavolo o barra bassa',livello:'intermedio',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E94',nome:'Superman',cat:'Forza',muscoli:'Lombari, Glutei',desc:'Estensione prona a terra — catena posteriore',livello:'base',equip:'body',primary:'dorso',move:'pull'},
+  // Bicipiti body
+  {id:'E95',nome:'Chin-up',cat:'Forza',muscoli:'Bicipiti, Dorsali',desc:'Trazioni presa supina — enfasi bicipiti',livello:'avanzato',equip:'body',primary:'bicipiti',move:'pull'},
+  {id:'E96',nome:'Curl Asciugamano',cat:'Forza',muscoli:'Bicipiti',desc:'Curl con asciugamano o elastico — bicipiti a corpo libero',livello:'base',equip:'body',primary:'bicipiti',move:'pull'},
+  // Tricipiti body
+  {id:'E97',nome:'Diamond Push-up',cat:'Forza',muscoli:'Tricipiti, Pettorali',desc:'Flessioni con mani a diamante — isolamento tricipiti',livello:'intermedio',equip:'body',primary:'tricipiti',move:'push'},
+  {id:'E98',nome:'Tricep Dip Sedia',cat:'Forza',muscoli:'Tricipiti',desc:'Dip su sedia o bordo panca — tricipiti a corpo libero',livello:'base',equip:'body',primary:'tricipiti',move:'push'},
+  // Spalle body
+  {id:'E99',nome:'Pike Push-up',cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Push-up con bacino alto — enfasi deltoide anteriore',livello:'intermedio',equip:'body',primary:'spalle',move:'push'},
+  {id:'E100',nome:'Shoulder Tap',cat:'Forza',muscoli:'Spalle, Core',desc:'Plank con tocco alternato delle spalle — stabilita',livello:'base',equip:'body',primary:'spalle',move:'push'},
+  // Glutei body extra
+  {id:'E101',nome:'Donkey Kick',cat:'Forza',muscoli:'Glutei',desc:'Calcio asinello quadrupedia — isolamento gluteo',livello:'base',equip:'body',primary:'glutei',move:'legs'},
+  {id:'E102',nome:'Hip Thrust Monopodalico',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Ponte glutei su una gamba — unilaterale avanzato',livello:'avanzato',equip:'body',primary:'glutei',move:'legs'},
 ];
 
 const INIT_PATIENTS=[];
@@ -6226,7 +6242,15 @@ var generaSchedaAuto = function(params, esercizi) {
         return (ex.muscoli || '').toLowerCase().indexOf(filters.muscoliLegacy.toLowerCase()) !== -1;
       });
     }
-    // Fallback 3: rilassa equip (usa tutta la libreria rispettando livello + patologie)
+    // Fallback 3a: rilassa primary ma mantieni equip
+    if (!c.length) {
+      c = libCompat.filter(function(ex) {
+        if (used.indexOf(ex.id) !== -1) return false;
+        if (filters.cat && ex.cat !== filters.cat) return false;
+        return true;
+      });
+    }
+    // Fallback 3b: rilassa tutto (ultimo resort)
     if (!c.length) {
       c = esercizi.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
