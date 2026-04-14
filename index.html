@@ -16,6 +16,10 @@
 -->
 <html lang="it">
 <head>
+<script
+  src="https://js-de.sentry-cdn.com/57393661f5ebf80ff4e43d5cd42d7cd8.min.js"
+  crossorigin="anonymous"
+></script>
 <script>
 (function(){
   var consent = localStorage.getItem('ptboard_cookies_consent');
@@ -194,7 +198,7 @@ function askSendEmail({pat,subject,message,trainerProfile}){
   });
 }
 // ── BREVO ONBOARDING EMAILS ─────────────────────────────────────────────────
-var BREVO_API_KEY=['xkeysib','e0cbdc3221e34d10eea5f62851bae476af18120d11172e4b048d0b236adf487f','3j9wwVZ2NdxJn3CD'].join('-');
+var WORKER_URL='https://ptboard-webhook.ptboard-info.workers.dev';
 var ONBOARDING_EMAILS=[
   {day:0, templateId:1, key:'welcome'},
   {day:3, templateId:2, key:'day3'},
@@ -205,17 +209,12 @@ var ONBOARDING_EMAILS=[
 ];
 var sendBrevoEmail=async function(toEmail,toName,templateId){
   try{
-    var res=await fetch('https://api.brevo.com/v3/smtp/email',{
+    var res=await fetch(WORKER_URL+'/send-email',{
       method:'POST',
-      headers:{'accept':'application/json','api-key':BREVO_API_KEY,'content-type':'application/json'},
-      body:JSON.stringify({
-        to:[{email:toEmail,name:toName}],
-        templateId:templateId,
-        params:{NOME:toName}
-      })
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({toEmail,toName,templateId})
     });
     var data=await res.json();
-    console.log('Brevo email sent, templateId:',templateId,data);
     return{ok:res.ok};
   }catch(e){
     console.warn('Brevo email error:',e);
@@ -998,6 +997,7 @@ const LANGS={
     gpNomeFmt:'Programma {ob} — {pr}',
     gpDescFmt:'Programma personalizzato per {sex} di {eta} anni. Obiettivo: {ob}. Profilo: {pr} (score {score}/100).',
     gpDescPrec:' Attenzione: {n} precauzioni cliniche.',
+    schedaNoteAuto:'Scheda generata automaticamente',schedaNoteOb:'Obiettivo',schedaNoteRpe:'Registrare RPE e carichi',
     gpUomo:'uomo',gpDonna:'donna',
     // generaProgramma — Focus adattamenti test-based
     gpFocusAerobic:'Focus prioritario: capacità aerobica',
@@ -1701,6 +1701,7 @@ const LANGS={
     gpNomeFmt:'{ob} Program — {pr}',
     gpDescFmt:'Personalized program for {sex} aged {eta}. Goal: {ob}. Profile: {pr} (score {score}/100).',
     gpDescPrec:' Attention: {n} clinical precautions.',
+    schedaNoteAuto:'Automatically generated workout',schedaNoteOb:'Goal',schedaNoteRpe:'Record RPE and weights',
     gpUomo:'man',gpDonna:'woman',
     // generaProgramma — Test-based focus adaptations
     gpFocusAerobic:'Priority focus: aerobic capacity',
@@ -2404,6 +2405,7 @@ const LANGS={
     gpNomeFmt:'Programme {ob} — {pr}',
     gpDescFmt:'Programme personnalisé pour {sex} de {eta} ans. Objectif : {ob}. Profil : {pr} (score {score}/100).',
     gpDescPrec:" Attention : {n} précautions cliniques.",
+    schedaNoteAuto:'Séance générée automatiquement',schedaNoteOb:'Objectif',schedaNoteRpe:'Enregistrer RPE et charges',
     gpUomo:'homme',gpDonna:'femme',
     // generaProgramma — Adaptations ciblées basées sur les tests
     gpFocusAerobic:'Focus prioritaire : capacité aérobie',
@@ -3270,6 +3272,25 @@ const INIT_EXERCISES=[
   {id:'E90',nome:'Runner Passo Salita',cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Tapis roulant con inclinazione — camminata in salita intensa',livello:'intermedio',equip:'gym',primary:'cardio',move:'cardio'},
   // ── CORPO LIBERO — PLIOMETRIA ──
   {id:'E91',nome:'Jump Squat',cat:'Funzionale',muscoli:'Quadricipiti, Glutei',desc:'Squat esplosivo con salto — pliometria arti inferiori',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs'},
+  // Polpacci body
+  {id:'E92',nome:'Calf Raise Corpo Libero',cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni a corpo libero su gradino o pavimento',livello:'base',equip:'body',primary:'polpacci',move:'legs'},
+  {id:'E93',nome:'Calf Raise Monopodalico',cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento tallone su una gamba — intensità maggiore',livello:'intermedio',equip:'body',primary:'polpacci',move:'legs'},
+  // Dorso body
+  {id:'E94',nome:'Trazioni',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — tirata verticale corpo libero',livello:'avanzato',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E95',nome:'Inverted Row',cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Rematore invertito sotto tavolo o barra bassa',livello:'intermedio',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E96',nome:'Superman',cat:'Forza',muscoli:'Lombari, Glutei',desc:'Estensione prona a terra — catena posteriore lombari',livello:'base',equip:'body',primary:'dorso',move:'pull'},
+  // Bicipiti body
+  {id:'E97',nome:'Chin-up',cat:'Forza',muscoli:'Bicipiti, Dorsali',desc:'Trazioni presa supina — enfasi bicipiti',livello:'avanzato',equip:'body',primary:'bicipiti',move:'pull'},
+  {id:'E98',nome:'Curl Asciugamano',cat:'Forza',muscoli:'Bicipiti',desc:'Curl isometrico con asciugamano o elastico',livello:'base',equip:'body',primary:'bicipiti',move:'pull'},
+  // Tricipiti body
+  {id:'E99',nome:'Diamond Push-up',cat:'Forza',muscoli:'Tricipiti, Pettorali',desc:'Flessioni con mani a diamante — isolamento tricipiti',livello:'intermedio',equip:'body',primary:'tricipiti',move:'push'},
+  {id:'E100',nome:'Tricep Dip Sedia',cat:'Forza',muscoli:'Tricipiti',desc:'Dip su sedia o bordo panca — tricipiti a corpo libero',livello:'base',equip:'body',primary:'tricipiti',move:'push'},
+  // Spalle body
+  {id:'E101',nome:'Pike Push-up',cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Push-up con bacino alto — enfasi deltoide anteriore',livello:'intermedio',equip:'body',primary:'spalle',move:'push'},
+  {id:'E102',nome:'Shoulder Tap',cat:'Forza',muscoli:'Spalle, Core',desc:'Plank con tocco alternato delle spalle — stabilita scapolare',livello:'base',equip:'body',primary:'spalle',move:'push'},
+  // Glutei body
+  {id:'E103',nome:'Donkey Kick',cat:'Forza',muscoli:'Glutei',desc:'Calcio asinello in quadrupedia — isolamento gluteo medio',livello:'base',equip:'body',primary:'glutei',move:'legs'},
+  {id:'E104',nome:'Ponte Glutei Monopodalico',cat:'Forza',muscoli:'Glutei, Femorali',desc:'Hip thrust su una gamba a terra — unilaterale intermedio',livello:'intermedio',equip:'body',primary:'glutei',move:'legs'},
 ];
 
 const INIT_PATIENTS=[];
@@ -3782,7 +3803,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain;border-radius:6px"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div></div>'
       :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div>';
     const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
-    const profCode=pr?pr.code:'';
+    const profCode=scheda.config?.profilo||(pr?pr.code:'');
     const profBorder=profCode==='A'?'#ef4444':profCode==='B'?'#f59e0b':profCode==='C+'?'#3b82f6':profCode==='C'?'#10b981':'#64748b';
     const profGrad=profCode==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':profCode==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':profCode==='C+'?'linear-gradient(135deg,#eff6ff,#dbeafe)':profCode==='C'?'linear-gradient(135deg,#f0fdf4,#d1fae5)':'#f8fafc';
     const profLbl=profCode==='A'?T.profileLowShort:profCode==='B'?T.profileMedShort:profCode==='C+'?T.profileExcellentShort:profCode==='C'?T.profileGoodShort:'';
@@ -4899,16 +4920,24 @@ footer .center b{color:#3b82f6;font-weight:700}
       {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <FF label={T.genEquipLabel} name="genEquip" value={genEquip} onChange={e=>setGenEquip(e.target.value)} options={[{v:'gym',l:T.genEquipFull},{v:'home',l:T.genEquipHome},{v:'body',l:T.genEquipBody}]}/>
-          <FF label={T.genDurationLabel} name="genDuration" value={genDuration} onChange={e=>setGenDuration(e.target.value)} options={[{v:'30',l:T.genDur30},{v:'45',l:T.genDur45},{v:'60',l:T.genDur60},{v:'90',l:T.genDur90}]}/>
+          <FF label={T.genDurationLabel} name="genDuration" value={genDuration} onChange={e=>setGenDuration(e.target.value)} options={[{v:'45',l:T.genDur45},{v:'60',l:T.genDur60},{v:'90',l:T.genDur90}]}/>
         </div>
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
           <button style={S.btn('ghost')} onClick={()=>setShowGenEquipModal(false)}>{T.cancel}</button>
           <button style={S.btn()} onClick={()=>{
             var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
-            var nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T},exercises);
+            var nuoveSchede;
+            try {
+              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+            } catch(err) {
+              console.error('generaSchedaAuto error:',err);
+              showToast(T.schedaGenError||'Errore generazione scheda','error');
+              return;
+            }
             upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
             showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');
+            if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast('Sesso non specificato \u2014 scheda generata con parametri neutri','warning');}
             setShowGenEquipModal(false);
           }}>{T.genEquipConfirm}</button>
         </div>
@@ -6030,12 +6059,14 @@ function AppInner({user,profile,setProfile,trialLeft}){
 var generaSchedaAuto = function(params, esercizi) {
   var profilo = params.profilo;
   var obiettivo = params.obiettivo;
+  var sessoWarning = !params.sesso;
   var sesso = params.sesso || 'M';
   var eta = params.eta || 50;
   var patologie = (params.patologie || '').toLowerCase();
   var equip = params.equip || 'gym';
   var durataSeduta = +params.durataSeduta || 60;
   var TParam = params.T || null;
+  var attivita = params.attivita || params.programma?.attivita || '';
 
   // ── LIVELLI PERMESSI per profilo ──
   var livelliPermessi;
@@ -6054,6 +6085,9 @@ var generaSchedaAuto = function(params, esercizi) {
   if (patologie.includes('ernia')) esclusiNomi = esclusiNomi.concat(['squat', 'romanian deadlift', 'hip hinge', 'stacco']);
   if (patologie.includes('artrosi') && patologie.includes('ginocchio')) esclusiNomi = esclusiNomi.concat(['squat', 'affondi', 'affondo']);
   if (patologie.includes('spalla') || patologie.includes('cuffia')) esclusiNomi = esclusiNomi.concat(['push-up', 'military press', 'lento avanti']);
+  if (obiettivo !== 'Performance' && profilo !== 'C+') {
+    esclusiNomi = esclusiNomi.concat(['jump squat','box jump','burpee','jump lunge']);
+  }
 
   // ── LIBRERIA COMPATIBILE: filtra per livello, equip, patologie ──
   var libCompat = esercizi.filter(function(ex) {
@@ -6067,18 +6101,98 @@ var generaSchedaAuto = function(params, esercizi) {
     return true;
   });
 
-  // ── SERIE/RIP/REC per esercizio (modulati da profilo + obiettivo + eta) ──
-  // serieBase qui = serie per esercizio (non più volume totale)
-  var serieBase, ripBase, recSec;
-  if (profilo === 'A') { serieBase = 2; ripBase = 13; recSec = 75; }
-  else if (profilo === 'B') { serieBase = 3; ripBase = 12; recSec = 60; }
-  else if (profilo === 'C+') { serieBase = 4; ripBase = 8; recSec = 50; }
-  else { serieBase = 3; ripBase = 10; recSec = 55; }
-  if (obiettivo === 'Aumentare massa') { ripBase = 10; recSec += 15; }
-  else if (obiettivo === 'Forza') { serieBase += 1; ripBase = Math.max(4, ripBase - 3); recSec += 30; }
-  else if (obiettivo === 'Perdere peso') { serieBase = Math.max(2, serieBase - 1); ripBase += 4; recSec = Math.max(30, recSec - 15); }
-  if (eta > 65) { recSec += 15; ripBase = Math.max(8, ripBase - 2); }
-  if (eta > 75) { serieBase = Math.min(serieBase, 2); }
+  // ── PARAMETRI PER-CATEGORIA ──
+  // Ogni esercizio viene classificato come compound, big, small, core.
+  // Serie × Rip × Rec sono diversi per ciascuna categoria + profilo.
+  // Compound detection via keyword sui nomi esercizi
+  var compoundKeywords = ['panca','squat','stacco','military','leg press','hip thrust','rematore bilanciere','deadlift','bench press','overhead press','front squat','back squat'];
+  function isCompound(ex) {
+    if (!ex || !ex.nome) return false;
+    var n = ex.nome.toLowerCase();
+    for (var i = 0; i < compoundKeywords.length; i++) {
+      if (n.indexOf(compoundKeywords[i]) !== -1) return true;
+    }
+    return false;
+  }
+  function classifyExercise(ex) {
+    if (!ex) return 'big';
+    if (isCompound(ex)) return 'compound';
+    var p = (ex.primary || '').toLowerCase();
+    if (p === 'core' || (ex.cat === 'Core')) return 'core';
+    if (p === 'petto' || p === 'dorso' || p === 'quadricipiti' || p === 'femorali' || p === 'glutei') return 'big';
+    if (p === 'bicipiti' || p === 'tricipiti' || p === 'spalle' || p === 'polpacci') return 'small';
+    return 'big';
+  }
+  // Tabella base serie × rip × rec per (categoria, profilo)
+  // (valori dalla spec: ranges medi)
+  var exParams = {
+    compound: {
+      A:   {serie:3, rip:10, rec:120},
+      B:   {serie:3, rip:8,  rec:90},
+      C:   {serie:4, rip:7,  rec:75},
+      'C+':{serie:4, rip:6,  rec:60}
+    },
+    big: {
+      A:   {serie:2, rip:12, rec:90},
+      B:   {serie:3, rip:10, rec:65},
+      C:   {serie:3, rip:10, rec:50},
+      'C+':{serie:4, rip:9,  rec:45}
+    },
+    small: {
+      A:   {serie:2, rip:13, rec:75},
+      B:   {serie:3, rip:12, rec:50},
+      C:   {serie:3, rip:13, rec:40},
+      'C+':{serie:3, rip:11, rec:30}
+    },
+    core: {
+      A:   {serie:3, rip:17, rec:35},
+      B:   {serie:3, rip:17, rec:35},
+      C:   {serie:3, rip:17, rec:35},
+      'C+':{serie:3, rip:17, rec:35}
+    }
+  };
+  // Parametri finali per categoria, con modificatori obiettivo e età
+  function exParamsFor(category) {
+    var tbl = exParams[category] || exParams.big;
+    var b = tbl[profilo] || tbl.B;
+    var serie = b.serie, rip = b.rip, rec = b.rec;
+    if (obiettivo === 'Forza') {
+      if (category === 'compound') { serie += 1; rip = Math.max(3, rip - 2); }
+      rec += 15;
+    } else if (obiettivo === 'Aumentare massa') {
+      serie += 1;
+      rec += 15;
+    } else if (obiettivo === 'Perdere peso') {
+      serie = Math.max(2, serie - 1);
+      rip += 3;
+      rec = Math.max(20, rec - 10);
+    } else if (obiettivo === 'Resistenza') {
+      serie = Math.max(2, serie - 1);
+      rip += 5;
+    }
+    // BUG 7: Sedentari/Poco attivi con profilo B → parametri più conservativi
+    if (profilo === 'B' && (attivita === 'Sedentaria' || attivita === 'Poco attiva')) {
+      if (category === 'compound') { serie = Math.min(serie, 3); rip = Math.max(rip, 10); }
+      if (category === 'big') rip = Math.max(rip, 12);
+      if (category === 'small') rip = Math.max(rip, 12);
+    }
+    // Modificatori età (applicati a tutte le categorie tranne core)
+    if (category !== 'core') {
+      if (eta > 65) { rec += 15; rip = Math.max(6, rip - 2); }
+      if (eta > 75) { serie = Math.min(serie, 2); }
+    }
+    // Scala recuperi e serie in base alla durata (ipertrofia ottimale ACSM)
+    if (durataSeduta >= 60 && category === 'compound') { serie = Math.min(serie + 1, 4); rec += 45; }
+    if (durataSeduta >= 60 && category === 'big')      { rec += 20; }
+    if (durataSeduta >= 90 && category === 'compound') { rec += 30; }
+    if (durataSeduta >= 90 && category === 'big')      { rec += 20; }
+    return {serie: serie, rip: rip, rec: rec};
+  }
+  // Valori rappresentativi (categoria big) per il config della scheda (usati nei badge UI)
+  var bigParams = exParamsFor('big');
+  var serieBase = bigParams.serie;
+  var ripBase = bigParams.rip;
+  var recSec = bigParams.rec;
 
   // ── DETERMINA SPLIT in base all'obiettivo ──
   var splitType;
@@ -6092,60 +6206,44 @@ var generaSchedaAuto = function(params, esercizi) {
     splitType = 'Full Body';
   }
 
-  // ── VOLUME TARGET per gruppo muscolare (serie/settimana) ──
-  // Modulato da profilo: più alto = atleta
-  var volTbl = {
-    'A':  {big: 9,  med: 7,  core: 6},
-    'B':  {big: 13, med: 9,  core: 8},
-    'C':  {big: 17, med: 11, core: 10},
-    'C+': {big: 19, med: 13, core: 12}
-  };
-  var volObjMod = {
-    'Perdere peso': -1,
-    'Aumentare massa': 1,
-    'Forza': -1,
-    'Salute': -1,
-    'Benessere': -1,
-    'Riabilitazione': -2,
-    'Resistenza': 0,
-    'Performance': 1
-  };
-  var vt = volTbl[profilo] || volTbl['B'];
-  var objMod = volObjMod[obiettivo] || 0;
-  var volBig = Math.max(4, vt.big + objMod);
-  var volMed = Math.max(3, vt.med + objMod);
-  var volCore = Math.max(2, vt.core + objMod);
-
-  // ── Frequenza gruppi per settimana in base allo split ──
-  // Full Body 3x/sett (ogni gruppo 3x), Upper/Lower 4x (ogni gruppo 2x), PPL 6x (ogni gruppo 2x).
-  function groupFreq() {
-    if (splitType === 'Full Body') return 3;
-    return 2;
-  }
-
-  // ── Numero esercizi per gruppo per seduta ──
-  function calcNumEx(volumeTot, category) {
-    var seriePerSess = volumeTot / Math.max(1, groupFreq());
-    var spe = category === 'core' ? Math.max(2, serieBase - 1) : serieBase;
-    var n = Math.round(seriePerSess / spe);
-    return Math.max(1, Math.min(3, n));
-  }
-
   // ── HELPER: pick random exercise matching primary/move/cat filters ──
+  // Se filters.preferCompound === true, prova prima a pescare tra i soli compound.
+  // Esercizi pliometrici da escludere come compound per obiettivi non-Performance
+  var plyoKeywords = ['jump squat','box jump','burpee','jump lunge','plyo'];
+  function isPlyometric(ex) {
+    if (!ex || !ex.nome) return false;
+    var n = ex.nome.toLowerCase();
+    return plyoKeywords.some(function(k) { return n.indexOf(k) !== -1; });
+  }
   function pick(used, filters) {
-    function tryFilter(f) {
+    function tryFilter(f, compoundOnly) {
       return libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
         if (f.cat && ex.cat !== f.cat) return false;
         if (f.primary && f.primary.length && f.primary.indexOf(ex.primary || '') === -1) return false;
         if (f.move && f.move.length && f.move.indexOf(ex.move || '') === -1) return false;
+        if (compoundOnly && !isCompound(ex)) return false;
+        // BUG 2: Escludi pliometrici dai compound se non Performance/C+
+        if (compoundOnly && isPlyometric(ex) && obiettivo !== 'Performance' && profilo !== 'C+') return false;
         return true;
       });
     }
-    var c = tryFilter(filters);
+    var c = [];
+    if (filters.preferCompound) {
+      c = tryFilter(filters, true);
+      // BUG 3: Donna + glutei → preferisci hip thrust/ponte glutei
+      if (c.length > 1 && (sesso === 'F' || sesso === 'Donna') && filters.primary && filters.primary.indexOf('glutei') !== -1) {
+        var htPref = c.filter(function(ex) {
+          var nm = (ex.nome || '').toLowerCase();
+          return nm.indexOf('hip thrust') !== -1 || nm.indexOf('ponte glutei') !== -1;
+        });
+        if (htPref.length) c = htPref;
+      }
+    }
+    if (!c.length) c = tryFilter(filters, false);
     // Fallback 1: ignora move, mantieni primary
     if (!c.length && filters.move) {
-      c = tryFilter({cat:filters.cat, primary:filters.primary});
+      c = tryFilter({cat:filters.cat, primary:filters.primary}, false);
     }
     // Fallback 2: ignora primary, cerca per text muscoli legacy
     if (!c.length && filters.muscoliLegacy) {
@@ -6155,7 +6253,15 @@ var generaSchedaAuto = function(params, esercizi) {
         return (ex.muscoli || '').toLowerCase().indexOf(filters.muscoliLegacy.toLowerCase()) !== -1;
       });
     }
-    // Fallback 3: rilassa equip (usa tutta la libreria rispettando livello + patologie)
+    // Fallback 3a: rilassa primary ma mantieni equip
+    if (!c.length) {
+      c = libCompat.filter(function(ex) {
+        if (used.indexOf(ex.id) !== -1) return false;
+        if (filters.cat && ex.cat !== filters.cat) return false;
+        return true;
+      });
+    }
+    // Fallback 3b: rilassa tutto (ultimo resort)
     if (!c.length) {
       c = esercizi.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
@@ -6167,56 +6273,16 @@ var generaSchedaAuto = function(params, esercizi) {
         return true;
       });
     }
+    // Escludi sempre pliometrici se obiettivo non è Performance/C+
+    if (obiettivo !== 'Performance' && profilo !== 'C+') {
+      var cNonPlyo = c.filter(function(ex) { return !isPlyometric(ex); });
+      if (cNonPlyo.length) c = cNonPlyo;
+    }
     if (!c.length) return null;
     return c[Math.floor(Math.random() * c.length)];
   }
 
-  // ── Mappa gruppo → filtri, classe volume, priorità (per trimming) ──
-  var groupFilters = {
-    petto:        {primary:['petto'],        move:['push'], label:'Petto'},
-    dorso:        {primary:['dorso'],        move:['pull'], label:'Dorso'},
-    quadricipiti: {primary:['quadricipiti'], move:['legs'], label:'Quadricipiti'},
-    femorali:     {primary:['femorali','glutei'], move:['legs'], label:'Femorali / Glutei'},
-    glutei:       {primary:['glutei','femorali'], move:['legs'], label:'Glutei'},
-    spalle:       {primary:['spalle'],                       label:'Spalle'},
-    bicipiti:     {primary:['bicipiti'],     move:['pull'], label:'Bicipiti'},
-    tricipiti:    {primary:['tricipiti'],    move:['push'], label:'Tricipiti'},
-    polpacci:     {primary:['polpacci'],                     label:'Polpacci'},
-    core:         {primary:['core'],         move:['core'], label:'Core'}
-  };
-  var groupClass = {
-    petto:'big', dorso:'big', quadricipiti:'big', femorali:'big', glutei:'big',
-    spalle:'med', bicipiti:'med', tricipiti:'med', polpacci:'med',
-    core:'core'
-  };
-  // Priorità: alto = si tiene, basso = si taglia per primo
-  var groupPriority = {
-    petto:10, dorso:10, quadricipiti:10, femorali:9,
-    glutei:7, spalle:7, core:6,
-    tricipiti:4, bicipiti:4, polpacci:3
-  };
-  var dayGroups = {
-    'Full Body': ['petto','dorso','quadricipiti','femorali','spalle','core'],
-    'Upper A':   ['petto','dorso','spalle','bicipiti','tricipiti','core'],
-    'Lower B':   ['quadricipiti','femorali','glutei','polpacci','core'],
-    'Push':      ['petto','spalle','tricipiti','core'],
-    'Pull':      ['dorso','bicipiti','core'],
-    'Legs':      ['quadricipiti','femorali','glutei','polpacci']
-  };
-
-  // ── LOGICA TEMPO REALISTICA (per-esercizio con compound detection) ──
-  // Formule ACSM/NSCA:
-  // Normale:  45s setup + serie × (rip × 3s) + (serie-1) × recIsol
-  // Compound: 90s setup + serie × (rip × 4s) + (serie-1) × recComp
-  var recIsol = ({A:90, B:60, C:45, 'C+':30}[profilo]) || 60;
-  var recComp = ({A:120, B:90, C:75, 'C+':60}[profilo]) || 90;
-  // Modificatori obiettivo sul recupero
-  var recMod = 0;
-  if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') recMod = 15;
-  else if (obiettivo === 'Perdere peso') recMod = -10;
-  recIsol = Math.max(15, recIsol + recMod);
-  recComp = Math.max(30, recComp + recMod);
-
+  // ── CARDIO durata e budget tempo ──
   // Cardio minuti base per profilo, modulati da obiettivo
   var cardioBaseMin = ({A:10, B:15, C:15, 'C+':20}[profilo]) || 15;
   if (obiettivo === 'Perdere peso') cardioBaseMin += 5;
@@ -6229,93 +6295,288 @@ var generaSchedaAuto = function(params, esercizi) {
   // Tempo residuo per la parte forza (in secondi)
   var tempoDisponibileSec = Math.max(300, (durataSeduta - warmupMin - cardioBaseMin) * 60);
 
-  // Safety cap: mai più di 10 esercizi per sezione
-  var MAX_SLOTS_PER_DAY = 10;
+  // Safety cap: mai più di 8 esercizi per sezione (spec)
+  var MAX_SLOTS_PER_DAY = 8;
+  var MAX_SLOTS_PER_DAY_EFF = eta >= 70 ? 5 : MAX_SLOTS_PER_DAY;
   var MIN_SLOTS_PER_DAY = 3;
 
-  // Compound detection via keyword sui nomi esercizi
-  var compoundKeywords = ['squat','panca','stacco','military','lat machine','lento','distensione','bench press','deadlift','overhead','pull-up','chin-up','push-up','trazioni','dip','rematore','pressa','hack','front','good morning','thruster','clean','snatch','affondo','affondi'];
-  function isCompound(ex) {
-    if (!ex || !ex.nome) return false;
-    var n = ex.nome.toLowerCase();
-    for (var i = 0; i < compoundKeywords.length; i++) {
-      if (n.indexOf(compoundKeywords[i]) !== -1) return true;
-    }
-    return false;
-  }
-
-  // Tempo (in secondi) per un esercizio già scelto
-  function tempoEsercizioSec(ex, serie, rip) {
+  // ── TEMPO per esercizio (secondi) ──
+  // Categoria determina setup + work per rep:
+  // compound: setup 90s, work rip×4s
+  // big:      setup 45s, work rip×3s
+  // small:    setup 30s, work rip×3s
+  // core:     setup 20s, work rip×2s
+  // Recupero = (serie-1) × rec dell'esercizio
+  function tempoEsercizioSec(ex, category, serie, rip, rec) {
     var s = Math.max(1, +serie || 3);
-    // rip può essere numero o stringa ('30s' per core, '15 min' per cardio)
+    var r = +rec;
+    if (!(r > 0)) r = category === 'core' ? 30 : 60;
+    var setup = category === 'compound' ? 90 : category === 'big' ? 45 : category === 'small' ? 30 : 20;
+    var timePerRep = category === 'compound' ? 4 : category === 'core' ? 2 : 3;
     var ripNum;
     if (typeof rip === 'number') ripNum = rip;
     else {
       var p = parseInt(rip, 10);
       ripNum = isNaN(p) ? 10 : p;
-      // Se la stringa contiene 's' (secondi isometrici), considera ~rip secondi di lavoro
-      if (typeof rip === 'string' && rip.indexOf('s') !== -1 && ripNum > 10 && ripNum < 120) {
-        // Isometrico: il "rip" è già in secondi, non moltiplicare per 3
-        if (isCompound(ex)) return 90 + s * ripNum + Math.max(0, s - 1) * recComp;
-        return 45 + s * ripNum + Math.max(0, s - 1) * recIsol;
+      // Isometrico ('30s' per plank ecc.) — rip è già in secondi di lavoro
+      if (typeof rip === 'string' && rip.indexOf('s') !== -1 && ripNum > 5 && ripNum < 120) {
+        return setup + s * ripNum + Math.max(0, s - 1) * r;
       }
     }
     if (ripNum < 1 || ripNum > 50) ripNum = 10; // safety
-    if (isCompound(ex)) {
-      return 90 + (s * ripNum * 4) + Math.max(0, s - 1) * recComp;
-    }
-    return 45 + (s * ripNum * 3) + Math.max(0, s - 1) * recIsol;
+    return setup + (s * ripNum * timePerRep) + Math.max(0, s - 1) * r;
   }
 
   // Flag globale: true se almeno un giorno è stato trimato per durata
   var volumeWasTrimmed = false;
 
-  // ── Costruzione slot giornata da tabella volume ──
-  // Safety cap MAX_SLOTS_PER_DAY (10). Il trim per tempo avviene DOPO la selezione
-  // degli esercizi reali, in base al compound detection.
+  // ── Costruzione slot giornata da template espliciti (spec) ──
+  // Upper: 1 compound petto + 1 dorso + 1 spalle + 1 bicipiti + 1 tricipiti + 1 core = 6
+  // Lower: 1 compound gambe + 1 glutei + 1 femorali + 1 polpacci + 1 core = 5
+  // Push: 1 compound petto + 1 petto accessorio + 1 spalle + 1 tricipiti = 4
+  // Pull: 1 dorso compound + 1 dorso accessorio + 1 bicipiti + 1 trapezio = 4
+  // Legs: 1 compound quad + 1 glutei + 1 femorali + 1 polpacci = 4
+  // Full Body: 5 base (A/forza), 6 (peso/benessere con +glutei), 7 (default con +glutei+petto accessorio)
+  // Modificatori durata: 30 min → rimuovi isolamento piccolo; 90 min → +1-2 accessori
   function buildDaySlots(dayName) {
-    var groups = dayGroups[dayName] || [];
+    var isFemale = sesso === 'F' || sesso === 'Donna';
     var slots = [];
-    groups.forEach(function(g) {
-      var cls = groupClass[g];
-      var vol = cls === 'big' ? volBig : cls === 'core' ? volCore : volMed;
-      var n = calcNumEx(vol, cls);
-      var gf = groupFilters[g];
-      for (var i = 0; i < n; i++) {
-        var label = gf.label + (n > 1 ? ' ' + (i+1) : '');
-        slots.push({primary:gf.primary, move:gf.move, label:label, group:g, round:i, priority:(groupPriority[g] || 5)});
+    if (dayName === 'Full Body') {
+      // Base per tutti
+      slots.push({primary:['quadricipiti','femorali','glutei'], move:['legs'], label:'Gambe compound', preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso', preferCompound:true});
+      slots.push({primary:['spalle'], label:'Spalle'});
+      slots.push({primary:['core'], move:['core'], label:'Core'});
+      if (isFemale) {
+        // Donna: +1 glutei compound, petto solo se 90 min
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
+        if (durataSeduta >= 90) slots.push({primary:['petto'], move:['push'], label:'Petto'});
+      } else {
+        // Uomo: petto compound standard
+        slots.push({primary:['petto'], move:['push'], label:'Petto', preferCompound:true});
       }
-    });
-    // Safety cap a MAX_SLOTS_PER_DAY: round-robin (compound prima, poi accessorie)
-    if (slots.length > MAX_SLOTS_PER_DAY) {
-      var keepIds = slots.slice()
-        .map(function(s, idx) { return {s:s, idx:idx}; })
-        .sort(function(a, b) {
-          if (a.s.round !== b.s.round) return a.s.round - b.s.round;
-          if (b.s.priority !== a.s.priority) return b.s.priority - a.s.priority;
-          return a.idx - b.idx;
-        })
-        .slice(0, MAX_SLOTS_PER_DAY)
-        .map(function(o) { return o.idx; });
-      keepIds.sort(function(a, b) { return a - b; });
-      slots = keepIds.map(function(i) { return slots[i]; });
+      // Bonus per profilo non-A, non-forza
+      if (profilo !== 'A' && obiettivo !== 'Forza') {
+        if (isFemale) {
+          slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
+        } else {
+          slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
+          if (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance') {
+            slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+          }
+        }
+      }
+    } else if (dayName === 'Upper A') {
+      if (isFemale) {
+        // Donna: max 1 petto, +1 dorso extra
+        slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+        slots.push({primary:['spalle'], label:'Spalle'});
+        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+        slots.push({primary:['core'], move:['core'], label:'Core'});
+      } else {
+        // Uomo: 2 petto + 2 dorso
+        slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+        slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+        slots.push({primary:['spalle'], label:'Spalle'});
+        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+        slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
+        slots.push({primary:['core'], move:['core'], label:'Core'});
+      }
+    } else if (dayName === 'Lower B') {
+      slots.push({primary:['quadricipiti'], move:['legs'], label:'Gambe compound', preferCompound:true});
+      slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
+      slots.push({primary:['polpacci'], label:'Polpacci'});
+      slots.push({primary:['core'], move:['core'], label:'Core'});
+      if (isFemale) {
+        // Donna: +1 glutei compound (hip thrust/ponte glutei)
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
+        slots.push({primary:['glutei'], label:'Glutei isolamento'});
+      } else {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+      }
+    } else if (dayName === 'Push') {
+      slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
+      if (!isFemale) slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
+      slots.push({primary:['spalle'], label:'Spalle'});
+      slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
+    } else if (dayName === 'Pull') {
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
+      slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
+      slots.push({primary:['spalle'], label:'Trapezio / Deltoidi'});
+    } else if (dayName === 'Legs') {
+      slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti compound', preferCompound:true});
+      slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
+      if (isFemale) {
+        // Donna PPL Legs: 2 glutei (1 compound + 1 isolamento)
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
+        slots.push({primary:['glutei'], label:'Glutei isolamento'});
+        slots.push({primary:['polpacci'], label:'Polpacci'});
+      } else {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+        slots.push({primary:['polpacci'], label:'Polpacci'});
+      }
     }
-    // Clamp MIN_SLOTS_PER_DAY: pad con slot extra dai gruppi big
-    var safety = 0;
-    while (slots.length < MIN_SLOTS_PER_DAY && groups.length > 0 && safety < 20) {
-      var bigGroups = groups.filter(function(g) { return groupClass[g] === 'big'; });
-      var pool = bigGroups.length ? bigGroups : groups;
-      var pickGroup = pool[slots.length % pool.length];
-      var gf2 = groupFilters[pickGroup];
-      slots.push({primary:gf2.primary, move:gf2.move, label:gf2.label + ' extra', group:pickGroup, round:99, priority:(groupPriority[pickGroup] || 5)});
-      safety++;
+
+    // ── PART 2: Modificatori età ──
+    // Over 60: escludi esplosivi, aggiungi equilibrio se mancante
+    if (eta >= 60) {
+      // Aggiungi slot equilibrio se non c'è core/equilibrio
+      var hasBalance = slots.some(function(s) { return s.label && s.label.indexOf('quilibri') !== -1; });
+      if (!hasBalance) {
+        slots.push({primary:['core'], move:['core'], label:'Equilibrio / Stabilita'});
+      }
     }
+    // Over 70: max 5 esercizi per seduta
+    if (eta >= 70) {
+      MAX_SLOTS_PER_DAY_EFF = 5;
+    }
+    // Under 30 + C/C+ + Performance: ammetti esplosivi
+    if (eta < 30 && (profilo === 'C' || profilo === 'C+') && obiettivo === 'Performance') {
+      slots.push({primary:['quadricipiti'], move:['legs'], label:'Esplosivo (jump/box)'});
+    }
+
+    // ── Forza su Full Body: togli isolamento piccoli ──
+    if (dayName === 'Full Body' && obiettivo === 'Forza') {
+      slots = slots.filter(function(s) {
+        var isSmall = s.primary && s.primary.length === 1 &&
+                      (s.primary[0] === 'bicipiti' || s.primary[0] === 'tricipiti' || s.primary[0] === 'polpacci');
+        return !isSmall;
+      });
+    }
+    // Durata >= 90 min: aggiungi 1-2 accessori
+    if (durataSeduta >= 90) {
+      if (dayName === 'Upper A') {
+        if (isFemale) { slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'}); }
+        else { slots.push({primary:['petto'], move:['push'], label:'Petto extra'}); slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'}); }
+      } else if (dayName === 'Lower B') {
+        slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti accessorio'});
+        slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali accessorio'});
+      } else if (dayName === 'Push') {
+        slots.push({primary:['spalle'], label:'Spalle accessorio'});
+      } else if (dayName === 'Pull') {
+        slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'});
+        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti extra'});
+      } else if (dayName === 'Legs') {
+        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei extra'});
+      } else if (dayName === 'Full Body') {
+        if (isFemale) { slots.push({primary:['glutei'], label:'Glutei extra'}); }
+        else { slots.push({primary:['petto'], move:['push'], label:'Petto extra'}); }
+      }
+    }
+    // Durata <= 30 min: togli isolamento piccoli
+    if (durataSeduta <= 30) {
+      slots = slots.filter(function(s) {
+        var onlySmall = s.primary && s.primary.length === 1 &&
+                        (s.primary[0] === 'bicipiti' || s.primary[0] === 'tricipiti' || s.primary[0] === 'polpacci');
+        return !onlySmall;
+      });
+    }
+    // Safety cap — MAX_SLOTS_PER_DAY_EFF può essere ridotto per over 70
+    if (slots.length > MAX_SLOTS_PER_DAY_EFF) slots = slots.slice(0, MAX_SLOTS_PER_DAY_EFF);
     return slots;
   }
 
+  // ── PART 2: Over 60 livello restrizione ──
+  // Over 60: forza livello base + escludi esplosivi
+  if (eta >= 60) {
+    livelliPermessi = ['base'];
+    // Aggiungi esplosivi alla lista esclusi
+    esclusiNomi = esclusiNomi.concat(['jump squat', 'box jump', 'burpee', 'jump', 'esplosivo', 'plyometric']);
+    // Ricomputa libCompat con livello ristretto
+    libCompat = esercizi.filter(function(ex) {
+      if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
+      var eq = ex.equip || 'any';
+      if (equipAmmessi.indexOf(eq) === -1) return false;
+      var nmLow = (ex.nome || '').toLowerCase();
+      for (var i = 0; i < esclusiNomi.length; i++) {
+        if (nmLow.indexOf(esclusiNomi[i]) !== -1) return false;
+      }
+      return true;
+    });
+  }
+
+  // ── PART 3: Modificatori test individuali ──
+  // Slot extra organizzati per tipo di sezione (upper/lower/any)
+  var testObj = params.test || {};
+  var testSlotsLower = []; // solo per Lower/Legs/Full Body
+  var testSlotsUpper = []; // solo per Upper/Push/Full Body
+  var testSlotsAny = [];   // per qualsiasi sezione
+  if (testObj.stsRip && +testObj.stsRip > 0) {
+    var rSts = +testObj.stsRip / getStsNorm(sesso, eta);
+    if (rSts < 0.8) testSlotsLower.push({primary:['quadricipiti'], move:['legs'], label:'Gambe extra (STS basso)', preferCompound:true});
+  }
+  if (testObj.pushupRip && +testObj.pushupRip > 0) {
+    var pushCrit = sesso === 'M' ? +testObj.pushupRip < 15 : +testObj.pushupRip < 10;
+    if (pushCrit) testSlotsUpper.push({primary:['petto'], move:['push'], label:'Push extra (push-up bassi)'});
+  }
+  if (testObj.handgrip && +testObj.handgrip > 0) {
+    var rHg = +testObj.handgrip / getHgNorm(sesso, eta);
+    if (rHg < 0.8) testSlotsAny.push({primary:['dorso','femorali'], label:'Farmer walk / Dead hang (grip basso)'});
+  }
+  if (testObj.plankSec && +testObj.plankSec > 0 && +testObj.plankSec < 30) {
+    testSlotsAny.push({primary:['core'], move:['core'], label:'Core extra (plank basso)'});
+  }
+  if (testObj.tugSec && +testObj.tugSec > 0) {
+    var rTug = +testObj.tugSec / getTugNorm(eta);
+    if (rTug > 1.2) testSlotsLower.push({primary:['core'], move:['core'], label:'Equilibrio (TUG alto)'});
+  }
+  var mwtExtraCardio = 0;
+  if (testObj.mwtDist && +testObj.mwtDist > 0) {
+    var r6 = +testObj.mwtDist / getMwtNorm(sesso, eta);
+    if (r6 < 0.8) mwtExtraCardio = 5;
+  }
+  if (mwtExtraCardio > 0) cardioBaseMin = Math.min(cardioBaseMin + mwtExtraCardio, Math.floor(durataSeduta / 3));
+  // Helper: restituisce gli slot test appropriati per una sezione
+  function testExtrasForDay(dayName) {
+    var isLower = dayName === 'Lower B' || dayName === 'Legs';
+    var isUpper = dayName === 'Upper A' || dayName === 'Push';
+    var isFB = dayName === 'Full Body';
+    var extras = testSlotsAny.slice();
+    if (isLower || isFB) extras = extras.concat(testSlotsLower);
+    if (isUpper || isFB) extras = extras.concat(testSlotsUpper);
+    return extras;
+  }
+
+  // ── PART 5: Cardio intelligente per equip ──
+  // Filtra cardio per tipo attrezzatura per il pick
+  function pickCardio(used) {
+    // BUG 8: Per massa escludi cardio esplosivo, preferisci LISS
+    var massaExclude = ['jumping','burpee','corda','hiit','tabata','sprint'];
+    var cardioPool = libCompat.filter(function(ex) {
+      if (used.indexOf(ex.id) !== -1) return false;
+      if (ex.cat !== 'Cardio') return false;
+      // Per massa: escludi esplosivi
+      if (obiettivo === 'Aumentare massa') {
+        var nm = (ex.nome || '').toLowerCase();
+        if (massaExclude.some(function(k) { return nm.indexOf(k) !== -1; })) return false;
+      }
+      return true;
+    });
+    var eqPref = [];
+    if (equip === 'gym') eqPref = ['tapis','cyclette','ellittica','bike','ergometro','rowing'];
+    else if (equip === 'home') eqPref = ['corda','camminata','walking','step'];
+    else eqPref = ['camminata','corsa','walking','running','jumping'];
+    // Prova a trovare uno match per preferenza equip
+    if (eqPref.length && cardioPool.length) {
+      var preferred = cardioPool.filter(function(ex) {
+        var nm = (ex.nome || '').toLowerCase();
+        return eqPref.some(function(k) { return nm.indexOf(k) !== -1; });
+      });
+      if (preferred.length) return preferred[Math.floor(Math.random() * preferred.length)];
+    }
+    // Fallback: qualsiasi cardio
+    if (cardioPool.length) return cardioPool[Math.floor(Math.random() * cardioPool.length)];
+    return pick(used, {cat:'Cardio'});
+  }
+
   // ── Trim post-selezione per tempo reale ──
-  // Riceve l'array di esercizi-scheda già scelti e rimuove i non-compound
-  // dalla coda finché il tempo accumulato rientra nel budget o si raggiunge il min.
+  // Rimuove dalla coda prima isolamento piccolo (small), poi accessori grandi (big),
+  // mai compound. Ferma al budget o a MIN_SLOTS_PER_DAY esercizi.
   // Ritorna {esercizi, tempoSec, trimmed}.
   function trimPerTempo(schedaEsercizi, budgetSec, minNonCardio) {
     function lookup(eId) {
@@ -6325,28 +6586,49 @@ var generaSchedaAuto = function(params, esercizi) {
     function isCardioEntry(e) { return e && (e.note || '').indexOf('Cardio') !== -1; }
     var times = schedaEsercizi.map(function(e) {
       if (isCardioEntry(e)) return 0;
-      return tempoEsercizioSec(lookup(e.eId), +e.serie || 3, e.reps);
+      return tempoEsercizioSec(lookup(e.eId), e.category || classifyExercise(lookup(e.eId)), +e.serie || 3, e.reps, +e.rec);
     });
     var total = times.reduce(function(a, b) { return a + b; }, 0);
     var nonCardioLen = schedaEsercizi.filter(function(e) { return !isCardioEntry(e); }).length;
     var trimmed = false;
-    while (total > budgetSec && nonCardioLen > minNonCardio) {
-      // Trova l'ultimo esercizio non-cardio e non-compound
-      var removeIdx = -1;
-      for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
-        var e = schedaEsercizi[i];
-        if (isCardioEntry(e)) continue;
-        var ex = lookup(e.eId);
-        if (!isCompound(ex)) { removeIdx = i; break; }
+    // Ordine di categorie da rimuovere (per priorità crescente): small, core, big, compound
+    // In realtà: small prima, poi big (non compound), poi core. Compound mai rimossi.
+    var trimOrder = ['small','big','core'];
+    for (var phase = 0; phase < trimOrder.length; phase++) {
+      var targetCat = trimOrder[phase];
+      while (total > budgetSec && nonCardioLen > minNonCardio) {
+        var removeIdx = -1;
+        for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
+          var e = schedaEsercizi[i];
+          if (isCardioEntry(e)) continue;
+          var cat = e.category || classifyExercise(lookup(e.eId));
+          if (cat === targetCat) { removeIdx = i; break; }
+        }
+        if (removeIdx === -1) break; // nessun esercizio di questa categoria da rimuovere
+        total -= times[removeIdx];
+        schedaEsercizi.splice(removeIdx, 1);
+        times.splice(removeIdx, 1);
+        nonCardioLen--;
+        trimmed = true;
       }
-      if (removeIdx === -1) break; // solo compound rimasti
-      total -= times[removeIdx];
-      schedaEsercizi.splice(removeIdx, 1);
-      times.splice(removeIdx, 1);
-      nonCardioLen--;
-      trimmed = true;
+      if (total <= budgetSec || nonCardioLen <= minNonCardio) break;
     }
     return {esercizi: schedaEsercizi, tempoSec: total, trimmed: trimmed};
+  }
+
+  // ── Ordina esercizi di una sezione: compound → big → small → core → cardio ──
+  function ordinaEsercizi(arr) {
+    var rank = {compound:0, big:1, small:2, core:3};
+    return arr.slice().sort(function(a, b) {
+      var aCardio = (a.note || '').indexOf('Cardio') !== -1;
+      var bCardio = (b.note || '').indexOf('Cardio') !== -1;
+      if (aCardio && !bCardio) return 1;
+      if (!aCardio && bCardio) return -1;
+      var ra = rank[a.category] != null ? rank[a.category] : 1;
+      var rb = rank[b.category] != null ? rank[b.category] : 1;
+      if (ra !== rb) return ra - rb;
+      return 0; // stabile
+    });
   }
 
   var days;
@@ -6369,10 +6651,10 @@ var generaSchedaAuto = function(params, esercizi) {
   var cardioDur = cardioBaseMin + ' min';
 
   // ── NOME SCHEDA e NOTE ──
-  var nomeObiettivo = obiettivo || 'Generale';
-  var nomeProfilo = profilo === 'A' ? 'Forma Bassa' : profilo === 'B' ? 'Forma Media' : profilo === 'C+' ? 'Ottima Forma' : 'Buona Forma';
-  var equipLabel = equip === 'gym' ? 'Palestra' : equip === 'home' ? 'Home gym' : 'Corpo libero';
-  var noteText = 'Scheda generata automaticamente (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 Obiettivo: ' + nomeObiettivo + '. Registrare RPE e carichi.';
+  var nomeObiettivo = obiettivo || (TParam && TParam.gpDefSalute || 'Generale');
+  var nomeProfilo = profilo === 'A' ? (TParam && TParam.profileLowShort || 'Forma Bassa') : profilo === 'B' ? (TParam && TParam.profileMedShort || 'Forma Media') : profilo === 'C+' ? (TParam && TParam.profileExcellentShort || 'Ottima Forma') : (TParam && TParam.profileGoodShort || 'Buona Forma');
+  var equipLabel = equip === 'gym' ? (TParam && TParam.equipGym || 'Palestra') : equip === 'home' ? (TParam && TParam.equipHome || 'Home gym') : (TParam && TParam.equipBody || 'Corpo libero');
+  var noteText = (TParam && TParam.schedaNoteAuto || 'Scheda generata automaticamente') + ' (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 ' + (TParam && TParam.schedaNoteOb || 'Obiettivo') + ': ' + nomeObiettivo + '. ' + (TParam && TParam.schedaNoteRpe || 'Registrare RPE e carichi.');
   if (volumeWasTrimmed) {
     var trimNote = TParam && TParam.volumeAdaptedNote
       ? TParam.volumeAdaptedNote.replace('{min}', durataSeduta)
@@ -6394,23 +6676,37 @@ var generaSchedaAuto = function(params, esercizi) {
       var scelto = pick(usati, slot);
       if (!scelto) return;
       usati.push(scelto.id);
-      var serie = serieBase, rip = ripBase, rec = recSec;
-      if ((scelto.primary === 'core') || scelto.cat === 'Core') {
-        serie = Math.max(2, serie - 1);
-        rip = typeof rip === 'number' ? rip + 5 : rip;
-      }
-      schedaEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label});
+      // Classifica e applica parametri per-categoria
+      var category = classifyExercise(scelto);
+      var p = exParamsFor(category);
+      var _slotLabel = slot.label;
+      if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+      schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, category:category});
     });
-    // Trim per tempo: rimuove non-compound dalla coda finché rientra nel budget
+    // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
+    testExtrasForDay('Full Body').forEach(function(slot) {
+      var scelto = pick(usati, slot);
+      if (scelto) {
+        usati.push(scelto.id);
+        var category = classifyExercise(scelto);
+        var p = exParamsFor(category);
+        var _slotLabel = slot.label;
+        if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+        schedaEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, category:category});
+      }
+    });
+    // Ordina: compound → big → small → core (prima del trim per stabilità)
+    schedaEsercizi = ordinaEsercizi(schedaEsercizi);
+    // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound
     var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
     schedaEsercizi = trimFB.esercizi;
     if (trimFB.trimmed) volumeWasTrimmed = true;
     var tempoForzaSecFB = trimFB.tempoSec;
     if (day1.addCardio) {
-      var cardioEx = pick(usati, {cat:'Cardio'});
+      var cardioEx = pickCardio(usati);
       if (cardioEx) {
         usati.push(cardioEx.id);
-        schedaEsercizi.push({eId:cardioEx.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio'});
+        schedaEsercizi.push({eId:cardioEx.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', category:'cardio'});
       }
     }
     numSchede++;
@@ -6426,7 +6722,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB, sessoWarning:sessoWarning, profilo:profilo}
     });
   } else {
     // Multi-giorno: ogni giorno viene trimato per tempo separatamente,
@@ -6434,7 +6730,8 @@ var generaSchedaAuto = function(params, esercizi) {
     var tuttiEsercizi = [];
     var usatiGlobale = [];
     var sezioniNomi = [];
-    var maxTempoForzaSec = 0; // per calcolare tempoStimato rappresentativo
+    var maxTempoForzaSec = 0;
+    var maxDayHasCardio = false;
     days.forEach(function(day) {
       sezioniNomi.push(day.name);
       // Picking locale per la giornata
@@ -6443,24 +6740,64 @@ var generaSchedaAuto = function(params, esercizi) {
         var scelto = pick(usatiGlobale, slot);
         if (!scelto) return;
         usatiGlobale.push(scelto.id);
-        var serie = serieBase, rip = ripBase, rec = recSec;
-        if ((scelto.primary === 'core') || scelto.cat === 'Core') {
-          serie = Math.max(2, serie - 1);
-          rip = typeof rip === 'number' ? rip + 5 : rip;
-        }
-        dayEsercizi.push({eId:scelto.id, serie:serie, reps:rip, rec:rec, peso:'', note:slot.label, sezione:day.name});
+        // Classifica e applica parametri per-categoria
+        var category = classifyExercise(scelto);
+        var p = exParamsFor(category);
+        var _slotLabel = slot.label;
+        if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, category:category});
       });
+      // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
+      testExtrasForDay(day.name).forEach(function(slot) {
+        var scelto = pick(usatiGlobale, slot);
+        if (scelto) {
+          usatiGlobale.push(scelto.id);
+          var category = classifyExercise(scelto);
+          var p = exParamsFor(category);
+          var _slotLabel = slot.label;
+          if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
+          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, category:category});
+        }
+      });
+      // BUG 5: Verifica Lower abbia almeno 1 femorali reale
+      if (day.name === 'Lower B' || day.name === 'Legs') {
+        var hasFem = dayEsercizi.some(function(e) {
+          var ex = esercizi.find(function(x) { return x.id === e.eId; });
+          return ex && ex.primary === 'femorali';
+        });
+        if (!hasFem) {
+          // Sostituisci l'ultimo isolamento glutei con un femorali
+          for (var fi = dayEsercizi.length - 1; fi >= 0; fi--) {
+            var fex = esercizi.find(function(x) { return x.id === dayEsercizi[fi].eId; });
+            if (fex && fex.primary === 'glutei' && !isCompound(fex)) {
+              var femEx = pick(usatiGlobale, {primary:['femorali'], move:['legs']});
+              if (femEx) {
+                usatiGlobale.push(femEx.id);
+                var fCat = classifyExercise(femEx);
+                var fP = exParamsFor(fCat);
+                dayEsercizi[fi] = {eId:femEx.id, serie:fP.serie, reps:fP.rip, rec:fP.rec, peso:'', note:'Femorali', sezione:day.name, category:fCat};
+              }
+              break;
+            }
+          }
+        }
+      }
+      // Ordina: compound → big → small → core
+      dayEsercizi = ordinaEsercizi(dayEsercizi);
       // Trim per tempo del singolo giorno
       var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
       dayEsercizi = trimDay.esercizi;
       if (trimDay.trimmed) volumeWasTrimmed = true;
-      if (trimDay.tempoSec > maxTempoForzaSec) maxTempoForzaSec = trimDay.tempoSec;
+      if (trimDay.tempoSec > maxTempoForzaSec) {
+        maxTempoForzaSec = trimDay.tempoSec;
+        maxDayHasCardio = day.addCardio;
+      }
       // Aggiungi cardio alla fine del giorno (non rientra nel budget forza)
       if (day.addCardio) {
-        var cardioExMulti = pick(usatiGlobale, {cat:'Cardio'});
+        var cardioExMulti = pickCardio(usatiGlobale);
         if (cardioExMulti) {
           usatiGlobale.push(cardioExMulti.id);
-          dayEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name});
+          dayEsercizi.push({eId:cardioExMulti.id, serie:1, reps:cardioDur, rec:0, peso:'', note:'Cardio', sezione:day.name, category:'cardio'});
         }
       }
       tuttiEsercizi = tuttiEsercizi.concat(dayEsercizi);
@@ -6468,7 +6805,7 @@ var generaSchedaAuto = function(params, esercizi) {
     numSchede++;
     var codiceCombo = profilo + numSchede.toString().padStart(2, '0');
     // Tempo stimato: warmup + cardio + forza del giorno più pesante
-    var tempoStimatoMulti = Math.round(warmupMin + cardioBaseMin + maxTempoForzaSec / 60);
+    var tempoStimatoMulti = Math.round(warmupMin + (maxDayHasCardio ? cardioBaseMin : 0) + maxTempoForzaSec / 60);
     schedeGenerate.push({
       nome: splitType + ' \u2014 ' + nomeObiettivo,
       codice: 'SCH-' + codiceCombo,
@@ -6478,7 +6815,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning, profilo:profilo}
     });
   }
   return schedeGenerate;
@@ -6679,6 +7016,35 @@ var generaProgramma = function(params) {
       ];
     }
   }
+  // ── PART 6: Collegamento forza alla scheda generata ──
+  // Sovrascriviamo le forzaDesc: il programma referenzia la scheda, non elenca esercizi generici.
+  var splitLabel;
+  if (profilo === 'A') {
+    splitLabel = 'Full Body';
+  } else if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
+    splitLabel = 'Upper A + Lower B';
+  } else if (obiettivo === 'Performance') {
+    splitLabel = 'Push + Pull + Legs';
+  } else {
+    splitLabel = 'Full Body';
+  }
+  forzaDesc = [
+    'Esegui la scheda generata (' + splitLabel + '). Serie\u00d7Rip come indicato. Carico: inizia al 60% del massimale percepito. Registra RPE e carichi.',
+    'Stessa scheda. Aumenta carico del 5% su tutti gli esercizi. Recupero invariato.',
+    'Stessa scheda. +1 serie sui compound. Carico stabile o +5%. Picco volume.',
+    'Stessa scheda. -1 serie su tutto. Carico -20%. Deload. Rivalutare score.'
+  ];
+
+  // ── PART 8: Avviso sedute insufficienti ──
+  var seduteWarning = '';
+  if (seduteDisponibili) {
+    if ((obiettivo === 'Aumentare massa' || obiettivo === 'Forza') && seduteDisponibili < 3) {
+      seduteWarning = 'Per risultati ottimali di ' + (obiettivo === 'Forza' ? 'forza' : 'ipertrofia') + ' si consigliano almeno 3-4 sedute/settimana.';
+    } else if (obiettivo === 'Perdere peso' && seduteDisponibili < 2) {
+      seduteWarning = 'Per un deficit efficace si consigliano almeno 3 sedute/settimana.';
+    }
+  }
+
   // ── ANALISI PUNTI DEBOLI (test-based) ──
   // Confronta ogni test con la norma per età/sesso. Ratio < 0.7 = critico, 0.7-0.9 = debole.
   // Per TUG (meno è meglio) si inverte il rapporto.
@@ -6799,6 +7165,10 @@ var generaProgramma = function(params) {
   var forzaNoteExtraUniq = [];
   forzaNoteExtra.forEach(function(n) { if (forzaNoteExtraUniq.indexOf(n) === -1) forzaNoteExtraUniq.push(n); });
   var focusSuffix = focusNotesUniq.length > 0 ? ' Focus: ' + focusNotesUniq.join(' · ') + '.' : '';
+  // PART 7: Note patologie e ansia/depressione integrate nelle settimane
+  var breathingNote = (patologie.includes('depressione') || patologie.includes('ansia') || (+testResults.gad7 >= 10))
+    ? ' 5 min respirazione diaframmatica a fine seduta.' : '';
+  var weaknessNote = hasWeakness ? ' Focus su aree deboli: mantenere tecnica perfetta prima di aumentare carico.' : '';
   for (var w = 0; w < 4; w++) {
     var baseNote = w === 0 ? T.gpWeek1Note :
                    w === 1 ? T.gpWeek2Note :
@@ -6809,11 +7179,14 @@ var generaProgramma = function(params) {
     if (forzaNoteExtraUniq.length > 0) {
       weekForza = weekForza + ' — ' + forzaNoteExtraUniq.join(' · ');
     }
+    var extraNote = focusSuffix + breathingNote;
+    // Sett 1: aggiungi focus punti deboli + warning sedute
+    if (w === 0) extraNote += weaknessNote + (seduteWarning ? ' ' + seduteWarning : '');
     settimane.push({
       num: w + 1,
       cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
       forza: weekForza,
-      note: baseNote + focusSuffix
+      note: baseNote + extraNote
     });
   }
   var nomeObiettivo = obiettivo || T.gpDefSalute;
@@ -6923,7 +7296,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const [wizardType,setWizardType]=useState(null);
   const [step,setStep]=useState(1);
   const [d,setD]=useState({
-    nome:initialData?.nome||'',cognome:initialData?.cognome||'',ddn:initialData?.ddn||'',sesso:initialData?.sesso||'F',
+    nome:initialData?.nome||'',cognome:initialData?.cognome||'',ddn:initialData?.ddn||'',sesso:initialData?.sesso||'',
     email:'',telefono:'',professione:'',attvLavorativa:'Sedentario',
     contEmerg:'',medicoBase:'',
     altezza:'',peso:'',vita:'',pa:'',fc:'',
@@ -7263,7 +7636,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 {eta&&<div style={{fontSize:11,color:'#3b82f6',marginTop:-6,marginBottom:8,paddingLeft:2}}>
                   &#127874; {T.wizEtaCalc} <b>{eta} {T.wizYears}</b>
                 </div>}
-                <WizIn lbl={T.fGender} name="sesso" val={d.sesso} opts={['F','M']} onChange={upd('sesso')}/>
+                <WizIn lbl={T.fGender} name="sesso" val={d.sesso} opts={[{v:'',l:T.wizSelectPh},{v:'F',l:T.gF||'F'},{v:'M',l:T.gM||'M'}]} onChange={upd('sesso')}/>
                 <WizIn lbl={T.wizEmail} name="email" type="email" val={d.email} onChange={upd('email')}/>
                 <WizIn lbl={T.wizPhone} name="telefono" val={d.telefono} onChange={upd('telefono')}/>
                 <WizIn lbl={T.wizProfession} name="professione" val={d.professione} opts={[{v:'Studente',l:T.wizProfStudent},{v:'Insegnante',l:T.wizProfTeacher},{v:'Medico/Infermiere',l:T.wizProfHealth},{v:'Impiegato',l:T.wizProfOffice},{v:'Dirigente',l:T.wizProfManager},{v:'Libero professionista',l:T.wizProfFreelancer},{v:'Operaio',l:T.wizProfWorker},{v:'Artigiano',l:T.wizProfCraftsman},{v:'Commerciante',l:T.wizProfTrader},{v:'Pensionato',l:T.wizProfRetired},{v:'Disoccupato',l:T.wizProfUnemployed},{v:'Altro',l:T.wizOptOther}]} onChange={upd('professione')}/>
@@ -7359,7 +7732,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizObPrincipale} name="obiettivo" val={d.obiettivo} opts={[{v:'Perdere peso',l:T.wizGoalLoseWeight},{v:'Aumentare massa',l:T.wizGoalGainMass},{v:'Resistenza',l:T.wizGoalEndurance},{v:'Forza',l:T.wizGoalStrength},{v:'Salute',l:T.wizGoalHealth},{v:'Riabilitazione',l:T.wizGoalRehab},{v:'Performance',l:T.wizGoalPerf},{v:'Benessere',l:T.wizGoalWellness}]} onChange={upd('obiettivo')}/>
                 <WizIn lbl={T.wizOrizzonte} name="orizzonte" val={d.orizzonte} opts={[{v:'1 mese',l:T.wizHor1m},{v:'3 mesi',l:T.wizHor3m},{v:'6 mesi',l:T.wizHor6m},{v:'1 anno',l:T.wizHor1y},{v:'Lungo termine',l:T.wizHorLong}]} onChange={upd('orizzonte')}/>
                 <WizIn lbl={T.wizSeduteSett} name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
-                <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['30 min','45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
+                <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
               </div>
             </WizSection>
 
@@ -8211,6 +8584,7 @@ function AdminModal({onClose}){
   const [loading,setLoading]=useState(true);
   const [msg,setMsg]=useState('');
   const [feedbacks,setFeedbacks]=useState([]);
+  const [backupLoading,setBackupLoading]=useState(false);
 
   useEffect(()=>{
     fbGetAllUsers().then(u=>{setUsers(u);setLoading(false);});
@@ -8363,6 +8737,46 @@ function AdminModal({onClose}){
                 </tbody>
               </table>
             </div>}
+          </div>
+
+          {/* Backup dati */}
+          <div style={{marginTop:28}}>
+            <div style={{fontSize:14,fontWeight:800,color:'#f8fafc',marginBottom:12}}>📥 Backup dati</div>
+            <button disabled={backupLoading} onClick={async function(){
+              setBackupLoading(true);
+              try{
+                var snap=await fbDb.collection('users').get();
+                var allUsers=[];
+                for(var i=0;i<snap.docs.length;i++){
+                  var doc=snap.docs[i];
+                  var profile=doc.data();
+                  var appdata={};
+                  try{
+                    var adSnap=await fbDb.collection('users').doc(doc.id).collection('appdata').get();
+                    adSnap.docs.forEach(function(ad){appdata[ad.id]=ad.data();});
+                  }catch(e){}
+                  allUsers.push({uid:doc.id,profile:profile,appdata:appdata});
+                }
+                var backup={date:new Date().toISOString().slice(0,10),users:allUsers};
+                var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+                var url=URL.createObjectURL(blob);
+                var a=document.createElement('a');
+                a.href=url;
+                a.download='ptboard_backup_'+backup.date+'.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                setMsg('✓ Backup completato: '+allUsers.length+' utenti');
+                setTimeout(function(){setMsg('');},3000);
+              }catch(e){
+                console.error('Errore backup:',e);
+                setMsg('❌ Errore backup: '+e.message);
+                setTimeout(function(){setMsg('');},4000);
+              }
+              setBackupLoading(false);
+            }} style={{padding:'10px 20px',borderRadius:8,border:'1px solid #3b82f640',background:'#3b82f615',color:'#3b82f6',fontSize:13,fontWeight:700,cursor:backupLoading?'wait':'pointer',fontFamily:'inherit',opacity:backupLoading?0.6:1}}>
+              {backupLoading?'⏳ Backup in corso...':'📥 Backup dati'}
+            </button>
+            <div style={{fontSize:11,color:'#475569',marginTop:6}}>Scarica tutti gli utenti e i loro dati (appdata) in formato JSON.</div>
           </div>
         </div>
       </div>
@@ -8695,6 +9109,10 @@ function TutorialModal({onClose,isLight}){
 
 ReactDOM.createRoot(document.getElementById('root')).render(<ErrorBoundary><App/></ErrorBoundary>);
 })();
+</script>
+<script type="text/javascript">
+window.$crisp=[];window.CRISP_WEBSITE_ID="e4598847-03d4-4a5e-b605-b159213c01dd";
+(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();
 </script>
 </body>
 </html>
