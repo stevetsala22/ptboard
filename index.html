@@ -198,7 +198,7 @@ function askSendEmail({pat,subject,message,trainerProfile}){
   });
 }
 // ── BREVO ONBOARDING EMAILS ─────────────────────────────────────────────────
-var BREVO_API_KEY=['xkeysib','e0cbdc3221e34d10eea5f62851bae476af18120d11172e4b048d0b236adf487f','3j9wwVZ2NdxJn3CD'].join('-');
+var WORKER_URL='https://ptboard-webhook.ptboard-info.workers.dev';
 var ONBOARDING_EMAILS=[
   {day:0, templateId:1, key:'welcome'},
   {day:3, templateId:2, key:'day3'},
@@ -209,17 +209,12 @@ var ONBOARDING_EMAILS=[
 ];
 var sendBrevoEmail=async function(toEmail,toName,templateId){
   try{
-    var res=await fetch('https://api.brevo.com/v3/smtp/email',{
+    var res=await fetch(WORKER_URL+'/send-email',{
       method:'POST',
-      headers:{'accept':'application/json','api-key':BREVO_API_KEY,'content-type':'application/json'},
-      body:JSON.stringify({
-        to:[{email:toEmail,name:toName}],
-        templateId:templateId,
-        params:{NOME:toName}
-      })
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({toEmail,toName,templateId})
     });
     var data=await res.json();
-    console.log('Brevo email sent, templateId:',templateId,data);
     return{ok:res.ok};
   }catch(e){
     console.warn('Brevo email error:',e);
