@@ -5630,6 +5630,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
   const [showTutorial,setShowTutorial]=useState(false);
   const [showAdmin,setShowAdmin]=useState(false);
   const [showPiani,setShowPiani]=useState(false);
+  const [showLogoutModal,setShowLogoutModal]=React.useState(false);
   const [showLingua,setShowLingua]=useState(false);
   const [showPersonalizza,setShowPersonalizza]=useState(false);
   const [lang,setLang]=useState(getLang());
@@ -5884,7 +5885,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               <div style={{flex:1,textAlign:'center',fontSize:12,color:C.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{tpNome||''}</div>
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {tpInitials&&<div style={{width:28,height:28,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={function(){showConfirmToast('👋 Sei sicuro di voler uscire?', ()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();});}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
               </div>
             </>
           ):(
@@ -5901,7 +5902,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
               <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
                 {tpInitials&&<div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={function(){showConfirmToast('👋 Sei sicuro di voler uscire?', ()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();});}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
               </div>
             </>
           )}
@@ -6011,6 +6012,19 @@ function AppInner({user,profile,setProfile,trialLeft}){
       />}
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
+      {showLogoutModal&&(
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'#0c1225',border:'1px solid #1a2547',borderRadius:16,padding:32,maxWidth:340,width:'90%',textAlign:'center'}}>
+            <div style={{fontSize:36,marginBottom:12}}>👋</div>
+            <div style={{fontSize:18,fontWeight:700,color:'#f1f5f9',marginBottom:8}}>Vuoi uscire?</div>
+            <div style={{fontSize:14,color:'#64748b',marginBottom:24}}>Verrai disconnesso dall'app.</div>
+            <div style={{display:'flex',gap:12}}>
+              <button onClick={()=>setShowLogoutModal(false)} style={{flex:1,padding:'12px',borderRadius:10,border:'1px solid #1a2547',background:'transparent',color:'#94a3b8',fontSize:14,fontWeight:600,cursor:'pointer'}}>Annulla</button>
+              <button onClick={()=>{setShowLogoutModal(false);localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{flex:1,padding:'12px',borderRadius:10,border:'none',background:'#ef4444',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>Sì, esci</button>
+            </div>
+          </div>
+        </div>
+      )}
       {showDeleteAccount&&<Modal title="Eliminare definitivamente il tuo account?" onClose={()=>{setShowDeleteAccount(false);setDeleteReason('');setDeleteDetail('');setDeleteConfirmText('');}}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <div style={{fontSize:13,color:C.text,lineHeight:1.6,background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'10px 12px'}}>Tutti i tuoi dati, pazienti, appuntamenti e impostazioni verranno eliminati permanentemente. Questa azione non è reversibile.</div>
