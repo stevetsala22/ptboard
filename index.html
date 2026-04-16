@@ -5884,7 +5884,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               <div style={{flex:1,textAlign:'center',fontSize:12,color:C.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{tpNome||''}</div>
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {tpInitials&&<div style={{width:28,height:28,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={function(){localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={function(){showConfirmToast('👋 Sei sicuro di voler uscire?', ()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();});}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
               </div>
             </>
           ):(
@@ -5901,7 +5901,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
               <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
                 {tpInitials&&<div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={function(){localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={function(){showConfirmToast('👋 Sei sicuro di voler uscire?', ()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();});}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
               </div>
             </>
           )}
