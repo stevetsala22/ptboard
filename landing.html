@@ -122,6 +122,9 @@ img{max-width:100%;height:auto}
 .hero-ctas{display:flex;gap:16px;flex-wrap:wrap;animation:fadeInUp .6s ease both .3s}
 .hero-cta-note{font-size:12px;color:var(--dim);margin-top:10px;animation:fadeInUp .6s ease both .35s}
 .hero-social-proof{display:flex;align-items:center;gap:14px;margin-top:24px;animation:fadeInUp .6s ease both .4s}
+.hero-early-badge{display:inline-flex;align-items:center;gap:12px;padding:10px 16px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(16,185,129,.6);animation:pulseDot 2s infinite}
+@keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}70%{box-shadow:0 0 0 10px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
 .hero-avatars{display:flex}
 .hero-avatars div{width:36px;height:36px;border-radius:50%;border:2px solid var(--bg);margin-left:-10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
 .hero-avatars div:first-child{margin-left:0}
@@ -506,7 +509,7 @@ img{max-width:100%;height:auto}
   <div class="container">
     <div class="hero-grid">
       <div class="hero-content">
-        <div class="badge hero-badge" data-i18n="hero.badge">&#9889; Il software per Personal Trainer · Made in Italy</div>
+        <div class="badge hero-badge" data-i18n="hero.badge">Il software per Personal Trainer &middot; Made in Italy</div>
         <h1 class="hero-title" data-i18n="hero.title">Valuta i tuoi clienti<br/>in <span class="text-gradient">20 minuti.</span><br/>Non in 2 ore.</h1>
         <!-- CRO: sottotitolo riscritto con formula Problem+Solution -->
         <p class="hero-desc" data-i18n="hero.desc">Smetti di sprecare 2 ore per ogni cliente. Con PT Board valuti, programmi e generi la scheda PDF in 20 minuti — automaticamente.</p>
@@ -517,16 +520,12 @@ img{max-width:100%;height:auto}
         <!-- CRO: micro-copy sotto CTA principale -->
         <div class="hero-cta-note" data-i18n="hero.microCopy">Nessuna carta di credito &middot; Nessun vincolo &middot; I tuoi dati al sicuro</div>
         <div class="hero-social-proof">
-          <div class="hero-avatars">
-            <div style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">M</div>
-            <div style="background:linear-gradient(135deg,#10b981,#06b6d4)">S</div>
-            <div style="background:linear-gradient(135deg,#f59e0b,#f97316)">L</div>
-            <div style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">A</div>
-            <div style="background:linear-gradient(135deg,#3b82f6,#10b981)">+</div>
-          </div>
-          <div class="hero-social-text">
-            <strong>Tra i primi PT in Italia ad usarlo</strong><br/>
-            <span style="color:var(--yellow)">&#9733;&#9733;&#9733;&#9733;&#9733;</span> <span style="font-size:12px">Provalo gratis per 15 giorni</span>
+          <div class="hero-early-badge">
+            <span class="pulse-dot"></span>
+            <div class="hero-social-text">
+              <strong data-i18n="hero.earlyTitle">Early access</strong><br/>
+              <span style="font-size:12px" data-i18n="hero.earlySub">Sviluppato da uno studente di Scienze Motorie &middot; aperto ai primi PT</span>
+            </div>
           </div>
         </div>
       </div>
@@ -549,7 +548,7 @@ img{max-width:100%;height:auto}
     <div class="trust-item" data-i18n="trust.langs"><span>&#127760;</span> Disponibile in IT &middot; EN &middot; FR</div>
     <div class="trust-item" data-i18n="trust.zero"><span>&#9889;</span> Zero installazione</div>
     <div class="trust-item" data-i18n="trust.cloud"><span>&#9729;&#65039;</span> Cloud sync</div>
-    <div class="trust-item" data-i18n="trust.users"><span>&#128101;</span> 400+ PT lo usano ogni giorno</div>
+    <div class="trust-item" data-i18n="trust.gdpr"><span>&#128737;&#65039;</span> GDPR compliant</div>
   </div>
 </div>
 
@@ -558,7 +557,7 @@ img{max-width:100%;height:auto}
   <div class="container">
     <div class="problem-grid">
       <div class="animate">
-        <div class="badge" style="margin-bottom:20px" data-i18n="problem.badge">&#128680; Il problema</div>
+        <div class="badge" style="margin-bottom:20px" data-i18n="problem.badge">Il problema</div>
         <h2 style="font-size:36px;font-weight:900;color:var(--strong);margin-bottom:12px;letter-spacing:-.5px" data-i18n="problem.title">Ogni giorno butti via<br/>2 ore in burocrazia.</h2>
         <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.7" data-i18n="problem.desc">Fogli Excel, schede cartacee, WhatsApp per i promemoria. Conosci la storia. Il tuo tempo vale di piu.</p>
         <div class="problem-list">
@@ -577,8 +576,8 @@ img{max-width:100%;height:auto}
         </div>
       </div>
       <div class="solution-card animate delay-2">
-        <h3 data-i18n="solution.title">PT Board risolve tutto.</h3>
-        <p data-i18n="solution.desc">Un unico strumento per valutare, programmare e monitorare. In 20 minuti hai un report professionale che i tuoi competitor non sanno nemmeno fare.</p>
+        <h3 data-i18n="solution.title">PT Board fa una cosa sola, bene.</h3>
+        <p data-i18n="solution.desc">Valutazione, programmazione e scheda cliente in un posto solo. In 20 minuti hai un report ordinato, leggibile, basato su test standardizzati.</p>
         <div class="solution-features">
           <div class="solution-feature" data-i18n="solution.f1"><div class="check">&#10003;</div> Valutazione scientifica fino a 9 step guidati</div>
           <div class="solution-feature" data-i18n="solution.f2"><div class="check">&#10003;</div> Programma 4 settimane generato automaticamente</div>
@@ -596,7 +595,7 @@ img{max-width:100%;height:auto}
 <section class="section" id="features" style="background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.02),var(--bg))">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="features.badge">&#128171; Funzionalita</div>
+      <div class="badge" style="margin-bottom:16px" data-i18n="features.badge">Funzionalit&agrave;</div>
       <h2 data-i18n="features.title">Strumenti professionali.<br/>Risultati misurabili.</h2>
       <p data-i18n="features.desc">Tutto quello che ti serve per lavorare meglio — e niente che ti rallenti.</p>
     </div>
@@ -614,10 +613,10 @@ img{max-width:100%;height:auto}
         <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)" data-i18n="tag.auto">Auto</span>
       </div>
       <div class="feature-card animate delay-2">
-        <div class="feature-icon" style="background:rgba(139,92,246,.1)">&#129302;</div>
-        <h3 data-i18n="f3.title">AI Coach</h3>
-        <p data-i18n="f3.desc">Intelligenza artificiale che analizza il profilo e suggerisce un programma personalizzato. In arrivo nei prossimi mesi.</p>
-        <span class="feature-tag" style="background:rgba(139,92,246,.1);color:var(--purple)" data-i18n="tag.soon">In arrivo</span>
+        <div class="feature-icon" style="background:rgba(139,92,246,.1)">&#128190;</div>
+        <h3 data-i18n="f3.title">Backup &amp; export</h3>
+        <p data-i18n="f3.desc">Esportazione JSON completa dei tuoi dati in un click. Non resti mai prigioniero del software: i clienti sono tuoi, i dati sono tuoi.</p>
+        <span class="feature-tag" style="background:rgba(139,92,246,.1);color:var(--purple)" data-i18n="tag.ownership">I dati sono tuoi</span>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(6,182,212,.1)">&#128225;</div>
@@ -634,13 +633,13 @@ img{max-width:100%;height:auto}
       <div class="feature-card animate delay-2">
         <div class="feature-icon" style="background:rgba(236,72,153,.1)">&#128203;</div>
         <h3 data-i18n="f6.title">Report PDF</h3>
-        <p data-i18n="f6.desc">Genera schede professionali stampabili con tutti i dati, test, programma e nutrizione. Impressiona i tuoi clienti.</p>
+        <p data-i18n="f6.desc">Scheda stampabile con tutti i dati del cliente: test, programma 4 settimane, nutrizione. Esporti in PDF e la mandi su WhatsApp.</p>
         <span class="feature-tag" style="background:rgba(236,72,153,.1);color:var(--pink)" data-i18n="tag.pro">Pro</span>
       </div>
       <div class="feature-card animate">
         <div class="feature-icon" style="background:rgba(16,185,129,.1)">&#128200;</div>
         <h3 data-i18n="f7.title">Tracking progressi</h3>
-        <p data-i18n="f7.desc">Grafici peso, BMI, RPE sessioni, durata allenamenti. Mostra ai clienti che stanno migliorando con dati reali.</p>
+        <p data-i18n="f7.desc">Grafici di peso, BMI, RPE e durata sedute nel tempo. Il cliente vede i numeri, non solo sensazioni.</p>
         <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)" data-i18n="tag.core">Core</span>
       </div>
       <div class="feature-card animate delay-1">
@@ -663,9 +662,9 @@ img{max-width:100%;height:auto}
 <section class="section wizard-section" id="wizard">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="wizard.badge">&#127919; La star del prodotto</div>
-      <h2 data-i18n="wizard.title">La valutazione da 20 minuti<br/>che vale 200 euro.</h2>
-      <p data-i18n="wizard.desc">Fino a 9 step guidati che trasformano qualsiasi PT in un professionista clinico. I tuoi competitor usano ancora carta e penna.</p>
+      <div class="badge" style="margin-bottom:16px" data-i18n="wizard.badge">Il cuore del prodotto</div>
+      <h2 data-i18n="wizard.title">Una valutazione seria,<br/>in 20 minuti.</h2>
+      <p data-i18n="wizard.desc">Fino a 9 step guidati con test validati in letteratura: 6MWT, STS, BIA, plicometria, profilo funzionale. I dati escono gi&agrave; pronti per essere inseriti nel programma.</p>
       <p style="margin-top:8px;font-size:15px;color:var(--muted)" data-i18n="wizard.modes">3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</p>
     </div>
     <div class="wizard-grid">
@@ -718,7 +717,7 @@ img{max-width:100%;height:auto}
 <section class="demo-section" id="demo">
   <div class="demo-wrap">
     <div style="text-align:center;margin-bottom:36px" class="animate">
-      <div class="badge" style="margin-bottom:14px" data-i18n="demo.badge">&#9889; Provala ora</div>
+      <div class="badge" style="margin-bottom:14px" data-i18n="demo.badge">Provala ora</div>
       <h2 style="font-size:34px;font-weight:900;color:var(--strong);margin-bottom:10px;letter-spacing:-1px;line-height:1.15" data-i18n="demo.title">Prova la valutazione · gratis, senza account</h2>
       <p style="font-size:15px;color:var(--muted);max-width:520px;margin:0 auto" data-i18n="demo.subtitle">Compila i campi, vedi il risultato calcolato in tempo reale come nell'app vera. Per esportare il PDF basta creare un account.</p>
     </div>
@@ -732,7 +731,7 @@ img{max-width:100%;height:auto}
       </div>
       <!-- STEP 1 -->
       <div class="demo-step" id="demoStep1">
-        <div class="demo-step-title" data-i18n="demo.s1Title">&#128100; Dati cliente</div>
+        <div class="demo-step-title" data-i18n="demo.s1Title">Dati cliente</div>
         <div class="demo-step-sub" data-i18n="demo.s1Sub">Inserisci i dati anagrafici del tuo cliente. BMI e composizione corporea sono calcolati in tempo reale.</div>
         <div class="demo-grid">
           <div class="demo-field"><label data-i18n="demo.fldFirst">Nome</label><input id="demoNome" type="text" placeholder="Sara"/></div>
@@ -757,7 +756,7 @@ img{max-width:100%;height:auto}
       </div>
       <!-- STEP 2 -->
       <div class="demo-step" id="demoStep2" style="display:none">
-        <div class="demo-step-title" data-i18n="demo.s2Title">&#127939; Test funzionali</div>
+        <div class="demo-step-title" data-i18n="demo.s2Title">Test funzionali</div>
         <div class="demo-step-sub" data-i18n="demo.s2Sub">6MWT: cammina pi&ugrave; veloce possibile per 6 minuti, segna la distanza. STS: alzate da seduto in 30 secondi.</div>
         <div class="demo-grid">
           <div class="demo-field full"><label data-i18n="demo.fldMwt">6MWT · Distanza percorsa (m)</label><input id="demoMwt" type="number" min="0" max="900" placeholder="520"/></div>
@@ -776,7 +775,7 @@ img{max-width:100%;height:auto}
       </div>
       <!-- STEP 3 -->
       <div class="demo-step" id="demoStep3" style="display:none">
-        <div class="demo-step-title" data-i18n="demo.s3Title">&#128202; Il tuo risultato</div>
+        <div class="demo-step-title" data-i18n="demo.s3Title">Il tuo risultato</div>
         <div class="demo-step-sub" data-i18n="demo.s3Sub">Profilo fitness calcolato dai dati che hai inserito.</div>
         <div class="demo-result">
           <div class="demo-profile-box" id="demoProfBox">
@@ -829,9 +828,9 @@ img{max-width:100%;height:auto}
 <section class="section pricing-section" id="pricing">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="pricing.badge">&#128176; Prezzi trasparenti</div>
-      <h2 data-i18n="pricing.title">Investi meno di un caffè al giorno<br/>— e gestisci i clienti come non hai mai fatto</h2>
-      <p data-i18n="pricing.desc">Il software che costa meno di una singola seduta con un cliente. E te ne fa gestire centinaia.</p>
+      <div class="badge" style="margin-bottom:16px" data-i18n="pricing.badge">Prezzi</div>
+      <h2 data-i18n="pricing.title">Trasparente.<br/>Senza sorprese in fattura.</h2>
+      <p data-i18n="pricing.desc">Quattro piani, nessun costo nascosto. Paghi quello che vedi, disdici quando vuoi.</p>
     </div>
     <div class="pricing-grid">
       <!-- Trial -->
@@ -848,7 +847,7 @@ img{max-width:100%;height:auto}
           <div class="price-feature yes" data-i18n="price.trial.f3"><span class="icon">&#10003;</span> Calendario appuntamenti</div>
           <div class="price-feature yes" data-i18n="price.trial.f4"><span class="icon">&#10003;</span> Cloud sync</div>
           <div class="price-feature yes" data-i18n="price.trial.f5"><span class="icon">&#10003;</span> Export PDF</div>
-          <div class="price-feature no" data-i18n="price.trial.f6"><span class="icon">&#10007;</span> AI Coach (in arrivo)</div>
+          <div class="price-feature yes" data-i18n="price.trial.f6"><span class="icon">&#10003;</span> Backup &amp; export JSON</div>
         </div>
         <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.trialCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis</a>
       </div>
@@ -868,7 +867,7 @@ img{max-width:100%;height:auto}
           <div class="price-feature yes" data-i18n="price.pro.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
           <div class="price-feature yes" data-i18n="price.pro.f5"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
           <div class="price-feature yes" data-i18n="price.pro.f6"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
-          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
+          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> Backup &amp; export JSON</div>
         </div>
         <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.proMCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Mensile &#8594;</a>
         <div class="price-divider"></div>
@@ -895,7 +894,7 @@ img{max-width:100%;height:auto}
           <div class="price-feature yes" data-i18n="price.pro.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
           <div class="price-feature yes" data-i18n="price.pro.f5"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
           <div class="price-feature yes" data-i18n="price.pro.f6"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
-          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> AI Coach (in arrivo)</div>
+          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> Backup &amp; export JSON</div>
         </div>
         <a href="/?action=register" class="btn btn-primary" style="width:100%" data-i18n="price.proYCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Annuale &#8594;</a>
       </div>
@@ -922,53 +921,29 @@ img{max-width:100%;height:auto}
   </div>
 </section>
 
-<!-- ═══ TESTIMONIALS REALI (CRO: sezione nuova con stelle e citazioni) ═══ -->
+<!-- ═══ PROOF / BUILDER'S STORY ═══ -->
 <section class="section" id="testimonials" style="background:linear-gradient(180deg,var(--bg),rgba(16,185,129,.02),var(--bg))">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px">&#11088; Cosa dicono i PT</div>
-      <h2>Chi lo usa, non torna<br/>pi&ugrave; agli Excel.</h2>
-      <p style="font-size:15px;color:var(--muted)">Feedback reali da Personal Trainer che usano PT Board ogni giorno.</p>
+      <div class="badge" style="margin-bottom:16px" data-i18n="proof.badge">La storia dietro PT Board</div>
+      <h2 data-i18n="proof.title">Costruito da chi capisce<br/>il problema da dentro.</h2>
+      <p style="font-size:15px;color:var(--muted);max-width:640px;margin:0 auto" data-i18n="proof.intro">Mentre studiavo Scienze Motorie, mi rendevo conto di quanto tempo i PT sprecano tra fogli Excel e schede cartacee. PT Board nasce da l&igrave;.</p>
     </div>
     <div class="testimonial-grid">
-      <!-- Testimonial 1 -->
       <div class="testimonial-card animate">
-        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <div class="testimonial-text">"Prima perdevo quasi un'ora per ogni nuovo cliente: anamnesi su carta, Excel per i test, Word per la scheda. Ora in 20 minuti ho gi&agrave; tutto — valutazione, programma e PDF pronto da mandare su WhatsApp."</div>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">M</div>
-          <div>
-            <div class="testimonial-name">Marco V.</div>
-            <div style="font-size:11px;color:var(--yellow)">Beta tester</div>
-            <div class="testimonial-role">PT Freelance &mdash; Milano</div>
-          </div>
-        </div>
+        <div style="font-size:24px;margin-bottom:12px">&#128214;</div>
+        <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t1Title">Base scientifica</h4>
+        <div class="testimonial-text" data-i18n="proof.t1Text">Test validati in letteratura: 6MWT (ERS/ATS 2014), STS (Rikli &amp; Jones), BIA con interpretazioni PhA ed ECW/TBW, formule nutrizionali ISSN 2017. Nessuna ricetta inventata.</div>
       </div>
-      <!-- Testimonial 2 -->
       <div class="testimonial-card animate delay-1">
-        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <div class="testimonial-text">"La sezione BIA integrata mi ha cambiato la vita. Inserisco i dati della bioimpedenziometria e ottengo interpretazioni automatiche che prima dovevo calcolare a mano. I clienti rimangono impressionati."</div>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#10b981,#06b6d4)">S</div>
-          <div>
-            <div class="testimonial-name">Sara L.</div>
-            <div style="font-size:11px;color:var(--yellow)">Beta tester</div>
-            <div class="testimonial-role">PT in palestra &mdash; Roma</div>
-          </div>
-        </div>
+        <div style="font-size:24px;margin-bottom:12px">&#128736;&#65039;</div>
+        <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t2Title">Sviluppo attivo</h4>
+        <div class="testimonial-text" data-i18n="proof.t2Text">PT Board viene aggiornato in modo continuo. Se manca qualcosa di cui hai bisogno, scrivimi: il feedback dei primi utenti pesa tantissimo in questa fase.</div>
       </div>
-      <!-- Testimonial 3 -->
       <div class="testimonial-card animate delay-2">
-        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <div class="testimonial-text">"Gestisco uno studio con altri 2 trainer. Con il piano Team ognuno ha i propri clienti separati, ma siamo tutti sulla stessa piattaforma. A 19,99&#8364;/mese in tre &egrave; ridicolmente conveniente."</div>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#f59e0b,#f97316)">L</div>
-          <div>
-            <div class="testimonial-name">Luca R.</div>
-            <div style="font-size:11px;color:var(--yellow)">Beta tester</div>
-            <div class="testimonial-role">Titolare studio PT &mdash; Torino</div>
-          </div>
-        </div>
+        <div style="font-size:24px;margin-bottom:12px">&#127470;&#127481;</div>
+        <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t3Title">Italiano, davvero</h4>
+        <div class="testimonial-text" data-i18n="proof.t3Text">Non una traduzione di un tool americano. Termini, schede, normativa, Stripe con IVA italiana. Il supporto risponde in italiano, scritto da una persona, non da un bot.</div>
       </div>
     </div>
   </div>
@@ -978,14 +953,14 @@ img{max-width:100%;height:auto}
 <section class="section" id="usecases" style="background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.02),var(--bg))">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="testi.badge">&#128188; Casi d'uso</div>
+      <div class="badge" style="margin-bottom:16px" data-i18n="testi.badge">Casi d'uso</div>
       <h2 data-i18n="testi.title">Per ogni tipo di<br/>Personal Trainer</h2>
     </div>
     <div class="usecase-grid">
       <div class="testimonial-card animate" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
         <div style="font-size:36px;margin-bottom:12px">&#127947;&#65039;</div>
         <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t1Name">PT Freelance</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t1Text">Gestisci i tuoi clienti ovunque, dal telefono. Valutazione in 20 minuti, programmi pronti, email automatiche. Tutto in un'app che costa meno di un caffe al giorno.</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t1Text">Gestisci tutto dal telefono. Valutazione guidata in 20 minuti, programma automatico, promemoria email ai clienti. Funziona offline: la sincronizzazione avviene appena torni online.</div>
         <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t1Tag">Da 9,99&euro;/mese</div>
       </div>
       <div class="testimonial-card animate delay-1" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
@@ -1008,7 +983,7 @@ img{max-width:100%;height:auto}
 <section class="section" id="faq">
   <div class="container">
     <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="faq.badge">&#10068; FAQ</div>
+      <div class="badge" style="margin-bottom:16px" data-i18n="faq.badge">FAQ</div>
       <h2 data-i18n="faq.title">Domande frequenti</h2>
     </div>
     <div class="faq-list">
@@ -1048,8 +1023,8 @@ img{max-width:100%;height:auto}
 <section class="section cta-section">
   <div class="container">
     <div class="cta-box animate">
-      <h2 data-i18n="ctaFinal.title">Pronto a diventare il PT<br/>che tutti vogliono?</h2>
-      <p data-i18n="ctaFinal.desc">Unisciti ai 300+ professionisti che stanno trasformando il loro modo di lavorare. 15 giorni gratis, zero rischi.</p>
+      <h2 data-i18n="ctaFinal.title">Il software che volevi.<br/>Prima che qualcun altro te lo vendesse a 99 euro.</h2>
+      <p data-i18n="ctaFinal.desc">15 giorni gratis. Nessuna carta. Cancelli quando vuoi.</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
         <a href="/?action=register" class="btn btn-primary btn-lg" data-i18n="ctaFinal.primary" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis ora &#8594;</a>
         <a href="#pricing" class="btn btn-ghost btn-lg" data-i18n="ctaFinal.secondary">Vedi i piani</a>
