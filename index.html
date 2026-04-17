@@ -4671,6 +4671,35 @@ footer .center b{color:#3b82f6;font-weight:700}
               ))
             )}
           </div>
+          {/* Razionale scientifico */}
+          {p.programma?.razionale&&(
+            <div style={{background:C.bg,border:'1px solid '+C.blue+'30',borderLeft:'4px solid '+C.blue,borderRadius:10,padding:'14px 16px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                <span style={{fontSize:13}}>📐</span>
+                <span style={{fontSize:12,fontWeight:800,color:C.blue,textTransform:'uppercase',letterSpacing:.5}}>Razionale scientifico</span>
+              </div>
+              {[
+                ['Split',p.programma.razionale.split],
+                ['Durata',p.programma.razionale.durata],
+                ['Frequenza',p.programma.razionale.frequenza],
+                ['Intensità',p.programma.razionale.intensita],
+              ].map(([k,v])=>v?(
+                <div key={k} style={{display:'flex',gap:8,marginBottom:6}}>
+                  <span style={{fontSize:11,fontWeight:700,color:C.muted,minWidth:68,flexShrink:0,paddingTop:1}}>{k}</span>
+                  <span style={{fontSize:12,color:C.text,lineHeight:1.5}}>{v}</span>
+                </div>
+              ):null)}
+              {p.programma.razionale.modulatori&&(
+                <div style={{display:'flex',gap:8,marginBottom:6}}>
+                  <span style={{fontSize:11,fontWeight:700,color:C.orange,minWidth:68,flexShrink:0,paddingTop:1}}>Modulatori</span>
+                  <span style={{fontSize:12,color:C.orange,lineHeight:1.5}}>{p.programma.razionale.modulatori}</span>
+                </div>
+              )}
+              <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid '+C.border2}}>
+                <span style={{fontSize:10,color:C.muted,fontStyle:'italic'}}>{p.programma.razionale.riferimenti||p.programma.riferimenti}</span>
+              </div>
+            </div>
+          )}
           {/* Schede allenamento (accordion) */}
           <div style={{marginTop:20}}>
             <div onClick={()=>setOpenSchede(v=>!v)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
