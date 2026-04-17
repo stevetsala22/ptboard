@@ -6906,12 +6906,12 @@ var applicaModulatori = function(ctx) {
 var chooseDurata = function(profilo, obiettivo, eta, T) {
   var faseLabels = [T.weekAdapt||'Adattamento', T.weekProgress||'Progressione', T.weekPeak||'Picco', T.weekDeload||'Deload'];
   if (profilo === 'A' || obiettivo === 'Riabilitazione' || eta > 70) {
-    return { nSettimane: 4, faseMap: [0,1,2,3], faseLabels: faseLabels };
+    return { nSettimane: 4, faseMap: [0,1,2,3], faseLabels: faseLabels, razionaleDurata: '4 settimane: profilo principiante o condizione che richiede cicli brevi con rivalutazione frequente.' };
   }
   if ((profilo === 'C+' || profilo === 'C') && (obiettivo === 'Aumentare massa' || obiettivo === 'Forza')) {
-    return { nSettimane: 8, faseMap: [0,1,1,2,2,2,2,3], faseLabels: faseLabels };
+    return { nSettimane: 8, faseMap: [0,1,1,2,2,2,2,3], faseLabels: faseLabels, razionaleDurata: '8 settimane: atleta avanzato con obiettivo ipertrofia/forza — ciclo lungo per massimizzare adattamenti neurali e strutturali.' };
   }
-  return { nSettimane: 6, faseMap: [0,1,1,2,2,3], faseLabels: faseLabels };
+  return { nSettimane: 6, faseMap: [0,1,1,2,2,3], faseLabels: faseLabels, razionaleDurata: '6 settimane: ciclo standard evidence-based — sufficiente per adattamenti significativi con deload finale.' };
 };
 
 // ── SCELTA SPLIT (Schoenfeld 2016 – freq≥2×/muscolo/sett per ipertrofia) ──────
@@ -7315,7 +7315,15 @@ var generaProgramma = function(params) {
     precauzioni: precauzioni,
     focusNotes: focusNotesUniq,
     hasWeakness: hasWeakness,
-    riferimenti: 'ACSM Guidelines for Exercise Testing and Prescription (11th ed.) \u00b7 ISSN Position Stand 2017 \u00b7 WHO Physical Activity Guidelines 2020'
+    riferimenti: 'ACSM Guidelines for Exercise Testing and Prescription (11th ed.) \u00b7 ISSN Position Stand 2017 \u00b7 WHO Physical Activity Guidelines 2020',
+    razionale: {
+      split: splitInfo.razionaleSplit,
+      durata: durataInfo.razionaleDurata,
+      frequenza: 'Sedute/sett.: ' + sedute + ' (ACSM 11th ed. — profilo ' + profilo + ', obiettivo ' + obiettivo + ').',
+      intensita: 'RPE target ' + rpeMin + '\u2013' + rpeMax + ', recupero ' + recSec + 's, ' + serieBase + ' serie base (post-modulatori).',
+      modulatori: focusNotesUniq.length > 0 ? focusNotesUniq.join(' \u00b7 ') : null,
+      riferimenti: 'Schoenfeld 2016 (ipertrofia) \u00b7 Schuch 2016 (esercizio e salute mentale) \u00b7 ACSM 11th ed. \u00b7 ISSN 2017'
+    }
   };
 };
 
