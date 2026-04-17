@@ -1010,6 +1010,9 @@ const LANGS={
     gpFocusAnxiety:'Inserire 5 min respirazione/stretching a fine seduta',
     gpFocusSleep:'Volume ridotto per ottimizzare recupero (sonno insufficiente)',
     gpFocusFat:'Focus deficit calorico + volume cardio (FM% alta)',
+    gpFocusStress:'Volume ridotto per stress percepito elevato — priorità recupero',
+    gpFocusSedentario:'Volume iniziale ridotto — adattamento da stile di vita sedentario',
+    gpFocusInfortuni:'Intensità ridotta per infortuni/dolori attivi — progressione conservativa',
     // WizardValutazione — Type selection cards
     wizSelectType:'Seleziona il tipo di valutazione',
     wizSelectDesc:'Scegli in base al tempo disponibile e al livello del cliente',
@@ -1714,6 +1717,9 @@ const LANGS={
     gpFocusAnxiety:'Add 5 min breathing/stretching at end of session',
     gpFocusSleep:'Reduced volume to optimize recovery (insufficient sleep)',
     gpFocusFat:'Focus on caloric deficit + cardio volume (high body fat)',
+    gpFocusStress:'Volume reduced due to high perceived stress — recovery priority',
+    gpFocusSedentario:'Initial volume reduced — adaptation from sedentary lifestyle',
+    gpFocusInfortuni:'Reduced intensity for active injuries/pain — conservative progression',
     // WizardValutazione — Type selection cards
     wizSelectType:'Select assessment type',
     wizSelectDesc:'Choose based on time available and client level',
@@ -2418,6 +2424,9 @@ const LANGS={
     gpFocusAnxiety:'Ajouter 5 min de respiration/étirement en fin de séance',
     gpFocusSleep:'Volume réduit pour optimiser la récupération (sommeil insuffisant)',
     gpFocusFat:'Focus déficit calorique + volume cardio (masse grasse élevée)',
+    gpFocusStress:'Volume réduit pour stress perçu élevé — priorité à la récupération',
+    gpFocusSedentario:'Volume initial réduit — adaptation depuis un mode de vie sédentaire',
+    gpFocusInfortuni:'Intensité réduite pour blessures/douleurs actives — progression conservative',
     // WizardValutazione — Type selection cards
     wizSelectType:"Sélectionner le type d'évaluation",
     wizSelectDesc:'Choisir selon le temps disponible et le niveau du client',
@@ -4004,7 +4013,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     var weekColors=['#3b82f6','#06b6d4','#8b5cf6','#10b981'];
     var weeksHtml=p.programma&&p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w,i){
       var col=weekColors[i%4];
-      var badge=weekBadges[i%4];
+      var badge=w.fase||weekBadges[i%4];
       return '<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid '+col+';border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap"><div style="font-size:22px;font-weight:900;color:'+col+';line-height:1">'+(T.lblWeek||'Settimana')+' '+w.num+'</div><div style="background:'+col+'18;color:'+col+';font-size:9px;font-weight:800;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.8px">'+esc(badge)+'</div></div>'+(w.cardio?'<div style="margin-bottom:6px;font-size:12px;line-height:1.5"><strong style="color:#3b82f6;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfCardio+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.cardio)+'</div></div>':'')+(w.forza?'<div style="margin-bottom:8px;font-size:12px;line-height:1.5"><strong style="color:#10b981;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfForza+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.forza)+'</div></div>':'')+(w.note?'<div style="background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;font-size:11px;color:#92400e;border-radius:0 6px 6px 0">💡 '+esc(w.note)+'</div>':'')+'</div>';
     }).join(''):(
       (p.programma&&p.programma.cardio?'<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid #3b82f6;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:9px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+T.pdfCardio+'</div><div style="font-size:12px;color:#0f172a;line-height:1.5">'+esc(p.programma.cardio)+'</div></div>':'')+
@@ -4639,7 +4648,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 return(<div key={wi} style={{marginBottom:6}}>
                   <div onClick={()=>setExpandedWeek(wi===expandedWeek?null:wi)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:isOpen?C.blue+'10':C.bg,border:'1px solid '+(isOpen?C.blue+'40':C.border2),borderRadius:10,cursor:'pointer'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <span style={{fontSize:13,fontWeight:700,color:isOpen?C.blue:C.strong}}>{T.lblWeek} {w.num} — {wLabels[wi]||''}</span>
+                      <span style={{fontSize:13,fontWeight:700,color:isOpen?C.blue:C.strong}}>{T.lblWeek} {w.num} — {w.fase||wLabels[wi]||''}</span>
                     </div>
                     <span style={{fontSize:12,color:C.muted}}>{isOpen?'▲':'▼'}</span>
                   </div>
@@ -4662,6 +4671,35 @@ footer .center b{color:#3b82f6;font-weight:700}
               ))
             )}
           </div>
+          {/* Razionale scientifico */}
+          {p.programma?.razionale&&(
+            <div style={{background:C.bg,border:'1px solid '+C.blue+'30',borderLeft:'4px solid '+C.blue,borderRadius:10,padding:'14px 16px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                <span style={{fontSize:13}}>📐</span>
+                <span style={{fontSize:12,fontWeight:800,color:C.blue,textTransform:'uppercase',letterSpacing:.5}}>Razionale scientifico</span>
+              </div>
+              {[
+                ['Split',p.programma.razionale.split],
+                ['Durata',p.programma.razionale.durata],
+                ['Frequenza',p.programma.razionale.frequenza],
+                ['Intensità',p.programma.razionale.intensita],
+              ].map(([k,v])=>v?(
+                <div key={k} style={{display:'flex',gap:8,marginBottom:6}}>
+                  <span style={{fontSize:11,fontWeight:700,color:C.muted,minWidth:68,flexShrink:0,paddingTop:1}}>{k}</span>
+                  <span style={{fontSize:12,color:C.text,lineHeight:1.5}}>{v}</span>
+                </div>
+              ):null)}
+              {p.programma.razionale.modulatori&&(
+                <div style={{display:'flex',gap:8,marginBottom:6}}>
+                  <span style={{fontSize:11,fontWeight:700,color:C.orange,minWidth:68,flexShrink:0,paddingTop:1}}>Modulatori</span>
+                  <span style={{fontSize:12,color:C.orange,lineHeight:1.5}}>{p.programma.razionale.modulatori}</span>
+                </div>
+              )}
+              <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid '+C.border2}}>
+                <span style={{fontSize:10,color:C.muted,fontStyle:'italic'}}>{p.programma.razionale.riferimenti||p.programma.riferimenti}</span>
+              </div>
+            </div>
+          )}
           {/* Schede allenamento (accordion) */}
           <div style={{marginTop:20}}>
             <div onClick={()=>setOpenSchede(v=>!v)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:C.card,border:'1px solid '+C.border2,borderRadius:10,cursor:'pointer',marginBottom:8}}>
@@ -4929,7 +4967,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
             var nuoveSchede;
             try {
-              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,infortuni:p.infortuni,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
             } catch(err) {
               console.error('generaSchedaAuto error:',err);
               showToast(T.schedaGenError||'Errore generazione scheda','error');
@@ -6077,6 +6115,8 @@ var generaSchedaAuto = function(params, esercizi) {
   var sesso = params.sesso || 'M';
   var eta = params.eta || 50;
   var patologie = (params.patologie || '').toLowerCase();
+  var infortuni = (params.infortuni || '').toLowerCase();
+  var lesioni = patologie + ' ' + infortuni;
   var equip = params.equip || 'gym';
   var durataSeduta = +params.durataSeduta || 60;
   var TParam = params.T || null;
@@ -6102,6 +6142,13 @@ var generaSchedaAuto = function(params, esercizi) {
   if (obiettivo !== 'Performance' && profilo !== 'C+') {
     esclusiNomi = esclusiNomi.concat(['jump squat','box jump','burpee','jump lunge']);
   }
+  // ── FILTRI INFORTUNI (noLowerPlyo / noOverheadPress / noDeadlift) ──
+  var noLowerPlyo = lesioni.includes('ginocchio') || lesioni.includes('caviglia') || lesioni.includes('menisco') || lesioni.includes('legamento') || lesioni.includes('acl') || lesioni.includes('mcl');
+  var noOverheadPress = lesioni.includes('spalla') || lesioni.includes('cuffia') || lesioni.includes('rotatoria') || lesioni.includes('impingement') || lesioni.includes('lussazione') || lesioni.includes('acromion');
+  var noDeadlift = lesioni.includes('lombal') || lesioni.includes('lombar') || lesioni.includes('schiena') || lesioni.includes('disco') || lesioni.includes('ernia') || lesioni.includes('l4') || lesioni.includes('l5');
+  if (noLowerPlyo) esclusiNomi = esclusiNomi.concat(['jump squat','box jump','jump lunge','plyo','sprint','skipping','corsa veloce']);
+  if (noOverheadPress) esclusiNomi = esclusiNomi.concat(['military press','lento avanti','shoulder press','overhead','push press','alzate frontali']);
+  if (noDeadlift) esclusiNomi = esclusiNomi.concat(['stacco','deadlift','romanian','hip hinge','good morning','back extension']);
 
   // ── LIBRERIA COMPATIBILE: filtra per livello, equip, patologie ──
   var libCompat = esercizi.filter(function(ex) {
@@ -6208,17 +6255,10 @@ var generaSchedaAuto = function(params, esercizi) {
   var ripBase = bigParams.rip;
   var recSec = bigParams.rec;
 
-  // ── DETERMINA SPLIT in base all'obiettivo ──
-  var splitType;
-  if (profilo === 'A') {
-    splitType = 'Full Body'; // sicurezza
-  } else if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
-    splitType = 'Upper / Lower';
-  } else if (obiettivo === 'Performance') {
-    splitType = 'Push / Pull / Legs';
-  } else {
-    splitType = 'Full Body';
-  }
+  // ── DETERMINA SPLIT (usa chooseSplit per coerenza con generaProgramma) ──
+  var seduteProgr = params.programma && params.programma.sedute ? +params.programma.sedute : null;
+  var splitInfo2 = chooseSplit(profilo, obiettivo, seduteProgr, eta);
+  var splitType = splitInfo2.splitType;
 
   // ── HELPER: pick random exercise matching primary/move/cat filters ──
   // Se filters.preferCompound === true, prova prima a pescare tra i soli compound.
@@ -6650,13 +6690,13 @@ var generaSchedaAuto = function(params, esercizi) {
     days = [{name:'Full Body', slots: buildDaySlots('Full Body'), addCardio:true}];
   } else if (splitType === 'Upper / Lower') {
     days = [
-      {name:'Upper A', slots: buildDaySlots('Upper A'), addCardio:false},
+      {name:'Upper A', slots: buildDaySlots('Upper A'), addCardio:true},
       {name:'Lower B', slots: buildDaySlots('Lower B'), addCardio:true}
     ];
   } else {
     days = [
-      {name:'Push', slots: buildDaySlots('Push'), addCardio:false},
-      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:false},
+      {name:'Push', slots: buildDaySlots('Push'), addCardio:true},
+      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:true},
       {name:'Legs', slots: buildDaySlots('Legs'), addCardio:true}
     ];
   }
@@ -6864,6 +6904,85 @@ var trovaAlternative = function(currentEx, equipSched, profiloCode, esercizi, ma
   return alts.slice(0, maxResults || 5);
 };
 
+// ── MODULATORI DI VOLUME (stress, attività, infortuni) ───────────────────────
+// Ritorna { serieBase, rpeMax, recSec } modificati. focusNotes è un array passato per ref.
+var applicaModulatori = function(ctx) {
+  // ctx: { profilo, rpeMin, serieBase, rpeMax, recSec, attivita, stress, infortuni, patologie, T, focusNotes }
+  var serieBase = ctx.serieBase, rpeMax = ctx.rpeMax, recSec = ctx.recSec;
+  // 1. Stress alto/molto alto → volume -1 serie, intensità -1 RPE
+  if (ctx.stress === 'Alto' || ctx.stress === 'Molto alto') {
+    serieBase = Math.max(2, serieBase - 1);
+    rpeMax = Math.max(ctx.rpeMin + 1, rpeMax - 1);
+    ctx.focusNotes.push(ctx.T.gpFocusStress);
+  }
+  // 2. Stile di vita sedentario (solo profili non-A — A già al minimo)
+  if (ctx.attivita === 'Sedentaria' && ctx.profilo !== 'A') {
+    serieBase = Math.max(2, serieBase - 1);
+    ctx.focusNotes.push(ctx.T.gpFocusSedentario);
+  }
+  // 3. Infortuni attivi → intensità -2 RPE, recupero +25%
+  var infortuni = (ctx.infortuni || '').toLowerCase();
+  if (infortuni.length > 2 || ctx.patologie.includes('infortun') || ctx.patologie.includes('tendin') || ctx.patologie.includes('dolore cronico')) {
+    rpeMax = Math.max(ctx.rpeMin + 1, rpeMax - 2);
+    recSec = Math.round(recSec * 1.25);
+    ctx.focusNotes.push(ctx.T.gpFocusInfortuni);
+  }
+  return { serieBase: serieBase, rpeMax: rpeMax, recSec: recSec };
+};
+
+// ── DURATA CICLO (4/6/8 settimane secondo profilo e obiettivo) ───────────────
+// faseMap: ogni settimana → indice nella tabella fasi base [Adatt,Prog,Picco,Deload]
+var chooseDurata = function(profilo, obiettivo, eta, T) {
+  var faseLabels = [T.weekAdapt||'Adattamento', T.weekProgress||'Progressione', T.weekPeak||'Picco', T.weekDeload||'Deload'];
+  if (profilo === 'A' || obiettivo === 'Riabilitazione' || eta > 70) {
+    return { nSettimane: 4, faseMap: [0,1,2,3], faseLabels: faseLabels, razionaleDurata: '4 settimane: profilo principiante o condizione che richiede cicli brevi con rivalutazione frequente.' };
+  }
+  if ((profilo === 'C+' || profilo === 'C') && (obiettivo === 'Aumentare massa' || obiettivo === 'Forza')) {
+    return { nSettimane: 8, faseMap: [0,1,1,2,2,2,2,3], faseLabels: faseLabels, razionaleDurata: '8 settimane: atleta avanzato con obiettivo ipertrofia/forza — ciclo lungo per massimizzare adattamenti neurali e strutturali.' };
+  }
+  return { nSettimane: 6, faseMap: [0,1,1,2,2,3], faseLabels: faseLabels, razionaleDurata: '6 settimane: ciclo standard evidence-based — sufficiente per adattamenti significativi con deload finale.' };
+};
+
+// ── SCELTA SPLIT (Schoenfeld 2016 – freq≥2×/muscolo/sett per ipertrofia) ──────
+var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
+  var sed = seduteDisponibili || 3;
+  var isIpertrofia = obiettivo === 'Aumentare massa' || obiettivo === 'Forza';
+  var isMetabolico = obiettivo === 'Perdere peso' || obiettivo === 'Resistenza' || obiettivo === 'Performance';
+  // Override: sempre Full Body per principianti (A), anziani >70, riabilitazione
+  if (profilo === 'A' || eta > 70 || obiettivo === 'Riabilitazione') {
+    return { splitType: 'Full Body', ripetizioniSettimana: sed, razionaleSplit: 'Full Body: profilo principiante o condizione che richiede lavoro globale ogni seduta.' };
+  }
+  if (sed <= 1) {
+    return { splitType: 'Full Body', ripetizioniSettimana: 1, razionaleSplit: 'Full Body ×1: unica seduta disponibile, massima copertura muscolare per sessione.' };
+  }
+  if (sed === 2) {
+    return { splitType: 'Full Body', ripetizioniSettimana: 2, razionaleSplit: 'Full Body ×2: 2 sedute/sett assicurano frequenza minima ≥2×/muscolo (Schoenfeld 2016).' };
+  }
+  if (sed === 3) {
+    if (isIpertrofia || obiettivo === 'Performance') {
+      return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 3, razionaleSplit: 'PPL ×3: frequenza 1×/muscolo/sett ma volume per seduta elevato; ottimale per ipertrofia con 3 giorni.' };
+    }
+    return { splitType: 'Full Body', ripetizioniSettimana: 3, razionaleSplit: 'Full Body ×3: massima frequenza su ogni distretto, ideale per salute generale e perdita di peso.' };
+  }
+  if (sed === 4) {
+    if (isIpertrofia || isMetabolico) {
+      return { splitType: 'Upper / Lower', ripetizioniSettimana: 2, razionaleSplit: 'Upper/Lower ×2: ogni gruppo muscolare allenato 2×/sett, bilancio ottimale volume-recupero.' };
+    }
+    return { splitType: 'Full Body', ripetizioniSettimana: 4, razionaleSplit: 'Full Body ×4: salute/riabilitazione — continuità di stimolo su tutti i distretti.' };
+  }
+  if (sed === 5) {
+    if (isIpertrofia) {
+      return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 2, razionaleSplit: 'PPL ×2 (5 giorni): PPL + Upper + Lower — ogni muscolo 2×/sett con alto volume totale.' };
+    }
+    return { splitType: 'Upper / Lower', ripetizioniSettimana: 2, razionaleSplit: 'Upper/Lower con giorno cardio extra: 5 sedute per obiettivo metabolico/performance.' };
+  }
+  // sed >= 6
+  if (isIpertrofia) {
+    return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 2, razionaleSplit: 'PPL ×2 (6 giorni): massimo volume settimanale per ipertrofia avanzata.' };
+  }
+  return { splitType: 'Upper / Lower', ripetizioniSettimana: 3, razionaleSplit: 'Upper/Lower ×3 (6 giorni): alta frequenza per performance o composizione corporea avanzata.' };
+};
+
 // ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
 var generaProgramma = function(params) {
   var T = gT();
@@ -6874,6 +6993,8 @@ var generaProgramma = function(params) {
   var patologie = (params.patologie || '').toLowerCase();
   var score = params.score || 50;
   var attivita = params.attivita || 'Sedentaria';
+  var stress = params.stress || 'Medio';
+  var infortuni = params.infortuni || '';
   var seduteDisponibili = params.seduteSettimana ? +params.seduteSettimana : null;
   var testResults = params.testResults || {};
   // ── FREQUENZA (ACSM Guidelines 11th ed.) ──
@@ -7032,16 +7153,8 @@ var generaProgramma = function(params) {
   }
   // ── PART 6: Collegamento forza alla scheda generata ──
   // Sovrascriviamo le forzaDesc: il programma referenzia la scheda, non elenca esercizi generici.
-  var splitLabel;
-  if (profilo === 'A') {
-    splitLabel = 'Full Body';
-  } else if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
-    splitLabel = 'Upper A + Lower B';
-  } else if (obiettivo === 'Performance') {
-    splitLabel = 'Push + Pull + Legs';
-  } else {
-    splitLabel = 'Full Body';
-  }
+  var splitInfo = chooseSplit(profilo, obiettivo, seduteDisponibili, eta);
+  var splitLabel = splitInfo.splitType;
   forzaDesc = [
     'Esegui la scheda generata (' + splitLabel + '). Serie\u00d7Rip come indicato. Carico: inizia al 60% del massimale percepito. Registra RPE e carichi.',
     'Stessa scheda. Aumenta carico del 5% su tutti gli esercizi. Recupero invariato.',
@@ -7157,6 +7270,9 @@ var generaProgramma = function(params) {
       hasWeakness = true;
     }
   }
+  // ── MODULATORI AGGIUNTIVI (stress, attività, infortuni) ──
+  var modResult = applicaModulatori({ profilo: profilo, rpeMin: rpeMin, serieBase: serieBase, rpeMax: rpeMax, recSec: recSec, attivita: attivita, stress: stress, infortuni: infortuni, patologie: patologie, T: T, focusNotes: focusNotes });
+  serieBase = modResult.serieBase; rpeMax = modResult.rpeMax; recSec = modResult.recSec;
 
   // ── PRECAUZIONI PATOLOGIE ──
   var precauzioni = [];
@@ -7172,6 +7288,11 @@ var generaProgramma = function(params) {
   if (eta > 70) precauzioni.push(T.gpPrecOver70);
   if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOver60);
   // ── SETTIMANE ──
+  var durataInfo = chooseDurata(profilo, obiettivo, eta, T);
+  var nSettimane = durataInfo.nSettimane;
+  var faseMap = durataInfo.faseMap;
+  var faseLabels = durataInfo.faseLabels;
+  var gpWeekNotes = [T.gpWeek1Note, T.gpWeek2Note, T.gpWeek3Note, T.gpWeek4Note];
   var settimane = [];
   // Dedup focus notes mantenendo l'ordine di inserimento
   var focusNotesUniq = [];
@@ -7183,12 +7304,10 @@ var generaProgramma = function(params) {
   var breathingNote = (patologie.includes('depressione') || patologie.includes('ansia') || (+testResults.gad7 >= 10))
     ? ' 5 min respirazione diaframmatica a fine seduta.' : '';
   var weaknessNote = hasWeakness ? ' Focus su aree deboli: mantenere tecnica perfetta prima di aumentare carico.' : '';
-  for (var w = 0; w < 4; w++) {
-    var baseNote = w === 0 ? T.gpWeek1Note :
-                   w === 1 ? T.gpWeek2Note :
-                   w === 2 ? T.gpWeek3Note :
-                             T.gpWeek4Note;
-    var weekForza = forzaDesc[w] || forzaDesc[forzaDesc.length - 1];
+  for (var w = 0; w < nSettimane; w++) {
+    var faseIdx = faseMap[w];
+    var baseNote = gpWeekNotes[faseIdx];
+    var weekForza = forzaDesc[faseIdx] || forzaDesc[forzaDesc.length - 1];
     // Aggiungi le note forza extra (lower body, upper body, grip) alla descrizione forza
     if (forzaNoteExtraUniq.length > 0) {
       weekForza = weekForza + ' — ' + forzaNoteExtraUniq.join(' · ');
@@ -7198,7 +7317,8 @@ var generaProgramma = function(params) {
     if (w === 0) extraNote += weaknessNote + (seduteWarning ? ' ' + seduteWarning : '');
     settimane.push({
       num: w + 1,
-      cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
+      fase: faseLabels[faseIdx] || '',
+      cardio: cardioDesc[faseIdx] || cardioDesc[cardioDesc.length - 1],
       forza: weekForza,
       note: baseNote + extraNote
     });
@@ -7219,11 +7339,20 @@ var generaProgramma = function(params) {
     recSec: recSec,
     serieBase: serieBase,
     ripBase: ripBase,
+    nSettimane: nSettimane,
     settimane: settimane,
     precauzioni: precauzioni,
     focusNotes: focusNotesUniq,
     hasWeakness: hasWeakness,
-    riferimenti: 'ACSM Guidelines for Exercise Testing and Prescription (11th ed.) \u00b7 ISSN Position Stand 2017 \u00b7 WHO Physical Activity Guidelines 2020'
+    riferimenti: 'ACSM Guidelines for Exercise Testing and Prescription (11th ed.) \u00b7 ISSN Position Stand 2017 \u00b7 WHO Physical Activity Guidelines 2020',
+    razionale: {
+      split: splitInfo.razionaleSplit,
+      durata: durataInfo.razionaleDurata,
+      frequenza: 'Sedute/sett.: ' + sedute + ' (ACSM 11th ed. — profilo ' + profilo + ', obiettivo ' + obiettivo + ').',
+      intensita: 'RPE target ' + rpeMin + '\u2013' + rpeMax + ', recupero ' + recSec + 's, ' + serieBase + ' serie base (post-modulatori).',
+      modulatori: focusNotesUniq.length > 0 ? focusNotesUniq.join(' \u00b7 ') : null,
+      riferimenti: 'Schoenfeld 2016 (ipertrofia) \u00b7 Schuch 2016 (esercizio e salute mentale) \u00b7 ACSM 11th ed. \u00b7 ISSN 2017'
+    }
   };
 };
 
@@ -7354,7 +7483,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
-  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
+  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
