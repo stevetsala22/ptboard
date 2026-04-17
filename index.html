@@ -6217,17 +6217,10 @@ var generaSchedaAuto = function(params, esercizi) {
   var ripBase = bigParams.rip;
   var recSec = bigParams.rec;
 
-  // ── DETERMINA SPLIT in base all'obiettivo ──
-  var splitType;
-  if (profilo === 'A') {
-    splitType = 'Full Body'; // sicurezza
-  } else if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
-    splitType = 'Upper / Lower';
-  } else if (obiettivo === 'Performance') {
-    splitType = 'Push / Pull / Legs';
-  } else {
-    splitType = 'Full Body';
-  }
+  // ── DETERMINA SPLIT (usa chooseSplit per coerenza con generaProgramma) ──
+  var seduteProgr = params.programma && params.programma.sedute ? +params.programma.sedute : null;
+  var splitInfo2 = chooseSplit(profilo, obiettivo, seduteProgr, eta);
+  var splitType = splitInfo2.splitType;
 
   // ── HELPER: pick random exercise matching primary/move/cat filters ──
   // Se filters.preferCompound === true, prova prima a pescare tra i soli compound.
@@ -6659,13 +6652,13 @@ var generaSchedaAuto = function(params, esercizi) {
     days = [{name:'Full Body', slots: buildDaySlots('Full Body'), addCardio:true}];
   } else if (splitType === 'Upper / Lower') {
     days = [
-      {name:'Upper A', slots: buildDaySlots('Upper A'), addCardio:false},
+      {name:'Upper A', slots: buildDaySlots('Upper A'), addCardio:true},
       {name:'Lower B', slots: buildDaySlots('Lower B'), addCardio:true}
     ];
   } else {
     days = [
-      {name:'Push', slots: buildDaySlots('Push'), addCardio:false},
-      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:false},
+      {name:'Push', slots: buildDaySlots('Push'), addCardio:true},
+      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:true},
       {name:'Legs', slots: buildDaySlots('Legs'), addCardio:true}
     ];
   }
