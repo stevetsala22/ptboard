@@ -6864,6 +6864,46 @@ var trovaAlternative = function(currentEx, equipSched, profiloCode, esercizi, ma
   return alts.slice(0, maxResults || 5);
 };
 
+// ── SCELTA SPLIT (Schoenfeld 2016 – freq≥2×/muscolo/sett per ipertrofia) ──────
+var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
+  var sed = seduteDisponibili || 3;
+  var isIpertrofia = obiettivo === 'Aumentare massa' || obiettivo === 'Forza';
+  var isMetabolico = obiettivo === 'Perdere peso' || obiettivo === 'Resistenza' || obiettivo === 'Performance';
+  // Override: sempre Full Body per principianti (A), anziani >70, riabilitazione
+  if (profilo === 'A' || eta > 70 || obiettivo === 'Riabilitazione') {
+    return { splitType: 'Full Body', ripetizioniSettimana: sed, razionaleSplit: 'Full Body: profilo principiante o condizione che richiede lavoro globale ogni seduta.' };
+  }
+  if (sed <= 1) {
+    return { splitType: 'Full Body', ripetizioniSettimana: 1, razionaleSplit: 'Full Body ×1: unica seduta disponibile, massima copertura muscolare per sessione.' };
+  }
+  if (sed === 2) {
+    return { splitType: 'Full Body', ripetizioniSettimana: 2, razionaleSplit: 'Full Body ×2: 2 sedute/sett assicurano frequenza minima ≥2×/muscolo (Schoenfeld 2016).' };
+  }
+  if (sed === 3) {
+    if (isIpertrofia || obiettivo === 'Performance') {
+      return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 3, razionaleSplit: 'PPL ×3: frequenza 1×/muscolo/sett ma volume per seduta elevato; ottimale per ipertrofia con 3 giorni.' };
+    }
+    return { splitType: 'Full Body', ripetizioniSettimana: 3, razionaleSplit: 'Full Body ×3: massima frequenza su ogni distretto, ideale per salute generale e perdita di peso.' };
+  }
+  if (sed === 4) {
+    if (isIpertrofia || isMetabolico) {
+      return { splitType: 'Upper / Lower', ripetizioniSettimana: 2, razionaleSplit: 'Upper/Lower ×2: ogni gruppo muscolare allenato 2×/sett, bilancio ottimale volume-recupero.' };
+    }
+    return { splitType: 'Full Body', ripetizioniSettimana: 4, razionaleSplit: 'Full Body ×4: salute/riabilitazione — continuità di stimolo su tutti i distretti.' };
+  }
+  if (sed === 5) {
+    if (isIpertrofia) {
+      return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 2, razionaleSplit: 'PPL ×2 (5 giorni): PPL + Upper + Lower — ogni muscolo 2×/sett con alto volume totale.' };
+    }
+    return { splitType: 'Upper / Lower', ripetizioniSettimana: 2, razionaleSplit: 'Upper/Lower con giorno cardio extra: 5 sedute per obiettivo metabolico/performance.' };
+  }
+  // sed >= 6
+  if (isIpertrofia) {
+    return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 2, razionaleSplit: 'PPL ×2 (6 giorni): massimo volume settimanale per ipertrofia avanzata.' };
+  }
+  return { splitType: 'Upper / Lower', ripetizioniSettimana: 3, razionaleSplit: 'Upper/Lower ×3 (6 giorni): alta frequenza per performance o composizione corporea avanzata.' };
+};
+
 // ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
 var generaProgramma = function(params) {
   var T = gT();
@@ -7032,16 +7072,8 @@ var generaProgramma = function(params) {
   }
   // ── PART 6: Collegamento forza alla scheda generata ──
   // Sovrascriviamo le forzaDesc: il programma referenzia la scheda, non elenca esercizi generici.
-  var splitLabel;
-  if (profilo === 'A') {
-    splitLabel = 'Full Body';
-  } else if (obiettivo === 'Aumentare massa' || obiettivo === 'Forza') {
-    splitLabel = 'Upper A + Lower B';
-  } else if (obiettivo === 'Performance') {
-    splitLabel = 'Push + Pull + Legs';
-  } else {
-    splitLabel = 'Full Body';
-  }
+  var splitInfo = chooseSplit(profilo, obiettivo, seduteDisponibili, eta);
+  var splitLabel = splitInfo.splitType;
   forzaDesc = [
     'Esegui la scheda generata (' + splitLabel + '). Serie\u00d7Rip come indicato. Carico: inizia al 60% del massimale percepito. Registra RPE e carichi.',
     'Stessa scheda. Aumenta carico del 5% su tutti gli esercizi. Recupero invariato.',
