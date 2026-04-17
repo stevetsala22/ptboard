@@ -4938,7 +4938,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
             var nuoveSchede;
             try {
-              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,infortuni:p.infortuni,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
             } catch(err) {
               console.error('generaSchedaAuto error:',err);
               showToast(T.schedaGenError||'Errore generazione scheda','error');
@@ -6086,6 +6086,8 @@ var generaSchedaAuto = function(params, esercizi) {
   var sesso = params.sesso || 'M';
   var eta = params.eta || 50;
   var patologie = (params.patologie || '').toLowerCase();
+  var infortuni = (params.infortuni || '').toLowerCase();
+  var lesioni = patologie + ' ' + infortuni;
   var equip = params.equip || 'gym';
   var durataSeduta = +params.durataSeduta || 60;
   var TParam = params.T || null;
@@ -6111,6 +6113,13 @@ var generaSchedaAuto = function(params, esercizi) {
   if (obiettivo !== 'Performance' && profilo !== 'C+') {
     esclusiNomi = esclusiNomi.concat(['jump squat','box jump','burpee','jump lunge']);
   }
+  // ── FILTRI INFORTUNI (noLowerPlyo / noOverheadPress / noDeadlift) ──
+  var noLowerPlyo = lesioni.includes('ginocchio') || lesioni.includes('caviglia') || lesioni.includes('menisco') || lesioni.includes('legamento') || lesioni.includes('acl') || lesioni.includes('mcl');
+  var noOverheadPress = lesioni.includes('spalla') || lesioni.includes('cuffia') || lesioni.includes('rotatoria') || lesioni.includes('impingement') || lesioni.includes('lussazione') || lesioni.includes('acromion');
+  var noDeadlift = lesioni.includes('lombal') || lesioni.includes('lombar') || lesioni.includes('schiena') || lesioni.includes('disco') || lesioni.includes('ernia') || lesioni.includes('l4') || lesioni.includes('l5');
+  if (noLowerPlyo) esclusiNomi = esclusiNomi.concat(['jump squat','box jump','jump lunge','plyo','sprint','skipping','corsa veloce']);
+  if (noOverheadPress) esclusiNomi = esclusiNomi.concat(['military press','lento avanti','shoulder press','overhead','push press','alzate frontali']);
+  if (noDeadlift) esclusiNomi = esclusiNomi.concat(['stacco','deadlift','romanian','hip hinge','good morning','back extension']);
 
   // ── LIBRERIA COMPATIBILE: filtra per livello, equip, patologie ──
   var libCompat = esercizi.filter(function(ex) {
