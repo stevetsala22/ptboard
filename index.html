@@ -1010,6 +1010,9 @@ const LANGS={
     gpFocusAnxiety:'Inserire 5 min respirazione/stretching a fine seduta',
     gpFocusSleep:'Volume ridotto per ottimizzare recupero (sonno insufficiente)',
     gpFocusFat:'Focus deficit calorico + volume cardio (FM% alta)',
+    gpFocusStress:'Volume ridotto per stress percepito elevato — priorità recupero',
+    gpFocusSedentario:'Volume iniziale ridotto — adattamento da stile di vita sedentario',
+    gpFocusInfortuni:'Intensità ridotta per infortuni/dolori attivi — progressione conservativa',
     // WizardValutazione — Type selection cards
     wizSelectType:'Seleziona il tipo di valutazione',
     wizSelectDesc:'Scegli in base al tempo disponibile e al livello del cliente',
@@ -1714,6 +1717,9 @@ const LANGS={
     gpFocusAnxiety:'Add 5 min breathing/stretching at end of session',
     gpFocusSleep:'Reduced volume to optimize recovery (insufficient sleep)',
     gpFocusFat:'Focus on caloric deficit + cardio volume (high body fat)',
+    gpFocusStress:'Volume reduced due to high perceived stress — recovery priority',
+    gpFocusSedentario:'Initial volume reduced — adaptation from sedentary lifestyle',
+    gpFocusInfortuni:'Reduced intensity for active injuries/pain — conservative progression',
     // WizardValutazione — Type selection cards
     wizSelectType:'Select assessment type',
     wizSelectDesc:'Choose based on time available and client level',
@@ -2418,6 +2424,9 @@ const LANGS={
     gpFocusAnxiety:'Ajouter 5 min de respiration/étirement en fin de séance',
     gpFocusSleep:'Volume réduit pour optimiser la récupération (sommeil insuffisant)',
     gpFocusFat:'Focus déficit calorique + volume cardio (masse grasse élevée)',
+    gpFocusStress:'Volume réduit pour stress perçu élevé — priorité à la récupération',
+    gpFocusSedentario:'Volume initial réduit — adaptation depuis un mode de vie sédentaire',
+    gpFocusInfortuni:'Intensité réduite pour blessures/douleurs actives — progression conservative',
     // WizardValutazione — Type selection cards
     wizSelectType:"Sélectionner le type d'évaluation",
     wizSelectDesc:'Choisir selon le temps disponible et le niveau du client',
@@ -6864,6 +6873,32 @@ var trovaAlternative = function(currentEx, equipSched, profiloCode, esercizi, ma
   return alts.slice(0, maxResults || 5);
 };
 
+// ── MODULATORI DI VOLUME (stress, attività, infortuni) ───────────────────────
+// Ritorna { serieBase, rpeMax, recSec } modificati. focusNotes è un array passato per ref.
+var applicaModulatori = function(ctx) {
+  // ctx: { profilo, rpeMin, serieBase, rpeMax, recSec, attivita, stress, infortuni, patologie, T, focusNotes }
+  var serieBase = ctx.serieBase, rpeMax = ctx.rpeMax, recSec = ctx.recSec;
+  // 1. Stress alto/molto alto → volume -1 serie, intensità -1 RPE
+  if (ctx.stress === 'Alto' || ctx.stress === 'Molto alto') {
+    serieBase = Math.max(2, serieBase - 1);
+    rpeMax = Math.max(ctx.rpeMin + 1, rpeMax - 1);
+    ctx.focusNotes.push(ctx.T.gpFocusStress);
+  }
+  // 2. Stile di vita sedentario (solo profili non-A — A già al minimo)
+  if (ctx.attivita === 'Sedentaria' && ctx.profilo !== 'A') {
+    serieBase = Math.max(2, serieBase - 1);
+    ctx.focusNotes.push(ctx.T.gpFocusSedentario);
+  }
+  // 3. Infortuni attivi → intensità -2 RPE, recupero +25%
+  var infortuni = (ctx.infortuni || '').toLowerCase();
+  if (infortuni.length > 2 || ctx.patologie.includes('infortun') || ctx.patologie.includes('tendin') || ctx.patologie.includes('dolore cronico')) {
+    rpeMax = Math.max(ctx.rpeMin + 1, rpeMax - 2);
+    recSec = Math.round(recSec * 1.25);
+    ctx.focusNotes.push(ctx.T.gpFocusInfortuni);
+  }
+  return { serieBase: serieBase, rpeMax: rpeMax, recSec: recSec };
+};
+
 // ── DURATA CICLO (4/6/8 settimane secondo profilo e obiettivo) ───────────────
 // faseMap: ogni settimana → indice nella tabella fasi base [Adatt,Prog,Picco,Deload]
 var chooseDurata = function(profilo, obiettivo, eta, T) {
@@ -6927,6 +6962,8 @@ var generaProgramma = function(params) {
   var patologie = (params.patologie || '').toLowerCase();
   var score = params.score || 50;
   var attivita = params.attivita || 'Sedentaria';
+  var stress = params.stress || 'Medio';
+  var infortuni = params.infortuni || '';
   var seduteDisponibili = params.seduteSettimana ? +params.seduteSettimana : null;
   var testResults = params.testResults || {};
   // ── FREQUENZA (ACSM Guidelines 11th ed.) ──
@@ -7202,6 +7239,9 @@ var generaProgramma = function(params) {
       hasWeakness = true;
     }
   }
+  // ── MODULATORI AGGIUNTIVI (stress, attività, infortuni) ──
+  var modResult = applicaModulatori({ profilo: profilo, rpeMin: rpeMin, serieBase: serieBase, rpeMax: rpeMax, recSec: recSec, attivita: attivita, stress: stress, infortuni: infortuni, patologie: patologie, T: T, focusNotes: focusNotes });
+  serieBase = modResult.serieBase; rpeMax = modResult.rpeMax; recSec = modResult.recSec;
 
   // ── PRECAUZIONI PATOLOGIE ──
   var precauzioni = [];
@@ -7404,7 +7444,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
-  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
+  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
