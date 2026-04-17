@@ -5764,7 +5764,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
 
   const selected=patients.find(p=>p.id===selectedId);
 
-  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
+  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',createdAt:fmtDate()});
 
   const handleSave=useCallback((form)=>{
     const errs=[];
