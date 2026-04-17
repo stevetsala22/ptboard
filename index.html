@@ -4004,7 +4004,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     var weekColors=['#3b82f6','#06b6d4','#8b5cf6','#10b981'];
     var weeksHtml=p.programma&&p.programma.settimane&&p.programma.settimane.length>0?p.programma.settimane.map(function(w,i){
       var col=weekColors[i%4];
-      var badge=weekBadges[i%4];
+      var badge=w.fase||weekBadges[i%4];
       return '<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid '+col+';border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap"><div style="font-size:22px;font-weight:900;color:'+col+';line-height:1">'+(T.lblWeek||'Settimana')+' '+w.num+'</div><div style="background:'+col+'18;color:'+col+';font-size:9px;font-weight:800;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.8px">'+esc(badge)+'</div></div>'+(w.cardio?'<div style="margin-bottom:6px;font-size:12px;line-height:1.5"><strong style="color:#3b82f6;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfCardio+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.cardio)+'</div></div>':'')+(w.forza?'<div style="margin-bottom:8px;font-size:12px;line-height:1.5"><strong style="color:#10b981;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfForza+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.forza)+'</div></div>':'')+(w.note?'<div style="background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;font-size:11px;color:#92400e;border-radius:0 6px 6px 0">💡 '+esc(w.note)+'</div>':'')+'</div>';
     }).join(''):(
       (p.programma&&p.programma.cardio?'<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid #3b82f6;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:9px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+T.pdfCardio+'</div><div style="font-size:12px;color:#0f172a;line-height:1.5">'+esc(p.programma.cardio)+'</div></div>':'')+
@@ -4639,7 +4639,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 return(<div key={wi} style={{marginBottom:6}}>
                   <div onClick={()=>setExpandedWeek(wi===expandedWeek?null:wi)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:isOpen?C.blue+'10':C.bg,border:'1px solid '+(isOpen?C.blue+'40':C.border2),borderRadius:10,cursor:'pointer'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <span style={{fontSize:13,fontWeight:700,color:isOpen?C.blue:C.strong}}>{T.lblWeek} {w.num} — {wLabels[wi]||''}</span>
+                      <span style={{fontSize:13,fontWeight:700,color:isOpen?C.blue:C.strong}}>{T.lblWeek} {w.num} — {w.fase||wLabels[wi]||''}</span>
                     </div>
                     <span style={{fontSize:12,color:C.muted}}>{isOpen?'▲':'▼'}</span>
                   </div>
@@ -6864,6 +6864,19 @@ var trovaAlternative = function(currentEx, equipSched, profiloCode, esercizi, ma
   return alts.slice(0, maxResults || 5);
 };
 
+// ── DURATA CICLO (4/6/8 settimane secondo profilo e obiettivo) ───────────────
+// faseMap: ogni settimana → indice nella tabella fasi base [Adatt,Prog,Picco,Deload]
+var chooseDurata = function(profilo, obiettivo, eta, T) {
+  var faseLabels = [T.weekAdapt||'Adattamento', T.weekProgress||'Progressione', T.weekPeak||'Picco', T.weekDeload||'Deload'];
+  if (profilo === 'A' || obiettivo === 'Riabilitazione' || eta > 70) {
+    return { nSettimane: 4, faseMap: [0,1,2,3], faseLabels: faseLabels };
+  }
+  if ((profilo === 'C+' || profilo === 'C') && (obiettivo === 'Aumentare massa' || obiettivo === 'Forza')) {
+    return { nSettimane: 8, faseMap: [0,1,1,2,2,2,2,3], faseLabels: faseLabels };
+  }
+  return { nSettimane: 6, faseMap: [0,1,1,2,2,3], faseLabels: faseLabels };
+};
+
 // ── SCELTA SPLIT (Schoenfeld 2016 – freq≥2×/muscolo/sett per ipertrofia) ──────
 var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
   var sed = seduteDisponibili || 3;
@@ -7204,6 +7217,11 @@ var generaProgramma = function(params) {
   if (eta > 70) precauzioni.push(T.gpPrecOver70);
   if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOver60);
   // ── SETTIMANE ──
+  var durataInfo = chooseDurata(profilo, obiettivo, eta, T);
+  var nSettimane = durataInfo.nSettimane;
+  var faseMap = durataInfo.faseMap;
+  var faseLabels = durataInfo.faseLabels;
+  var gpWeekNotes = [T.gpWeek1Note, T.gpWeek2Note, T.gpWeek3Note, T.gpWeek4Note];
   var settimane = [];
   // Dedup focus notes mantenendo l'ordine di inserimento
   var focusNotesUniq = [];
@@ -7215,12 +7233,10 @@ var generaProgramma = function(params) {
   var breathingNote = (patologie.includes('depressione') || patologie.includes('ansia') || (+testResults.gad7 >= 10))
     ? ' 5 min respirazione diaframmatica a fine seduta.' : '';
   var weaknessNote = hasWeakness ? ' Focus su aree deboli: mantenere tecnica perfetta prima di aumentare carico.' : '';
-  for (var w = 0; w < 4; w++) {
-    var baseNote = w === 0 ? T.gpWeek1Note :
-                   w === 1 ? T.gpWeek2Note :
-                   w === 2 ? T.gpWeek3Note :
-                             T.gpWeek4Note;
-    var weekForza = forzaDesc[w] || forzaDesc[forzaDesc.length - 1];
+  for (var w = 0; w < nSettimane; w++) {
+    var faseIdx = faseMap[w];
+    var baseNote = gpWeekNotes[faseIdx];
+    var weekForza = forzaDesc[faseIdx] || forzaDesc[forzaDesc.length - 1];
     // Aggiungi le note forza extra (lower body, upper body, grip) alla descrizione forza
     if (forzaNoteExtraUniq.length > 0) {
       weekForza = weekForza + ' — ' + forzaNoteExtraUniq.join(' · ');
@@ -7230,7 +7246,8 @@ var generaProgramma = function(params) {
     if (w === 0) extraNote += weaknessNote + (seduteWarning ? ' ' + seduteWarning : '');
     settimane.push({
       num: w + 1,
-      cardio: cardioDesc[w] || cardioDesc[cardioDesc.length - 1],
+      fase: faseLabels[faseIdx] || '',
+      cardio: cardioDesc[faseIdx] || cardioDesc[cardioDesc.length - 1],
       forza: weekForza,
       note: baseNote + extraNote
     });
@@ -7251,6 +7268,7 @@ var generaProgramma = function(params) {
     recSec: recSec,
     serieBase: serieBase,
     ripBase: ripBase,
+    nSettimane: nSettimane,
     settimane: settimane,
     precauzioni: precauzioni,
     focusNotes: focusNotesUniq,
