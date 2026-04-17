@@ -4294,6 +4294,26 @@ footer .center b{color:#3b82f6;font-weight:700}
               <button onClick={onEdit} style={{background:'#EF9F27',color:'#fff',border:'none',padding:'8px 14px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>Aggiungi sesso</button>
             </div>
           )}
+          {(()=>{
+            var scad=p.screeningMedico?.dataScadenza;
+            if(!scad) return null;
+            var today=new Date().toISOString().split('T')[0];
+            var d30=new Date();d30.setDate(d30.getDate()+30);
+            var d30s=d30.toISOString().split('T')[0];
+            var isExp=scad<today;
+            var isSoon=!isExp&&scad<=d30s;
+            if(!isExp&&!isSoon) return null;
+            return(
+              <div style={{background:isExp?C.red+'10':'#fef3c7',border:'1px solid '+(isExp?C.red:'#f59e0b')+'50',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                <span style={{fontSize:20}}>{isExp?'🔴':'🟠'}</span>
+                <div style={{flex:1,fontSize:13,color:isExp?C.red:'#92400e',lineHeight:1.5}}>
+                  <strong style={{fontWeight:700}}>{isExp?'Certificato medico scaduto':'Certificato medico in scadenza'}</strong><br/>
+                  {isExp?'Il certificato è scaduto il '+scad+'. Richiedere il rinnovo prima della prossima seduta.':'Il certificato scade il '+scad+' (meno di 30 giorni). Programmare il rinnovo.'}
+                </div>
+                <button onClick={onEdit} style={{background:isExp?C.red:'#f59e0b',color:'#fff',border:'none',padding:'8px 14px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>{isExp?'Rinnova':'Controlla'}</button>
+              </div>
+            );
+          })()}
           {/* HERO ROW */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
             {/* Card Peso */}
