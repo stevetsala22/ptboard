@@ -7619,13 +7619,20 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const STEPS_BASE=[1,10,3,4,5,7,8];
   const STEPS_COMPLETA=[1,10,2,3,4,5,6,7,8,9];
   const STEPS_ANA=[1];
-  const stepsArr=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
+  const isRapida=d.modalitaVal==='rapida';
+  const rapideSkip=isRapida?(wizardType==='base'?[3,4,5]:wizardType==='completa'?[2,3,4,5,6]:[]):[];
+  const stepsArrFull=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
+  const stepsArr=rapideSkip.length?stepsArrFull.filter(function(s){return!rapideSkip.includes(s);}):stepsArrFull;
   const TOTAL=stepsArr.length;
-  const stepIdx=stepsArr.indexOf(step);
+  const stepIdx=Math.max(0,stepsArr.indexOf(step));
   const TITLES_BASE=[T.wizStepClinica,T.wizStepScreening,T.wizStep6mwt,T.wizStepSts,T.wizStepPushPlank,T.wizStepRpeNote,T.wizStepClassProg];
   const TITLES_COMPLETA=[T.wizStepClinica,T.wizStepScreening,T.wizStepBia,T.wizStep6mwt,T.wizStepSts,T.wizStepPhysTest,T.wizStepMovQuality,T.wizStepRpeNote,T.wizStepClass,T.wizStepProg4];
   const TITLES_ANA=[T.wizStepClinica];
-  const curTitles=wizardType==='base'?TITLES_BASE:wizardType==='completa'?TITLES_COMPLETA:TITLES_ANA;
+  const curTitlesRaw=wizardType==='base'?TITLES_BASE:wizardType==='completa'?TITLES_COMPLETA:TITLES_ANA;
+  const curTitles=rapideSkip.length?stepsArrFull.map(function(s,i){return{s:s,t:curTitlesRaw[i]};}).filter(function(x){return!rapideSkip.includes(x.s);}).map(function(x){return x.t;}):curTitlesRaw;
+  React.useEffect(function(){
+    if(wizardType&&!stepsArr.includes(step)){setStep(stepsArr[0]||1);}
+  },[d.modalitaVal]);
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
