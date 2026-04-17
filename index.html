@@ -8682,6 +8682,9 @@ footer .center b{color:#3b82f6;font-weight:700}
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note,precauzioni:prog.precauzioni||[],riferimenti:prog.riferimenti||'',serieBase:prog.serieBase,ripBase:prog.ripBase,recSec:prog.recSec,zonaFC:prog.zonaFC||'',rpeRange:prog.rpeRange||'',settimane:prog.settimane||[]}:{},
                 nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:{};})(),
+                screeningMedico:{tipo:d.screenTipo||'',dataRilascio:d.screenDataRilascio||'',dataScadenza:d.screenDataScad||'',medicoRilasciante:d.screenMedico||'',noteCertificato:d.screenNote||''},
+                parqPlus:{q1:d.parqQ1||'NO',q2:d.parqQ2||'NO',q3:d.parqQ3||'NO',q4:d.parqQ4||'NO',q5:d.parqQ5||'NO',q6:d.parqQ6||'NO',q7:d.parqQ7||'NO'},
+                modalitaValutazione:d.modalitaVal||'',
               };
               if(typeof gtag!=='undefined')gtag('event','wizard_complete',{profile:pr.code});
               onSave(p);
