@@ -5797,7 +5797,18 @@ function AppInner({user,profile,setProfile,trialLeft}){
     setSyncing(true);
     fbLoad(user.uid).then(remote=>{
       if(remote&&remote.dataVersion>=4){
-        if(remote.patients?.length) setPatients(remote.patients);
+        if(remote.patients?.length){
+          var pNeedHydrate=false;
+          var pHydrated=remote.patients.map(function(pat){
+            var hp=Object.assign({},pat);
+            if(!hp.screeningMedico){hp.screeningMedico={tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''};pNeedHydrate=true;}
+            if(!hp.parqPlus){hp.parqPlus={q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'};pNeedHydrate=true;}
+            if(hp.modalitaValutazione===undefined){hp.modalitaValutazione='';pNeedHydrate=true;}
+            return hp;
+          });
+          setPatients(pHydrated);
+          if(pNeedHydrate){var hData=Object.assign({},remote,{patients:pHydrated});save(hData);fbSave(user.uid,hData);}
+        }
         if(remote.bookings) setBookings(remote.bookings);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
         // Aggiorna libreria esercizi: aggiungi nuovi esercizi di default senza toccare quelli esistenti
