@@ -4210,6 +4210,15 @@ footer .center b{color:#3b82f6;font-weight:700}
 
       {tab==='panoramica'&&(
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {(!p.sesso||p.sesso==='')&&(
+            <div style={{background:'#FAEEDA',border:'1px solid #EF9F27',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+              <div style={{fontSize:13,color:'#633806',lineHeight:1.5}}>
+                <strong style={{fontWeight:700,color:'#854F0B'}}>Campo sesso mancante</strong><br/>
+                Il cliente è stato creato senza indicare il sesso. Questo influenza il calcolo dello score e delle norme (6MWT, STS, push-up, handgrip) e della nutrizione. Modificare il profilo e rigenerare il programma.
+              </div>
+              <button onClick={onEdit} style={{background:'#EF9F27',color:'#fff',border:'none',padding:'8px 14px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>Aggiungi sesso</button>
+            </div>
+          )}
           {/* HERO ROW */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
             {/* Card Peso */}
@@ -8471,7 +8480,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             }} style={S.btn()}>{T.wNext}</button><span className="tp">{T.wizNextTooltip}</span></div>}
             {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
               if(!d.nome.trim()||!d.cognome.trim()){showToast(T.wizErrIncomplete,'error');return;}
-              var p={nome:d.nome,cognome:d.cognome,ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
+              var p={nome:d.nome,cognome:d.cognome,sesso:d.sesso||'',ddn:d.ddn,annoNascita:annoNascita||'',altezza:d.altezza,peso:d.peso,vita:d.vita,fianchi:d.fianchi||'',pa:d.pa,fc:d.fc,spo2:d.spo2||'',torace:d.torace||'',braccio:d.braccio||'',coscia:d.coscia||'',polpaccio:d.polpaccio||'',email:d.email||'',telefono:d.telefono||'',professione:d.professione||'',attvLavorativa:d.attvLavorativa||'',contEmerg:d.contEmerg||'',medicoBase:d.medicoBase||'',patologie:d.patologie,farmaci:d.farmaci,allergie:d.allergie||'',familiarita:d.familiarita||'NO',gravidanza:d.gravidanza||'NO',fumo:d.fumo||'Non fumatore',alcol:d.alcol||'Mai',sintomiSforzo:d.sintomiSforzo,parq:d.parq||'NO',invioMedico:d.invioMedico||'NO',consenso:d.consenso||'NO',attivita:d.attivita,attivitaTipi:d.attivitaTipi||'',esperienzaAnni:d.esperienzaAnni||'0',esperienzaLiv:d.esperienzaLiv||'Principiante',attivitaPiace:d.attivitaPiace||'',infortuni:d.infortuni||'',obiettivo:d.obiettivo,orizzonte:d.orizzonte||'3 mesi',seduteSettimana:d.seduteSettimana||'3',durataSeduta:d.durataSeduta||'60 min',preferenze:'',stressPercepito:d.stress||'Medio',sonno:d.sonno||'7',motivazione:d.motivazione||'7',posturaColonna:d.posturaColonna||'Normale',posturaSpalle:d.posturaSpalle||'Normale',mobCaviglia:d.mobCaviglia||'Normale',mobAnca:d.mobAnca||'Normale',sitReach:d.sitReach||'',notePostura:d.notePostura||'',dataValutazione:fmtDate(),
                 bia:{R:d.biaR,Xc:d.biaXc,BMR:d.biaBMR,PhA:d.biaPhA||(d.biaR&&d.biaXc?(Math.atan(+d.biaXc/+d.biaR)*(180/Math.PI)).toFixed(2):''),TBW:d.biaTBW,FFM:d.biaFFM,FM:d.biaFM,BCM:d.biaBCM,ECW:d.biaECW},
                 test:{mwtDist:d.mwtDist,mwtRpe:d.mwtRpe,mwtSintomi:d.mwtSintomi,stsRip:d.stsRip,stsNote:d.stsNote,noteVal:d.noteVal,
                   pushupRip:d.pushupRip,pushupNote:d.pushupNote,plankSec:d.plankSec,squatRip:d.squatRip,squatNote:d.squatNote,
