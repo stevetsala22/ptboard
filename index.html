@@ -4454,6 +4454,15 @@ footer .center b{color:#3b82f6;font-weight:700}
                     </div>
                   </div>
                 ))}
+                {p.obiettivoStrutturato && (p.obiettivoStrutturato.pesoTarget || p.obiettivoStrutturato.rmTarget || p.obiettivoStrutturato.eventoTarget) && (
+                  <div style={S.card}>
+                    <div style={{fontSize:11,color:'#6B7280',letterSpacing:'0.5px',fontWeight:500,marginBottom:6,textTransform:'uppercase'}}>Dettagli Obiettivo</div>
+                    {p.obiettivoStrutturato.pesoTarget && <div style={{fontSize:13,color:C.text}}>Peso target: <strong>{p.obiettivoStrutturato.pesoTarget} kg</strong> in {p.obiettivoStrutturato.tempoMesi} mesi</div>}
+                    {p.obiettivoStrutturato.rmTarget && <div style={{fontSize:13,color:C.text}}>{p.obiettivoStrutturato.esercizioTarget}: <strong>{p.obiettivoStrutturato.rmAttuale} → {p.obiettivoStrutturato.rmTarget} kg</strong> in {p.obiettivoStrutturato.tempoMesi} mesi</div>}
+                    {p.obiettivoStrutturato.eventoTarget && <div style={{fontSize:13,color:C.text}}>Evento: <strong>{p.obiettivoStrutturato.eventoTarget}</strong> ({p.obiettivoStrutturato.dataEvento})</div>}
+                    {p.obiettivoStrutturato.tassoAttesoSettimana > 0 && <div style={{fontSize:12,color:'#6B7280',marginTop:4}}>Tasso atteso: {p.obiettivoStrutturato.tassoAttesoSettimana.toFixed(2)}/sett · Kcal delta: {p.obiettivoStrutturato.kcalTargetCalcolato}/die</div>}
+                  </div>
+                )}
               </div>
             </div>
           )}
