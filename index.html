@@ -2958,6 +2958,8 @@ const calcNutrizione=(p)=>{
   var obInfo=obiettivoMap[p.obiettivo]||{molt:1.0,note:T.nutObBenNote};
   var molt=obInfo.molt;
   var kcal=Math.round(tdee*molt);
+  // Se obiettivoStrutturato ha kcalTargetCalcolato (da calcolaObiettivoMetrics), sostituisce moltiplicatore fisso
+  if(p.obiettivoStrutturato&&p.obiettivoStrutturato.kcalTargetCalcolato&&p.obiettivoStrutturato.kcalTargetCalcolato!==0){kcal=Math.round(tdee+p.obiettivoStrutturato.kcalTargetCalcolato);}
   if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')kcal=Math.round(kcal*1.05);
   // Cap sul deficit: mai sotto BMR * 1.2
   if(kcal<bmr*1.2)kcal=Math.round(bmr*1.2);
@@ -4314,6 +4316,31 @@ footer .center b{color:#3b82f6;font-weight:700}
               </div>
             );
           })()}
+          {/* Off-track alert */}
+          {(function(){
+            var os=p.obiettivoStrutturato;
+            if(!os||!os.tassoAttesoSettimana)return null;
+            if(!p.progressi||p.progressi.length<2)return null;
+            var sorted=[...p.progressi].sort(function(a,b){return new Date(a.data)-new Date(b.data);});
+            var primo=sorted[0];var ultimo=sorted[sorted.length-1];
+            var settimane=Math.ceil((new Date(ultimo.data)-new Date(primo.data))/(1000*60*60*24*7));
+            if(settimane<2)return null;
+            var deltaOsservato=(parseFloat(ultimo.peso)-parseFloat(primo.peso))/settimane;
+            var atteso=os.tassoAttesoSettimana;
+            var ratio=Math.abs(atteso)>0?Math.abs(deltaOsservato)/Math.abs(atteso):1;
+            if(ratio>=0.8&&ratio<=1.2)return null;
+            var offTrack=ratio<0.8?'sotto':'sopra';
+            return(
+              <div style={{background:'#fef3c7',border:'1px solid #f59e0b50',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
+                <span style={{fontSize:20}}>📊</span>
+                <div style={{flex:1,fontSize:13,color:'#92400e',lineHeight:1.5}}>
+                  <strong style={{fontWeight:700,color:'#854F0B'}}>Progresso {offTrack} le attese</strong><br/>
+                  Osservato: {deltaOsservato.toFixed(2)} kg/sett · Atteso: {atteso.toFixed(2)} kg/sett ({Math.round(ratio*100)}% del target).<br/>
+                  {offTrack==='sotto'?'Considera aggiustamento kcal o aumento volume allenamento.':'Verifica ritenzione idrica o monitora composizione corporea.'}
+                </div>
+              </div>
+            );
+          })()}
           {/* HERO ROW */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
             {/* Card Peso */}
@@ -4427,6 +4454,15 @@ footer .center b{color:#3b82f6;font-weight:700}
                     </div>
                   </div>
                 ))}
+                {p.obiettivoStrutturato && (p.obiettivoStrutturato.pesoTarget || p.obiettivoStrutturato.rmTarget || p.obiettivoStrutturato.eventoTarget) && (
+                  <div style={S.card}>
+                    <div style={{fontSize:11,color:'#6B7280',letterSpacing:'0.5px',fontWeight:500,marginBottom:6,textTransform:'uppercase'}}>Dettagli Obiettivo</div>
+                    {p.obiettivoStrutturato.pesoTarget && <div style={{fontSize:13,color:C.text}}>Peso target: <strong>{p.obiettivoStrutturato.pesoTarget} kg</strong> in {p.obiettivoStrutturato.tempoMesi} mesi</div>}
+                    {p.obiettivoStrutturato.rmTarget && <div style={{fontSize:13,color:C.text}}>{p.obiettivoStrutturato.esercizioTarget}: <strong>{p.obiettivoStrutturato.rmAttuale} → {p.obiettivoStrutturato.rmTarget} kg</strong> in {p.obiettivoStrutturato.tempoMesi} mesi</div>}
+                    {p.obiettivoStrutturato.eventoTarget && <div style={{fontSize:13,color:C.text}}>Evento: <strong>{p.obiettivoStrutturato.eventoTarget}</strong> ({p.obiettivoStrutturato.dataEvento})</div>}
+                    {p.obiettivoStrutturato.tassoAttesoSettimana > 0 && <div style={{fontSize:12,color:'#6B7280',marginTop:4}}>Tasso atteso: {p.obiettivoStrutturato.tassoAttesoSettimana.toFixed(2)}/sett · Kcal delta: {p.obiettivoStrutturato.kcalTargetCalcolato}/die</div>}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -5804,6 +5840,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
             if(!hp.screeningMedico){hp.screeningMedico={tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''};pNeedHydrate=true;}
             if(!hp.parqPlus){hp.parqPlus={q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'};pNeedHydrate=true;}
             if(hp.modalitaValutazione===undefined){hp.modalitaValutazione='';pNeedHydrate=true;}
+            if(!hp.obiettivoStrutturato){hp.obiettivoStrutturato={pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0};pNeedHydrate=true;}
             return hp;
           });
           setPatients(pHydrated);
@@ -5870,7 +5907,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
 
   const selected=patients.find(p=>p.id===selectedId);
 
-  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',createdAt:fmtDate()});
+  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',obiettivoStrutturato:{pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0},createdAt:fmtDate()});
 
   const handleSave=useCallback((form)=>{
     const errs=[];
@@ -7098,6 +7135,75 @@ var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
   return { splitType: 'Upper / Lower', ripetizioniSettimana: 3, razionaleSplit: 'Upper/Lower ×3 (6 giorni): alta frequenza per performance o composizione corporea avanzata.' };
 };
 
+// ── CALCOLA METRICHE OBIETTIVO STRUTTURATO ───────────────────────────────────
+function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
+  var result={livello:'green',messaggio:'',tassoAttesoSettimana:0,kcalDelta:0,durataProgrammaMesi:0,progressioneRmPct:0};
+  if(!obiettivo)return result;
+  var peso=parseFloat(pesoAttuale)||70;
+  var os=dati||{};
+
+  if(obiettivo==='Perdere peso'){
+    var target=parseFloat(os.pesoTarget);
+    var mesi=parseFloat(os.tempoMesi);
+    if(!target||!mesi||target>=peso)return result;
+    var kgDaPerdere=peso-target;
+    var tassoSett=kgDaPerdere/(mesi*4.33);
+    var pctSett=(tassoSett/peso)*100;
+    result.tassoAttesoSettimana=tassoSett;
+    result.durataProgrammaMesi=mesi;
+    result.kcalDelta=-Math.round((kgDaPerdere*7700)/(mesi*30));
+    if(pctSett>1.5){result.livello='red';result.messaggio='Ritmo '+pctSett.toFixed(1)+'%/sett fuori range fisiologico. Rischio grave perdita massa magra e rebound. Letteratura: max 1%/sett (ACSM).';}
+    else if(pctSett>1){result.livello='yellow';result.messaggio='Ritmo '+pctSett.toFixed(1)+'%/sett aggressivo. Ottimale 0.5-1%/sett per preservare massa magra.';}
+    else{result.messaggio='Target '+tassoSett.toFixed(2)+' kg/sett ('+Math.abs(result.kcalDelta)+' kcal/die deficit). Range fisiologico.';}
+  }
+  else if(obiettivo==='Aumentare massa'){
+    var target=parseFloat(os.pesoTarget);
+    var mesi=parseFloat(os.tempoMesi);
+    if(!target||!mesi||target<=peso)return result;
+    var kgDaPrendere=target-peso;
+    var kgMese=kgDaPrendere/mesi;
+    var tassoSett=kgMese/4.33;
+    result.tassoAttesoSettimana=tassoSett;
+    result.durataProgrammaMesi=mesi;
+    result.kcalDelta=Math.round((kgDaPrendere*5500)/(mesi*30));
+    if(kgMese>2.5){result.livello='red';result.messaggio='+'+kgMese.toFixed(1)+' kg/mese oltre limite sintesi proteica (max 2 kg/mese anche in principianti). Quasi tutto sarebbe grasso.';}
+    else if(kgMese>1.5){result.livello='yellow';result.messaggio='+'+kgMese.toFixed(1)+' kg/mese aggressivo. Realistico solo in principianti con surplus aggressivo. Rischio accumulo grasso.';}
+    else{result.messaggio='Target +'+tassoSett.toFixed(2)+' kg/sett (+'+result.kcalDelta+' kcal/die). Range fisiologico.';}
+  }
+  else if(obiettivo==='Forza'){
+    var rmAtt=parseFloat(os.rmAttuale);
+    var rmTgt=parseFloat(os.rmTarget);
+    var mesi=parseFloat(os.tempoMesi);
+    if(!rmAtt||!rmTgt||!mesi||rmTgt<=rmAtt)return result;
+    var pctIncr=((rmTgt-rmAtt)/rmAtt)*100;
+    var pctPerMese=pctIncr/mesi;
+    result.progressioneRmPct=pctIncr;
+    result.durataProgrammaMesi=mesi;
+    if(pctPerMese>15){result.livello='red';result.messaggio='+'+pctIncr.toFixed(0)+'% in '+mesi+' mesi non realistico. Anche principianti raramente oltre 10-15%/mese nei primi 3 mesi.';}
+    else if(pctPerMese>10){result.livello='yellow';result.messaggio='+'+pctIncr.toFixed(0)+'% in '+mesi+' mesi aggressivo. Monitorare DOMS e recupero stretto.';}
+    else{result.messaggio='Progressione +'+pctIncr.toFixed(0)+'% in '+mesi+' mesi. Range realistico.';}
+  }
+  else if(obiettivo==='Performance'){
+    var dataEv=os.dataEvento?new Date(os.dataEvento):null;
+    if(!dataEv)return result;
+    var oggi=new Date();
+    var settimane=Math.ceil((dataEv-oggi)/(1000*60*60*24*7));
+    result.durataProgrammaMesi=Math.ceil(settimane/4.33);
+    if(settimane<4){result.livello='red';result.messaggio=settimane+' sett. all\'evento, finestra troppo stretta per adattamenti sostanziali. Solo mantenimento + tapering possibile.';}
+    else if(settimane<8){result.livello='yellow';result.messaggio=settimane+' sett. all\'evento, finestra breve. Focus su specifico gara + tapering, adattamenti limitati.';}
+    else{result.messaggio=settimane+' sett. a disposizione. Periodizzazione inversa: base → soglia → specifico → tapering.';}
+  }
+  else if(obiettivo==='Riabilitazione'){
+    var mesi=parseFloat(os.tempoMesi)||3;
+    result.durataProgrammaMesi=Math.max(2,mesi);
+    result.messaggio='Riabilitazione in '+mesi+' mesi. Durata programma minimo 8 sett per ciclo, progressione graduale.';
+  }
+  else if(os.noteObiettivo){
+    result.messaggio='Obiettivo qualitativo: '+os.noteObiettivo;
+  }
+  return result;
+}
+
 // ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
 var generaProgramma = function(params) {
   var T = gT();
@@ -7112,6 +7218,7 @@ var generaProgramma = function(params) {
   var infortuni = params.infortuni || '';
   var seduteDisponibili = params.seduteSettimana ? +params.seduteSettimana : null;
   var testResults = params.testResults || {};
+  var obiettivoStrutturato = params.obiettivoStrutturato || {};
   // ── FREQUENZA (ACSM Guidelines 11th ed.) ──
   var sedute, minCardio, minForza;
   if (profilo === 'A') { sedute = 3; minCardio = 75; minForza = 40; }
@@ -7404,6 +7511,14 @@ var generaProgramma = function(params) {
   if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOver60);
   // ── SETTIMANE ──
   var durataInfo = chooseDurata(profilo, obiettivo, eta, T);
+  // Override durata se obiettivoStrutturato ha durataProgrammaMesi calcolato
+  if(obiettivoStrutturato.durataProgrammaMesi&&+obiettivoStrutturato.durataProgrammaMesi>0){
+    var _durMesi=+obiettivoStrutturato.durataProgrammaMesi;
+    var _durSett=Math.max(6,Math.round(_durMesi*4.33));
+    var _faseMap=[];
+    for(var _i=0;_i<_durSett;_i++){var _pct=_i/_durSett;if(_pct<0.2)_faseMap.push(0);else if(_pct<0.6)_faseMap.push(1);else if(_pct<0.85)_faseMap.push(2);else _faseMap.push(3);}
+    durataInfo={nSettimane:_durSett,faseMap:_faseMap,faseLabels:durataInfo.faseLabels,razionaleDurata:'Durata calibrata sull\'obiettivo strutturato: '+_durMesi+' mesi ('+_durSett+' settimane). '+durataInfo.razionaleDurata};
+  }
   var nSettimane = durataInfo.nSettimane;
   var faseMap = durataInfo.faseMap;
   var faseLabels = durataInfo.faseLabels;
@@ -7466,6 +7581,14 @@ var generaProgramma = function(params) {
       frequenza: 'Sedute/sett.: ' + sedute + ' (ACSM 11th ed. — profilo ' + profilo + ', obiettivo ' + obiettivo + ').',
       intensita: 'RPE target ' + rpeMin + '\u2013' + rpeMax + ', recupero ' + recSec + 's, ' + serieBase + ' serie base (post-modulatori).',
       modulatori: focusNotesUniq.length > 0 ? focusNotesUniq.join(' \u00b7 ') : null,
+      obiettivoDettaglio:(function(){
+        var os=obiettivoStrutturato;
+        if(!os||(!os.pesoTarget&&!os.rmTarget&&!os.eventoTarget))return null;
+        if(os.pesoTarget&&os.tempoMesi)return'Obiettivo → '+obiettivo+': target '+os.pesoTarget+' kg in '+os.tempoMesi+' mesi. Strategia → '+(os.kcalTargetCalcolato?Math.abs(os.kcalTargetCalcolato)+' kcal/die '+(os.kcalTargetCalcolato<0?'deficit':'surplus')+' · ':'')+''+(os.tassoAttesoSettimana?os.tassoAttesoSettimana.toFixed(2)+' kg/sett':'');
+        if(os.rmTarget&&os.rmAttuale){var _incr=(+os.rmTarget-+os.rmAttuale)/((+os.durataProgrammaMesi||3)*4.33);return'Obiettivo → Forza '+(os.esercizioTarget||'')+ ': '+os.rmAttuale+' → '+os.rmTarget+' kg in '+os.tempoMesi+' mesi. Progressione → +'+_incr.toFixed(1)+' kg/sett.';}
+        if(os.eventoTarget)return'Obiettivo → Performance: '+os.eventoTarget+' ('+os.dataEvento+'). '+durataInfo.nSettimane+' sett. a disposizione.';
+        return null;
+      })(),
       riferimenti: 'Schoenfeld 2016 (ipertrofia) \u00b7 Schuch 2016 (esercizio e salute mentale) \u00b7 ACSM 11th ed. \u00b7 ISSN 2017'
     }
   };
@@ -7590,6 +7713,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     parqQ5:initialData?.parqPlus?.q5||'NO',parqQ6:initialData?.parqPlus?.q6||'NO',
     parqQ7:initialData?.parqPlus?.q7||'NO',
     modalitaVal:initialData?.modalitaValutazione||'',
+    obiettivoStrutturato:initialData?.obiettivoStrutturato||{pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0},
   });
   // Stima automatica: tracciamo quali campi sono stati riempiti via stima
   const [stimati,setStimati]=useState({});
@@ -7608,7 +7732,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
-  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
+  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,obiettivoStrutturato:d.obiettivoStrutturato,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
@@ -8016,6 +8140,68 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizSeduteSett} name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
                 <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
               </div>
+              {d.obiettivo&&(function(){
+                var metrics=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso);
+                var os=d.obiettivoStrutturato||{};
+                var updOs=function(k){return function(val){setD(function(x){return{...x,obiettivoStrutturato:{...x.obiettivoStrutturato,[k]:val}};});};};
+                var WizInOs=function(props){return <WizIn {...props} onChange={function(e){updOs(props.name)(e.target.value);}}/>;};
+                return(
+                  <div style={{background:C.bg,borderRadius:12,padding:'14px 16px',marginTop:12,border:'1px solid '+C.border2}}>
+                    <div style={{fontSize:11,color:C.muted,letterSpacing:'0.5px',marginBottom:10,fontWeight:600,textTransform:'uppercase'}}>Dettagli obiettivo</div>
+                    {(d.obiettivo==='Perdere peso'||d.obiettivo==='Aumentare massa')&&(
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <WizInOs lbl="Peso target (kg)" name="pesoTarget" val={os.pesoTarget} type="number"/>
+                        <WizInOs lbl="Entro quanto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                      </div>
+                    )}
+                    {d.obiettivo==='Forza'&&<>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <WizInOs lbl="Esercizio target" name="esercizioTarget" val={os.esercizioTarget} opts={[{v:'',l:'Seleziona...'},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco',l:'Stacco'},{v:'Military press',l:'Military press'},{v:'Altro',l:'Altro'}]}/>
+                        <WizInOs lbl="Entro quanto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <WizInOs lbl="1RM attuale (kg)" name="rmAttuale" val={os.rmAttuale} type="number"/>
+                        <WizInOs lbl="1RM target (kg)" name="rmTarget" val={os.rmTarget} type="number"/>
+                      </div>
+                    </>}
+                    {d.obiettivo==='Performance'&&<>
+                      <WizInOs lbl="Evento / gara" name="eventoTarget" val={os.eventoTarget}/>
+                      <WizInOs lbl="Data evento" name="dataEvento" val={os.dataEvento} type="date"/>
+                    </>}
+                    {d.obiettivo==='Riabilitazione'&&<>
+                      <WizInOs lbl="Area / infortunio" name="obiettivoFunzionale" val={os.obiettivoFunzionale}/>
+                      <WizInOs lbl="Obiettivo funzionale (es. ROM completa)" name="noteObiettivo" val={os.noteObiettivo}/>
+                      <WizInOs lbl="Tempo previsto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                    </>}
+                    {(d.obiettivo==='Salute'||d.obiettivo==='Benessere'||d.obiettivo==='Resistenza')&&(
+                      <WizInOs lbl="Descrivi l'obiettivo" name="noteObiettivo" val={os.noteObiettivo}/>
+                    )}
+                    {metrics.messaggio&&(
+                      <div style={{
+                        background:metrics.livello==='red'?C.red+'10':metrics.livello==='yellow'?'#fef3c7':C.green+'10',
+                        border:'1px solid '+(metrics.livello==='red'?C.red:metrics.livello==='yellow'?'#f59e0b':C.green)+'40',
+                        borderRadius:8,padding:'10px 14px',marginTop:10,fontSize:13,
+                        color:metrics.livello==='red'?C.red:metrics.livello==='yellow'?'#92400e':C.green,
+                        lineHeight:1.5
+                      }}>
+                        <div style={{fontSize:10,fontWeight:700,letterSpacing:'0.5px',marginBottom:4,textTransform:'uppercase'}}>
+                          {metrics.livello==='red'?'Obiettivo non realistico':metrics.livello==='yellow'?'Obiettivo aggressivo':'Obiettivo realistico'}
+                        </div>
+                        {metrics.messaggio}
+                        {metrics.livello==='red'&&!os.warningAccettato&&(
+                          <button type="button" onClick={function(){setD(function(x){return{...x,obiettivoStrutturato:{...x.obiettivoStrutturato,warningAccettato:true}};});}}
+                            style={{marginTop:8,display:'block',padding:'6px 12px',background:'transparent',border:'1px solid '+C.red+'60',color:C.red,borderRadius:6,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+                            Confermo e procedo sotto mia responsabilità
+                          </button>
+                        )}
+                        {metrics.livello==='red'&&os.warningAccettato&&(
+                          <div style={{marginTop:6,fontSize:11,color:C.muted,fontStyle:'italic'}}>✓ Warning accettato</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </WizSection>
 
           </div>}
@@ -8706,6 +8892,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{T.wPrev}</button><span className="tp">{T.wizPrevTooltip}</span></div>}
             {stepIdx<TOTAL-1&&<div className="tt"><button onClick={function(){
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){showToast(T.wizErrNomeCogn,'error');return;}
+              if(step===1&&d.obiettivo){var _m=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso);if(_m.livello==='red'&&!(d.obiettivoStrutturato||{}).warningAccettato){showToast('Obiettivo non realistico — conferma il warning prima di procedere','error');return;}}
               setStep(stepsArr[stepIdx+1]);
             }} style={S.btn()}>{T.wNext}</button><span className="tp">{T.wizNextTooltip}</span></div>}
             {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
@@ -8723,6 +8910,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 screeningMedico:{tipo:d.screenTipo||'',dataRilascio:d.screenDataRilascio||'',dataScadenza:d.screenDataScad||'',medicoRilasciante:d.screenMedico||'',noteCertificato:d.screenNote||''},
                 parqPlus:{q1:d.parqQ1||'NO',q2:d.parqQ2||'NO',q3:d.parqQ3||'NO',q4:d.parqQ4||'NO',q5:d.parqQ5||'NO',q6:d.parqQ6||'NO',q7:d.parqQ7||'NO'},
                 modalitaValutazione:d.modalitaVal||'',
+                obiettivoStrutturato:(function(){var os=d.obiettivoStrutturato||{};var m=calcolaObiettivoMetrics(d.obiettivo,os,d.peso);return {...os,warningLivello:m.livello,tassoAttesoSettimana:m.tassoAttesoSettimana,kcalTargetCalcolato:m.kcalDelta,durataProgrammaMesi:m.durataProgrammaMesi};})(),
               };
               if(typeof gtag!=='undefined')gtag('event','wizard_complete',{profile:pr.code});
               onSave(p);
