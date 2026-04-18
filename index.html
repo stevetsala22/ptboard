@@ -1029,6 +1029,31 @@ const LANGS={
     wizStepSts:'🪑 Sit-to-Stand 30s',wizStepPushPlank:'💪 Push-up & Plank',wizStepPhysTest:'💪 Test Fisici',
     wizStepMovQuality:'🏃 Qualità del Movimento',wizStepRpeNote:'😮‍💨 RPE & Note',wizStepClass:'📊 Classificazione',
     wizStepClassProg:'📊 Classificazione & Programma',wizStepProg4:'🏆 Programma 4 Settimane',
+    wizStepScreening:'📋 Screening Medico',
+    // Step Screening Medico
+    wizSecCert:'Certificato Medico Sportivo',wizCertTipo:'Tipo di certificato',
+    wizCertNonAgo:'Non agonistico',wizCertAgo:'Agonistico',wizCertNessuno:'Nessuno / non disponibile',
+    wizCertRilascio:'Data di rilascio',wizCertScad:'Data di scadenza',wizCertMedico:'Medico rilasciante',
+    wizCertNote:'Note certificato',wizCertAutoScad:'Scadenza calcolata automaticamente (+1 anno)',
+    wizCertValidTag:'✓ Certificato valido',wizCertScadTag:'⚠ Certificato scaduto',wizCertExpTag:'⏳ In scadenza (<30 gg)',
+    wizSecParqPlus:'PAR-Q+ — Screening pre-esercizio',
+    wizParqPlusInfo:'Il cliente non ha certificato medico valido. Compila le 7 domande del PAR-Q+.',
+    wizParqQ1:'Hai mai avuto una condizione cardiaca per cui il medico ha indicato attività fisica solo se prescritta?',
+    wizParqQ2:'Senti dolore al petto durante l\'attività fisica?',
+    wizParqQ3:'Nell\'ultimo mese hai avuto dolore al petto a riposo?',
+    wizParqQ4:'Perdi l\'equilibrio per vertigini o sei mai svenuto/a?',
+    wizParqQ5:'Hai problemi ossei o articolari che potrebbero aggravarsi con l\'esercizio fisico?',
+    wizParqQ6:'Il tuo medico ti ha prescritto farmaci per la pressione arteriosa o per il cuore?',
+    wizParqQ7:'Sei a conoscenza di altri motivi per cui non dovresti praticare attività fisica?',
+    wizParqPositivo:'⚠ PAR-Q+ POSITIVO — almeno una risposta SI. Consigliato invio al medico.',
+    wizParqNegativo:'✓ PAR-Q+ NEGATIVO — nessuna controindicazione rilevata.',
+    wizSecModalita:'Modalità di valutazione',
+    wizModalitaRapida:'Rapida',wizModalitaSmart:'Smart',wizModalitaCompleta:'Completa',
+    wizModalitaRapidaMin:'5 min',wizModalitaSmartMin:'10–15 min',wizModalitaCompletaMin:'20–25 min',
+    wizModalitaRapidaDesc:'Solo anagrafica, nessun test fisico. Indicato per clienti con certificato valido o PAR-Q+ negativo.',
+    wizModalitaSmartDesc:'Test fondamentali: 6MWT, Sit-to-Stand, Push-up, Plank, RPE.',
+    wizModalitaCompletaDesc:'Valutazione completa: BIA, tutti i test fisici, qualità del movimento.',
+    wizModalitaRapidaOff:'Non disponibile — PAR-Q+ positivo senza certificato valido',
     // Stima automatica test
     stimaBtn:'🔮 Stima dai dati anagrafici',
     stimaBadge:'⚡ Valore stimato — sostituisci con il test reale per maggiore precisione',
@@ -1736,6 +1761,31 @@ const LANGS={
     wizStepSts:'🪑 Sit-to-Stand 30s',wizStepPushPlank:'💪 Push-up & Plank',wizStepPhysTest:'💪 Physical Tests',
     wizStepMovQuality:'🏃 Movement Quality',wizStepRpeNote:'😮‍💨 RPE & Notes',wizStepClass:'📊 Classification',
     wizStepClassProg:'📊 Classification & Program',wizStepProg4:'🏆 4-Week Program',
+    wizStepScreening:'📋 Medical Screening',
+    // Step Screening Medico (EN)
+    wizSecCert:'Medical Sports Certificate',wizCertTipo:'Certificate type',
+    wizCertNonAgo:'Non-competitive',wizCertAgo:'Competitive',wizCertNessuno:'None / not available',
+    wizCertRilascio:'Issue date',wizCertScad:'Expiry date',wizCertMedico:'Issuing doctor',
+    wizCertNote:'Certificate notes',wizCertAutoScad:'Auto-calculated expiry (+1 year)',
+    wizCertValidTag:'✓ Valid certificate',wizCertScadTag:'⚠ Expired certificate',wizCertExpTag:'⏳ Expiring soon (<30 days)',
+    wizSecParqPlus:'PAR-Q+ — Pre-exercise screening',
+    wizParqPlusInfo:'Client has no valid medical certificate. Complete the 7 PAR-Q+ questions.',
+    wizParqQ1:'Has your doctor ever said you have a heart condition requiring medically prescribed physical activity?',
+    wizParqQ2:'Do you feel chest pain during physical activity?',
+    wizParqQ3:'In the last month, have you had chest pain at rest?',
+    wizParqQ4:'Do you lose balance due to dizziness or have you ever fainted?',
+    wizParqQ5:'Do you have bone or joint problems that could be worsened by exercise?',
+    wizParqQ6:'Has your doctor prescribed medication for blood pressure or a heart condition?',
+    wizParqQ7:'Are you aware of any other reason not to engage in physical activity?',
+    wizParqPositivo:'⚠ PAR-Q+ POSITIVE — at least one YES answer. Medical referral recommended.',
+    wizParqNegativo:'✓ PAR-Q+ NEGATIVE — no contraindications detected.',
+    wizSecModalita:'Assessment mode',
+    wizModalitaRapida:'Quick',wizModalitaSmart:'Smart',wizModalitaCompleta:'Full',
+    wizModalitaRapidaMin:'5 min',wizModalitaSmartMin:'10–15 min',wizModalitaCompletaMin:'20–25 min',
+    wizModalitaRapidaDesc:'Profile only, no physical tests. For clients with a valid certificate or negative PAR-Q+.',
+    wizModalitaSmartDesc:'Core tests: 6MWT, Sit-to-Stand, Push-up, Plank, RPE.',
+    wizModalitaCompletaDesc:'Full assessment: BIA, all physical tests, movement quality.',
+    wizModalitaRapidaOff:'Unavailable — PAR-Q+ positive without valid certificate',
     // Auto test estimation
     stimaBtn:'🔮 Estimate from profile data',
     stimaBadge:'⚡ Estimated value — replace with the actual test for greater accuracy',
@@ -2443,6 +2493,31 @@ const LANGS={
     wizStepSts:'🪑 Sit-to-Stand 30s',wizStepPushPlank:'💪 Pompes & Planche',wizStepPhysTest:'💪 Tests Physiques',
     wizStepMovQuality:'🏃 Qualité du Mouvement',wizStepRpeNote:'😮‍💨 RPE & Notes',wizStepClass:'📊 Classification',
     wizStepClassProg:'📊 Classification & Programme',wizStepProg4:'🏆 Programme 4 Semaines',
+    wizStepScreening:'📋 Bilan Médical',
+    // Step Screening Medico (FR)
+    wizSecCert:'Certificat Médical Sportif',wizCertTipo:'Type de certificat',
+    wizCertNonAgo:'Non compétitif',wizCertAgo:'Compétitif',wizCertNessuno:'Aucun / non disponible',
+    wizCertRilascio:'Date de délivrance',wizCertScad:"Date d'expiration",wizCertMedico:'Médecin délivrant',
+    wizCertNote:'Notes sur le certificat',wizCertAutoScad:'Expiration calculée automatiquement (+1 an)',
+    wizCertValidTag:'✓ Certificat valide',wizCertScadTag:'⚠ Certificat expiré',wizCertExpTag:'⏳ Expire bientôt (<30 j)',
+    wizSecParqPlus:'PAR-Q+ — Bilan pré-exercice',
+    wizParqPlusInfo:"Le client n'a pas de certificat médical valide. Remplissez les 7 questions du PAR-Q+.",
+    wizParqQ1:'Votre médecin vous a-t-il dit que vous avez une condition cardiaque nécessitant une activité physique prescrite ?',
+    wizParqQ2:'Ressentez-vous des douleurs thoraciques lors d\'une activité physique ?',
+    wizParqQ3:'Au cours du dernier mois, avez-vous eu des douleurs thoraciques au repos ?',
+    wizParqQ4:"Perdez-vous l'équilibre à cause de vertiges ou vous êtes-vous déjà évanoui(e) ?",
+    wizParqQ5:'Avez-vous des problèmes osseux ou articulaires pouvant être aggravés par l\'exercice ?',
+    wizParqQ6:'Votre médecin vous a-t-il prescrit des médicaments pour la tension artérielle ou le cœur ?',
+    wizParqQ7:"Connaissez-vous une autre raison pour laquelle vous ne devriez pas faire d'exercice ?",
+    wizParqPositivo:'⚠ PAR-Q+ POSITIF — au moins une réponse OUI. Consultation médicale recommandée.',
+    wizParqNegativo:'✓ PAR-Q+ NÉGATIF — aucune contre-indication détectée.',
+    wizSecModalita:"Mode d'évaluation",
+    wizModalitaRapida:'Rapide',wizModalitaSmart:'Intermédiaire',wizModalitaCompleta:'Complète',
+    wizModalitaRapidaMin:'5 min',wizModalitaSmartMin:'10–15 min',wizModalitaCompletaMin:'20–25 min',
+    wizModalitaRapidaDesc:'Profil uniquement, sans tests physiques. Pour les clients avec certificat valide ou PAR-Q+ négatif.',
+    wizModalitaSmartDesc:'Tests essentiels : 6MWT, Sit-to-Stand, Pompes, Planche, RPE.',
+    wizModalitaCompletaDesc:'Évaluation complète : BIA, tous les tests physiques, qualité du mouvement.',
+    wizModalitaRapidaOff:'Indisponible — PAR-Q+ positif sans certificat valide',
     // Estimation automatique des tests
     stimaBtn:'🔮 Estimer depuis le profil',
     stimaBadge:'⚡ Valeur estimée — remplacez par le test réel pour plus de précision',
@@ -4219,6 +4294,26 @@ footer .center b{color:#3b82f6;font-weight:700}
               <button onClick={onEdit} style={{background:'#EF9F27',color:'#fff',border:'none',padding:'8px 14px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>Aggiungi sesso</button>
             </div>
           )}
+          {(()=>{
+            var scad=p.screeningMedico?.dataScadenza;
+            if(!scad) return null;
+            var today=new Date().toISOString().split('T')[0];
+            var d30=new Date();d30.setDate(d30.getDate()+30);
+            var d30s=d30.toISOString().split('T')[0];
+            var isExp=scad<today;
+            var isSoon=!isExp&&scad<=d30s;
+            if(!isExp&&!isSoon) return null;
+            return(
+              <div style={{background:isExp?C.red+'10':'#fef3c7',border:'1px solid '+(isExp?C.red:'#f59e0b')+'50',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                <span style={{fontSize:20}}>{isExp?'🔴':'🟠'}</span>
+                <div style={{flex:1,fontSize:13,color:isExp?C.red:'#92400e',lineHeight:1.5}}>
+                  <strong style={{fontWeight:700}}>{isExp?'Certificato medico scaduto':'Certificato medico in scadenza'}</strong><br/>
+                  {isExp?'Il certificato è scaduto il '+scad+'. Richiedere il rinnovo prima della prossima seduta.':'Il certificato scade il '+scad+' (meno di 30 giorni). Programmare il rinnovo.'}
+                </div>
+                <button onClick={onEdit} style={{background:isExp?C.red:'#f59e0b',color:'#fff',border:'none',padding:'8px 14px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}>{isExp?'Rinnova':'Controlla'}</button>
+              </div>
+            );
+          })()}
           {/* HERO ROW */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
             {/* Card Peso */}
@@ -5702,7 +5797,18 @@ function AppInner({user,profile,setProfile,trialLeft}){
     setSyncing(true);
     fbLoad(user.uid).then(remote=>{
       if(remote&&remote.dataVersion>=4){
-        if(remote.patients?.length) setPatients(remote.patients);
+        if(remote.patients?.length){
+          var pNeedHydrate=false;
+          var pHydrated=remote.patients.map(function(pat){
+            var hp=Object.assign({},pat);
+            if(!hp.screeningMedico){hp.screeningMedico={tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''};pNeedHydrate=true;}
+            if(!hp.parqPlus){hp.parqPlus={q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'};pNeedHydrate=true;}
+            if(hp.modalitaValutazione===undefined){hp.modalitaValutazione='';pNeedHydrate=true;}
+            return hp;
+          });
+          setPatients(pHydrated);
+          if(pNeedHydrate){var hData=Object.assign({},remote,{patients:pHydrated});save(hData);fbSave(user.uid,hData);}
+        }
         if(remote.bookings) setBookings(remote.bookings);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
         // Aggiorna libreria esercizi: aggiungi nuovi esercizi di default senza toccare quelli esistenti
@@ -5764,7 +5870,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
 
   const selected=patients.find(p=>p.id===selectedId);
 
-  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],createdAt:fmtDate()});
+  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',createdAt:fmtDate()});
 
   const handleSave=useCallback((form)=>{
     const errs=[];
@@ -7474,6 +7580,16 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     rpeRiposo:'',noteVal:'',
     sqDepth:'',sqCompensi:'nessuno',sqDolore:'no',affondo:'',noteMovimento:'',
     biaR:'',biaXc:'',biaPhA:'',biaTBW:'',biaFFM:'',biaFM:'',biaBCM:'',biaECW:'',biaBMR:'',
+    screenTipo:initialData?.screeningMedico?.tipo||'',
+    screenDataRilascio:initialData?.screeningMedico?.dataRilascio||'',
+    screenDataScad:initialData?.screeningMedico?.dataScadenza||'',
+    screenMedico:initialData?.screeningMedico?.medicoRilasciante||'',
+    screenNote:initialData?.screeningMedico?.noteCertificato||'',
+    parqQ1:initialData?.parqPlus?.q1||'NO',parqQ2:initialData?.parqPlus?.q2||'NO',
+    parqQ3:initialData?.parqPlus?.q3||'NO',parqQ4:initialData?.parqPlus?.q4||'NO',
+    parqQ5:initialData?.parqPlus?.q5||'NO',parqQ6:initialData?.parqPlus?.q6||'NO',
+    parqQ7:initialData?.parqPlus?.q7||'NO',
+    modalitaVal:initialData?.modalitaValutazione||'',
   });
   // Stima automatica: tracciamo quali campi sono stati riempiti via stima
   const [stimati,setStimati]=useState({});
@@ -7495,6 +7611,13 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
+
+  // Screening Medico helpers
+  const parqPositivo=['parqQ1','parqQ2','parqQ3','parqQ4','parqQ5','parqQ6','parqQ7'].some(q=>d[q]==='SI');
+  const todayISO=new Date().toISOString().split('T')[0];
+  const certValida=d.screenTipo&&d.screenTipo!=='nessuno'&&d.screenDataScad&&d.screenDataScad>=todayISO;
+  const rapidaDisabled=parqPositivo&&!certValida;
+  const certTagStyle={fontSize:12,fontWeight:700,padding:'8px 12px',borderRadius:8,marginTop:4,gridColumn:'span 2'};
 
   // Stima automatica test — controlla se i dati anagrafici sono completi
   const datiStimaOK=!!(eta&&d.sesso&&+d.peso>0&&+d.altezza>0&&d.attivita);
@@ -7524,16 +7647,23 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     return <div style={{fontSize:10,color:'#92400e',marginTop:8,padding:'6px 10px',background:'#fef3c7',borderRadius:6,border:'1px solid #fde68a',fontWeight:600}}>{T.stimaBadge}</div>;
   };
 
-  const STEPS_BASE=[1,3,4,5,7,8];
-  const STEPS_COMPLETA=[1,2,3,4,5,6,7,8,9];
+  const STEPS_BASE=[1,10,3,4,5,7,8];
+  const STEPS_COMPLETA=[1,10,2,3,4,5,6,7,8,9];
   const STEPS_ANA=[1];
-  const stepsArr=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
+  const isRapida=d.modalitaVal==='rapida';
+  const rapideSkip=isRapida?(wizardType==='base'?[3,4,5]:wizardType==='completa'?[2,3,4,5,6]:[]):[];
+  const stepsArrFull=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
+  const stepsArr=rapideSkip.length?stepsArrFull.filter(function(s){return!rapideSkip.includes(s);}):stepsArrFull;
   const TOTAL=stepsArr.length;
-  const stepIdx=stepsArr.indexOf(step);
-  const TITLES_BASE=[T.wizStepClinica,T.wizStep6mwt,T.wizStepSts,T.wizStepPushPlank,T.wizStepRpeNote,T.wizStepClassProg];
-  const TITLES_COMPLETA=[T.wizStepClinica,T.wizStepBia,T.wizStep6mwt,T.wizStepSts,T.wizStepPhysTest,T.wizStepMovQuality,T.wizStepRpeNote,T.wizStepClass,T.wizStepProg4];
+  const stepIdx=Math.max(0,stepsArr.indexOf(step));
+  const TITLES_BASE=[T.wizStepClinica,T.wizStepScreening,T.wizStep6mwt,T.wizStepSts,T.wizStepPushPlank,T.wizStepRpeNote,T.wizStepClassProg];
+  const TITLES_COMPLETA=[T.wizStepClinica,T.wizStepScreening,T.wizStepBia,T.wizStep6mwt,T.wizStepSts,T.wizStepPhysTest,T.wizStepMovQuality,T.wizStepRpeNote,T.wizStepClass,T.wizStepProg4];
   const TITLES_ANA=[T.wizStepClinica];
-  const curTitles=wizardType==='base'?TITLES_BASE:wizardType==='completa'?TITLES_COMPLETA:TITLES_ANA;
+  const curTitlesRaw=wizardType==='base'?TITLES_BASE:wizardType==='completa'?TITLES_COMPLETA:TITLES_ANA;
+  const curTitles=rapideSkip.length?stepsArrFull.map(function(s,i){return{s:s,t:curTitlesRaw[i]};}).filter(function(x){return!rapideSkip.includes(x.s);}).map(function(x){return x.t;}):curTitlesRaw;
+  React.useEffect(function(){
+    if(wizardType&&!stepsArr.includes(step)){setStep(stepsArr[0]||1);}
+  },[d.modalitaVal]);
 
   const exportPDF=()=>{
     if(!prog||!pr)return;
@@ -7885,6 +8015,106 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizOrizzonte} name="orizzonte" val={d.orizzonte} opts={[{v:'1 mese',l:T.wizHor1m},{v:'3 mesi',l:T.wizHor3m},{v:'6 mesi',l:T.wizHor6m},{v:'1 anno',l:T.wizHor1y},{v:'Lungo termine',l:T.wizHorLong}]} onChange={upd('orizzonte')}/>
                 <WizIn lbl={T.wizSeduteSett} name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
                 <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
+              </div>
+            </WizSection>
+
+          </div>}
+
+          {/* STEP 10 — Screening Medico */}
+          {step===10&&<div style={{display:'flex',flexDirection:'column',gap:16}}>
+
+            {/* PARTE A — Certificato Medico */}
+            <WizSection title={T.wizSecCert} icon="&#128220;" borderColor={C.blue} defaultOpen={true}>
+              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                <WizIn lbl={T.wizCertTipo} name="screenTipo" val={d.screenTipo}
+                  opts={[{v:'',l:T.wizSelectPh},{v:'nonAgonistico',l:T.wizCertNonAgo},{v:'agonistico',l:T.wizCertAgo},{v:'nessuno',l:T.wizCertNessuno}]}
+                  onChange={upd('screenTipo')}/>
+                {d.screenTipo&&d.screenTipo!=='nessuno'&&<>
+                  <WizIn lbl={T.wizCertRilascio} name="screenDataRilascio" type="date" val={d.screenDataRilascio}
+                    onChange={function(e){
+                      var v=e.target.value;
+                      set('screenDataRilascio',v);
+                      if(v){var nd=new Date(v);nd.setFullYear(nd.getFullYear()+1);set('screenDataScad',nd.toISOString().split('T')[0]);}
+                    }}/>
+                  <WizIn lbl={T.wizCertScad} name="screenDataScad" type="date" val={d.screenDataScad} onChange={upd('screenDataScad')}/>
+                  {d.screenDataRilascio&&<div style={{fontSize:10,color:C.muted,marginTop:-8,marginBottom:4,paddingLeft:2,gridColumn:'1/-1'}}>{T.wizCertAutoScad}</div>}
+                  {d.screenDataScad&&(function(){
+                    var d30=new Date();d30.setDate(d30.getDate()+30);var d30s=d30.toISOString().split('T')[0];
+                    if(d.screenDataScad<todayISO)return <div style={{...certTagStyle,background:C.red+'10',color:C.red,border:'1px solid '+C.red+'30'}}>{T.wizCertScadTag}</div>;
+                    if(d.screenDataScad<=d30s)return <div style={{...certTagStyle,background:'#fef3c7',color:'#92400e',border:'1px solid #fde68a'}}>{T.wizCertExpTag}</div>;
+                    return <div style={{...certTagStyle,background:C.green+'10',color:C.green,border:'1px solid '+C.green+'30'}}>{T.wizCertValidTag}</div>;
+                  })()}
+                  <WizIn lbl={T.wizCertMedico} name="screenMedico" val={d.screenMedico} onChange={upd('screenMedico')}/>
+                  <WizIn lbl={T.wizCertNote} name="screenNote" val={d.screenNote} onChange={upd('screenNote')}/>
+                </>}
+              </div>
+            </WizSection>
+
+            {/* PARTE B — PAR-Q+ (solo se nessun certificato) */}
+            {d.screenTipo==='nessuno'&&<WizSection title={T.wizSecParqPlus} icon="&#128203;" borderColor={C.orange} defaultOpen={true}>
+              <div style={{background:C.orange+'10',border:'1px solid '+C.orange+'30',borderRadius:10,padding:'10px 14px',marginBottom:12,display:'flex',gap:10,alignItems:'flex-start'}}>
+                <span style={{fontSize:18}}>&#9888;&#65039;</span>
+                <div style={{fontSize:12,color:C.text,lineHeight:1.5}}>{T.wizParqPlusInfo}</div>
+              </div>
+              {[['parqQ1',T.wizParqQ1],['parqQ2',T.wizParqQ2],['parqQ3',T.wizParqQ3],['parqQ4',T.wizParqQ4],
+                ['parqQ5',T.wizParqQ5],['parqQ6',T.wizParqQ6],['parqQ7',T.wizParqQ7]
+              ].map(function(item,i){var k=item[0],lbl=item[1];return(
+                <div key={k} style={{display:'flex',alignItems:'flex-start',gap:12,padding:'10px 0',borderBottom:i<6?'1px solid '+C.border:'none'}}>
+                  <div style={{fontSize:11,fontWeight:700,color:C.muted,minWidth:18,paddingTop:2}}>{i+1}.</div>
+                  <div style={{flex:1,fontSize:13,color:C.text,lineHeight:1.5}}>{lbl}</div>
+                  <div style={{display:'flex',gap:6,flexShrink:0}}>
+                    {['SI','NO'].map(function(opt){return(
+                      <button key={opt} type="button" onClick={function(){set(k,opt);}} style={{
+                        padding:'6px 14px',borderRadius:8,border:'2px solid',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit',
+                        background:d[k]===opt?(opt==='SI'?C.red:C.green)+'20':'transparent',
+                        borderColor:d[k]===opt?(opt==='SI'?C.red:C.green):C.border2,
+                        color:d[k]===opt?(opt==='SI'?C.red:C.green):C.muted
+                      }}>{opt}</button>
+                    );})}
+                  </div>
+                </div>
+              );})}
+              <div style={{marginTop:12,padding:'10px 14px',borderRadius:10,
+                background:parqPositivo?C.red+'10':C.green+'10',
+                border:'1px solid '+(parqPositivo?C.red:C.green)+'30',
+                fontSize:12,fontWeight:700,color:parqPositivo?C.red:C.green}}>
+                {parqPositivo?T.wizParqPositivo:T.wizParqNegativo}
+              </div>
+            </WizSection>}
+
+            {/* PARTE C — Modalità di valutazione */}
+            <WizSection title={T.wizSecModalita} icon="&#127919;" borderColor={C.purple} defaultOpen={true}>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {[
+                  {v:'rapida',l:T.wizModalitaRapida,min:T.wizModalitaRapidaMin,desc:T.wizModalitaRapidaDesc,c:C.green,off:rapidaDisabled,offMsg:T.wizModalitaRapidaOff},
+                  {v:'smart',l:T.wizModalitaSmart,min:T.wizModalitaSmartMin,desc:T.wizModalitaSmartDesc,c:C.blue},
+                  {v:'completa',l:T.wizModalitaCompleta,min:T.wizModalitaCompletaMin,desc:T.wizModalitaCompletaDesc,c:C.purple}
+                ].map(function(m){return(
+                  <div key={m.v} onClick={function(){if(!m.off)set('modalitaVal',m.v);}}
+                    style={{
+                      border:'2px solid '+(d.modalitaVal===m.v?m.c:(m.off?C.border2:C.border)),
+                      borderRadius:12,padding:'14px 16px',cursor:m.off?'not-allowed':'pointer',
+                      background:d.modalitaVal===m.v?m.c+'10':(m.off?C.bg:C.card),
+                      opacity:m.off?0.5:1,transition:'all .2s',
+                      display:'flex',alignItems:'center',gap:14
+                    }}>
+                    <div style={{flex:1}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
+                        <span style={{fontSize:14,fontWeight:800,color:m.off?C.muted:m.c}}>{m.l}</span>
+                        <span style={{background:m.c+'20',color:m.c,fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:100}}>{m.min}</span>
+                      </div>
+                      <div style={{fontSize:12,color:m.off?C.muted:C.text,lineHeight:1.5}}>{m.off?m.offMsg:m.desc}</div>
+                    </div>
+                    <div style={{
+                      width:22,height:22,borderRadius:'50%',flexShrink:0,
+                      border:'2px solid '+(d.modalitaVal===m.v?m.c:C.border2),
+                      background:d.modalitaVal===m.v?m.c:'transparent',
+                      display:'flex',alignItems:'center',justifyContent:'center'
+                    }}>
+                      {d.modalitaVal===m.v&&<div style={{width:8,height:8,borderRadius:'50%',background:'#fff'}}/>}
+                    </div>
+                  </div>
+                );})}
               </div>
             </WizSection>
 
@@ -8490,6 +8720,9 @@ footer .center b{color:#3b82f6;font-weight:700}
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
                 programma:prog?{dataInizio:fmtDate(),sedute:String(prog.sedute),minCardio:String(prog.minCardio),minForza:String(prog.minForza),cardio:prog.settimane[0].cardio,forza:prog.settimane[0].forza,note:prog.settimane[0].note,precauzioni:prog.precauzioni||[],riferimenti:prog.riferimenti||'',serieBase:prog.serieBase,ripBase:prog.ripBase,recSec:prog.recSec,zonaFC:prog.zonaFC||'',rpeRange:prog.rpeRange||'',settimane:prog.settimane||[]}:{},
                 nutrizione:(()=>{var nutCalc=calcNutrizione(p);return nutCalc?{kcal:String(nutCalc.kcal),proteine:String(nutCalc.proteine),carboidrati:String(nutCalc.carboidrati),grassi:String(nutCalc.grassi),note:nutCalc.note,pianoPasti:''}:{};})(),
+                screeningMedico:{tipo:d.screenTipo||'',dataRilascio:d.screenDataRilascio||'',dataScadenza:d.screenDataScad||'',medicoRilasciante:d.screenMedico||'',noteCertificato:d.screenNote||''},
+                parqPlus:{q1:d.parqQ1||'NO',q2:d.parqQ2||'NO',q3:d.parqQ3||'NO',q4:d.parqQ4||'NO',q5:d.parqQ5||'NO',q6:d.parqQ6||'NO',q7:d.parqQ7||'NO'},
+                modalitaValutazione:d.modalitaVal||'',
               };
               if(typeof gtag!=='undefined')gtag('event','wizard_complete',{profile:pr.code});
               onSave(p);
