@@ -7660,6 +7660,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     parqQ5:initialData?.parqPlus?.q5||'NO',parqQ6:initialData?.parqPlus?.q6||'NO',
     parqQ7:initialData?.parqPlus?.q7||'NO',
     modalitaVal:initialData?.modalitaValutazione||'',
+    obiettivoStrutturato:initialData?.obiettivoStrutturato||{pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0},
   });
   // Stima automatica: tracciamo quali campi sono stati riempiti via stima
   const [stimati,setStimati]=useState({});
@@ -8086,6 +8087,68 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizSeduteSett} name="seduteSettimana" val={d.seduteSettimana} opts={['1','2','3','4','5']} onChange={upd('seduteSettimana')}/>
                 <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
               </div>
+              {d.obiettivo&&(function(){
+                var metrics=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso);
+                var os=d.obiettivoStrutturato||{};
+                var updOs=function(k){return function(val){setD(function(x){return{...x,obiettivoStrutturato:{...x.obiettivoStrutturato,[k]:val}};});};};
+                var WizInOs=function(props){return <WizIn {...props} onChange={function(e){updOs(props.name)(e.target.value);}}/>;};
+                return(
+                  <div style={{background:C.bg,borderRadius:12,padding:'14px 16px',marginTop:12,border:'1px solid '+C.border2}}>
+                    <div style={{fontSize:11,color:C.muted,letterSpacing:'0.5px',marginBottom:10,fontWeight:600,textTransform:'uppercase'}}>Dettagli obiettivo</div>
+                    {(d.obiettivo==='Perdere peso'||d.obiettivo==='Aumentare massa')&&(
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <WizInOs lbl="Peso target (kg)" name="pesoTarget" val={os.pesoTarget} type="number"/>
+                        <WizInOs lbl="Entro quanto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                      </div>
+                    )}
+                    {d.obiettivo==='Forza'&&<>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <WizInOs lbl="Esercizio target" name="esercizioTarget" val={os.esercizioTarget} opts={[{v:'',l:'Seleziona...'},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco',l:'Stacco'},{v:'Military press',l:'Military press'},{v:'Altro',l:'Altro'}]}/>
+                        <WizInOs lbl="Entro quanto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+                        <WizInOs lbl="1RM attuale (kg)" name="rmAttuale" val={os.rmAttuale} type="number"/>
+                        <WizInOs lbl="1RM target (kg)" name="rmTarget" val={os.rmTarget} type="number"/>
+                      </div>
+                    </>}
+                    {d.obiettivo==='Performance'&&<>
+                      <WizInOs lbl="Evento / gara" name="eventoTarget" val={os.eventoTarget}/>
+                      <WizInOs lbl="Data evento" name="dataEvento" val={os.dataEvento} type="date"/>
+                    </>}
+                    {d.obiettivo==='Riabilitazione'&&<>
+                      <WizInOs lbl="Area / infortunio" name="obiettivoFunzionale" val={os.obiettivoFunzionale}/>
+                      <WizInOs lbl="Obiettivo funzionale (es. ROM completa)" name="noteObiettivo" val={os.noteObiettivo}/>
+                      <WizInOs lbl="Tempo previsto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                    </>}
+                    {(d.obiettivo==='Salute'||d.obiettivo==='Benessere'||d.obiettivo==='Resistenza')&&(
+                      <WizInOs lbl="Descrivi l'obiettivo" name="noteObiettivo" val={os.noteObiettivo}/>
+                    )}
+                    {metrics.messaggio&&(
+                      <div style={{
+                        background:metrics.livello==='red'?C.red+'10':metrics.livello==='yellow'?'#fef3c7':C.green+'10',
+                        border:'1px solid '+(metrics.livello==='red'?C.red:metrics.livello==='yellow'?'#f59e0b':C.green)+'40',
+                        borderRadius:8,padding:'10px 14px',marginTop:10,fontSize:13,
+                        color:metrics.livello==='red'?C.red:metrics.livello==='yellow'?'#92400e':C.green,
+                        lineHeight:1.5
+                      }}>
+                        <div style={{fontSize:10,fontWeight:700,letterSpacing:'0.5px',marginBottom:4,textTransform:'uppercase'}}>
+                          {metrics.livello==='red'?'Obiettivo non realistico':metrics.livello==='yellow'?'Obiettivo aggressivo':'Obiettivo realistico'}
+                        </div>
+                        {metrics.messaggio}
+                        {metrics.livello==='red'&&!os.warningAccettato&&(
+                          <button type="button" onClick={function(){setD(function(x){return{...x,obiettivoStrutturato:{...x.obiettivoStrutturato,warningAccettato:true}};});}}
+                            style={{marginTop:8,display:'block',padding:'6px 12px',background:'transparent',border:'1px solid '+C.red+'60',color:C.red,borderRadius:6,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+                            Confermo e procedo sotto mia responsabilità
+                          </button>
+                        )}
+                        {metrics.livello==='red'&&os.warningAccettato&&(
+                          <div style={{marginTop:6,fontSize:11,color:C.muted,fontStyle:'italic'}}>✓ Warning accettato</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </WizSection>
 
           </div>}
@@ -8776,6 +8839,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{T.wPrev}</button><span className="tp">{T.wizPrevTooltip}</span></div>}
             {stepIdx<TOTAL-1&&<div className="tt"><button onClick={function(){
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){showToast(T.wizErrNomeCogn,'error');return;}
+              if(step===1&&d.obiettivo){var _m=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso);if(_m.livello==='red'&&!(d.obiettivoStrutturato||{}).warningAccettato){showToast('Obiettivo non realistico — conferma il warning prima di procedere','error');return;}}
               setStep(stepsArr[stepIdx+1]);
             }} style={S.btn()}>{T.wNext}</button><span className="tp">{T.wizNextTooltip}</span></div>}
             {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
