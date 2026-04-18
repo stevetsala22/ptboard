@@ -7136,6 +7136,36 @@ var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
   return { splitType: 'Upper / Lower', ripetizioniSettimana: 3, razionaleSplit: 'Upper/Lower ×3 (6 giorni): alta frequenza per performance o composizione corporea avanzata.' };
 };
 
+// ── CALCOLO 1RM + CLASSIFICAZIONE FORZA ──────────────────────────────────────
+function calc1RM(carico,rip){
+  var c=parseFloat(carico),r=parseFloat(rip);
+  if(!c||!r||r<1||r>15)return null;
+  var div=1.0278-0.0278*r;
+  if(div<=0)return null;
+  return Math.round(c/div*10)/10;
+}
+
+function classificaForza(esercizio,rm1,pesoKg,sesso){
+  if(!rm1||!pesoKg)return null;
+  var ratio=rm1/pesoKg;
+  var norme={
+    'Squat':          {M:[0.8,1.25,1.6], F:[0.6,0.9,1.25]},
+    'Panca piana':    {M:[0.7,1.0,1.4],  F:[0.5,0.7,1.0]},
+    'Stacco da terra':{M:[1.0,1.5,2.0],  F:[0.75,1.1,1.5]},
+    'Military press': {M:[0.5,0.75,1.1], F:[0.35,0.5,0.75]},
+    'Rematore':       {M:[0.65,0.9,1.25],F:[0.45,0.65,0.9]},
+    'Leg press':      {M:[1.5,2.0,2.5],  F:[1.0,1.5,2.0]}
+  };
+  var n=norme[esercizio];
+  if(!n)return{livello:'N/D',ratio:ratio.toFixed(2)};
+  var s=n[sesso==='F'?'F':'M'];
+  var livello='Sotto principiante';
+  if(ratio>=s[2])livello='Avanzato';
+  else if(ratio>=s[1])livello='Intermedio';
+  else if(ratio>=s[0])livello='Principiante';
+  return{livello,ratio:ratio.toFixed(2),rm1};
+}
+
 // ── CALCOLA METRICHE OBIETTIVO STRUTTURATO ───────────────────────────────────
 function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
   var result={livello:'green',messaggio:'',tassoAttesoSettimana:0,kcalDelta:0,durataProgrammaMesi:0,progressioneRmPct:0};
