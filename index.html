@@ -7099,6 +7099,75 @@ var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
   return { splitType: 'Upper / Lower', ripetizioniSettimana: 3, razionaleSplit: 'Upper/Lower ×3 (6 giorni): alta frequenza per performance o composizione corporea avanzata.' };
 };
 
+// ── CALCOLA METRICHE OBIETTIVO STRUTTURATO ───────────────────────────────────
+function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
+  var result={livello:'green',messaggio:'',tassoAttesoSettimana:0,kcalDelta:0,durataProgrammaMesi:0,progressioneRmPct:0};
+  if(!obiettivo)return result;
+  var peso=parseFloat(pesoAttuale)||70;
+  var os=dati||{};
+
+  if(obiettivo==='Perdere peso'){
+    var target=parseFloat(os.pesoTarget);
+    var mesi=parseFloat(os.tempoMesi);
+    if(!target||!mesi||target>=peso)return result;
+    var kgDaPerdere=peso-target;
+    var tassoSett=kgDaPerdere/(mesi*4.33);
+    var pctSett=(tassoSett/peso)*100;
+    result.tassoAttesoSettimana=tassoSett;
+    result.durataProgrammaMesi=mesi;
+    result.kcalDelta=-Math.round((kgDaPerdere*7700)/(mesi*30));
+    if(pctSett>1.5){result.livello='red';result.messaggio='Ritmo '+pctSett.toFixed(1)+'%/sett fuori range fisiologico. Rischio grave perdita massa magra e rebound. Letteratura: max 1%/sett (ACSM).';}
+    else if(pctSett>1){result.livello='yellow';result.messaggio='Ritmo '+pctSett.toFixed(1)+'%/sett aggressivo. Ottimale 0.5-1%/sett per preservare massa magra.';}
+    else{result.messaggio='Target '+tassoSett.toFixed(2)+' kg/sett ('+Math.abs(result.kcalDelta)+' kcal/die deficit). Range fisiologico.';}
+  }
+  else if(obiettivo==='Aumentare massa'){
+    var target=parseFloat(os.pesoTarget);
+    var mesi=parseFloat(os.tempoMesi);
+    if(!target||!mesi||target<=peso)return result;
+    var kgDaPrendere=target-peso;
+    var kgMese=kgDaPrendere/mesi;
+    var tassoSett=kgMese/4.33;
+    result.tassoAttesoSettimana=tassoSett;
+    result.durataProgrammaMesi=mesi;
+    result.kcalDelta=Math.round((kgDaPrendere*5500)/(mesi*30));
+    if(kgMese>2.5){result.livello='red';result.messaggio='+'+kgMese.toFixed(1)+' kg/mese oltre limite sintesi proteica (max 2 kg/mese anche in principianti). Quasi tutto sarebbe grasso.';}
+    else if(kgMese>1.5){result.livello='yellow';result.messaggio='+'+kgMese.toFixed(1)+' kg/mese aggressivo. Realistico solo in principianti con surplus aggressivo. Rischio accumulo grasso.';}
+    else{result.messaggio='Target +'+tassoSett.toFixed(2)+' kg/sett (+'+result.kcalDelta+' kcal/die). Range fisiologico.';}
+  }
+  else if(obiettivo==='Forza'){
+    var rmAtt=parseFloat(os.rmAttuale);
+    var rmTgt=parseFloat(os.rmTarget);
+    var mesi=parseFloat(os.tempoMesi);
+    if(!rmAtt||!rmTgt||!mesi||rmTgt<=rmAtt)return result;
+    var pctIncr=((rmTgt-rmAtt)/rmAtt)*100;
+    var pctPerMese=pctIncr/mesi;
+    result.progressioneRmPct=pctIncr;
+    result.durataProgrammaMesi=mesi;
+    if(pctPerMese>15){result.livello='red';result.messaggio='+'+pctIncr.toFixed(0)+'% in '+mesi+' mesi non realistico. Anche principianti raramente oltre 10-15%/mese nei primi 3 mesi.';}
+    else if(pctPerMese>10){result.livello='yellow';result.messaggio='+'+pctIncr.toFixed(0)+'% in '+mesi+' mesi aggressivo. Monitorare DOMS e recupero stretto.';}
+    else{result.messaggio='Progressione +'+pctIncr.toFixed(0)+'% in '+mesi+' mesi. Range realistico.';}
+  }
+  else if(obiettivo==='Performance'){
+    var dataEv=os.dataEvento?new Date(os.dataEvento):null;
+    if(!dataEv)return result;
+    var oggi=new Date();
+    var settimane=Math.ceil((dataEv-oggi)/(1000*60*60*24*7));
+    result.durataProgrammaMesi=Math.ceil(settimane/4.33);
+    if(settimane<4){result.livello='red';result.messaggio=settimane+' sett. all\'evento, finestra troppo stretta per adattamenti sostanziali. Solo mantenimento + tapering possibile.';}
+    else if(settimane<8){result.livello='yellow';result.messaggio=settimane+' sett. all\'evento, finestra breve. Focus su specifico gara + tapering, adattamenti limitati.';}
+    else{result.messaggio=settimane+' sett. a disposizione. Periodizzazione inversa: base → soglia → specifico → tapering.';}
+  }
+  else if(obiettivo==='Riabilitazione'){
+    var mesi=parseFloat(os.tempoMesi)||3;
+    result.durataProgrammaMesi=Math.max(2,mesi);
+    result.messaggio='Riabilitazione in '+mesi+' mesi. Durata programma minimo 8 sett per ciclo, progressione graduale.';
+  }
+  else if(os.noteObiettivo){
+    result.messaggio='Obiettivo qualitativo: '+os.noteObiettivo;
+  }
+  return result;
+}
+
 // ── GENERA PROGRAMMA PERSONALIZZATO ───────────────────────────────────────────
 var generaProgramma = function(params) {
   var T = gT();
