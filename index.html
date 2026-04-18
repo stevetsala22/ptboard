@@ -7166,6 +7166,52 @@ function classificaForza(esercizio,rm1,pesoKg,sesso){
   return{livello,ratio:ratio.toFixed(2),rm1};
 }
 
+// ── MATRICE TEST SMART ────────────────────────────────────────────────────────
+function testConsigliatiSmart(dati){
+  var eta=dati.eta||(dati.annoNascita?new Date().getFullYear()-dati.annoNascita:35);
+  var obiettivo=dati.obiettivo||'';
+  var patologie=(dati.patologie||'').toLowerCase();
+  var bmi=(dati.peso&&dati.altezza)?parseFloat(dati.peso)/Math.pow(parseFloat(dati.altezza)/100,2):0;
+  var infortuni=(dati.infortuni||'').toLowerCase();
+
+  var hasCardioCondition=/cardio|cuore|cardiop|pneum|bpco|respir|polmon/.test(patologie);
+  var hasLowerInjury=/ginocchio|caviglia|anca|menisco|crociato|tibia|perone/.test(infortuni);
+  var isRiabilitazione=obiettivo==='Riabilitazione';
+  var obiettivoForza=obiettivo==='Forza'||obiettivo==='Aumentare massa';
+  var obiettivoResistenza=obiettivo==='Resistenza';
+  var obiettivoPerformance=obiettivo==='Performance';
+  var isObeso=bmi>=30;
+
+  var all=['mwt','sts','tug','pushup','plank','handgrip','slb','rm','stepTest','cmj'];
+  var consigliati=[];
+
+  if(isRiabilitazione){
+    consigliati=['tug','sts','handgrip'];
+    if(!hasLowerInjury)consigliati.push('plank');
+  }else if(hasCardioCondition){
+    consigliati=['mwt','sts','handgrip'];
+  }else if(eta>=65){
+    consigliati=['mwt','sts','tug','handgrip'];
+  }else if(eta>=45){
+    consigliati=['mwt','sts','pushup','handgrip'];
+  }else if(isObeso){
+    consigliati=['stepTest','sts','handgrip'];
+  }else if(hasLowerInjury){
+    consigliati=['pushup','plank','handgrip'];
+  }else if(obiettivoForza){
+    consigliati=['rm','pushup','plank','handgrip'];
+  }else if(obiettivoResistenza){
+    consigliati=['stepTest','plank','handgrip'];
+  }else if(obiettivoPerformance){
+    consigliati=['rm','cmj','pushup','handgrip'];
+  }else{
+    consigliati=['stepTest','pushup','plank','handgrip'];
+  }
+
+  var avanzati=all.filter(function(t){return consigliati.indexOf(t)<0;});
+  return{consigliati,avanzati};
+}
+
 // ── CALCOLA METRICHE OBIETTIVO STRUTTURATO ───────────────────────────────────
 function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
   var result={livello:'green',messaggio:'',tassoAttesoSettimana:0,kcalDelta:0,durataProgrammaMesi:0,progressioneRmPct:0};
