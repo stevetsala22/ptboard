@@ -4316,6 +4316,31 @@ footer .center b{color:#3b82f6;font-weight:700}
               </div>
             );
           })()}
+          {/* Off-track alert */}
+          {(function(){
+            var os=p.obiettivoStrutturato;
+            if(!os||!os.tassoAttesoSettimana)return null;
+            if(!p.progressi||p.progressi.length<2)return null;
+            var sorted=[...p.progressi].sort(function(a,b){return new Date(a.data)-new Date(b.data);});
+            var primo=sorted[0];var ultimo=sorted[sorted.length-1];
+            var settimane=Math.ceil((new Date(ultimo.data)-new Date(primo.data))/(1000*60*60*24*7));
+            if(settimane<2)return null;
+            var deltaOsservato=(parseFloat(ultimo.peso)-parseFloat(primo.peso))/settimane;
+            var atteso=os.tassoAttesoSettimana;
+            var ratio=Math.abs(atteso)>0?Math.abs(deltaOsservato)/Math.abs(atteso):1;
+            if(ratio>=0.8&&ratio<=1.2)return null;
+            var offTrack=ratio<0.8?'sotto':'sopra';
+            return(
+              <div style={{background:'#fef3c7',border:'1px solid #f59e0b50',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'flex-start',gap:12,flexWrap:'wrap'}}>
+                <span style={{fontSize:20}}>📊</span>
+                <div style={{flex:1,fontSize:13,color:'#92400e',lineHeight:1.5}}>
+                  <strong style={{fontWeight:700,color:'#854F0B'}}>Progresso {offTrack} le attese</strong><br/>
+                  Osservato: {deltaOsservato.toFixed(2)} kg/sett · Atteso: {atteso.toFixed(2)} kg/sett ({Math.round(ratio*100)}% del target).<br/>
+                  {offTrack==='sotto'?'Considera aggiustamento kcal o aumento volume allenamento.':'Verifica ritenzione idrica o monitora composizione corporea.'}
+                </div>
+              </div>
+            );
+          })()}
           {/* HERO ROW */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
             {/* Card Peso */}
