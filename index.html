@@ -7774,6 +7774,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     stsRip:'',stsNote:'',
     pushupRip:'',pushupNote:'',plankSec:'',squatRip:'',squatNote:'',
     slbDx:'',slbSx:'',tugSec:'',handgrip:'',
+    rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',
     fcPost:'',fcRecup:'',gad7:'',
     cirBraccio:'',cirCoscia:'',cirPolpaccio:'',
     plicaSott:'',plicaTric:'',plicaIlio:'',massaGrassa:'',
@@ -8716,6 +8717,48 @@ footer .center b{color:#3b82f6;font-weight:700}
               </div>
               {d.handgrip&&<InterpBox interp={interpHandgrip(d.handgrip,d.sesso,eta)} icon="✊"/>}
               {d.tugSec&&(()=>{const i=interpTUG(d.tugSec);return i&&<InterpBox interp={i} icon="⏱"/>})()}
+            </div>
+
+            {/* 1RM */}
+            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.red}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🏋️</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Test forza massimale (1RM)</span>
+              </div>
+              <div style={{display:'flex',gap:16,marginBottom:10}}>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13,cursor:'pointer'}}>
+                  <input type="radio" checked={d.rmModalita==='stimato'} onChange={()=>set('rmModalita','stimato')}/>
+                  1RM stimato (raccomandato)
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13,cursor:'pointer'}}>
+                  <input type="radio" checked={d.rmModalita==='diretto'} onChange={()=>set('rmModalita','diretto')}/>
+                  1RM diretto
+                </label>
+              </div>
+              <WizIn lbl="Esercizio" name="rmEsercizio" val={d.rmEsercizio} onChange={upd('rmEsercizio')} opts={[{v:'',l:'Seleziona...'},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco da terra',l:'Stacco da terra'},{v:'Military press',l:'Military press'},{v:'Rematore',l:'Rematore'},{v:'Leg press',l:'Leg press'},{v:'Altro',l:'Altro'}]}/>
+              {d.rmEsercizio==='Altro'&&<WizIn lbl="Specifica esercizio" name="rmEsercizioAltro" val={d.rmEsercizioAltro} onChange={upd('rmEsercizioAltro')}/>}
+              {d.rmModalita==='stimato'?(
+                <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
+                  <WizIn lbl="Carico usato (kg)" name="rmCarico" val={d.rmCarico} type="number" onChange={upd('rmCarico')}/>
+                  <WizIn lbl="Ripetizioni al cedimento" name="rmRip" val={d.rmRip} type="number" onChange={upd('rmRip')}/>
+                </div>
+              ):(
+                <WizIn lbl="1RM diretto (kg)" name="rmDiretto" val={d.rmDiretto} type="number" onChange={upd('rmDiretto')}/>
+              )}
+              {(()=>{
+                var rm=d.rmModalita==='stimato'?calc1RM(d.rmCarico,d.rmRip):parseFloat(d.rmDiretto);
+                if(!rm||!d.rmEsercizio)return null;
+                var cls=classificaForza(d.rmEsercizio==='Altro'?'':d.rmEsercizio,rm,parseFloat(d.peso),d.sesso);
+                return(
+                  <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}>
+                    <strong style={{fontWeight:600}}>1RM {d.rmModalita==='stimato'?'stimato':'dichiarato'}: {rm} kg</strong>
+                    {cls&&cls.livello!=='N/D'&&<span> · Rapporto {cls.ratio}× · <strong>{cls.livello}</strong></span>}
+                    {d.rmModalita==='stimato'&&d.rmRip&&(parseFloat(d.rmRip)<2||parseFloat(d.rmRip)>10)&&(
+                      <div style={{marginTop:4,fontSize:11,color:'#633806'}}>Range ottimale: 3–8 ripetizioni per stima accurata.</div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>}
 
