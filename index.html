@@ -8857,6 +8857,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 screeningMedico:{tipo:d.screenTipo||'',dataRilascio:d.screenDataRilascio||'',dataScadenza:d.screenDataScad||'',medicoRilasciante:d.screenMedico||'',noteCertificato:d.screenNote||''},
                 parqPlus:{q1:d.parqQ1||'NO',q2:d.parqQ2||'NO',q3:d.parqQ3||'NO',q4:d.parqQ4||'NO',q5:d.parqQ5||'NO',q6:d.parqQ6||'NO',q7:d.parqQ7||'NO'},
                 modalitaValutazione:d.modalitaVal||'',
+                obiettivoStrutturato:(function(){var os=d.obiettivoStrutturato||{};var m=calcolaObiettivoMetrics(d.obiettivo,os,d.peso);return {...os,warningLivello:m.livello,tassoAttesoSettimana:m.tassoAttesoSettimana,kcalTargetCalcolato:m.kcalDelta,durataProgrammaMesi:m.durataProgrammaMesi};})(),
               };
               if(typeof gtag!=='undefined')gtag('event','wizard_complete',{profile:pr.code});
               onSave(p);
