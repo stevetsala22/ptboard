@@ -2958,6 +2958,8 @@ const calcNutrizione=(p)=>{
   var obInfo=obiettivoMap[p.obiettivo]||{molt:1.0,note:T.nutObBenNote};
   var molt=obInfo.molt;
   var kcal=Math.round(tdee*molt);
+  // Se obiettivoStrutturato ha kcalTargetCalcolato (da calcolaObiettivoMetrics), sostituisce moltiplicatore fisso
+  if(p.obiettivoStrutturato&&p.obiettivoStrutturato.kcalTargetCalcolato&&p.obiettivoStrutturato.kcalTargetCalcolato!==0){kcal=Math.round(tdee+p.obiettivoStrutturato.kcalTargetCalcolato);}
   if(p.stressPercepito==='Alto'||p.stressPercepito==='Molto alto')kcal=Math.round(kcal*1.05);
   // Cap sul deficit: mai sotto BMR * 1.2
   if(kcal<bmr*1.2)kcal=Math.round(bmr*1.2);
@@ -7182,6 +7184,7 @@ var generaProgramma = function(params) {
   var infortuni = params.infortuni || '';
   var seduteDisponibili = params.seduteSettimana ? +params.seduteSettimana : null;
   var testResults = params.testResults || {};
+  var obiettivoStrutturato = params.obiettivoStrutturato || {};
   // ── FREQUENZA (ACSM Guidelines 11th ed.) ──
   var sedute, minCardio, minForza;
   if (profilo === 'A') { sedute = 3; minCardio = 75; minForza = 40; }
@@ -7474,6 +7477,14 @@ var generaProgramma = function(params) {
   if (eta > 60 && !patologie.includes('osteoporosi')) precauzioni.push(T.gpPrecOver60);
   // ── SETTIMANE ──
   var durataInfo = chooseDurata(profilo, obiettivo, eta, T);
+  // Override durata se obiettivoStrutturato ha durataProgrammaMesi calcolato
+  if(obiettivoStrutturato.durataProgrammaMesi&&+obiettivoStrutturato.durataProgrammaMesi>0){
+    var _durMesi=+obiettivoStrutturato.durataProgrammaMesi;
+    var _durSett=Math.max(6,Math.round(_durMesi*4.33));
+    var _faseMap=[];
+    for(var _i=0;_i<_durSett;_i++){var _pct=_i/_durSett;if(_pct<0.2)_faseMap.push(0);else if(_pct<0.6)_faseMap.push(1);else if(_pct<0.85)_faseMap.push(2);else _faseMap.push(3);}
+    durataInfo={nSettimane:_durSett,faseMap:_faseMap,faseLabels:durataInfo.faseLabels,razionaleDurata:'Durata calibrata sull\'obiettivo strutturato: '+_durMesi+' mesi ('+_durSett+' settimane). '+durataInfo.razionaleDurata};
+  }
   var nSettimane = durataInfo.nSettimane;
   var faseMap = durataInfo.faseMap;
   var faseLabels = durataInfo.faseLabels;
@@ -7536,6 +7547,14 @@ var generaProgramma = function(params) {
       frequenza: 'Sedute/sett.: ' + sedute + ' (ACSM 11th ed. — profilo ' + profilo + ', obiettivo ' + obiettivo + ').',
       intensita: 'RPE target ' + rpeMin + '\u2013' + rpeMax + ', recupero ' + recSec + 's, ' + serieBase + ' serie base (post-modulatori).',
       modulatori: focusNotesUniq.length > 0 ? focusNotesUniq.join(' \u00b7 ') : null,
+      obiettivoDettaglio:(function(){
+        var os=obiettivoStrutturato;
+        if(!os||(!os.pesoTarget&&!os.rmTarget&&!os.eventoTarget))return null;
+        if(os.pesoTarget&&os.tempoMesi)return'Obiettivo → '+obiettivo+': target '+os.pesoTarget+' kg in '+os.tempoMesi+' mesi. Strategia → '+(os.kcalTargetCalcolato?Math.abs(os.kcalTargetCalcolato)+' kcal/die '+(os.kcalTargetCalcolato<0?'deficit':'surplus')+' · ':'')+''+(os.tassoAttesoSettimana?os.tassoAttesoSettimana.toFixed(2)+' kg/sett':'');
+        if(os.rmTarget&&os.rmAttuale){var _incr=(+os.rmTarget-+os.rmAttuale)/((+os.durataProgrammaMesi||3)*4.33);return'Obiettivo → Forza '+(os.esercizioTarget||'')+ ': '+os.rmAttuale+' → '+os.rmTarget+' kg in '+os.tempoMesi+' mesi. Progressione → +'+_incr.toFixed(1)+' kg/sett.';}
+        if(os.eventoTarget)return'Obiettivo → Performance: '+os.eventoTarget+' ('+os.dataEvento+'). '+durataInfo.nSettimane+' sett. a disposizione.';
+        return null;
+      })(),
       riferimenti: 'Schoenfeld 2016 (ipertrofia) \u00b7 Schuch 2016 (esercizio e salute mentale) \u00b7 ACSM 11th ed. \u00b7 ISSN 2017'
     }
   };
@@ -7679,7 +7698,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
-  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
+  const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,obiettivoStrutturato:d.obiettivoStrutturato,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
