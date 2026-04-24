@@ -8116,7 +8116,7 @@ footer .center b{color:#3b82f6;font-weight:700}
   const clr=pr?pr.c:C.blue;
 
   return(
-    <div style={OL}>
+    <><div style={OL}>
       <div style={BOX} onClick={function(e){e.stopPropagation();}}>
         {!wizardType&&(
           <div style={{padding:isMobile?'16px 12px':'40px 32px',overflowY:'auto',overflowX:'hidden',flex:1}}>
@@ -9245,7 +9245,7 @@ footer .center b{color:#3b82f6;font-weight:700}
       permettiFermaPrima={timerTest?.permettiFermaPrima||false}
       onComplete={(val)=>{if(timerTest?.onSave)timerTest.onSave(val);setTimerTest(null);}}
       onCancel={()=>setTimerTest(null)}
-    />
+    /></>
   );
 }
 
