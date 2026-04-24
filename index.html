@@ -7750,6 +7750,95 @@ function ScoreBreakdown({pr,compact}){
   );
 }
 
+// ── TIMER MODAL ───────────────────────────────────────────────────────────────
+function TimerModal({open,durata,titolo,descrizione,onComplete,onCancel,permettiFermaPrima}){
+  const [secondiRimasti,setSecondiRimasti]=React.useState(durata);
+  const [inCorso,setInCorso]=React.useState(false);
+  const [completato,setCompletato]=React.useState(false);
+  const [risultato,setRisultato]=React.useState('');
+  const [wakeLock,setWakeLock]=React.useState(null);
+
+  React.useEffect(()=>{
+    if(open){setSecondiRimasti(durata);setInCorso(false);setCompletato(false);setRisultato('');}
+  },[open,durata]);
+
+  React.useEffect(()=>{
+    if(!inCorso||completato)return;
+    if(secondiRimasti<=0){setInCorso(false);setCompletato(true);_beep(2);if(navigator.vibrate)navigator.vibrate([200,100,200]);return;}
+    if(secondiRimasti===Math.floor(durata/2)&&durata>=300)_beep(1);
+    if(secondiRimasti<=3&&secondiRimasti>0)_beep(1);
+    const t=setTimeout(()=>setSecondiRimasti(s=>s-1),1000);
+    return()=>clearTimeout(t);
+  },[inCorso,secondiRimasti,completato,durata]);
+
+  React.useEffect(()=>{
+    if(inCorso&&'wakeLock' in navigator){
+      navigator.wakeLock.request('screen').then(wl=>setWakeLock(wl)).catch(()=>{});
+    }
+    return()=>{if(wakeLock)wakeLock.release().catch(()=>{});};
+  },[inCorso]);
+
+  function _beep(count){
+    try{
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      for(let i=0;i<count;i++){
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.frequency.value=880;
+        gain.gain.setValueAtTime(0.3,ctx.currentTime+i*0.3);
+        gain.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.3+0.15);
+        osc.start(ctx.currentTime+i*0.3);osc.stop(ctx.currentTime+i*0.3+0.15);
+      }
+    }catch(e){}
+  }
+
+  function fermaPrima(){setInCorso(false);setCompletato(true);setRisultato((durata-secondiRimasti).toString());}
+  function conferma(){onComplete(risultato,completato);}
+
+  if(!open)return null;
+  const min=Math.floor(secondiRimasti/60),sec=secondiRimasti%60;
+  const timeStr=`${min}:${sec.toString().padStart(2,'0')}`;
+  const C2=window._C||{};
+  return(
+    <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:20}}>
+      <div style={{background:'var(--bg,#fff)',borderRadius:16,padding:'24px 28px',maxWidth:420,width:'100%',textAlign:'center',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}}>
+        <div style={{fontSize:13,color:'var(--muted,#6B7280)',letterSpacing:'0.5px',fontWeight:600,marginBottom:4,textTransform:'uppercase'}}>{titolo}</div>
+        {descrizione&&<div style={{fontSize:12,color:'var(--muted,#6B7280)',marginBottom:20,lineHeight:1.5}}>{descrizione}</div>}
+        <div style={{fontSize:64,fontWeight:300,fontVariantNumeric:'tabular-nums',margin:'20px 0',color:secondiRimasti<=3&&inCorso?'#E24B4A':'var(--text,#111)',fontFamily:'monospace'}}>
+          {timeStr}
+        </div>
+        {!inCorso&&!completato&&(
+          <button onClick={()=>setInCorso(true)} style={{padding:'12px 32px',background:'#1D9E75',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:500,cursor:'pointer',width:'100%',marginBottom:8}}>
+            ▶ Avvia test
+          </button>
+        )}
+        {inCorso&&permettiFermaPrima&&(
+          <button onClick={fermaPrima} style={{padding:'10px 24px',background:'#EF9F27',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:500,cursor:'pointer',width:'100%',marginBottom:8}}>
+            Ferma ora
+          </button>
+        )}
+        {inCorso&&!permettiFermaPrima&&(
+          <div style={{fontSize:12,color:'var(--muted,#6B7280)',marginBottom:8}}>Test in corso…</div>
+        )}
+        {completato&&(
+          <div>
+            <div style={{background:'#E1F5EE',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#0F6E56',marginBottom:14}}>✓ Test completato. Inserisci il risultato.</div>
+            <input type="number" value={risultato} onChange={e=>setRisultato(e.target.value)} placeholder="Inserisci valore" autoFocus
+              style={{width:'100%',padding:'10px 12px',fontSize:16,borderRadius:8,border:'1px solid var(--border,#ddd)',marginBottom:10,boxSizing:'border-box'}}/>
+            <button onClick={conferma} disabled={!risultato}
+              style={{padding:'10px 24px',background:risultato?'#1D9E75':'#ccc',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:500,cursor:risultato?'pointer':'not-allowed',width:'100%',marginBottom:8}}>
+              Salva risultato
+            </button>
+          </div>
+        )}
+        <button onClick={onCancel} style={{padding:'8px',background:'transparent',border:'none',color:'var(--muted,#6B7280)',fontSize:13,cursor:'pointer',width:'100%',marginTop:4}}>
+          Annulla
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const T=gT();
   const [wizardType,setWizardType]=useState(null);
@@ -7797,6 +7886,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   });
   // Stima automatica: tracciamo quali campi sono stati riempiti via stima
   const [stimati,setStimati]=useState({});
+  const [timerTest,setTimerTest]=React.useState(null);
   const upd=k=>e=>{
     setD(x=>({...x,[k]:e.target.value}));
     if(stimati[k])setStimati(s=>{var n=Object.assign({},s);delete n[k];return n;});
@@ -8666,7 +8756,14 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizPlankDesc}</span>
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizPlankProto}</div>
-              <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',marginBottom:4}}>
+                <div style={{flex:1}}>
+                  <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
+                </div>
+                <button type="button" onClick={()=>setTimerTest({durata:180,titolo:'Plank — resistenza isometrica',descrizione:'Il cliente mantiene la posizione plank. Premi "Ferma ora" al cedimento tecnico. Max 3 min.',permettiFermaPrima:true,onSave:(val)=>set('plankSec',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  ⏱ Avvia test
+                </button>
+              </div>
               <div style={{display:'flex',flexDirection:'column'}}>
                 <StimaBtn fields={['plankSec']}/>
                 <StimaBadge fields={['plankSec']}/>
@@ -9090,6 +9187,15 @@ footer .center b{color:#3b82f6;font-weight:700}
         </>)}
       </div>
     </div>
+    <TimerModal
+      open={!!timerTest}
+      durata={timerTest?.durata||60}
+      titolo={timerTest?.titolo||''}
+      descrizione={timerTest?.descrizione||''}
+      permettiFermaPrima={timerTest?.permettiFermaPrima||false}
+      onComplete={(val)=>{if(timerTest?.onSave)timerTest.onSave(val);setTimerTest(null);}}
+      onCancel={()=>setTimerTest(null)}
+    />
   );
 }
 
