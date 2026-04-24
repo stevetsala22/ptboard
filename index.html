@@ -3170,7 +3170,28 @@ const calcNutrizione=(p)=>{
   note.push(T.nutNoteDisclaimer);
   return{kcal,proteine,carboidrati,grassi,note:note.join('\n'),formula:p.bia?.FM?'Katch-McArdle (BIA)':'Mifflin-St Jeor',protRef:protInfo.ref,grassiRef:grassiInfo.ref};
 };
-const interpPushup=(rip,sesso)=>{if(!rip)return null;const T=gT();const r=+rip,m=sesso==='M';if(m){if(r<10)return{l:T.veryLow,c:'#ef4444',cons:T.consPushupBeg};if(r<20)return{l:T.average,c:'#f59e0b',cons:T.consPushupStd};return{l:T.good,c:'#10b981',cons:T.consPushupAdv};}else{if(r<7)return{l:T.veryLow,c:'#ef4444',cons:T.consPushupBeg};if(r<15)return{l:T.average,c:'#f59e0b',cons:T.consPushupStd};return{l:T.good,c:'#10b981',cons:T.consPushupAdv};}};
+// Push-up YMCA norme per fascia d'età (Golding 2000) [veryLow, low, avg, good, excellent]
+const PUSHUP_NORME={
+  M:[[20,29],[17,22,29,36],[15,19,25,30],[13,16,20,24],[11,13,16,20],[9,11,13,17],[7,8,10,12]],
+  F:[[20,29],[12,15,20,24],[10,13,15,19],[8,11,12,14],[6,8,10,12],[4,6,8,10],[2,4,5,7]]
+};
+// indice fascia: 20-29=0, 30-39=1, 40-49=2, 50-59=3, 60-69=4, 70+=5
+const getPushupFascia=(eta)=>eta<30?0:eta<40?1:eta<50?2:eta<60?3:eta<70?4:5;
+const interpPushup=(rip,sesso,eta)=>{
+  if(!rip)return null;const T=gT();const r=+rip,m=sesso==='M';
+  const key=m?'M':'F';
+  const fascia=getPushupFascia(eta||35);
+  const norme=PUSHUP_NORME[key][fascia]; // [low, below_avg, avg, above_avg] soglie minime
+  var l,c,cons;
+  if(r<norme[0]){l=T.veryLow;c='#ef4444';cons=T.consPushupBeg;}
+  else if(r<norme[1]){l=T.below_avg||'Sotto media';c='#f97316';cons=T.consPushupBeg;}
+  else if(r<norme[2]){l=T.average;c='#f59e0b';cons=T.consPushupStd;}
+  else if(r<norme[3]){l=T.above_avg||'Sopra media';c='#84cc16';cons=T.consPushupAdv;}
+  else{l=T.excellent||'Eccellente';c='#10b981';cons=T.consPushupAdv;}
+  // Età sul risultato
+  var etaLabel=eta?' ('+eta+' anni)':'';
+  return{l,c,cons,etaLabel,norma:norme[2]+' rip. norma fascia età'+etaLabel};
+};
 const interpPlank=(sec)=>{if(!sec)return null;const T=gT();const s=+sec;if(s<30)return{l:T.veryLow,c:'#ef4444',cons:T.consPlankBeg};if(s<60)return{l:T.base,c:'#f59e0b',cons:T.consPlankBase};if(s<120)return{l:T.good,c:'#10b981',cons:T.consPlankGood};return{l:T.excellent,c:'#3b82f6',cons:T.consPlankExc};};
 const interpSquat=(rip)=>{if(!rip)return null;const T=gT();const r=+rip;if(r<10)return{l:T.veryLow,c:'#ef4444',cons:T.consSquatLow};if(r<20)return{l:T.average,c:'#f59e0b',cons:T.consSquatAvg};if(r<30)return{l:T.good,c:'#10b981',cons:T.consSquatGood};return{l:T.excellent,c:'#3b82f6',cons:T.consSquatExc};};
 const interpTUG=(sec)=>{if(!sec)return null;const T=gT();const s=+sec;if(s<10)return{l:T.fallLow,c:'#10b981',cons:T.consTugLow};if(s<12)return{l:T.fallMild,c:'#f59e0b',cons:T.consTugMild};if(s<20)return{l:T.fallMod,c:'#fb923c',cons:T.consTugMod};return{l:T.fallHigh,c:'#ef4444',cons:T.consTugHigh};};
@@ -7230,8 +7251,13 @@ var chooseSplit = function(profilo, obiettivo, seduteDisponibili, eta) {
     return { splitType: 'Full Body', ripetizioniSettimana: 2, razionaleSplit: 'Full Body ×2: 2 sedute/sett assicurano frequenza minima ≥2×/muscolo (Schoenfeld 2016).' };
   }
   if (sed === 3) {
-    if (isIpertrofia || obiettivo === 'Performance') {
-      return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 3, razionaleSplit: 'PPL ×3: frequenza 1×/muscolo/sett ma volume per seduta elevato; ottimale per ipertrofia con 3 giorni.' };
+    if (obiettivo === 'Performance') {
+      return { splitType: 'Push / Pull / Legs', ripetizioniSettimana: 3, razionaleSplit: 'PPL ×3: struttura ottimale per performance atletica con 3 sessioni.' };
+    }
+    if (isIpertrofia) {
+      // Schoenfeld 2016 — frequenza 2×/muscolo/sett superiore a 1× per ipertrofia.
+      // Con 3 sedute, Full Body garantisce 3× frequenza vs PPL che dà solo 1×.
+      return { splitType: 'Full Body', ripetizioniSettimana: 3, razionaleSplit: 'Full Body ×3: con 3 sedute è superiore a PPL per ipertrofia — frequenza 3×/muscolo/sett vs 1× (Schoenfeld 2016). Ogni seduta include compound multi-articolari con volume modulato per obiettivo massa.' };
     }
     return { splitType: 'Full Body', ripetizioniSettimana: 3, razionaleSplit: 'Full Body ×3: massima frequenza su ogni distretto, ideale per salute generale e perdita di peso.' };
   }
