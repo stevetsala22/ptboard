@@ -5842,6 +5842,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
             if(hp.modalitaValutazione===undefined){hp.modalitaValutazione='';pNeedHydrate=true;}
             if(!hp.obiettivoStrutturato){hp.obiettivoStrutturato={pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0};pNeedHydrate=true;}
             if(hp.test&&(hp.test.rmEsercizio===undefined||hp.test.stepTestFc===undefined||hp.test.cmjAltezza===undefined)){hp.test=Object.assign({rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',stepTestFc:'',stepTestSecondi:180,cmjAltezza:'',cmjTentativo:''},hp.test);pNeedHydrate=true;}
+            if(hp.test&&hp.test.cooperDistanza===undefined){hp.test=Object.assign({cooperDistanza:'',cooperVo2max:''},hp.test);pNeedHydrate=true;}
             return hp;
           });
           setPatients(pHydrated);
@@ -5908,7 +5909,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
 
   const selected=patients.find(p=>p.id===selectedId);
 
-  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:'',rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',stepTestFc:'',stepTestSecondi:180,cmjAltezza:'',cmjTentativo:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',obiettivoStrutturato:{pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0},createdAt:fmtDate()});
+  const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:'',rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',stepTestFc:'',stepTestSecondi:180,cmjAltezza:'',cmjTentativo:'',cooperDistanza:'',cooperVo2max:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',obiettivoStrutturato:{pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0},createdAt:fmtDate()});
 
   const handleSave=useCallback((form)=>{
     const errs=[];
@@ -7182,7 +7183,7 @@ function testConsigliatiSmart(dati){
   var obiettivoPerformance=obiettivo==='Performance';
   var isObeso=bmi>=30;
 
-  var all=['mwt','sts','tug','pushup','plank','handgrip','slb','rm','stepTest','cmj'];
+  var all=['mwt','sts','tug','pushup','plank','handgrip','slb','rm','stepTest','cmj','cooper'];
   var consigliati=[];
 
   if(isRiabilitazione){
@@ -7201,9 +7202,9 @@ function testConsigliatiSmart(dati){
   }else if(obiettivoForza){
     consigliati=['rm','pushup','plank','handgrip'];
   }else if(obiettivoResistenza){
-    consigliati=['stepTest','plank','handgrip'];
+    consigliati=['stepTest','cooper','plank','handgrip'];
   }else if(obiettivoPerformance){
-    consigliati=['rm','cmj','pushup','handgrip'];
+    consigliati=['rm','cmj','pushup','handgrip','cooper'];
   }else{
     consigliati=['stepTest','pushup','plank','handgrip'];
   }
@@ -7749,6 +7750,95 @@ function ScoreBreakdown({pr,compact}){
   );
 }
 
+// ── TIMER MODAL ───────────────────────────────────────────────────────────────
+function TimerModal({open,durata,titolo,descrizione,onComplete,onCancel,permettiFermaPrima}){
+  const [secondiRimasti,setSecondiRimasti]=React.useState(durata);
+  const [inCorso,setInCorso]=React.useState(false);
+  const [completato,setCompletato]=React.useState(false);
+  const [risultato,setRisultato]=React.useState('');
+  const [wakeLock,setWakeLock]=React.useState(null);
+
+  React.useEffect(()=>{
+    if(open){setSecondiRimasti(durata);setInCorso(false);setCompletato(false);setRisultato('');}
+  },[open,durata]);
+
+  React.useEffect(()=>{
+    if(!inCorso||completato)return;
+    if(secondiRimasti<=0){setInCorso(false);setCompletato(true);_beep(2);if(navigator.vibrate)navigator.vibrate([200,100,200]);return;}
+    if(secondiRimasti===Math.floor(durata/2)&&durata>=300)_beep(1);
+    if(secondiRimasti<=3&&secondiRimasti>0)_beep(1);
+    const t=setTimeout(()=>setSecondiRimasti(s=>s-1),1000);
+    return()=>clearTimeout(t);
+  },[inCorso,secondiRimasti,completato,durata]);
+
+  React.useEffect(()=>{
+    if(inCorso&&'wakeLock' in navigator){
+      navigator.wakeLock.request('screen').then(wl=>setWakeLock(wl)).catch(()=>{});
+    }
+    return()=>{if(wakeLock)wakeLock.release().catch(()=>{});};
+  },[inCorso]);
+
+  function _beep(count){
+    try{
+      const ctx=new(window.AudioContext||window.webkitAudioContext)();
+      for(let i=0;i<count;i++){
+        const osc=ctx.createOscillator(),gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.frequency.value=880;
+        gain.gain.setValueAtTime(0.3,ctx.currentTime+i*0.3);
+        gain.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+i*0.3+0.15);
+        osc.start(ctx.currentTime+i*0.3);osc.stop(ctx.currentTime+i*0.3+0.15);
+      }
+    }catch(e){}
+  }
+
+  function fermaPrima(){setInCorso(false);setCompletato(true);setRisultato((durata-secondiRimasti).toString());}
+  function conferma(){onComplete(risultato,completato);}
+
+  if(!open)return null;
+  const min=Math.floor(secondiRimasti/60),sec=secondiRimasti%60;
+  const timeStr=`${min}:${sec.toString().padStart(2,'0')}`;
+  const C2=window._C||{};
+  return(
+    <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9999,padding:20}}>
+      <div style={{background:'var(--bg,#fff)',borderRadius:16,padding:'24px 28px',maxWidth:420,width:'100%',textAlign:'center',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}}>
+        <div style={{fontSize:13,color:'var(--muted,#6B7280)',letterSpacing:'0.5px',fontWeight:600,marginBottom:4,textTransform:'uppercase'}}>{titolo}</div>
+        {descrizione&&<div style={{fontSize:12,color:'var(--muted,#6B7280)',marginBottom:20,lineHeight:1.5}}>{descrizione}</div>}
+        <div style={{fontSize:64,fontWeight:300,fontVariantNumeric:'tabular-nums',margin:'20px 0',color:secondiRimasti<=3&&inCorso?'#E24B4A':'var(--text,#111)',fontFamily:'monospace'}}>
+          {timeStr}
+        </div>
+        {!inCorso&&!completato&&(
+          <button onClick={()=>setInCorso(true)} style={{padding:'12px 32px',background:'#1D9E75',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:500,cursor:'pointer',width:'100%',marginBottom:8}}>
+            ▶ Avvia test
+          </button>
+        )}
+        {inCorso&&permettiFermaPrima&&(
+          <button onClick={fermaPrima} style={{padding:'10px 24px',background:'#EF9F27',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:500,cursor:'pointer',width:'100%',marginBottom:8}}>
+            Ferma ora
+          </button>
+        )}
+        {inCorso&&!permettiFermaPrima&&(
+          <div style={{fontSize:12,color:'var(--muted,#6B7280)',marginBottom:8}}>Test in corso…</div>
+        )}
+        {completato&&(
+          <div>
+            <div style={{background:'#E1F5EE',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#0F6E56',marginBottom:14}}>✓ Test completato. Inserisci il risultato.</div>
+            <input type="number" value={risultato} onChange={e=>setRisultato(e.target.value)} placeholder="Inserisci valore" autoFocus
+              style={{width:'100%',padding:'10px 12px',fontSize:16,borderRadius:8,border:'1px solid var(--border,#ddd)',marginBottom:10,boxSizing:'border-box'}}/>
+            <button onClick={conferma} disabled={!risultato}
+              style={{padding:'10px 24px',background:risultato?'#1D9E75':'#ccc',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:500,cursor:risultato?'pointer':'not-allowed',width:'100%',marginBottom:8}}>
+              Salva risultato
+            </button>
+          </div>
+        )}
+        <button onClick={onCancel} style={{padding:'8px',background:'transparent',border:'none',color:'var(--muted,#6B7280)',fontSize:13,cursor:'pointer',width:'100%',marginTop:4}}>
+          Annulla
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const T=gT();
   const [wizardType,setWizardType]=useState(null);
@@ -7775,7 +7865,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     pushupRip:'',pushupNote:'',plankSec:'',squatRip:'',squatNote:'',
     slbDx:'',slbSx:'',tugSec:'',handgrip:'',
     rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',
-    stepTestFc:'',cmjAltezza:'',
+    stepTestFc:'',cmjAltezza:'',cooperDistanza:'',
     fcPost:'',fcRecup:'',gad7:'',
     cirBraccio:'',cirCoscia:'',cirPolpaccio:'',
     plicaSott:'',plicaTric:'',plicaIlio:'',massaGrassa:'',
@@ -7796,6 +7886,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   });
   // Stima automatica: tracciamo quali campi sono stati riempiti via stima
   const [stimati,setStimati]=useState({});
+  const [timerTest,setTimerTest]=React.useState(null);
   const upd=k=>e=>{
     setD(x=>({...x,[k]:e.target.value}));
     if(stimati[k])setStimati(s=>{var n=Object.assign({},s);delete n[k];return n;});
@@ -8537,10 +8628,15 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <span style={{fontSize:16}}>🚶</span>
                 <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRis6mwt}</span>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl={T.wizMwtDist} name="mwtDist" type="number" val={d.mwtDist} ph="320" onChange={upd('mwtDist')}/>
-                <WizIn lbl={T.wizMwtRpe} name="mwtRpe" type="number" val={d.mwtRpe} ph={T.wizMwtRpePh} onChange={upd('mwtRpe')}/>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',marginBottom:4}}>
+                <div style={{flex:1}}>
+                  <WizIn lbl={T.wizMwtDist} name="mwtDist" type="number" val={d.mwtDist} ph="320" onChange={upd('mwtDist')}/>
+                </div>
+                <button type="button" onClick={()=>setTimerTest({durata:360,titolo:'6MWT — 6 Minute Walk Test',descrizione:'Il cliente cammina alla massima velocità sostenibile per 6 minuti. A fine timer inserisci la distanza percorsa in metri. Premi "Ferma ora" se il test viene interrotto.',permettiFermaPrima:true,onSave:(val)=>set('mwtDist',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  ⏱ Avvia test
+                </button>
               </div>
+              <WizIn lbl={T.wizMwtRpe} name="mwtRpe" type="number" val={d.mwtRpe} ph={T.wizMwtRpePh} onChange={upd('mwtRpe')}/>
               <div style={{display:'flex',flexDirection:'column'}}>
                 <StimaBtn fields={['mwtDist']}/>
                 <StimaBadge fields={['mwtDist']}/>
@@ -8597,10 +8693,15 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <span style={{fontSize:16}}>🪑</span>
                 <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRisSts}</span>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                <WizIn lbl={T.wizStsRipLbl} name="stsRip" type="number" val={d.stsRip} ph="12" onChange={upd('stsRip')}/>
-                <WizIn lbl={T.wizStsNote} name="stsNote" val={d.stsNote} ph={T.wizStsNotePh} onChange={upd('stsNote')}/>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',marginBottom:4}}>
+                <div style={{flex:1}}>
+                  <WizIn lbl={T.wizStsRipLbl} name="stsRip" type="number" val={d.stsRip} ph="12" onChange={upd('stsRip')}/>
+                </div>
+                <button type="button" onClick={()=>setTimerTest({durata:30,titolo:'STS 30s — Sit-to-Stand',descrizione:'Il cliente si alza e risiede dalla sedia più volte in 30 secondi. Il timer si ferma automaticamente. Inserisci il numero di ripetizioni completate.',permettiFermaPrima:false,onSave:(val)=>set('stsRip',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  ⏱ Avvia test
+                </button>
               </div>
+              <WizIn lbl={T.wizStsNote} name="stsNote" val={d.stsNote} ph={T.wizStsNotePh} onChange={upd('stsNote')}/>
               <div style={{display:'flex',flexDirection:'column'}}>
                 <StimaBtn fields={['stsRip']}/>
                 <StimaBadge fields={['stsRip']}/>
@@ -8617,6 +8718,45 @@ footer .center b{color:#3b82f6;font-weight:700}
                 </div>
               </div>})()}
             </div>
+            {/* Cooper test */}
+            {(d.modalitaVal!=='smart'||testConsigliatiSmart(d).consigliati.indexOf('cooper')>=0)&&<div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #8B5CF6'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:14}}>🏃</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Cooper test (12 min)</span>
+              </div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Il cliente corre/cammina la massima distanza possibile in 12 minuti. Necessaria pista o percorso misurato.</div>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',marginBottom:4}}>
+                <div style={{flex:1}}>
+                  <WizIn lbl="Distanza percorsa (m)" name="cooperDistanza" type="number" val={d.cooperDistanza} ph="2000" onChange={upd('cooperDistanza')}/>
+                </div>
+                <button type="button" onClick={()=>setTimerTest({durata:720,titolo:'Cooper test — 12 minuti',descrizione:'Il cliente corre/cammina alla massima velocità sostenibile per 12 min. A fine timer, inserisci la distanza percorsa in metri.',permettiFermaPrima:true,onSave:(val)=>set('cooperDistanza',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  ⏱ Avvia test
+                </button>
+              </div>
+              {d.cooperDistanza&&(()=>{
+                var dm=parseFloat(d.cooperDistanza);
+                if(!dm)return null;
+                var vo2=Math.round((dm-504.9)/44.73*10)/10;
+                var eta=d.annoNascita?new Date().getFullYear()-parseInt(d.annoNascita):30;
+                var m=d.sesso==='M';
+                var livello='N/D';
+                if(m){
+                  if(eta<30)livello=dm>=2800?'Eccellente':dm>=2400?'Buono':dm>=2200?'Medio':dm>=1600?'Scarso':'Molto scarso';
+                  else if(eta<40)livello=dm>=2700?'Eccellente':dm>=2300?'Buono':dm>=2100?'Medio':dm>=1500?'Scarso':'Molto scarso';
+                  else livello=dm>=2500?'Eccellente':dm>=2100?'Buono':dm>=1900?'Medio':dm>=1400?'Scarso':'Molto scarso';
+                }else{
+                  if(eta<30)livello=dm>=2700?'Eccellente':dm>=2200?'Buono':dm>=1800?'Medio':dm>=1500?'Scarso':'Molto scarso';
+                  else if(eta<40)livello=dm>=2500?'Eccellente':dm>=2000?'Buono':dm>=1700?'Medio':dm>=1400?'Scarso':'Molto scarso';
+                  else livello=dm>=2300?'Eccellente':dm>=1900?'Buono':dm>=1500?'Medio':dm>=1200?'Scarso':'Molto scarso';
+                }
+                return(
+                  <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#0C447C'}}>
+                    <strong style={{fontWeight:600}}>VO2max stimato: {vo2} ml/kg/min · {livello}</strong>
+                  </div>
+                );
+              })()}
+            </div>}
+
             {/* Preview profilo */}
             {d.mwtDist&&d.stsRip&&pr&&<div style={{background:pr.bg,border:'2px solid '+pr.c+'40',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
               <div style={{fontSize:18,fontWeight:900,color:pr.c,lineHeight:1}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort}</div>
@@ -8665,7 +8805,14 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <span style={{fontSize:10,color:C.muted,fontWeight:400}}>{T.wizPlankDesc}</span>
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizPlankProto}</div>
-              <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
+              <div style={{display:'flex',gap:8,alignItems:'flex-end',marginBottom:4}}>
+                <div style={{flex:1}}>
+                  <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
+                </div>
+                <button type="button" onClick={()=>setTimerTest({durata:180,titolo:'Plank — resistenza isometrica',descrizione:'Il cliente mantiene la posizione plank. Premi "Ferma ora" al cedimento tecnico. Max 3 min.',permettiFermaPrima:true,onSave:(val)=>set('plankSec',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  ⏱ Avvia test
+                </button>
+              </div>
               <div style={{display:'flex',flexDirection:'column'}}>
                 <StimaBtn fields={['plankSec']}/>
                 <StimaBadge fields={['plankSec']}/>
@@ -9071,6 +9218,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                   tugSec:d.tugSec,slbDx:d.slbDx,slbSx:d.slbSx,handgrip:d.handgrip||'',fcPost:d.fcPost,fcRecup:d.fcRecup,
                   rmEsercizio:d.rmEsercizio||'',rmEsercizioAltro:d.rmEsercizioAltro||'',rmCarico:d.rmCarico||'',rmRip:d.rmRip||'',rmModalita:d.rmModalita||'stimato',rmDiretto:d.rmDiretto||'',
                   stepTestFc:d.stepTestFc||'',stepTestSecondi:180,cmjAltezza:d.cmjAltezza||'',cmjTentativo:'migliore di 3',
+                  cooperDistanza:d.cooperDistanza||'',cooperVo2max:d.cooperDistanza?(Math.round((parseFloat(d.cooperDistanza)-504.9)/44.73*10)/10).toString():'',
                   cirBraccio:d.cirBraccio,cirCoscia:d.cirCoscia,cirPolpaccio:d.cirPolpaccio,plicaSott:d.plicaSott,plicaTric:d.plicaTric,plicaIlio:d.plicaIlio,massaGrassa:d.massaGrassa,
                   gad7:d.gad7,motivazione:d.motivazione,
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
@@ -9089,6 +9237,15 @@ footer .center b{color:#3b82f6;font-weight:700}
         </>)}
       </div>
     </div>
+    <TimerModal
+      open={!!timerTest}
+      durata={timerTest?.durata||60}
+      titolo={timerTest?.titolo||''}
+      descrizione={timerTest?.descrizione||''}
+      permettiFermaPrima={timerTest?.permettiFermaPrima||false}
+      onComplete={(val)=>{if(timerTest?.onSave)timerTest.onSave(val);setTimerTest(null);}}
+      onCancel={()=>setTimerTest(null)}
+    />
   );
 }
 
