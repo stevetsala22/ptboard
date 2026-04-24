@@ -7598,11 +7598,41 @@ var generaProgramma = function(params) {
   // Sovrascriviamo le forzaDesc: il programma referenzia la scheda, non elenca esercizi generici.
   var splitInfo = chooseSplit(profilo, obiettivo, seduteDisponibili, eta);
   var splitLabel = splitInfo.splitType;
+  // ── PROGRESSIONE LINEARE con sedute settimanali ──
+  // Regola il tasso di progressione in base a quante sedute/sett ha il cliente.
+  // Con poche sedute il recupero è maggiore → si può aumentare di più per seduta.
+  // Con tante sedute il volume è già alto → incrementi più piccoli per evitare overreaching.
+  var sed_ = seduteDisponibili || sedute;
+  var caricoStart, caricoIncr, serieDeload, noteProgr;
+  // Tasso incremento carico: 1-2 sed→+7%, 3 sed→+5%, 4-5 sed→+4%, 6+ sed→+3%
+  var tassoCarico = sed_ <= 2 ? 7 : sed_ === 3 ? 5 : sed_ <= 5 ? 4 : 3;
+  // Serie in W3: con 1-3 sed aggiungi 1 serie compound; con 4+ già alto volume, niente serie extra
+  var serieExtraW3 = sed_ <= 3 ? 1 : 0;
+  var serieW3label = serieExtraW3 > 0 ? '+1 serie sui compound (' + (serieBase+1) + '\u00d7' + ripRange + ')' : 'Serie invariate';
+
+  if(obiettivo==='Forza'){
+    caricoStart=75; serieDeload=Math.max(1,serieBase-2);
+    noteProgr='Forza — metodo lineare. +'+tassoCarico+'%/sett (modulato su '+sed_+' sed/sett). Deload W4: -30%.';
+  }else if(obiettivo==='Aumentare massa'){
+    caricoStart=65; serieDeload=Math.max(2,serieBase-1);
+    noteProgr='Ipertrofia — doppia progressione. +'+tassoCarico+'% carico '+( serieExtraW3?'+ +1 serie in W3':'')+'. '+sed_+' sed/sett → recupero '+(sed_<=3?'ampio, incrementi maggiori':'ridotto, incrementi conservativi')+'.';
+  }else if(obiettivo==='Perdere peso'){
+    caricoStart=60; serieDeload=Math.max(2,serieBase-1);
+    noteProgr='Metabolico — +'+tassoCarico+'% carico o -5s recupero. Con '+sed_+' sedute: volume '+(sed_>=4?'elevato, priorità recupero':'moderato, spazio per progressione')+'.';
+  }else if(obiettivo==='Resistenza'||obiettivo==='Performance'){
+    caricoStart=55; serieDeload=Math.max(2,serieBase-1);
+    noteProgr='Resistenza — +'+tassoCarico+'% carico o +1 rep ogni sett. '+sed_+' sed/sett.';
+  }else{
+    caricoStart=60; serieDeload=Math.max(2,serieBase-1);
+    noteProgr='Salute generale — +'+tassoCarico+'% a settimane alterne. Adattare al feedback RPE.';
+  }
+  caricoIncr = tassoCarico;
+
   forzaDesc = [
-    'Esegui la scheda generata (' + splitLabel + '). Serie\u00d7Rip come indicato. Carico: inizia al 60% del massimale percepito. Registra RPE e carichi.',
-    'Stessa scheda. Aumenta carico del 5% su tutti gli esercizi. Recupero invariato.',
-    'Stessa scheda. +1 serie sui compound. Carico stabile o +5%. Picco volume.',
-    'Stessa scheda. -1 serie su tutto. Carico -20%. Deload. Rivalutare score.'
+    'W1 — Scheda ' + splitLabel + ' · ' + serieBase + '\u00d7' + ripRange + ' · Carico: ' + caricoStart + '% 1RM percepito · Rec: ' + recSec + 's · Focus tecnica e registrazione carichi.',
+    'W2 — Stessa scheda · Carico +' + caricoIncr + '% su tutti i compound · Serie/rep invariate · RPE target: ' + (rpeMin+1) + '-' + rpeMax + '. (' + sed_ + ' sed/sett → tasso progressione calibrato)',
+    'W3 — Stessa scheda · ' + serieW3label + ' · Carico +' + caricoIncr + '% ulteriore · Picco volume.',
+    'W4 — DELOAD · ' + serieDeload + '\u00d7' + ripRange + ' · Carico -25% · Rec +20s · ' + noteProgr
   ];
 
   // ── PART 8: Avviso sedute insufficienti ──
