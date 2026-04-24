@@ -8005,6 +8005,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
   const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50)||calcScoreAnamnestico(d,eta||50);
+  const nutri=calcNutrizione({...d,annoNascita:annoNascita,sesso:d.sesso})||{};
   const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,obiettivoStrutturato:d.obiettivoStrutturato,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
