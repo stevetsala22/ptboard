@@ -7820,7 +7820,7 @@ function TimerModal({config,onClose}){
 
 function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const T=gT();
-  const [wizardType,setWizardType]=useState(null);
+  const wizardType='completa';
   const [step,setStep]=useState(1);
   const [timerTest,setTimerTest]=React.useState(null);
   const [d,setD]=useState({
@@ -8098,54 +8098,7 @@ footer .center b{color:#3b82f6;font-weight:700}
     <div style={OL}>
       {timerTest&&<TimerModal config={timerTest} onClose={()=>setTimerTest(null)}/>}
       <div style={BOX} onClick={function(e){e.stopPropagation();}}>
-        {!wizardType&&(
-          <div style={{padding:isMobile?'16px 12px':'40px 32px',overflowY:'auto',overflowX:'hidden',flex:1}}>
-            <div style={{textAlign:'center',marginBottom:isMobile?24:40}}>
-              <div style={{fontSize:isMobile?20:24,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>{T.wizSelectType}</div>
-              <div style={{fontSize:14,color:C.muted,marginTop:8}}>{T.wizSelectDesc}</div>
-            </div>
-            <div style={{display:'flex',gap:24,justifyContent:'center',flexDirection:isMobile?'column':'row',alignItems:'stretch'}}>
-              {/* Card Base */}
-              <div onClick={function(){setWizardType('base');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:isMobile?20:32,cursor:'pointer',transition:'all .3s',flex:1,maxWidth:isMobile?'100%':360,width:isMobile?'100%':undefined,display:'flex',flexDirection:'column'}}>
-                <div style={{fontSize:36,marginBottom:12}}>&#9889;</div>
-                <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>{T.wizValBase}</div>
-                <span style={{background:C.blue+'20',color:C.blue,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>{T.wizMin10}</span>
-                <div style={{fontSize:isMobile?11:12,color:C.muted,lineHeight:isMobile?1.6:1.8,flex:1}}>
-                  {T.wizBaseList.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
-                </div>
-                <button style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>{T.wizStartBase}</button>
-              </div>
-              {/* Card Completa */}
-              <div onClick={function(){setWizardType('completa');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:isMobile?20:32,cursor:'pointer',transition:'all .3s',flex:1,maxWidth:isMobile?'100%':360,width:isMobile?'100%':undefined,display:'flex',flexDirection:'column'}}>
-                <div style={{fontSize:36,marginBottom:12}}>&#128300;</div>
-                <div style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif',marginBottom:8}}>{T.wizValCompleta}</div>
-                <span style={{background:C.purple+'20',color:C.purple,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',alignSelf:'flex-start',fontWeight:600,marginBottom:16}}>{T.wizMin20}</span>
-                <div style={{fontSize:isMobile?11:12,color:C.muted,marginBottom:8}}>{T.wizCompletaPlus}</div>
-                <div style={{fontSize:isMobile?11:12,color:C.muted,lineHeight:isMobile?1.6:1.8,flex:1}}>
-                  {T.wizCompletaList.split('\n').map(function(line,i){return React.createElement('div',{key:i},line);})}
-                </div>
-                <button style={{background:C.purple,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:16}}>{T.wizStartCompleta}</button>
-              </div>
-            </div>
-            {/* Card Anagrafica */}
-            <div onClick={function(){setWizardType('anagrafica');setStep(1);}} style={{background:C.card,border:'2px solid '+C.border,borderRadius:16,padding:isMobile?'16px':'20px 32px',cursor:'pointer',transition:'all .3s',maxWidth:isMobile?'100%':740,margin:'24px auto 0',display:'flex',flexDirection:isMobile?'column':'row',alignItems:isMobile?'flex-start':'center',gap:isMobile?12:20}}>
-              <div style={{fontSize:36}}>&#128203;</div>
-              <div style={{flex:1}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
-                  <div style={{fontSize:isMobile?16:18,fontWeight:800,color:C.strong,fontFamily:'Syne,sans-serif'}}>{T.wizValAna}</div>
-                  <span style={{background:C.green+'20',color:C.green,fontSize:isMobile?10:11,borderRadius:100,padding:isMobile?'3px 8px':'4px 12px',fontWeight:600}}>{T.wizMin3}</span>
-                </div>
-                <div style={{fontSize:isMobile?11:12,color:C.muted}}>{T.wizAnaDesc}</div>
-              </div>
-              <button style={{background:C.green,color:'#fff',padding:'10px 20px',borderRadius:10,fontWeight:700,fontSize:14,border:'none',cursor:'pointer',whiteSpace:'nowrap',width:isMobile?'100%':undefined}}>{T.wizStartAna}</button>
-            </div>
-            {/* Close button */}
-            <div style={{textAlign:'center',marginTop:32}}>
-              <button onClick={onClose} style={S.btn('ghost',true)}>{T.cancel}</button>
-            </div>
-          </div>
-        )}
-        {wizardType&&(<>
+
         {/* Header */}
         <div style={{padding:isMobile?'12px 16px':'18px 22px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:isMobile?8:12,flexShrink:0}}>
           {!isMobile&&<div style={{width:38,height:38,borderRadius:10,background:C.blue+'20',border:'1px solid '+C.blue+'40',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>&#127919;</div>}
@@ -8153,7 +8106,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             <div style={{fontSize:isMobile?14:15,fontWeight:800,color:C.strong}}>{isMobile?T.wizStepN.replace('{n}',stepIdx+1).replace('{tot}',TOTAL):T.wizClientEval}</div>
             <div style={{display:'flex',alignItems:'center',gap:6}}>
               <span style={{fontSize:11,color:C.muted,marginTop:1}}>{isMobile?curTitles[stepIdx]:T.wizStepN.replace('{n}',stepIdx+1).replace('{tot}',TOTAL)+' \u00B7 '+curTitles[stepIdx]}</span>
-              <span style={{fontSize:11,fontWeight:600,background:(wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green)+'15',color:wizardType==='base'?C.blue:wizardType==='completa'?C.purple:C.green,padding:'3px 10px',borderRadius:100}}>{wizardType==='base'?T.wizBadgeBase:wizardType==='completa'?T.wizBadgeCompleta:T.wizBadgeAna}</span>
+
             </div>
           </div>
           <button onClick={function(){if(step>1||d.cognome||d.nome){if(!confirm(T.wizCloseConfirm))return;}onClose();}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:20,padding:'4px 8px',borderRadius:6,lineHeight:1}}>✕</button>
@@ -9195,7 +9148,6 @@ footer .center b{color:#3b82f6;font-weight:700}
             }} style={{...S.btn(),background:C.green,display:'flex',alignItems:'center',gap:6}}>{T.wizSaveAndOpen}</button><span className="tp">{T.wizSaveTooltip}</span></div>}
           </div>
         </div>
-        </>)}
       </div>
     </div>
   );
