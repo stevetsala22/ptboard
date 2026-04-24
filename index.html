@@ -2912,6 +2912,124 @@ const calcScore=(test,sesso,extra,eta)=>{
   return{code,l,c,bg,score,components,missing:missing.map(id=>missingLabels[id])};
 };
 
+// ── SCORE ANAMNESTICO (fallback senza test fisici) ────────────────────────────
+// Usato quando calcScore() restituisce null (test non eseguiti).
+// Stima profilo da dati anamnestici con pesi dinamici per obiettivo.
+// Output: stesso formato di calcScore() con isEstimated:true
+const calcScoreAnamnestico=(d,eta)=>{
+  if(!d)return null;
+  var T2=gT();
+  var sesso=d.sesso||'M';
+  var m=sesso==='M';
+  var ob=d.obiettivo||'';
+  var patologie=(d.patologie||'').toLowerCase();
+  var att=d.attivita||'Sedentaria';
+  var expLiv=d.esperienzaLiv||'Principiante';
+  var expAnni=+(d.esperienzaAnni||0)||0;
+  var fumo=d.fumo||'Non fumatore';
+  var stress=d.stress||'Medio';
+  var sonno=+(d.sonno||7)||7;
+  var motivazione=+(d.motivazione||5)||5;
+  var sintomi=d.sintomiSforzo&&d.sintomiSforzo!=='NO';
+  var gravidanza=d.gravidanza&&d.gravidanza!=='NO';
+
+  // ── 1. SCORE AEROBICA (proxy: attività + fumo) ──
+  var aerScore={
+    'Sedentaria':20,'Poco attiva':38,'Moderata':58,'Attiva':74,'Molto attiva':90
+  }[att]||40;
+  // decadimento età (Fitzgerald 1997: ~1%/anno dopo 25)
+  if(eta>25)aerScore=Math.round(aerScore*(1-Math.min(0.3,(eta-25)*0.008)));
+  if(fumo==='Fumatore regolare')aerScore=Math.round(aerScore*0.82);
+  else if(fumo==='Fumatore occasionale')aerScore=Math.round(aerScore*0.92);
+  aerScore=Math.max(5,Math.min(100,aerScore));
+
+  // ── 2. SCORE FORZA (proxy: esperienza livello + anni) ──
+  var forzaBase={
+    'Principiante':25,'Intermedio':58,'Avanzato':82,'Esperto':95
+  }[expLiv]||25;
+  // anni di esperienza amplificano (cap a 5 anni)
+  var anniBonus=Math.min(expAnni,5)*3;
+  var forzaScore=Math.min(100,forzaBase+anniBonus);
+  // decadimento età forza più accentuato dopo 50 (Dodds 2014)
+  if(eta>50)forzaScore=Math.round(forzaScore*(1-Math.min(0.25,(eta-50)*0.012)));
+  forzaScore=Math.max(5,Math.min(100,forzaScore));
+
+  // ── 3. SCORE COMPOSIZIONE (FM% stimata — Deurenberg 1991) ──
+  var corpoScore=50; // default neutro se mancano peso/altezza
+  var peso=+(d.peso||0);
+  var altezza=+(d.altezza||0);
+  if(peso>0&&altezza>0&&eta>0){
+    var bmiV=peso/Math.pow(altezza/100,2);
+    var fmEst=(1.2*bmiV)+(0.23*eta)-(10.8*(m?1:0))-5.4;
+    fmEst=Math.max(3,Math.min(60,fmEst));
+    var fmAdj=Math.max(0,Math.floor((eta-30)/10));
+    if(m){
+      corpoScore=fmEst<6+fmAdj?100:fmEst<10+fmAdj?90:fmEst<14+fmAdj?78:fmEst<18+fmAdj?62:fmEst<25+fmAdj?44:20;
+    }else{
+      corpoScore=fmEst<14+fmAdj?100:fmEst<18+fmAdj?90:fmEst<21+fmAdj?78:fmEst<25+fmAdj?62:fmEst<32+fmAdj?44:20;
+    }
+  }
+
+  // ── 4. SCORE EQUILIBRIO (proxy: età + patologie) ──
+  var equScore=eta<40?90:eta<50?80:eta<60?68:eta<70?52:eta<80?36:22;
+  if(patologie.includes('artrosi')||patologie.includes('artrite'))equScore=Math.round(equScore*0.82);
+  if(patologie.includes('osteoporosi'))equScore=Math.round(equScore*0.88);
+  equScore=Math.max(5,Math.min(100,equScore));
+
+  // ── 5. PESI DINAMICI per obiettivo ──
+  var wA,wF,wC,wE;
+  if(ob==='Forza'){             wA=0.20;wF=0.50;wC=0.20;wE=0.10;}
+  else if(ob==='Aumentare massa'){wA=0.20;wF=0.45;wC=0.25;wE=0.10;}
+  else if(ob==='Perdere peso'){  wA=0.40;wF=0.20;wC=0.30;wE=0.10;}
+  else if(ob==='Resistenza'||ob==='Performance'){wA=0.55;wF=0.20;wC=0.15;wE=0.10;}
+  else{                          wA=0.40;wF=0.30;wC=0.20;wE=0.10;}
+
+  var score=Math.round(aerScore*wA+forzaScore*wF+corpoScore*wC+equScore*wE);
+
+  // ── 6. MODULATORI FINALI ──
+  if(sonno<6)score=Math.round(score*0.93);
+  if(stress==='Alto'||stress==='Molto alto')score=Math.round(score*0.95);
+  // motivazione alta → lieve bonus volontà (±5 pt)
+  var motivBonus=Math.round((motivazione-5)*0.8);
+  score=Math.max(5,Math.min(100,score+motivBonus));
+
+  // ── 7. ABBATTIMENTO PATOLOGIE ──
+  if(patologie.includes('cardiopatia'))score=Math.round(score*0.78);
+  else if(patologie.includes('bpco')||patologie.includes('asma'))score=Math.round(score*0.85);
+  else if(patologie.includes('ipertensione'))score=Math.round(score*0.92);
+  else if(patologie.includes('diabete'))score=Math.round(score*0.90);
+  else if(patologie.includes('obesita'))score=Math.round(score*0.88);
+  score=Math.max(5,Math.min(100,score));
+
+  // ── 8. OVERRIDE SICUREZZA ──
+  if(gravidanza)score=Math.min(score,44); // max profilo A
+  if(sintomi)score=Math.min(score,54);    // max profilo B basso
+  if(ob==='Riabilitazione')score=Math.min(score,44);
+
+  // ── 9. PROFILO ──
+  var code,l,c,bg;
+  if(score>=90){code='C+';l=gT().profileExcellent;c='#3b82f6';bg='#dbeafe';}
+  else if(score>=75){code='C';l=gT().profileGood;c=C.green;bg='#d1fae5';}
+  else if(score>=45){code='B';l=gT().profileMed;c=C.yellow;bg='#fef3c7';}
+  else{code='A';l=gT().profileLow;c=C.red;bg='#fee2e2';}
+
+  // ── 10. COMPONENTS (per UI dettaglio) ──
+  var obLabel=ob||'Salute generale';
+  var components=[
+    {id:'aerobica',label:'Capacità aerobica (stimata)',w:Math.round(wA*100),score:aerScore,
+      val:att+(fumo!=='Non fumatore'?' · '+fumo:''),icon:'🚶'},
+    {id:'forza',label:'Forza (stimata)',w:Math.round(wF*100),score:forzaScore,
+      val:expLiv+(expAnni>0?' · '+expAnni+' anni esperienza':''),icon:'💪'},
+    {id:'corpo',label:'Composizione corporea (stimata)',w:Math.round(wC*100),score:corpoScore,
+      val:(peso>0&&altezza>0?'BMI '+Math.round(peso/Math.pow(altezza/100,2)*10)/10:'dati insufficienti'),icon:'📏'},
+    {id:'equilibrio',label:'Equilibrio (stimato)',w:Math.round(wE*100),score:equScore,
+      val:eta+' anni',icon:'⚖️'},
+  ];
+
+  return{code,l,c,bg,score,components,missing:[],isEstimated:true,
+    estimatedNote:'Score stimato da anamnesi (obiettivo: '+obLabel+'). Esegui i test fisici per uno score preciso.'};
+};
+
 // Wrapper retrocompatibile — stessa interfaccia {code,l,c,bg}
 const profilo=(mwt,sts,sesso,test,extra,eta)=>{
   // Chiamata legacy con solo mwt,sts → costruisci test minimale
@@ -7739,6 +7857,12 @@ function ScoreBreakdown({pr,compact}){
           </div>
         );
       })}
+      {pr.isEstimated&&(
+        <div style={{background:'#fef3c7',border:'1px solid #fde68a',borderRadius:8,padding:'8px 12px',marginTop:2}}>
+          <div style={{fontSize:11,fontWeight:700,color:'#92400e'}}>⚠️ Score stimato da anamnesi</div>
+          <div style={{fontSize:11,color:'#92400e',marginTop:3}}>{pr.estimatedNote}</div>
+        </div>
+      )}
       {pr.missing&&pr.missing.length>0&&(
         <div style={{background:C.yellow+'12',border:'1px solid '+C.yellow+'30',borderRadius:8,padding:'8px 12px',marginTop:2}}>
           <div style={{fontSize:11,fontWeight:700,color:C.yellow}}>Dati mancanti per uno score piu preciso:</div>
@@ -7880,9 +8004,8 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const annoNascita=(()=>{if(!d.ddn)return null;const p=d.ddn.split('/');if(p.length===3&&p[2]&&p[2].length===4){const y=+p[2];if(y>1900&&y<2100)return y;}return null;})();
   const fcMax=annoNascita?Math.round(208-(0.7*(new Date().getFullYear()-annoNascita))):null;
   const eta=annoNascita?new Date().getFullYear()-annoNascita:null;
-  const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50);
+  const pr=profilo(+d.mwtDist,+d.stsRip,d.sesso,{mwtDist:d.mwtDist,stsRip:d.stsRip,handgrip:d.handgrip,tugSec:d.tugSec,massaGrassa:d.massaGrassa},{biaFM:d.biaFM},eta||50)||calcScoreAnamnestico(d,eta||50);
   const prog=pr?generaProgramma({profilo:pr.code,obiettivo:d.obiettivo,eta:eta||50,sesso:d.sesso,patologie:d.patologie,score:pr.score,attivita:d.attivita,stress:d.stress,infortuni:d.infortuni,seduteSettimana:d.seduteSettimana,obiettivoStrutturato:d.obiettivoStrutturato,testResults:{mwtDist:d.mwtDist,stsRip:d.stsRip,pushupRip:d.pushupRip,plankSec:d.plankSec,handgrip:d.handgrip,tugSec:d.tugSec,fcRecup:d.fcPost&&d.fcRecup?(+d.fcPost-+d.fcRecup):'',gad7:d.gad7,sonno:d.sonno,massaGrassa:d.massaGrassa||d.biaFM}}):null;
-  const nutri=calcNutrizione({...d,annoNascita:annoNascita})||{};
   const pesoTarget=d.altezza?(24.9*(+d.altezza/100)**2).toFixed(1):null;
 
   // Screening Medico helpers
@@ -8193,11 +8316,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizAllNote} name="allergie" val={d.allergie} opts={[{v:'Nessuna',l:T.wizOptNoneF},{v:'Lattosio',l:T.wizAllLactose},{v:'Glutine/Celiachia',l:T.wizAllGluten},{v:'Nichel',l:T.wizAllNickel},{v:'Pollini',l:T.wizAllPollen},{v:'Polvere/Acari',l:T.wizAllDust},{v:'Farmaci (specificare)',l:T.wizAllDrugs},{v:'Alimenti (specificare)',l:T.wizAllFood},{v:'Latice',l:T.wizAllLatex},{v:'Altra allergia',l:T.wizAllOther}]} onChange={upd('allergie')}/>
                 <WizIn lbl={T.wizFamiliarita} desc={T.wizFamiliaritaDesc} name="familiarita" val={d.familiarita} opts={['NO',{v:'SI cardiovascolare',l:T.wizFamYesCV},{v:'SI diabete',l:T.wizFamYesDia},{v:'SI entrambe',l:T.wizFamYesBoth}]} onChange={upd('familiarita')}/>
                 {d.sesso==='F'&&<WizIn lbl={T.wizGravidanza} name="gravidanza" val={d.gravidanza} opts={['NO',{v:'SI in corso',l:T.wizGravYes},{v:'Post-parto < 6 mesi',l:T.wizGravPost}]} onChange={upd('gravidanza')}/>}
-                <WizIn lbl={T.wizParq} name="parq"
-                  desc={T.wizParqDesc}
-                  val={d.parq} opts={[{v:'NO — nessuna risposta positiva',l:T.wizParqNo},{v:'1 SI — attenzione',l:T.wizParq1},{v:'2+ SI — invio medico',l:T.wizParq2}]} onChange={upd('parq')}/>
-                {d.parq&&<InterpBox interp={interpPARQ(d.parq==='NO — nessuna risposta positiva'?0:d.parq==='1 SI — attenzione'?1:d.parq==='2+ SI — invio medico'?3:0)} icon="📋"/>}
-                <WizIn lbl={T.wizInvioMedico} name="invioMedico" val={d.invioMedico} opts={['NO',{v:'Consigliato',l:T.wizRefRecommended},{v:'Obbligatorio',l:T.wizRefMandatory}]} onChange={upd('invioMedico')}/>
+
                 <WizIn lbl={T.wizInfortuni} name="infortuni" val={d.infortuni} ph={T.wizInfortuniPh} onChange={upd('infortuni')}/>
               </div>
             </WizSection>
