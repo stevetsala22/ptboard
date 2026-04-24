@@ -8,7 +8,10 @@
       "Bash(cd:*)",
       "Bash(start https://github.com/stevetsala22/ptboard)",
       "Bash(start \"\" \"C:\\\\Users\\\\User\\\\Downloads\\\\files \\(33\\)\\\\index.html\")",
-      "Bash(find \"c:/Users/User/Downloads/files \\(33\\)\" -type f \\\\\\( -name \"*.env*\" -o -name \"*secret*\" -o -name \"*config*\" \\\\\\))"
+      "Bash(find \"c:/Users/User/Downloads/files \\(33\\)\" -type f \\\\\\( -name \"*.env*\" -o -name \"*secret*\" -o -name \"*config*\" \\\\\\))",
+      "mcp__c4c962af-0a01-45e6-bf80-891ca29a2b51__netlify-project-services-reader",
+      "mcp__c4c962af-0a01-45e6-bf80-891ca29a2b51__netlify-deploy-services-reader",
+      "mcp__c4c962af-0a01-45e6-bf80-891ca29a2b51__netlify-deploy-services-updater"
     ]
   }
 }
