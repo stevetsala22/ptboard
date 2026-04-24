@@ -2720,8 +2720,8 @@ const LANGS={
     wizMwtPain:'Douleur',wizMwtStopped:'Test interrompu',
   }},
 };
-const getLang=()=>localStorage.getItem('ptboard_lang')||'it';
-const setLangStore=(l)=>localStorage.setItem('ptboard_lang',l);
+const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
+const setLangStore=(l)=>{try{localStorage.setItem('ptboard_lang',l);}catch{}};
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
 
 const C={
