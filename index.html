@@ -7183,7 +7183,7 @@ function testConsigliatiSmart(dati){
   var obiettivoPerformance=obiettivo==='Performance';
   var isObeso=bmi>=30;
 
-  var all=['mwt','sts','tug','pushup','plank','handgrip','slb','rm','stepTest','cmj'];
+  var all=['mwt','sts','tug','pushup','plank','handgrip','slb','rm','stepTest','cmj','cooper'];
   var consigliati=[];
 
   if(isRiabilitazione){
@@ -7202,9 +7202,9 @@ function testConsigliatiSmart(dati){
   }else if(obiettivoForza){
     consigliati=['rm','pushup','plank','handgrip'];
   }else if(obiettivoResistenza){
-    consigliati=['stepTest','plank','handgrip'];
+    consigliati=['stepTest','cooper','plank','handgrip'];
   }else if(obiettivoPerformance){
-    consigliati=['rm','cmj','pushup','handgrip'];
+    consigliati=['rm','cmj','pushup','handgrip','cooper'];
   }else{
     consigliati=['stepTest','pushup','plank','handgrip'];
   }
@@ -7865,7 +7865,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
     pushupRip:'',pushupNote:'',plankSec:'',squatRip:'',squatNote:'',
     slbDx:'',slbSx:'',tugSec:'',handgrip:'',
     rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',
-    stepTestFc:'',cmjAltezza:'',
+    stepTestFc:'',cmjAltezza:'',cooperDistanza:'',
     fcPost:'',fcRecup:'',gad7:'',
     cirBraccio:'',cirCoscia:'',cirPolpaccio:'',
     plicaSott:'',plicaTric:'',plicaIlio:'',massaGrassa:'',
@@ -8719,7 +8719,7 @@ footer .center b{color:#3b82f6;font-weight:700}
               </div>})()}
             </div>
             {/* Cooper test */}
-            <div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #8B5CF6'}}>
+            {(d.modalitaVal!=='smart'||testConsigliatiSmart(d).consigliati.indexOf('cooper')>=0)&&<div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid #8B5CF6'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🏃</span>
                 <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Cooper test (12 min)</span>
@@ -8755,7 +8755,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                   </div>
                 );
               })()}
-            </div>
+            </div>}
 
             {/* Preview profilo */}
             {d.mwtDist&&d.stsRip&&pr&&<div style={{background:pr.bg,border:'2px solid '+pr.c+'40',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',gap:14}}>
@@ -9218,6 +9218,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                   tugSec:d.tugSec,slbDx:d.slbDx,slbSx:d.slbSx,handgrip:d.handgrip||'',fcPost:d.fcPost,fcRecup:d.fcRecup,
                   rmEsercizio:d.rmEsercizio||'',rmEsercizioAltro:d.rmEsercizioAltro||'',rmCarico:d.rmCarico||'',rmRip:d.rmRip||'',rmModalita:d.rmModalita||'stimato',rmDiretto:d.rmDiretto||'',
                   stepTestFc:d.stepTestFc||'',stepTestSecondi:180,cmjAltezza:d.cmjAltezza||'',cmjTentativo:'migliore di 3',
+                  cooperDistanza:d.cooperDistanza||'',cooperVo2max:d.cooperDistanza?(Math.round((parseFloat(d.cooperDistanza)-504.9)/44.73*10)/10).toString():'',
                   cirBraccio:d.cirBraccio,cirCoscia:d.cirCoscia,cirPolpaccio:d.cirPolpaccio,plicaSott:d.plicaSott,plicaTric:d.plicaTric,plicaIlio:d.plicaIlio,massaGrassa:d.massaGrassa,
                   gad7:d.gad7,motivazione:d.motivazione,
                   movQuality:{sqDepth:d.sqDepth,sqCompensi:d.sqCompensi,sqDolore:d.sqDolore,affondo:d.affondo,noteMovimento:d.noteMovimento}},
