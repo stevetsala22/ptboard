@@ -8069,6 +8069,12 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const parqPositivo=['parqQ1','parqQ2','parqQ3','parqQ4','parqQ5','parqQ6','parqQ7'].some(q=>d[q]==='SI');
   const todayISO=new Date().toISOString().split('T')[0];
   const certValida=d.screenTipo&&d.screenTipo!=='nessuno'&&d.screenDataScad&&d.screenDataScad>=todayISO;
+  const isAgonistico=d.screenTipo==='agonistico';
+  // PAR-Q negativo = tutte le 7 domande compilate e tutte NO
+  const parqCompilato=['parqQ1','parqQ2','parqQ3','parqQ4','parqQ5','parqQ6','parqQ7'].every(q=>d[q]==='NO');
+  const parqNegativo=parqCompilato&&!parqPositivo;
+  // Skip test fisici se: certificato valido OPPURE PAR-Q compilato tutto negativo
+  const skipTestFisici=certValida||parqNegativo;
   const rapidaDisabled=parqPositivo&&!certValida;
   const certTagStyle={fontSize:12,fontWeight:700,padding:'8px 12px',borderRadius:8,marginTop:4,gridColumn:'span 2'};
 
@@ -8106,7 +8112,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
   const isRapida=d.modalitaVal==='rapida';
   // Con certificato medico valido → salta tutti gli step test fisici (2-7)
   const isCertOnly=certValida&&!d.modalitaVal; // nessuna modalità scelta → solo cert
-  const certSkip=certValida?[2,3,4,5,6,7]:[];
+  const certSkip=skipTestFisici?[2,3,4,5,6,7]:[];
   const rapideSkip=certSkip.length?certSkip:(isRapida?(wizardType==='base'?[3,4,5]:wizardType==='completa'?[2,3,4,5,6]:[]):[]);
   const stepsArrFull=wizardType==='base'?STEPS_BASE:wizardType==='completa'?STEPS_COMPLETA:wizardType==='anagrafica'?STEPS_ANA:[];
   const stepsArr=rapideSkip.length?stepsArrFull.filter(function(s){return!rapideSkip.includes(s);}):stepsArrFull;
@@ -8490,8 +8496,14 @@ footer .center b{color:#3b82f6;font-weight:700}
 
           {/* STEP 10 — Screening Medico */}
           {step===10&&<div style={{display:'flex',flexDirection:'column',gap:16}}>
-            {certValida&&<div style={{padding:'10px 14px',background:'#dbeafe',border:'1px solid #93c5fd',borderRadius:10,fontSize:12,color:'#1e3a5f'}}>
-              <span style={{fontWeight:700}}>✅ Certificato medico valido</span> — Test fisici saltati. Score calcolato automaticamente da anamnesi. Puoi eseguire i test in seguito per uno score più preciso.
+            {certValida&&isAgonistico&&<div style={{padding:'10px 14px',background:'#dcfce7',border:'1px solid #86efac',borderRadius:10,fontSize:12,color:'#14532d'}}>
+              <span style={{fontWeight:700}}>🏆 Certificato agonistico valido</span> — Test fisici saltati. Il cert. agonistico comprende visita cardiologica + ECG da sforzo + spirometria. Score calcolato da anamnesi; i test in seguito aumentano la precisione.
+            </div>}
+            {certValida&&!isAgonistico&&<div style={{padding:'10px 14px',background:'#dbeafe',border:'1px solid #93c5fd',borderRadius:10,fontSize:12,color:'#1e3a5f'}}>
+              <span style={{fontWeight:700}}>✅ Certificato non-agonistico valido</span> — Test fisici saltati. Score calcolato da anamnesi. Puoi aggiungere i test in seguito per uno score più preciso.
+            </div>}
+            {!certValida&&parqNegativo&&<div style={{padding:'10px 14px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,fontSize:12,color:'#166534'}}>
+              <span style={{fontWeight:700}}>✅ PAR-Q negativo</span> — Nessun fattore di rischio dichiarato. Test fisici saltati. L'allenamento può iniziare in sicurezza. Si consiglia certificato medico entro 30 giorni.
             </div>}
 
             {/* PARTE A — Certificato Medico */}
@@ -8549,7 +8561,11 @@ footer .center b{color:#3b82f6;font-weight:700}
                 background:parqPositivo?C.red+'10':C.green+'10',
                 border:'1px solid '+(parqPositivo?C.red:C.green)+'30',
                 fontSize:12,fontWeight:700,color:parqPositivo?C.red:C.green}}>
-                {parqPositivo?T.wizParqPositivo:T.wizParqNegativo}
+                {parqPositivo
+                ? T.wizParqPositivo
+                : parqNegativo
+                  ? '✅ PAR-Q negativo — nessun fattore di rischio dichiarato. Test fisici non obbligatori. Puoi procedere alla valutazione senza effettuare i test fisici.'
+                  : T.wizParqNegativo}
               </div>
             </WizSection>}
 
