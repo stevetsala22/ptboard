@@ -3897,8 +3897,9 @@ function StatCard({label,value,sub,color=C.blue,icon,delay,onClick}){
   );
 }
 
-function LineChartComp({data,color=C.blue}){
+function LineChartComp({data,color=C.blue,T}){
   const ref=useRef();const chartRef=useRef();
+  const _T=T||LANGS.it.t;
   useEffect(()=>{
     if(!ref.current||!data?.length)return;
     if(chartRef.current)chartRef.current.destroy();
@@ -3906,12 +3907,13 @@ function LineChartComp({data,color=C.blue}){
     chartRef.current=new Chart(ref.current,{type:'line',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),borderColor:color,backgroundColor:color+'20',fill:true,tension:.4,pointBackgroundColor:color,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mc,font:{size:11}}}}}});
     return()=>{if(chartRef.current)chartRef.current.destroy()};
   },[data,color]);
-  if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>{gT().noData}</div>;
+  if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>{_T.noData}</div>;
   return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
 }
 
-function BarChartComp({data,color=C.blue}){
+function BarChartComp({data,color=C.blue,T}){
   const ref=useRef();const chartRef=useRef();
+  const _T=T||LANGS.it.t;
   useEffect(()=>{
     if(!ref.current||!data?.length)return;
     if(chartRef.current)chartRef.current.destroy();
@@ -3919,7 +3921,7 @@ function BarChartComp({data,color=C.blue}){
     chartRef.current=new Chart(ref.current,{type:'bar',data:{labels:data.map(d=>d.x),datasets:[{data:data.map(d=>d.y),backgroundColor:color+'80',borderColor:color,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gc},ticks:{color:mc,font:{size:11}}},y:{grid:{color:gc},ticks:{color:mc,font:{size:11}}}}}});
     return()=>{if(chartRef.current)chartRef.current.destroy()};
   },[data,color]);
-  if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>{gT().noData}</div>;
+  if(!data?.length)return<div style={{height:120,display:'flex',alignItems:'center',justifyContent:'center',color:C.muted,fontSize:13}}>{_T.noData}</div>;
   return<canvas ref={ref} style={{height:130,maxHeight:130}}/>;
 }
 
@@ -4073,7 +4075,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
                   <StatCard label="Prossimi 7gg" value={prossimi7} color={C.orange} icon="📅" delay={0.2}/>
                 </div>
                 <div style={S.st}>Sedute per settimana</div>
-                <BarChartComp data={weekData} color={C.blue}/>
+                <BarChartComp data={weekData} color={C.blue} T={T}/>
               </>
             )}
             </div>
@@ -4093,7 +4095,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
                   <div style={{fontSize:14,color:C.strong,fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}><span style={{color:C.blue,fontWeight:800}}>{b.ora}</span> · {p?.nome} {p?.cognome}</div>
                   <div style={{fontSize:11,color:C.muted,display:'flex',gap:6,alignItems:'center',marginTop:2}}>{b.durata} min · <span style={{...S.tag(C.cyan),padding:'1px 7px',fontSize:10}}>{b.tipo}</span></div>
                 </div>
-                <span style={S.tag(b.stato==='Confermato'?C.green:C.yellow)}>{b.stato==='Confermato'?gT().calConf:b.stato==='In attesa'?gT().calPend:gT().calCanc}</span>
+                <span style={S.tag(b.stato==='Confermato'?C.green:C.yellow)}>{b.stato==='Confermato'?T.calConf:b.stato==='In attesa'?T.calPend:T.calCanc}</span>
               </div>
             );
           })}
@@ -4112,7 +4114,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
                     (diff<0?'\u2193 ':'\u2191 ')+Math.abs(diff)+' kg'
                   )
                 ),
-                React.createElement(LineChartComp,{data:prg.map(function(x){return{x:x.data.slice(0,5),y:x.peso}}),color:C.blue})
+                React.createElement(LineChartComp,{data:prg.map(function(x){return{x:x.data.slice(0,5),y:x.peso}}),color:C.blue,T:T})
               ));
             })}
             {patients.filter(p=>p.progressi?.length>1).length===0&&<div style={{color:C.muted,fontSize:13}}>{T.noWeightData}</div>}
@@ -4393,7 +4395,6 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     setShowPesoModal(false);setNewPeso({data:fmtDate(),peso:'',nota:''});
   };
 
-  const T2=gT();
   const todayISO=new Date().toISOString().slice(0,10);
   const prossime=(bookings||[]).filter(b=>b.patientId===p.id&&b.data>=todayISO);
   const tabs=[{id:'panoramica',l:T.tabPanoramica},{id:'profilo',l:T.tabProfilo},{id:'programma',l:T.tabProg},{id:'sedute',l:T.tabSedute+' ('+((p.log?.length||0)+prossime.length)+')'},{id:'nutri',l:T.tabNutri}];
@@ -4743,10 +4744,10 @@ footer .center b{color:#3b82f6;font-weight:700}
             <div style={S.st}>{T.secWeightProgress}</div>
             <button style={S.btn('',true)} onClick={()=>setShowPesoModal(true)}>{T.statMeasure}</button>
           </div>
-          <div style={S.card}><LineChartComp data={(p.progressi||[]).map(x=>({x:x.data.slice(0,5),y:x.peso}))} color={C.blue}/></div>
+          <div style={S.card}><LineChartComp data={(p.progressi||[]).map(x=>({x:x.data.slice(0,5),y:x.peso}))} color={C.blue} T={T}/></div>
           <div style={S.grid(2)}>
-            <div style={S.card}><div style={S.st}>{T.statRpe}</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.rpe}))} color={C.orange}/></div>
-            <div style={S.card}><div style={S.st}>{T.statDuration}</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.durata}))} color={C.green}/></div>
+            <div style={S.card}><div style={S.st}>{T.statRpe}</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.rpe}))} color={C.orange} T={T}/></div>
+            <div style={S.card}><div style={S.st}>{T.statDuration}</div><BarChartComp data={(p.log||[]).slice(-10).map(s=>({x:s.data.slice(0,5),y:s.durata}))} color={C.green} T={T}/></div>
           </div>
           <div style={S.card}>
             <div style={S.st}>{T.secWeightHistory}</div>
@@ -5425,7 +5426,7 @@ footer .center b{color:#3b82f6;font-weight:700}
         </div>
       </Modal>}
 
-      {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)}/>}
+      {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)} T={T}/>}
       {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <FF label={T.genEquipLabel} name="genEquip" value={genEquip} onChange={e=>setGenEquip(e.target.value)} options={[{v:'gym',l:T.genEquipFull},{v:'home',l:T.genEquipHome},{v:'body',l:T.genEquipBody}]}/>
@@ -5455,7 +5456,8 @@ footer .center b{color:#3b82f6;font-weight:700}
   );
 }
 
-function SchedaModal({exercises,onSave,onClose}){
+function SchedaModal({exercises,onSave,onClose,T}){
+  const _T=T||LANGS.it.t;
   const [form,setForm]=useState({nome:'',tipo:'Forza',data:fmtDate(),esercizi:[],note:''});
   const [addEx,setAddEx]=useState({eId:'',serie:3,reps:12,peso:'',rec:60});
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
@@ -5497,7 +5499,7 @@ function SchedaModal({exercises,onSave,onClose}){
       )}
       <FF label="Note scheda" name="note" type="textarea" value={form.note} onChange={upd}/>
       <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-        <button style={S.btn('ghost')} onClick={onClose}>{gT().cancel}</button>
+        <button style={S.btn('ghost')} onClick={onClose}>{_T.cancel}</button>
         <button style={S.btn()} onClick={()=>form.nome&&onSave(form)}>Salva scheda</button>
       </div>
     </Modal>
@@ -5813,7 +5815,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
             <FF label={T.calNote} name="note" type="textarea" value={newB.note} onChange={e=>setNewB(f=>({...f,note:e.target.value}))}/>
           </div>
           <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-            <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{gT().cancel}</button>
+            <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{T.cancel}</button>
             <div className="tt">
               <button style={{...S.btn(),...(!canBook?{opacity:0.5,cursor:'not-allowed'}:{})}} onClick={()=>{if(canBook)saveBooking();else{touchB('patientId');touchB('data');touchB('ora');}}}>{T.calBookSave}</button>
               {!canBook&&<span className="tp">{T.calBookFillRequired}</span>}
@@ -5883,8 +5885,8 @@ function ExercisesPage({exercises,setExercises,T}){
             <FF label="Descrizione / note tecniche" name="desc" type="textarea" value={form.desc} onChange={upd}/>
           </div>
           <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-            <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{gT().cancel}</button>
-            <button style={S.btn()} onClick={save}>{gT().save}</button>
+            <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{T.cancel}</button>
+            <button style={S.btn()} onClick={save}>{T.save}</button>
           </div>
         </Modal>
       )}
@@ -5893,7 +5895,7 @@ function ExercisesPage({exercises,setExercises,T}){
 }
 
 // ── FORM CLIENTE ─────────────────────────────────────────────────────────────
-function PatientForm({initial,onSave,onCancel,isNew}){const TF=gT();
+function PatientForm({initial,onSave,onCancel,isNew,lang}){const TF=LANGS[lang]?.t||LANGS.it.t;
   const [form,setForm]=useState(initial);
   const [touched,setTouched]=useState({});
   const touch=n=>setTouched(t=>({...t,[n]:true}));
@@ -6503,7 +6505,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile} onboardingStep={onboardingStep} onCreateClient={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form');}} onStartWizard={()=>{setShowValutazione(true);}} onOpenPatient={(id)=>{setSelectedId(id);setPage('detail');}} onValuta={(p)=>{setReevalPatient(p);setShowValutazione(true);}}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
           {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
-          {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew}/>}
+          {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew} lang={lang}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
         </div>
@@ -6533,7 +6535,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
-      {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight}/>}
+      {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight} lang={lang}/>}
       {showAdmin&&<AdminModal onClose={()=>setShowAdmin(false)}/>}
       {showLogoutModal&&(
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -10251,7 +10253,8 @@ const TSTEPS=[
   </div>`},
 ];
 
-function TutorialModal({onClose,isLight}){
+function TutorialModal({onClose,isLight,lang}){
+  const T=LANGS[lang]?.t||LANGS.it.t;
   const [cur,setCur]=useState(0);
   const total=TSTEPS.length;
   const s=TSTEPS[cur];
@@ -10291,11 +10294,11 @@ function TutorialModal({onClose,isLight}){
         </div>
         {/* Footer */}
         <div style={{padding:'12px 20px',borderTop:'1px solid '+C.border,display:'flex',justifyContent:'space-between',flexShrink:0,gap:8}}>
-          <button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Chiudi</button>
+          <button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.close}</button>
           <div style={{display:'flex',gap:8}}>
-            {cur>0&&<button onClick={()=>setCur(c=>c-1)} style={{padding:'8px 18px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{gT().wPrev}</button>}
+            {cur>0&&<button onClick={()=>setCur(c=>c-1)} style={{padding:'8px 18px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.wPrev}</button>}
             {cur<total-1
-              ?<button onClick={()=>setCur(c=>c+1)} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.blue,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{gT().wNext}</button>
+              ?<button onClick={()=>setCur(c=>c+1)} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.blue,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.wNext}</button>
               :<button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.green,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>✓ Inizia ad usare PT Board</button>
             }
           </div>
