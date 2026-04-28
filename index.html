@@ -1259,6 +1259,8 @@ const LANGS={
     persStudioLbl:'Nome studio',persStudioPh:'Es. Fitness Studio Roma',persLogoLbl:'Logo',
     persUploadLogo:'Carica logo',persRemoveLogo:'Rimuovi logo',
     persSave:'Salva modifiche',persCancel:'Annulla',persSaved:'Modifiche salvate',
+    catEcc:'Eccellente',catBuono:'Buono',catSopraMed:'Sopra media',catMedia:'Media',catSottoMed:'Sotto media',catScarso:'Scarso',catEccAtleta:'Eccellente (atleta)',
+    objRealistic:'Obiettivo realistico',objAggressive:'Obiettivo aggressivo',objUnrealistic:'Obiettivo non realistico',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -1996,6 +1998,8 @@ const LANGS={
     persStudioLbl:'Studio name',persStudioPh:'e.g. Fitness Studio London',persLogoLbl:'Logo',
     persUploadLogo:'Upload logo',persRemoveLogo:'Remove logo',
     persSave:'Save changes',persCancel:'Cancel',persSaved:'Changes saved',
+    catEcc:'Excellent',catBuono:'Good',catSopraMed:'Above average',catMedia:'Average',catSottoMed:'Below average',catScarso:'Poor',catEccAtleta:'Excellent (athlete)',
+    objRealistic:'Realistic goal',objAggressive:'Challenging goal',objUnrealistic:'Unrealistic goal',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2733,6 +2737,8 @@ const LANGS={
     persStudioLbl:'Nom du studio',persStudioPh:'Ex. Fitness Studio Paris',persLogoLbl:'Logo',
     persUploadLogo:'Télécharger logo',persRemoveLogo:'Supprimer logo',
     persSave:'Enregistrer',persCancel:'Annuler',persSaved:'Modifications enregistrées',
+    catEcc:'Excellent',catBuono:'Bon',catSopraMed:'Au-dessus de la moyenne',catMedia:'Moyen',catSottoMed:'Sous la moyenne',catScarso:'Médiocre',catEccAtleta:'Excellent (athlète)',
+    objRealistic:'Objectif réaliste',objAggressive:'Objectif ambitieux',objUnrealistic:'Objectif irréaliste',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
@@ -8161,7 +8167,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile,lang}){
     var clinRows=[[T.pdfHeight,d.altezza?d.altezza+' cm':'—'],[T.pdfWaist,d.vita?d.vita+' cm':'—'],[T.pdfPA,d.pa||'—'],[T.pdfFCRest,d.fc?d.fc+' bpm':'—'],[T.pdfFCMax,fcMax?fcMax+' bpm':'—'],[T.pdfFCTarget75,fcMax?Math.round(fcMax*.75)+' bpm':'—'],[T.pdfPath,d.patologie||'—'],[T.pdfMeds,d.farmaci||'—'],[T.pdfActivity,d.attivita||'—'],[T.pdfGoal,d.obiettivo||'—']];
     var testRows=[[T.pdf6mwtDist,d.mwtDist?d.mwtDist+' m':'—'],[T.pdf6mwtRpe,d.mwtRpe||'—'],[T.pdf6mwtSymp,d.mwtSintomi||'—'],[T.pdfStsSec,d.stsRip||'—'],[T.wizPdfNoteSts,d.stsNote||'—'],[T.wizPdfRpeRest,d.rpeRiposo||'—'],[T.wizPdfNoteVal,d.noteVal||'—']];
     var renderRows=function(rows){return rows.map(function(kv,i){var k=kv[0],v=kv[1];var bg=i%2===0?'#f8fafc':'#ffffff';return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 11px;background:'+bg+';border-radius:6px;margin-bottom:3px"><span style="color:#64748b;font-size:11px">'+esc(k)+'</span><span style="font-weight:700;font-size:12px;color:#0f172a;text-align:right">'+esc(v)+'</span></div>';}).join('');};
-    var weekBadges=['Adattamento','Progressione','Carico','Consolidamento'];
+    var weekBadges=[T.weekAdapt||'Adattamento',T.weekProgress||'Progressione',T.weekPeak||'Carico',T.weekDeload||'Consolidamento'];
     var weekColors=['#3b82f6','#06b6d4','#8b5cf6','#10b981'];
     var weeksHtml=prog.settimane.map(function(w,i){
       var col=weekColors[i%4];
@@ -8489,7 +8495,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                         lineHeight:1.5
                       }}>
                         <div style={{fontSize:10,fontWeight:700,letterSpacing:'0.5px',marginBottom:4,textTransform:'uppercase'}}>
-                          {metrics.livello==='red'?'Obiettivo non realistico':metrics.livello==='yellow'?'Obiettivo aggressivo':'Obiettivo realistico'}
+                          {metrics.livello==='red'?T.objUnrealistic:metrics.livello==='yellow'?T.objAggressive:T.objRealistic}
                         </div>
                         {metrics.messaggio}
                         {metrics.livello==='red'&&!os.warningAccettato&&(
@@ -9027,7 +9033,7 @@ footer .center b{color:#3b82f6;font-weight:700}
               {d.stepTestFc&&(()=>{
                 var fc=parseFloat(d.stepTestFc);
                 var m=d.sesso==='M';
-                var cat=m?(fc<95?'Eccellente':fc<105?'Buono':fc<116?'Sopra media':fc<127?'Media':fc<138?'Sotto media':'Scarso'):(fc<97?'Eccellente':fc<109?'Buono':fc<120?'Sopra media':fc<131?'Media':fc<141?'Sotto media':'Scarso');
+                var cat=m?(fc<95?T.catEcc:fc<105?T.catBuono:fc<116?T.catSopraMed:fc<127?T.catMedia:fc<138?T.catSottoMed:T.catScarso):(fc<97?T.catEcc:fc<109?T.catBuono:fc<120?T.catSopraMed:fc<131?T.catMedia:fc<141?T.catSottoMed:T.catScarso);
                 return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>Recupero cardio: {cat}</strong></div>;
               })()}
             </div>}
@@ -9043,7 +9049,7 @@ footer .center b{color:#3b82f6;font-weight:700}
               {d.cmjAltezza&&(()=>{
                 var h=parseFloat(d.cmjAltezza);
                 var m=d.sesso==='M';
-                var cat=m?(h>=60?'Eccellente (atleta)':h>=50?'Buono':h>=40?'Nella media':h>=30?'Sotto media':'Scarso'):(h>=45?'Eccellente (atleta)':h>=35?'Buono':h>=28?'Nella media':h>=20?'Sotto media':'Scarso');
+                var cat=m?(h>=60?T.catEccAtleta:h>=50?T.catBuono:h>=40?T.average:h>=30?T.catSottoMed:T.catScarso):(h>=45?T.catEccAtleta:h>=35?T.catBuono:h>=28?T.average:h>=20?T.catSottoMed:T.catScarso);
                 return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>Potenza arti inferiori: {cat}</strong></div>;
               })()}
             </div>}
@@ -9068,7 +9074,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 var m=d.sesso==='M';
                 var eta=d.annoNascita?new Date().getFullYear()-parseInt(d.annoNascita):35;
                 var vo2=parseFloat(((dist-504.9)/44.73).toFixed(1));
-                var cat=m?(vo2>=52?'Eccellente':vo2>=47?'Buono':vo2>=42?'Sopra media':vo2>=37?'Media':vo2>=33?'Sotto media':'Scarso'):(vo2>=45?'Eccellente':vo2>=40?'Buono':vo2>=35?'Sopra media':vo2>=30?'Media':vo2>=25?'Sotto media':'Scarso');
+                var cat=m?(vo2>=52?T.catEcc:vo2>=47?T.catBuono:vo2>=42?T.catSopraMed:vo2>=37?T.catMedia:vo2>=33?T.catSottoMed:T.catScarso):(vo2>=45?T.catEcc:vo2>=40?T.catBuono:vo2>=35?T.catSopraMed:vo2>=30?T.catMedia:vo2>=25?T.catSottoMed:T.catScarso);
                 return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>VO₂max stimato: {vo2} ml/kg/min — {cat}</strong></div>;
               })()}
             </div>}
