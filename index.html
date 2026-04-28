@@ -1254,6 +1254,11 @@ const LANGS={
     wizHor1m:'1 mese',wizHor3m:'3 mesi',wizHor6m:'6 mesi',wizHor1y:'1 anno',wizHorLong:'Lungo termine',
     wizMwtDispMild:'Dispnea lieve',wizMwtDispMod:'Dispnea moderata',wizMwtFatigue:'Affaticamento gambe',
     wizMwtPain:'Dolore',wizMwtStopped:'Test interrotto',
+    persTitle:'Personalizza',persSubtitle:'Lingua, tema e brand del tuo studio',persBack:'← Torna alle impostazioni',
+    persLangLbl:'Lingua',persThemeLbl:'Tema',persDark:'Scuro',persLight:'Chiaro',
+    persStudioLbl:'Nome studio',persStudioPh:'Es. Fitness Studio Roma',persLogoLbl:'Logo',
+    persUploadLogo:'Carica logo',persRemoveLogo:'Rimuovi logo',
+    persSave:'Salva modifiche',persCancel:'Annulla',persSaved:'Modifiche salvate',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -1986,6 +1991,11 @@ const LANGS={
     wizHor1m:'1 month',wizHor3m:'3 months',wizHor6m:'6 months',wizHor1y:'1 year',wizHorLong:'Long term',
     wizMwtDispMild:'Mild dyspnea',wizMwtDispMod:'Moderate dyspnea',wizMwtFatigue:'Leg fatigue',
     wizMwtPain:'Pain',wizMwtStopped:'Test stopped',
+    persTitle:'Customize',persSubtitle:'Language, theme and studio brand',persBack:'← Back to settings',
+    persLangLbl:'Language',persThemeLbl:'Theme',persDark:'Dark',persLight:'Light',
+    persStudioLbl:'Studio name',persStudioPh:'e.g. Fitness Studio London',persLogoLbl:'Logo',
+    persUploadLogo:'Upload logo',persRemoveLogo:'Remove logo',
+    persSave:'Save changes',persCancel:'Cancel',persSaved:'Changes saved',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2718,6 +2728,11 @@ const LANGS={
     wizHor1m:'1 mois',wizHor3m:'3 mois',wizHor6m:'6 mois',wizHor1y:'1 an',wizHorLong:'Long terme',
     wizMwtDispMild:'Dyspnée légère',wizMwtDispMod:'Dyspnée modérée',wizMwtFatigue:'Fatigue jambes',
     wizMwtPain:'Douleur',wizMwtStopped:'Test interrompu',
+    persTitle:'Personnaliser',persSubtitle:'Langue, thème et marque de votre studio',persBack:'← Retour aux paramètres',
+    persLangLbl:'Langue',persThemeLbl:'Thème',persDark:'Sombre',persLight:'Clair',
+    persStudioLbl:'Nom du studio',persStudioPh:'Ex. Fitness Studio Paris',persLogoLbl:'Logo',
+    persUploadLogo:'Télécharger logo',persRemoveLogo:'Supprimer logo',
+    persSave:'Enregistrer',persCancel:'Annuler',persSaved:'Modifications enregistrées',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
@@ -6317,6 +6332,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
         </div>
       </main>
       {showValutazione&&<WizardValutazione
+        lang={lang}
         trainerProfile={trainerProfile}
         initialData={reevalPatient?{nome:reevalPatient.nome,cognome:reevalPatient.cognome,sesso:reevalPatient.sesso,ddn:reevalPatient.ddn||''}:null}
         onSave={p=>{
@@ -7998,8 +8014,8 @@ function TimerModal({config,onClose}){
   );
 }
 
-function WizardValutazione({onSave,onClose,initialData,trainerProfile}){
-  const T=gT();
+function WizardValutazione({onSave,onClose,initialData,trainerProfile,lang}){
+  const T=LANGS[lang]?.t||LANGS.it.t;
   const wizardType='completa';
   const [step,setStep]=useState(1);
   const [timerTest,setTimerTest]=React.useState(null);
@@ -9462,6 +9478,7 @@ function LinguaModal({onClose,lang,setLang}){
 
 function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setProfile,user}){
   const [pLang,setPLang]=useState(lang);
+  const T=LANGS[pLang]?.t||LANGS.it.t;
   const [pLight,setPLight]=useState(isLight);
   const [pNome,setPNome]=useState(profile?.nomeStudio||'');
   const [pLogo,setPLogo]=useState(profile?.logo||'');
@@ -9472,7 +9489,7 @@ function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setP
     setLang(pLang);setLangStore(pLang);
     await fbSaveUserProfile(user.uid,{nomeStudio:pNome,logo:pLogo});
     setProfile(function(p){return Object.assign({},p,{nomeStudio:pNome,logo:pLogo});});
-    showToast('Modifiche salvate','success');
+    showToast(T.persSaved,'success');
     onClose();
   };
   var handleCancel=function(){
@@ -9486,11 +9503,11 @@ function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setP
   return(
     <div style={{position:'fixed',inset:0,zIndex:9999,background:C.bg,overflowY:'auto'}}>
       <div style={{maxWidth:600,margin:'0 auto',padding:isMobile?'20px 16px':'40px 24px'}}>
-        <button onClick={handleCancel} style={{fontSize:13,color:C.muted,cursor:'pointer',background:'none',border:'none',fontFamily:'inherit',marginBottom:16}}>← Torna ai parametri</button>
-        <div style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,textAlign:'center',marginBottom:8}}>Personalizza</div>
-        <div style={{fontSize:14,color:C.muted,textAlign:'center',marginBottom:32}}>Lingua, tema e brand del tuo studio</div>
+        <button onClick={handleCancel} style={{fontSize:13,color:C.muted,cursor:'pointer',background:'none',border:'none',fontFamily:'inherit',marginBottom:16}}>{T.persBack}</button>
+        <div style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,textAlign:'center',marginBottom:8}}>{T.persTitle}</div>
+        <div style={{fontSize:14,color:C.muted,textAlign:'center',marginBottom:32}}>{T.persSubtitle}</div>
         <div style={cardStyle}>
-          <div style={lblStyle}>Lingua</div>
+          <div style={lblStyle}>{T.persLangLbl}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
             <button onClick={()=>setPLang('it')} style={pLang==='it'?btnActive:btnInactive}>🇮🇹 Italiano</button>
             <button onClick={()=>setPLang('en')} style={pLang==='en'?btnActive:btnInactive}>🇬🇧 English</button>
@@ -9498,28 +9515,28 @@ function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setP
           </div>
         </div>
         <div style={cardStyle}>
-          <div style={lblStyle}>Tema</div>
+          <div style={lblStyle}>{T.persThemeLbl}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-            <button onClick={()=>setPLight(false)} style={!pLight?btnActive:btnInactive}>🌙 Scuro</button>
-            <button onClick={()=>setPLight(true)} style={pLight?btnActive:btnInactive}>☀️ Chiaro</button>
+            <button onClick={()=>setPLight(false)} style={!pLight?btnActive:btnInactive}>🌙 {T.persDark}</button>
+            <button onClick={()=>setPLight(true)} style={pLight?btnActive:btnInactive}>☀️ {T.persLight}</button>
           </div>
         </div>
         <div style={cardStyle}>
-          <div style={lblStyle}>Nome studio</div>
-          <input value={pNome} onChange={e=>setPNome(e.target.value)} placeholder="Es. Fitness Studio Roma" style={{width:'100%',padding:12,borderRadius:8,border:'1px solid '+C.border2,background:C.bg,color:C.strong,fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:16,boxSizing:'border-box'}}/>
-          <div style={lblStyle}>Logo</div>
+          <div style={lblStyle}>{T.persStudioLbl}</div>
+          <input value={pNome} onChange={e=>setPNome(e.target.value)} placeholder={T.persStudioPh} style={{width:'100%',padding:12,borderRadius:8,border:'1px solid '+C.border2,background:C.bg,color:C.strong,fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:16,boxSizing:'border-box'}}/>
+          <div style={lblStyle}>{T.persLogoLbl}</div>
           {pLogo&&<div style={{marginBottom:10}}>
             <img src={pLogo} alt="logo" style={{width:80,height:80,borderRadius:12,objectFit:'cover',display:'block',border:'1px solid '+C.border2,marginBottom:10}}/>
           </div>}
           <div style={{display:'flex',alignItems:'center',gap:10}}>
-            <button onClick={()=>document.getElementById('personalizza-logo-input').click()} style={{padding:'10px 16px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.strong,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Carica logo</button>
-            {pLogo&&<button onClick={()=>setPLogo('')} style={{fontSize:12,color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>Rimuovi logo</button>}
+            <button onClick={()=>document.getElementById('personalizza-logo-input').click()} style={{padding:'10px 16px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.strong,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.persUploadLogo}</button>
+            {pLogo&&<button onClick={()=>setPLogo('')} style={{fontSize:12,color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>{T.persRemoveLogo}</button>}
           </div>
           <input id="personalizza-logo-input" type="file" accept="image/*" style={{display:'none'}} onChange={e=>{const file=e.target.files?.[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const max=200;const scale=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*scale);const h=Math.round(img.height*scale);const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const b64=canvas.toDataURL('image/jpeg',0.7);setPLogo(b64);};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value='';}}/>
         </div>
         <div style={{marginTop:32,display:'flex',flexDirection:'column',gap:10}}>
-          <button onClick={handleSave} style={{width:'100%',padding:16,borderRadius:12,background:C.blue,color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none'}}>Salva modifiche</button>
-          <button onClick={handleCancel} style={{width:'100%',padding:12,borderRadius:12,background:'transparent',border:'1px solid '+C.border2,color:C.muted,fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Annulla</button>
+          <button onClick={handleSave} style={{width:'100%',padding:16,borderRadius:12,background:C.blue,color:'#fff',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none'}}>{T.persSave}</button>
+          <button onClick={handleCancel} style={{width:'100%',padding:12,borderRadius:12,background:'transparent',border:'1px solid '+C.border2,color:C.muted,fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.persCancel}</button>
         </div>
       </div>
     </div>
