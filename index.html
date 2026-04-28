@@ -1261,6 +1261,63 @@ const LANGS={
     persSave:'Salva modifiche',persCancel:'Annulla',persSaved:'Modifiche salvate',
     catEcc:'Eccellente',catBuono:'Buono',catSopraMed:'Sopra media',catMedia:'Media',catSottoMed:'Sotto media',catScarso:'Scarso',catEccAtleta:'Eccellente (atleta)',
     objRealistic:'Obiettivo realistico',objAggressive:'Obiettivo aggressivo',objUnrealistic:'Obiettivo non realistico',
+    timerStart:'▶ Avvia',timerPause:'⏸ Pausa',timerResume:'▶ Riprendi',timerStop:'🛑 Ferma ora',
+    timerDone:'✅ Test completato!',timerInsertVal:'Inserisci il valore misurato:',timerSave:'💾 Salva',timerClose:'✕ Chiudi',
+    wizCertAgoTitle:'🏆 Certificato agonistico valido',
+    wizCertAgoDesc:"— Test fisici saltati. Il cert. agonistico comprende visita cardiologica + ECG da sforzo + spirometria. Score calcolato da anamnesi; i test in seguito aumentano la precisione.",
+    wizCertNonAgoTitle:'✅ Certificato non-agonistico valido',
+    wizCertNonAgoDesc:"— Test fisici saltati. Score calcolato da anamnesi. Puoi aggiungere i test in seguito per uno score più preciso.",
+    wizParqNegTitle:'✅ PAR-Q negativo',
+    wizParqNegDesc:"— Nessun fattore di rischio dichiarato. Test fisici saltati. L'allenamento può iniziare in sicurezza. Si consiglia certificato medico entro 30 giorni.",
+    wizParqNegResult:"✅ PAR-Q negativo — nessun fattore di rischio dichiarato. Test fisici non obbligatori. Puoi procedere alla valutazione senza effettuare i test fisici.",
+    wizObjDetails:'Dettagli obiettivo',
+    wizObjPesoTarget:'Peso target (kg)',wizObjTempoMesi:'Entro quanto (mesi)',wizObjEsercizioTarget:'Esercizio target',
+    wizObj1rmAttuale:'1RM attuale (kg)',wizObj1rmTarget:'1RM target (kg)',
+    wizObjEvento:'Evento / gara',wizObjDataEvento:'Data evento',
+    wizObjArea:'Area / infortunio',wizObjFunzionale:'Obiettivo funzionale (es. ROM completa)',wizObjTempoPrevisto:'Tempo previsto (mesi)',
+    wizObjDescrivi:"Descrivi l'obiettivo",
+    wizObjWarnConfirm:'Confermo e procedo sotto mia responsabilità',wizObjWarnAccepted:'✓ Warning accettato',
+    wizObjUnrealisticToast:'Obiettivo non realistico — conferma il warning prima di procedere',
+    wizAvviaTest:'⏱ Avvia test',
+    wiz6mwtTimerTitle:'6MWT — 6 Minute Walk Test',
+    wiz6mwtTimerDesc:'Il cliente cammina alla massima velocità sostenibile per 6 minuti. A fine timer inserisci la distanza percorsa in metri. Premi "Ferma ora" se il test viene interrotto.',
+    wizStsTimerTitle:'STS 30s — Sit-to-Stand',
+    wizStsTimerDesc:'Il cliente si alza e siede dalla sedia quante più volte possibile in 30 secondi. Conta le ripetizioni complete.',
+    wizPlankTimerTitle:'Plank — resistenza core',
+    wizPlankTimerDesc:'Il cliente mantiene la posizione di plank sugli avambracci fino al cedimento (max 5 min). Premi "Ferma ora" quando cede.',
+    wizCooperTimerTitle:'Cooper Test (12 min)',
+    wizCooperTimerDesc:'Il cliente corre/cammina alla massima velocità sostenibile per 12 minuti. A fine timer inserisci la distanza percorsa in metri.',
+    wizRmTitle:'Test forza massimale (1RM)',wizRmStimato:'1RM stimato (raccomandato)',wizRmDiretto:'1RM diretto',
+    wizRmEsercizioLbl:'Esercizio',wizRmSpecifica:'Specifica esercizio',wizRmCaricoLbl:'Carico usato (kg)',
+    wizRmRipLbl:'Ripetizioni al cedimento',wizRmDirettoLbl:'1RM diretto (kg)',
+    wizRm1rmStimato:'1RM stimato',wizRm1rmDichiarato:'1RM dichiarato',
+    wizRmRapporto:'· Rapporto {n}× ·',wizRmRangeOpt:'Range ottimale: 3–8 ripetizioni per stima accurata.',
+    wizRmSottoPrinc:'Sotto principiante',wizRmPrinc:'Principiante',wizRmIntermed:'Intermedio',wizRmAvanzato:'Avanzato',
+    wizStepTestTitle:'Step test YMCA (3 min)',
+    wizStepTestDesc:'Step da 30 cm (uomini) o 25 cm (donne), cadenza 96 bpm per 3 min. Misura FC per 60 sec dopo 5 sec dalla fine.',
+    wizStepTestFcLbl:'FC post-test (bpm)',wizRecupCardio:'Recupero cardio: {cat}',
+    wizCmjTitle:'CMJ — Countermovement Jump',
+    wizCmjDesc:'Salto verticale massimo da posizione eretta con contromovimento. 3 tentativi, prendi il migliore.',
+    wizCmjAltLbl:'Altezza salto (cm)',wizPotenzaArti:'Potenza arti inferiori: {cat}',
+    wizCooperInDesc:'Corri/cammina alla massima velocità sostenibile per 12 minuti. Misura la distanza percorsa in metri.',
+    wizCooperDistLbl:'Distanza percorsa (m)',wizVo2max:'VO₂max stimato: {vo2} ml/kg/min — {cat}',
+    wizTestAvanzatiSummary:'Aggiungi test avanzati ({n} non consigliati per questo profilo)',
+    wizTestAvanzatiWarn:'⚠️ Questi test non sono tipicamente informativi per il profilo di questo cliente. Lo score potrebbe essere poco discriminante. Procedi solo se hai un motivo specifico.',
+    wizTestAvanzatiInfo:'Passa a modalità Completa per inserire i dati di questi test.',
+    wizObjMsgPerdRed:'Ritmo {pct}%/sett fuori range fisiologico. Rischio grave perdita massa magra e rebound. Letteratura: max 1%/sett (ACSM).',
+    wizObjMsgPerdYellow:'Ritmo {pct}%/sett aggressivo. Ottimale 0.5-1%/sett per preservare massa magra.',
+    wizObjMsgPerdGreen:'Target {kg} kg/sett ({kcal} kcal/die deficit). Range fisiologico.',
+    wizObjMsgMassRed:'+{kg} kg/mese oltre limite sintesi proteica (max 2 kg/mese anche in principianti). Quasi tutto sarebbe grasso.',
+    wizObjMsgMassYellow:'+{kg} kg/mese aggressivo. Realistico solo in principianti con surplus aggressivo. Rischio accumulo grasso.',
+    wizObjMsgMassGreen:'Target +{kg} kg/sett (+{kcal} kcal/die). Range fisiologico.',
+    wizObjMsgForzaRed:'+{pct}% in {mesi} mesi non realistico. Anche principianti raramente oltre 10-15%/mese nei primi 3 mesi.',
+    wizObjMsgForzaYellow:'+{pct}% in {mesi} mesi aggressivo. Monitorare DOMS e recupero stretto.',
+    wizObjMsgForzaGreen:'Progressione +{pct}% in {mesi} mesi. Range realistico.',
+    wizObjMsgPerfRed:"{sett} sett. all'evento, finestra troppo stretta per adattamenti sostanziali. Solo mantenimento + tapering possibile.",
+    wizObjMsgPerfYellow:"{sett} sett. all'evento, finestra breve. Focus su specifico gara + tapering, adattamenti limitati.",
+    wizObjMsgPerfGreen:'{sett} sett. a disposizione. Periodizzazione inversa: base → soglia → specifico → tapering.',
+    wizObjMsgRiab:'Riabilitazione in {mesi} mesi. Durata programma minimo 8 sett per ciclo, progressione graduale.',
+    wizObjMsgQual:'Obiettivo qualitativo: {note}',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -2000,6 +2057,63 @@ const LANGS={
     persSave:'Save changes',persCancel:'Cancel',persSaved:'Changes saved',
     catEcc:'Excellent',catBuono:'Good',catSopraMed:'Above average',catMedia:'Average',catSottoMed:'Below average',catScarso:'Poor',catEccAtleta:'Excellent (athlete)',
     objRealistic:'Realistic goal',objAggressive:'Challenging goal',objUnrealistic:'Unrealistic goal',
+    timerStart:'▶ Start',timerPause:'⏸ Pause',timerResume:'▶ Resume',timerStop:'🛑 Stop now',
+    timerDone:'✅ Test completed!',timerInsertVal:'Enter measured value:',timerSave:'💾 Save',timerClose:'✕ Close',
+    wizCertAgoTitle:'🏆 Competitive certificate valid',
+    wizCertAgoDesc:'— Physical tests skipped. Competitive cert. includes cardiology visit + stress ECG + spirometry. Score from anamnesis; tests later improve accuracy.',
+    wizCertNonAgoTitle:'✅ Non-competitive certificate valid',
+    wizCertNonAgoDesc:'— Physical tests skipped. Score from anamnesis. You can add tests later for a more precise score.',
+    wizParqNegTitle:'✅ Negative PAR-Q',
+    wizParqNegDesc:'— No risk factors declared. Physical tests skipped. Training can begin safely. Medical certificate advised within 30 days.',
+    wizParqNegResult:'✅ Negative PAR-Q — no risk factors declared. Physical tests not required. You can proceed with the assessment without physical tests.',
+    wizObjDetails:'Goal details',
+    wizObjPesoTarget:'Target weight (kg)',wizObjTempoMesi:'Within how long (months)',wizObjEsercizioTarget:'Target exercise',
+    wizObj1rmAttuale:'Current 1RM (kg)',wizObj1rmTarget:'Target 1RM (kg)',
+    wizObjEvento:'Event / race',wizObjDataEvento:'Event date',
+    wizObjArea:'Area / injury',wizObjFunzionale:'Functional goal (e.g. full ROM)',wizObjTempoPrevisto:'Expected time (months)',
+    wizObjDescrivi:'Describe the goal',
+    wizObjWarnConfirm:'I confirm and proceed under my responsibility',wizObjWarnAccepted:'✓ Warning accepted',
+    wizObjUnrealisticToast:'Unrealistic goal — confirm the warning before continuing',
+    wizAvviaTest:'⏱ Start test',
+    wiz6mwtTimerTitle:'6MWT — 6 Minute Walk Test',
+    wiz6mwtTimerDesc:'The client walks at the maximum sustainable speed for 6 minutes. At the end of the timer enter the distance in metres. Press "Stop now" if the test is interrupted.',
+    wizStsTimerTitle:'STS 30s — Sit-to-Stand',
+    wizStsTimerDesc:'The client stands up and sits down from the chair as many times as possible in 30 seconds. Count complete repetitions.',
+    wizPlankTimerTitle:'Plank — core endurance',
+    wizPlankTimerDesc:'The client holds the plank position on the forearms until failure (max 5 min). Press "Stop now" when they fail.',
+    wizCooperTimerTitle:'Cooper Test (12 min)',
+    wizCooperTimerDesc:'The client runs/walks at the maximum sustainable speed for 12 minutes. At the end of the timer enter the distance in metres.',
+    wizRmTitle:'Maximal strength test (1RM)',wizRmStimato:'Estimated 1RM (recommended)',wizRmDiretto:'Direct 1RM',
+    wizRmEsercizioLbl:'Exercise',wizRmSpecifica:'Specify exercise',wizRmCaricoLbl:'Load used (kg)',
+    wizRmRipLbl:'Reps to failure',wizRmDirettoLbl:'Direct 1RM (kg)',
+    wizRm1rmStimato:'Estimated 1RM',wizRm1rmDichiarato:'Declared 1RM',
+    wizRmRapporto:'· Ratio {n}× ·',wizRmRangeOpt:'Optimal range: 3–8 reps for accurate estimate.',
+    wizRmSottoPrinc:'Below beginner',wizRmPrinc:'Beginner',wizRmIntermed:'Intermediate',wizRmAvanzato:'Advanced',
+    wizStepTestTitle:'YMCA Step Test (3 min)',
+    wizStepTestDesc:'30 cm step (men) or 25 cm (women), 96 bpm cadence for 3 min. Measure HR for 60 sec after 5 sec from the end.',
+    wizStepTestFcLbl:'Post-test HR (bpm)',wizRecupCardio:'Cardio recovery: {cat}',
+    wizCmjTitle:'CMJ — Countermovement Jump',
+    wizCmjDesc:'Maximum vertical jump from standing with countermovement. 3 attempts, take the best.',
+    wizCmjAltLbl:'Jump height (cm)',wizPotenzaArti:'Lower limb power: {cat}',
+    wizCooperInDesc:'Run/walk at maximum sustainable speed for 12 minutes. Measure the distance in metres.',
+    wizCooperDistLbl:'Distance covered (m)',wizVo2max:'Estimated VO₂max: {vo2} ml/kg/min — {cat}',
+    wizTestAvanzatiSummary:'Add advanced tests ({n} not recommended for this profile)',
+    wizTestAvanzatiWarn:"⚠️ These tests are not typically informative for this client's profile. The score may be poorly discriminating. Proceed only if you have a specific reason.",
+    wizTestAvanzatiInfo:'Switch to Complete mode to enter data for these tests.',
+    wizObjMsgPerdRed:'Pace {pct}%/week outside physiological range. Serious risk of lean mass loss and rebound. Literature: max 1%/week (ACSM).',
+    wizObjMsgPerdYellow:'Pace {pct}%/week aggressive. Optimal 0.5-1%/week to preserve lean mass.',
+    wizObjMsgPerdGreen:'Target {kg} kg/week ({kcal} kcal/day deficit). Physiological range.',
+    wizObjMsgMassRed:'+{kg} kg/month exceeds protein synthesis limit (max 2 kg/month even for beginners). Almost all would be fat.',
+    wizObjMsgMassYellow:'+{kg} kg/month aggressive. Realistic only for beginners with aggressive surplus. Risk of fat accumulation.',
+    wizObjMsgMassGreen:'Target +{kg} kg/week (+{kcal} kcal/day). Physiological range.',
+    wizObjMsgForzaRed:'+{pct}% in {mesi} months not realistic. Even beginners rarely exceed 10-15%/month in the first 3 months.',
+    wizObjMsgForzaYellow:'+{pct}% in {mesi} months aggressive. Monitor DOMS and recovery closely.',
+    wizObjMsgForzaGreen:'Progression +{pct}% in {mesi} months. Realistic range.',
+    wizObjMsgPerfRed:'{sett} weeks to the event, window too narrow for substantial adaptations. Maintenance + tapering only.',
+    wizObjMsgPerfYellow:'{sett} weeks to the event, short window. Focus on race-specific + tapering, limited adaptations.',
+    wizObjMsgPerfGreen:'{sett} weeks available. Reverse periodization: base → threshold → specific → tapering.',
+    wizObjMsgRiab:'Rehabilitation over {mesi} months. Minimum programme: 8-week cycles, gradual progression.',
+    wizObjMsgQual:'Qualitative goal: {note}',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2739,6 +2853,63 @@ const LANGS={
     persSave:'Enregistrer',persCancel:'Annuler',persSaved:'Modifications enregistrées',
     catEcc:'Excellent',catBuono:'Bon',catSopraMed:'Au-dessus de la moyenne',catMedia:'Moyen',catSottoMed:'Sous la moyenne',catScarso:'Médiocre',catEccAtleta:'Excellent (athlète)',
     objRealistic:'Objectif réaliste',objAggressive:'Objectif ambitieux',objUnrealistic:'Objectif irréaliste',
+    timerStart:'▶ Démarrer',timerPause:'⏸ Pause',timerResume:'▶ Reprendre',timerStop:'🛑 Arrêter',
+    timerDone:'✅ Test terminé!',timerInsertVal:'Entrez la valeur mesurée:',timerSave:'💾 Enregistrer',timerClose:'✕ Fermer',
+    wizCertAgoTitle:'🏆 Certificat compétitif valide',
+    wizCertAgoDesc:"— Tests physiques ignorés. Le cert. compétitif comprend consultation cardiologique + ECG d'effort + spirométrie. Score calculé depuis l'anamnèse ; les tests améliorent la précision.",
+    wizCertNonAgoTitle:'✅ Certificat non-compétitif valide',
+    wizCertNonAgoDesc:"— Tests physiques ignorés. Score calculé depuis l'anamnèse. Vous pouvez ajouter des tests plus tard pour un score plus précis.",
+    wizParqNegTitle:'✅ PAR-Q négatif',
+    wizParqNegDesc:"— Aucun facteur de risque déclaré. Tests physiques ignorés. L'entraînement peut commencer en toute sécurité. Certificat médical conseillé dans les 30 jours.",
+    wizParqNegResult:"✅ PAR-Q négatif — aucun facteur de risque déclaré. Tests physiques non obligatoires. Vous pouvez procéder à l'évaluation sans effectuer les tests physiques.",
+    wizObjDetails:"Détails de l'objectif",
+    wizObjPesoTarget:'Poids cible (kg)',wizObjTempoMesi:'Dans combien de temps (mois)',wizObjEsercizioTarget:'Exercice cible',
+    wizObj1rmAttuale:'1RM actuel (kg)',wizObj1rmTarget:'1RM cible (kg)',
+    wizObjEvento:'Événement / compétition',wizObjDataEvento:"Date de l'événement",
+    wizObjArea:'Zone / blessure',wizObjFunzionale:'Objectif fonctionnel (ex. ROM complète)',wizObjTempoPrevisto:'Durée prévue (mois)',
+    wizObjDescrivi:"Décrivez l'objectif",
+    wizObjWarnConfirm:'Je confirme et procède sous ma responsabilité',wizObjWarnAccepted:'✓ Avertissement accepté',
+    wizObjUnrealisticToast:"Objectif irréaliste — confirmez l'avertissement avant de continuer",
+    wizAvviaTest:'⏱ Lancer le test',
+    wiz6mwtTimerTitle:'6MWT — Test de marche 6 minutes',
+    wiz6mwtTimerDesc:'Le client marche à la vitesse maximale soutenable pendant 6 minutes. À la fin du minuteur, entrez la distance parcourue en mètres. Appuyez sur "Arrêter" si le test est interrompu.',
+    wizStsTimerTitle:'STS 30s — Assis-Debout',
+    wizStsTimerDesc:"Le client se lève et s'assoit de la chaise autant de fois que possible en 30 secondes. Comptez les répétitions complètes.",
+    wizPlankTimerTitle:'Plank — endurance du core',
+    wizPlankTimerDesc:'Le client maintient la position de planche sur les avant-bras jusqu\'à l\'échec (max 5 min). Appuyez sur "Arrêter" quand il cède.',
+    wizCooperTimerTitle:'Test de Cooper (12 min)',
+    wizCooperTimerDesc:'Le client court/marche à la vitesse maximale soutenable pendant 12 minutes. À la fin du minuteur, entrez la distance parcourue en mètres.',
+    wizRmTitle:'Test de force maximale (1RM)',wizRmStimato:'1RM estimé (recommandé)',wizRmDiretto:'1RM direct',
+    wizRmEsercizioLbl:'Exercice',wizRmSpecifica:"Préciser l'exercice",wizRmCaricoLbl:'Charge utilisée (kg)',
+    wizRmRipLbl:"Répétitions à l'échec",wizRmDirettoLbl:'1RM direct (kg)',
+    wizRm1rmStimato:'1RM estimé',wizRm1rmDichiarato:'1RM déclaré',
+    wizRmRapporto:'· Rapport {n}× ·',wizRmRangeOpt:'Plage optimale : 3–8 répétitions pour une estimation précise.',
+    wizRmSottoPrinc:'Sous débutant',wizRmPrinc:'Débutant',wizRmIntermed:'Intermédiaire',wizRmAvanzato:'Avancé',
+    wizStepTestTitle:'Test de marche YMCA (3 min)',
+    wizStepTestDesc:'Marche sur une step de 30 cm (hommes) ou 25 cm (femmes), cadence 96 bpm pendant 3 min. Mesurer FC pendant 60 sec, 5 sec après la fin.',
+    wizStepTestFcLbl:'FC post-test (bpm)',wizRecupCardio:'Récupération cardio : {cat}',
+    wizCmjTitle:'CMJ — Saut avec contre-mouvement',
+    wizCmjDesc:'Saut vertical maximal depuis la position debout avec contre-mouvement. 3 tentatives, prenez le meilleur.',
+    wizCmjAltLbl:'Hauteur de saut (cm)',wizPotenzaArti:'Puissance membres inférieurs : {cat}',
+    wizCooperInDesc:'Courez/marchez à la vitesse maximale soutenable pendant 12 minutes. Mesurez la distance parcourue en mètres.',
+    wizCooperDistLbl:'Distance parcourue (m)',wizVo2max:'VO₂max estimé : {vo2} ml/kg/min — {cat}',
+    wizTestAvanzatiSummary:'Ajouter des tests avancés ({n} non recommandés pour ce profil)',
+    wizTestAvanzatiWarn:"⚠️ Ces tests ne sont généralement pas informatifs pour le profil de ce client. Le score pourrait être peu discriminant. Procédez uniquement si vous avez une raison spécifique.",
+    wizTestAvanzatiInfo:'Passez en mode Complet pour entrer les données de ces tests.',
+    wizObjMsgPerdRed:'Rythme {pct}%/sem hors plage physiologique. Risque grave de perte de masse maigre et rebond. Littérature : max 1%/sem (ACSM).',
+    wizObjMsgPerdYellow:'Rythme {pct}%/sem agressif. Optimal 0.5-1%/sem pour préserver la masse maigre.',
+    wizObjMsgPerdGreen:'Cible {kg} kg/sem ({kcal} kcal/jour déficit). Plage physiologique.',
+    wizObjMsgMassRed:'+{kg} kg/mois dépasse la limite de synthèse protéique (max 2 kg/mois même pour débutants). Presque tout serait de la graisse.',
+    wizObjMsgMassYellow:"+{kg} kg/mois agressif. Réaliste uniquement pour débutants avec surplus agressif. Risque d'accumulation de graisse.",
+    wizObjMsgMassGreen:'Cible +{kg} kg/sem (+{kcal} kcal/jour). Plage physiologique.',
+    wizObjMsgForzaRed:'+{pct}% en {mesi} mois non réaliste. Même les débutants dépassent rarement 10-15%/mois dans les 3 premiers mois.',
+    wizObjMsgForzaYellow:'+{pct}% en {mesi} mois agressif. Surveiller DOMS et récupération.',
+    wizObjMsgForzaGreen:'Progression +{pct}% en {mesi} mois. Plage réaliste.',
+    wizObjMsgPerfRed:"{sett} sem. jusqu'à l'événement, fenêtre trop étroite pour des adaptations substantielles. Maintien + affûtage uniquement.",
+    wizObjMsgPerfYellow:"{sett} sem. jusqu'à l'événement, fenêtre courte. Focus sur spécifique compétition + affûtage, adaptations limitées.",
+    wizObjMsgPerfGreen:'{sett} sem. disponibles. Périodisation inversée : base → seuil → spécifique → affûtage.',
+    wizObjMsgRiab:'Rééducation sur {mesi} mois. Durée minimale : cycles de 8 sem., progression graduelle.',
+    wizObjMsgQual:'Objectif qualitatif : {note}',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
@@ -7311,7 +7482,8 @@ function calc1RM(carico,rip){
   return Math.round(c/div*10)/10;
 }
 
-function classificaForza(esercizio,rm1,pesoKg,sesso){
+function classificaForza(esercizio,rm1,pesoKg,sesso,T){
+  if(!T)T=LANGS.it.t;
   if(!rm1||!pesoKg)return null;
   var ratio=rm1/pesoKg;
   var norme={
@@ -7325,10 +7497,10 @@ function classificaForza(esercizio,rm1,pesoKg,sesso){
   var n=norme[esercizio];
   if(!n)return{livello:'N/D',ratio:ratio.toFixed(2)};
   var s=n[sesso==='F'?'F':'M'];
-  var livello='Sotto principiante';
-  if(ratio>=s[2])livello='Avanzato';
-  else if(ratio>=s[1])livello='Intermedio';
-  else if(ratio>=s[0])livello='Principiante';
+  var livello=T.wizRmSottoPrinc;
+  if(ratio>=s[2])livello=T.wizRmAvanzato;
+  else if(ratio>=s[1])livello=T.wizRmIntermed;
+  else if(ratio>=s[0])livello=T.wizRmPrinc;
   return{livello,ratio:ratio.toFixed(2),rm1};
 }
 
@@ -7379,7 +7551,8 @@ function testConsigliatiSmart(dati){
 }
 
 // ── CALCOLA METRICHE OBIETTIVO STRUTTURATO ───────────────────────────────────
-function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
+function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale,T){
+  if(!T)T=LANGS.it.t;
   var result={livello:'green',messaggio:'',tassoAttesoSettimana:0,kcalDelta:0,durataProgrammaMesi:0,progressioneRmPct:0};
   if(!obiettivo)return result;
   var peso=parseFloat(pesoAttuale)||70;
@@ -7395,9 +7568,9 @@ function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
     result.tassoAttesoSettimana=tassoSett;
     result.durataProgrammaMesi=mesi;
     result.kcalDelta=-Math.round((kgDaPerdere*7700)/(mesi*30));
-    if(pctSett>1.5){result.livello='red';result.messaggio='Ritmo '+pctSett.toFixed(1)+'%/sett fuori range fisiologico. Rischio grave perdita massa magra e rebound. Letteratura: max 1%/sett (ACSM).';}
-    else if(pctSett>1){result.livello='yellow';result.messaggio='Ritmo '+pctSett.toFixed(1)+'%/sett aggressivo. Ottimale 0.5-1%/sett per preservare massa magra.';}
-    else{result.messaggio='Target '+tassoSett.toFixed(2)+' kg/sett ('+Math.abs(result.kcalDelta)+' kcal/die deficit). Range fisiologico.';}
+    if(pctSett>1.5){result.livello='red';result.messaggio=T.wizObjMsgPerdRed.replace('{pct}',pctSett.toFixed(1));}
+    else if(pctSett>1){result.livello='yellow';result.messaggio=T.wizObjMsgPerdYellow.replace('{pct}',pctSett.toFixed(1));}
+    else{result.messaggio=T.wizObjMsgPerdGreen.replace('{kg}',tassoSett.toFixed(2)).replace('{kcal}',Math.abs(result.kcalDelta));}
   }
   else if(obiettivo==='Aumentare massa'){
     var target=parseFloat(os.pesoTarget);
@@ -7409,9 +7582,9 @@ function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
     result.tassoAttesoSettimana=tassoSett;
     result.durataProgrammaMesi=mesi;
     result.kcalDelta=Math.round((kgDaPrendere*5500)/(mesi*30));
-    if(kgMese>2.5){result.livello='red';result.messaggio='+'+kgMese.toFixed(1)+' kg/mese oltre limite sintesi proteica (max 2 kg/mese anche in principianti). Quasi tutto sarebbe grasso.';}
-    else if(kgMese>1.5){result.livello='yellow';result.messaggio='+'+kgMese.toFixed(1)+' kg/mese aggressivo. Realistico solo in principianti con surplus aggressivo. Rischio accumulo grasso.';}
-    else{result.messaggio='Target +'+tassoSett.toFixed(2)+' kg/sett (+'+result.kcalDelta+' kcal/die). Range fisiologico.';}
+    if(kgMese>2.5){result.livello='red';result.messaggio=T.wizObjMsgMassRed.replace('{kg}',kgMese.toFixed(1));}
+    else if(kgMese>1.5){result.livello='yellow';result.messaggio=T.wizObjMsgMassYellow.replace('{kg}',kgMese.toFixed(1));}
+    else{result.messaggio=T.wizObjMsgMassGreen.replace('{kg}',tassoSett.toFixed(2)).replace('{kcal}',result.kcalDelta);}
   }
   else if(obiettivo==='Forza'){
     var rmAtt=parseFloat(os.rmAttuale);
@@ -7422,9 +7595,9 @@ function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
     var pctPerMese=pctIncr/mesi;
     result.progressioneRmPct=pctIncr;
     result.durataProgrammaMesi=mesi;
-    if(pctPerMese>15){result.livello='red';result.messaggio='+'+pctIncr.toFixed(0)+'% in '+mesi+' mesi non realistico. Anche principianti raramente oltre 10-15%/mese nei primi 3 mesi.';}
-    else if(pctPerMese>10){result.livello='yellow';result.messaggio='+'+pctIncr.toFixed(0)+'% in '+mesi+' mesi aggressivo. Monitorare DOMS e recupero stretto.';}
-    else{result.messaggio='Progressione +'+pctIncr.toFixed(0)+'% in '+mesi+' mesi. Range realistico.';}
+    if(pctPerMese>15){result.livello='red';result.messaggio=T.wizObjMsgForzaRed.replace('{pct}',pctIncr.toFixed(0)).replace('{mesi}',mesi);}
+    else if(pctPerMese>10){result.livello='yellow';result.messaggio=T.wizObjMsgForzaYellow.replace('{pct}',pctIncr.toFixed(0)).replace('{mesi}',mesi);}
+    else{result.messaggio=T.wizObjMsgForzaGreen.replace('{pct}',pctIncr.toFixed(0)).replace('{mesi}',mesi);}
   }
   else if(obiettivo==='Performance'){
     var dataEv=os.dataEvento?new Date(os.dataEvento):null;
@@ -7432,17 +7605,17 @@ function calcolaObiettivoMetrics(obiettivo,dati,pesoAttuale){
     var oggi=new Date();
     var settimane=Math.ceil((dataEv-oggi)/(1000*60*60*24*7));
     result.durataProgrammaMesi=Math.ceil(settimane/4.33);
-    if(settimane<4){result.livello='red';result.messaggio=settimane+' sett. all\'evento, finestra troppo stretta per adattamenti sostanziali. Solo mantenimento + tapering possibile.';}
-    else if(settimane<8){result.livello='yellow';result.messaggio=settimane+' sett. all\'evento, finestra breve. Focus su specifico gara + tapering, adattamenti limitati.';}
-    else{result.messaggio=settimane+' sett. a disposizione. Periodizzazione inversa: base → soglia → specifico → tapering.';}
+    if(settimane<4){result.livello='red';result.messaggio=T.wizObjMsgPerfRed.replace('{sett}',settimane);}
+    else if(settimane<8){result.livello='yellow';result.messaggio=T.wizObjMsgPerfYellow.replace('{sett}',settimane);}
+    else{result.messaggio=T.wizObjMsgPerfGreen.replace('{sett}',settimane);}
   }
   else if(obiettivo==='Riabilitazione'){
     var mesi=parseFloat(os.tempoMesi)||3;
     result.durataProgrammaMesi=Math.max(2,mesi);
-    result.messaggio='Riabilitazione in '+mesi+' mesi. Durata programma minimo 8 sett per ciclo, progressione graduale.';
+    result.messaggio=T.wizObjMsgRiab.replace('{mesi}',mesi);
   }
   else if(os.noteObiettivo){
-    result.messaggio='Obiettivo qualitativo: '+os.noteObiettivo;
+    result.messaggio=T.wizObjMsgQual.replace('{note}',os.noteObiettivo);
   }
   return result;
 }
@@ -7952,7 +8125,8 @@ function ScoreBreakdown({pr,compact}){
 }
 
 // ── TIMER MODAL ──────────────────────────────────────────────────────────────
-function TimerModal({config,onClose}){
+function TimerModal({config,onClose,lang}){
+  const T=LANGS[lang]?.t||LANGS.it.t;
   const {durata,titolo,descrizione,permettiFermaPrima,onSave}=config;
   const [secondiRimasti,setSecondiRimasti]=React.useState(durata);
   const [running,setRunning]=React.useState(false);
@@ -7992,28 +8166,28 @@ function TimerModal({config,onClose}){
         </div>
         <div style={{display:'flex',gap:10,justifyContent:'center',marginBottom:16}}>
           {!finished&&!running&&secondiRimasti===durata&&(
-            <button onClick={()=>setRunning(true)} style={{padding:'10px 24px',background:'#378ADD',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer'}}>▶ Avvia</button>
+            <button onClick={()=>setRunning(true)} style={{padding:'10px 24px',background:'#378ADD',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer'}}>{T.timerStart}</button>
           )}
           {running&&(
-            <button onClick={()=>{setRunning(false);}} style={{padding:'10px 24px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer'}}>⏸ Pausa</button>
+            <button onClick={()=>{setRunning(false);}} style={{padding:'10px 24px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer'}}>{T.timerPause}</button>
           )}
           {!running&&secondiRimasti<durata&&!finished&&(
-            <button onClick={()=>setRunning(true)} style={{padding:'10px 24px',background:'#378ADD',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer'}}>▶ Riprendi</button>
+            <button onClick={()=>setRunning(true)} style={{padding:'10px 24px',background:'#378ADD',color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer'}}>{T.timerResume}</button>
           )}
           {permettiFermaPrima&&running&&(
-            <button onClick={()=>{clearInterval(intervalRef.current);setFinished(true);setRunning(false);}} style={{padding:'10px 24px',background:'#ef4444',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:700,cursor:'pointer'}}>🛑 Ferma ora</button>
+            <button onClick={()=>{clearInterval(intervalRef.current);setFinished(true);setRunning(false);}} style={{padding:'10px 24px',background:'#ef4444',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:700,cursor:'pointer'}}>{T.timerStop}</button>
           )}
         </div>
         {finished&&(
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:13,fontWeight:600,color:'#22c55e',textAlign:'center',marginBottom:10}}>✅ Test completato!</div>
-            <label style={{fontSize:12,fontWeight:600,color:'#444',display:'block',marginBottom:4}}>Inserisci il valore misurato:</label>
+            <div style={{fontSize:13,fontWeight:600,color:'#22c55e',textAlign:'center',marginBottom:10}}>{T.timerDone}</div>
+            <label style={{fontSize:12,fontWeight:600,color:'#444',display:'block',marginBottom:4}}>{T.timerInsertVal}</label>
             <input type="number" placeholder="es. 420" value={valoreMisurato} onChange={e=>setValoreMisurato(e.target.value)} style={{width:'100%',padding:'10px 12px',border:'1.5px solid #378ADD',borderRadius:8,fontSize:15,outline:'none'}} autoFocus/>
           </div>
         )}
         <div style={{display:'flex',gap:10}}>
-          {finished&&(<button onClick={handleSave} style={{flex:1,padding:'10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:700,cursor:'pointer'}}>💾 Salva</button>)}
-          <button onClick={onClose} style={{flex:1,padding:'10px',background:'#f1f5f9',color:'#555',border:'none',borderRadius:10,fontSize:14,cursor:'pointer'}}>✕ Chiudi</button>
+          {finished&&(<button onClick={handleSave} style={{flex:1,padding:'10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:10,fontSize:14,fontWeight:700,cursor:'pointer'}}>{T.timerSave}</button>)}
+          <button onClick={onClose} style={{flex:1,padding:'10px',background:'#f1f5f9',color:'#555',border:'none',borderRadius:10,fontSize:14,cursor:'pointer'}}>{T.timerClose}</button>
         </div>
       </div>
     </div>
@@ -8307,7 +8481,7 @@ footer .center b{color:#3b82f6;font-weight:700}
 
   return(
     <div style={OL}>
-      {timerTest&&<TimerModal config={timerTest} onClose={()=>setTimerTest(null)}/>}
+      {timerTest&&<TimerModal config={timerTest} onClose={()=>setTimerTest(null)} lang={lang}/>}
       <div style={BOX} onClick={function(e){e.stopPropagation();}}>
 
         {/* Header */}
@@ -8451,40 +8625,40 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <WizIn lbl={T.wizDurataSeduta} name="durataSeduta" val={d.durataSeduta} opts={['45 min','60 min','90 min']} onChange={upd('durataSeduta')}/>
               </div>
               {d.obiettivo&&(function(){
-                var metrics=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso);
+                var metrics=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso,T);
                 var os=d.obiettivoStrutturato||{};
                 var updOs=function(k){return function(val){setD(function(x){return{...x,obiettivoStrutturato:{...x.obiettivoStrutturato,[k]:val}};});};};
                 var WizInOs=function(props){return <WizIn {...props} onChange={function(e){updOs(props.name)(e.target.value);}}/>;};
                 return(
                   <div style={{background:C.bg,borderRadius:12,padding:'14px 16px',marginTop:12,border:'1px solid '+C.border2}}>
-                    <div style={{fontSize:11,color:C.muted,letterSpacing:'0.5px',marginBottom:10,fontWeight:600,textTransform:'uppercase'}}>Dettagli obiettivo</div>
+                    <div style={{fontSize:11,color:C.muted,letterSpacing:'0.5px',marginBottom:10,fontWeight:600,textTransform:'uppercase'}}>{T.wizObjDetails}</div>
                     {(d.obiettivo==='Perdere peso'||d.obiettivo==='Aumentare massa')&&(
                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-                        <WizInOs lbl="Peso target (kg)" name="pesoTarget" val={os.pesoTarget} type="number"/>
-                        <WizInOs lbl="Entro quanto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                        <WizInOs lbl={T.wizObjPesoTarget} name="pesoTarget" val={os.pesoTarget} type="number"/>
+                        <WizInOs lbl={T.wizObjTempoMesi} name="tempoMesi" val={os.tempoMesi} type="number"/>
                       </div>
                     )}
                     {d.obiettivo==='Forza'&&<>
                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-                        <WizInOs lbl="Esercizio target" name="esercizioTarget" val={os.esercizioTarget} opts={[{v:'',l:'Seleziona...'},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco',l:'Stacco'},{v:'Military press',l:'Military press'},{v:'Altro',l:'Altro'}]}/>
-                        <WizInOs lbl="Entro quanto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                        <WizInOs lbl={T.wizObjEsercizioTarget} name="esercizioTarget" val={os.esercizioTarget} opts={[{v:'',l:T.wizSelectPh},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco',l:'Stacco'},{v:'Military press',l:'Military press'},{v:'Altro',l:T.wizOptOther}]}/>
+                        <WizInOs lbl={T.wizObjTempoMesi} name="tempoMesi" val={os.tempoMesi} type="number"/>
                       </div>
                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
-                        <WizInOs lbl="1RM attuale (kg)" name="rmAttuale" val={os.rmAttuale} type="number"/>
-                        <WizInOs lbl="1RM target (kg)" name="rmTarget" val={os.rmTarget} type="number"/>
+                        <WizInOs lbl={T.wizObj1rmAttuale} name="rmAttuale" val={os.rmAttuale} type="number"/>
+                        <WizInOs lbl={T.wizObj1rmTarget} name="rmTarget" val={os.rmTarget} type="number"/>
                       </div>
                     </>}
                     {d.obiettivo==='Performance'&&<>
-                      <WizInOs lbl="Evento / gara" name="eventoTarget" val={os.eventoTarget}/>
-                      <WizInOs lbl="Data evento" name="dataEvento" val={os.dataEvento} type="date"/>
+                      <WizInOs lbl={T.wizObjEvento} name="eventoTarget" val={os.eventoTarget}/>
+                      <WizInOs lbl={T.wizObjDataEvento} name="dataEvento" val={os.dataEvento} type="date"/>
                     </>}
                     {d.obiettivo==='Riabilitazione'&&<>
-                      <WizInOs lbl="Area / infortunio" name="obiettivoFunzionale" val={os.obiettivoFunzionale}/>
-                      <WizInOs lbl="Obiettivo funzionale (es. ROM completa)" name="noteObiettivo" val={os.noteObiettivo}/>
-                      <WizInOs lbl="Tempo previsto (mesi)" name="tempoMesi" val={os.tempoMesi} type="number"/>
+                      <WizInOs lbl={T.wizObjArea} name="obiettivoFunzionale" val={os.obiettivoFunzionale}/>
+                      <WizInOs lbl={T.wizObjFunzionale} name="noteObiettivo" val={os.noteObiettivo}/>
+                      <WizInOs lbl={T.wizObjTempoPrevisto} name="tempoMesi" val={os.tempoMesi} type="number"/>
                     </>}
                     {(d.obiettivo==='Salute'||d.obiettivo==='Benessere'||d.obiettivo==='Resistenza')&&(
-                      <WizInOs lbl="Descrivi l'obiettivo" name="noteObiettivo" val={os.noteObiettivo}/>
+                      <WizInOs lbl={T.wizObjDescrivi} name="noteObiettivo" val={os.noteObiettivo}/>
                     )}
                     {metrics.messaggio&&(
                       <div style={{
@@ -8501,11 +8675,11 @@ footer .center b{color:#3b82f6;font-weight:700}
                         {metrics.livello==='red'&&!os.warningAccettato&&(
                           <button type="button" onClick={function(){setD(function(x){return{...x,obiettivoStrutturato:{...x.obiettivoStrutturato,warningAccettato:true}};});}}
                             style={{marginTop:8,display:'block',padding:'6px 12px',background:'transparent',border:'1px solid '+C.red+'60',color:C.red,borderRadius:6,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
-                            Confermo e procedo sotto mia responsabilità
+                            {T.wizObjWarnConfirm}
                           </button>
                         )}
                         {metrics.livello==='red'&&os.warningAccettato&&(
-                          <div style={{marginTop:6,fontSize:11,color:C.muted,fontStyle:'italic'}}>✓ Warning accettato</div>
+                          <div style={{marginTop:6,fontSize:11,color:C.muted,fontStyle:'italic'}}>{T.wizObjWarnAccepted}</div>
                         )}
                       </div>
                     )}
@@ -8519,13 +8693,13 @@ footer .center b{color:#3b82f6;font-weight:700}
           {/* STEP 10 — Screening Medico */}
           {step===10&&<div style={{display:'flex',flexDirection:'column',gap:16}}>
             {certValida&&isAgonistico&&<div style={{padding:'10px 14px',background:'#dcfce7',border:'1px solid #86efac',borderRadius:10,fontSize:12,color:'#14532d'}}>
-              <span style={{fontWeight:700}}>🏆 Certificato agonistico valido</span> — Test fisici saltati. Il cert. agonistico comprende visita cardiologica + ECG da sforzo + spirometria. Score calcolato da anamnesi; i test in seguito aumentano la precisione.
+              <span style={{fontWeight:700}}>{T.wizCertAgoTitle}</span> {T.wizCertAgoDesc}
             </div>}
             {certValida&&!isAgonistico&&<div style={{padding:'10px 14px',background:'#dbeafe',border:'1px solid #93c5fd',borderRadius:10,fontSize:12,color:'#1e3a5f'}}>
-              <span style={{fontWeight:700}}>✅ Certificato non-agonistico valido</span> — Test fisici saltati. Score calcolato da anamnesi. Puoi aggiungere i test in seguito per uno score più preciso.
+              <span style={{fontWeight:700}}>{T.wizCertNonAgoTitle}</span> {T.wizCertNonAgoDesc}
             </div>}
             {!certValida&&parqNegativo&&<div style={{padding:'10px 14px',background:'#f0fdf4',border:'1px solid #86efac',borderRadius:10,fontSize:12,color:'#166534'}}>
-              <span style={{fontWeight:700}}>✅ PAR-Q negativo</span> — Nessun fattore di rischio dichiarato. Test fisici saltati. L'allenamento può iniziare in sicurezza. Si consiglia certificato medico entro 30 giorni.
+              <span style={{fontWeight:700}}>{T.wizParqNegTitle}</span> {T.wizParqNegDesc}
             </div>}
 
             {/* PARTE A — Certificato Medico */}
@@ -8586,7 +8760,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 {parqPositivo
                 ? T.wizParqPositivo
                 : parqNegativo
-                  ? '✅ PAR-Q negativo — nessun fattore di rischio dichiarato. Test fisici non obbligatori. Puoi procedere alla valutazione senza effettuare i test fisici.'
+                  ? T.wizParqNegResult
                   : T.wizParqNegativo}
               </div>
             </WizSection>}
@@ -8785,8 +8959,8 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <div style={{flex:1}}>
                   <WizIn lbl={T.wizMwtDist} name="mwtDist" type="number" val={d.mwtDist} ph="320" onChange={upd('mwtDist')}/>
                 </div>
-                <button type="button" onClick={()=>setTimerTest({durata:360,titolo:'6MWT — 6 Minute Walk Test',descrizione:'Il cliente cammina alla massima velocità sostenibile per 6 minuti. A fine timer inserisci la distanza percorsa in metri. Premi "Ferma ora" se il test viene interrotto.',permettiFermaPrima:true,onSave:(val)=>set('mwtDist',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
-                  ⏱ Avvia test
+                <button type="button" onClick={()=>setTimerTest({durata:360,titolo:T.wiz6mwtTimerTitle,descrizione:T.wiz6mwtTimerDesc,permettiFermaPrima:true,onSave:(val)=>set('mwtDist',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  {T.wizAvviaTest}
                 </button>
               </div>
               <WizIn lbl={T.wizMwtRpe} name="mwtRpe" type="number" val={d.mwtRpe} ph={T.wizMwtRpePh} onChange={upd('mwtRpe')}/>
@@ -8850,8 +9024,8 @@ footer .center b{color:#3b82f6;font-weight:700}
                 <div style={{flex:1}}>
                   <WizIn lbl={T.wizStsRipLbl} name="stsRip" type="number" val={d.stsRip} ph="12" onChange={upd('stsRip')}/>
                 </div>
-                <button type="button" onClick={()=>setTimerTest({durata:30,titolo:'STS 30s — Sit-to-Stand',descrizione:'Il cliente si alza e siede dalla sedia quante più volte possibile in 30 secondi. Conta le ripetizioni complete.',permettiFermaPrima:false,onSave:(val)=>set('stsRip',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
-                  ⏱ Avvia test
+                <button type="button" onClick={()=>setTimerTest({durata:30,titolo:T.wizStsTimerTitle,descrizione:T.wizStsTimerDesc,permettiFermaPrima:false,onSave:(val)=>set('stsRip',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  {T.wizAvviaTest}
                 </button>
               </div>
               <WizIn lbl={T.wizStsNote} name="stsNote" val={d.stsNote} ph={T.wizStsNotePh} onChange={upd('stsNote')}/>
@@ -8920,8 +9094,8 @@ footer .center b{color:#3b82f6;font-weight:700}
               </div>
               <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizPlankProto}</div>
               <WizIn lbl={T.wizPlankSec} name="plankSec" type="number" val={d.plankSec} ph="45" onChange={upd('plankSec')}/>
-              <button type="button" onClick={()=>setTimerTest({durata:300,titolo:'Plank — resistenza core',descrizione:'Il cliente mantiene la posizione di plank sugli avambracci fino al cedimento (max 5 min). Premi "Ferma ora" quando cede.',permettiFermaPrima:true,onSave:(val)=>set('plankSec',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:8,marginTop:4}}>
-                ⏱ Avvia test
+              <button type="button" onClick={()=>setTimerTest({durata:300,titolo:T.wizPlankTimerTitle,descrizione:T.wizPlankTimerDesc,permettiFermaPrima:true,onSave:(val)=>set('plankSec',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:8,marginTop:4}}>
+                {T.wizAvviaTest}
               </button>
               <div style={{display:'flex',flexDirection:'column'}}>
                 <StimaBtn fields={['plankSec']}/>
@@ -8984,38 +9158,38 @@ footer .center b{color:#3b82f6;font-weight:700}
             {show('rm')&&<div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.red}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🏋️</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Test forza massimale (1RM)</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizRmTitle}</span>
               </div>
               <div style={{display:'flex',gap:16,marginBottom:10}}>
                 <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13,cursor:'pointer'}}>
                   <input type="radio" checked={d.rmModalita==='stimato'} onChange={()=>set('rmModalita','stimato')}/>
-                  1RM stimato (raccomandato)
+                  {T.wizRmStimato}
                 </label>
                 <label style={{display:'flex',alignItems:'center',gap:6,fontSize:13,cursor:'pointer'}}>
                   <input type="radio" checked={d.rmModalita==='diretto'} onChange={()=>set('rmModalita','diretto')}/>
-                  1RM diretto
+                  {T.wizRmDiretto}
                 </label>
               </div>
-              <WizIn lbl="Esercizio" name="rmEsercizio" val={d.rmEsercizio} onChange={upd('rmEsercizio')} opts={[{v:'',l:'Seleziona...'},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco da terra',l:'Stacco da terra'},{v:'Military press',l:'Military press'},{v:'Rematore',l:'Rematore'},{v:'Leg press',l:'Leg press'},{v:'Altro',l:'Altro'}]}/>
-              {d.rmEsercizio==='Altro'&&<WizIn lbl="Specifica esercizio" name="rmEsercizioAltro" val={d.rmEsercizioAltro} onChange={upd('rmEsercizioAltro')}/>}
+              <WizIn lbl={T.wizRmEsercizioLbl} name="rmEsercizio" val={d.rmEsercizio} onChange={upd('rmEsercizio')} opts={[{v:'',l:T.wizSelectPh},{v:'Squat',l:'Squat'},{v:'Panca piana',l:'Panca piana'},{v:'Stacco da terra',l:'Stacco da terra'},{v:'Military press',l:'Military press'},{v:'Rematore',l:'Rematore'},{v:'Leg press',l:'Leg press'},{v:'Altro',l:T.wizOptOther}]}/>
+              {d.rmEsercizio==='Altro'&&<WizIn lbl={T.wizRmSpecifica} name="rmEsercizioAltro" val={d.rmEsercizioAltro} onChange={upd('rmEsercizioAltro')}/>}
               {d.rmModalita==='stimato'?(
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:'0 12px'}}>
-                  <WizIn lbl="Carico usato (kg)" name="rmCarico" val={d.rmCarico} type="number" onChange={upd('rmCarico')}/>
-                  <WizIn lbl="Ripetizioni al cedimento" name="rmRip" val={d.rmRip} type="number" onChange={upd('rmRip')}/>
+                  <WizIn lbl={T.wizRmCaricoLbl} name="rmCarico" val={d.rmCarico} type="number" onChange={upd('rmCarico')}/>
+                  <WizIn lbl={T.wizRmRipLbl} name="rmRip" val={d.rmRip} type="number" onChange={upd('rmRip')}/>
                 </div>
               ):(
-                <WizIn lbl="1RM diretto (kg)" name="rmDiretto" val={d.rmDiretto} type="number" onChange={upd('rmDiretto')}/>
+                <WizIn lbl={T.wizRmDirettoLbl} name="rmDiretto" val={d.rmDiretto} type="number" onChange={upd('rmDiretto')}/>
               )}
               {(()=>{
                 var rm=d.rmModalita==='stimato'?calc1RM(d.rmCarico,d.rmRip):parseFloat(d.rmDiretto);
                 if(!rm||!d.rmEsercizio)return null;
-                var cls=classificaForza(d.rmEsercizio==='Altro'?'':d.rmEsercizio,rm,parseFloat(d.peso),d.sesso);
+                var cls=classificaForza(d.rmEsercizio==='Altro'?'':d.rmEsercizio,rm,parseFloat(d.peso),d.sesso,T);
                 return(
                   <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}>
-                    <strong style={{fontWeight:600}}>1RM {d.rmModalita==='stimato'?'stimato':'dichiarato'}: {rm} kg</strong>
-                    {cls&&cls.livello!=='N/D'&&<span> · Rapporto {cls.ratio}× · <strong>{cls.livello}</strong></span>}
+                    <strong style={{fontWeight:600}}>{d.rmModalita==='stimato'?T.wizRm1rmStimato:T.wizRm1rmDichiarato}: {rm} kg</strong>
+                    {cls&&cls.livello!=='N/D'&&<span> {T.wizRmRapporto.replace('{n}',cls.ratio)} <strong>{cls.livello}</strong></span>}
                     {d.rmModalita==='stimato'&&d.rmRip&&(parseFloat(d.rmRip)<2||parseFloat(d.rmRip)>10)&&(
-                      <div style={{marginTop:4,fontSize:11,color:'#633806'}}>Range ottimale: 3–8 ripetizioni per stima accurata.</div>
+                      <div style={{marginTop:4,fontSize:11,color:'#633806'}}>{T.wizRmRangeOpt}</div>
                     )}
                   </div>
                 );
@@ -9026,15 +9200,15 @@ footer .center b{color:#3b82f6;font-weight:700}
             {show('stepTest')&&<div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.teal}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🚶</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Step test YMCA (3 min)</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizStepTestTitle}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Step da 30 cm (uomini) o 25 cm (donne), cadenza 96 bpm per 3 min. Misura FC per 60 sec dopo 5 sec dalla fine.</div>
-              <WizIn lbl="FC post-test (bpm)" name="stepTestFc" val={d.stepTestFc} type="number" onChange={upd('stepTestFc')}/>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizStepTestDesc}</div>
+              <WizIn lbl={T.wizStepTestFcLbl} name="stepTestFc" val={d.stepTestFc} type="number" onChange={upd('stepTestFc')}/>
               {d.stepTestFc&&(()=>{
                 var fc=parseFloat(d.stepTestFc);
                 var m=d.sesso==='M';
                 var cat=m?(fc<95?T.catEcc:fc<105?T.catBuono:fc<116?T.catSopraMed:fc<127?T.catMedia:fc<138?T.catSottoMed:T.catScarso):(fc<97?T.catEcc:fc<109?T.catBuono:fc<120?T.catSopraMed:fc<131?T.catMedia:fc<141?T.catSottoMed:T.catScarso);
-                return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>Recupero cardio: {cat}</strong></div>;
+                return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>{T.wizRecupCardio.replace('{cat}',cat)}</strong></div>;
               })()}
             </div>}
 
@@ -9042,15 +9216,15 @@ footer .center b{color:#3b82f6;font-weight:700}
             {show('cmj')&&<div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.purple}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>⬆️</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>CMJ — Countermovement Jump</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizCmjTitle}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Salto verticale massimo da posizione eretta con contromovimento. 3 tentativi, prendi il migliore.</div>
-              <WizIn lbl="Altezza salto (cm)" name="cmjAltezza" val={d.cmjAltezza} type="number" onChange={upd('cmjAltezza')}/>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizCmjDesc}</div>
+              <WizIn lbl={T.wizCmjAltLbl} name="cmjAltezza" val={d.cmjAltezza} type="number" onChange={upd('cmjAltezza')}/>
               {d.cmjAltezza&&(()=>{
                 var h=parseFloat(d.cmjAltezza);
                 var m=d.sesso==='M';
-                var cat=m?(h>=60?T.catEccAtleta:h>=50?T.catBuono:h>=40?T.average:h>=30?T.catSottoMed:T.catScarso):(h>=45?T.catEccAtleta:h>=35?T.catBuono:h>=28?T.average:h>=20?T.catSottoMed:T.catScarso);
-                return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>Potenza arti inferiori: {cat}</strong></div>;
+                var cat=m?(h>=60?T.catEccAtleta:h>=50?T.catBuono:h>=40?T.catMedia:h>=30?T.catSottoMed:T.catScarso):(h>=45?T.catEccAtleta:h>=35?T.catBuono:h>=28?T.catMedia:h>=20?T.catSottoMed:T.catScarso);
+                return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>{T.wizPotenzaArti.replace('{cat}',cat)}</strong></div>;
               })()}
             </div>}
 
@@ -9058,15 +9232,15 @@ footer .center b{color:#3b82f6;font-weight:700}
             {show('cooper')&&<div style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'14px 16px',borderLeft:'4px solid '+C.green}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:14}}>🏃</span>
-                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>Cooper Test (12 min)</span>
+                <span style={{fontSize:13,fontWeight:800,color:C.strong,textTransform:'uppercase',letterSpacing:.5}}>{T.wizCooperTimerTitle}</span>
               </div>
-              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>Corri/cammina alla massima velocità sostenibile per 12 minuti. Misura la distanza percorsa in metri.</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:10,lineHeight:1.5}}>{T.wizCooperInDesc}</div>
               <div style={{display:'flex',gap:8,alignItems:'flex-end',marginBottom:4}}>
                 <div style={{flex:1}}>
-                  <WizIn lbl="Distanza percorsa (m)" name="cooperDistanza" type="number" val={d.cooperDistanza} ph="2400" onChange={upd('cooperDistanza')}/>
+                  <WizIn lbl={T.wizCooperDistLbl} name="cooperDistanza" type="number" val={d.cooperDistanza} ph="2400" onChange={upd('cooperDistanza')}/>
                 </div>
-                <button type="button" onClick={()=>setTimerTest({durata:720,titolo:'Cooper Test (12 min)',descrizione:'Il cliente corre/cammina alla massima velocità sostenibile per 12 minuti. A fine timer inserisci la distanza percorsa in metri.',permettiFermaPrima:false,onSave:(val)=>set('cooperDistanza',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
-                  ⏱ Avvia test
+                <button type="button" onClick={()=>setTimerTest({durata:720,titolo:T.wizCooperTimerTitle,descrizione:T.wizCooperTimerDesc,permettiFermaPrima:false,onSave:(val)=>set('cooperDistanza',val)})} style={{padding:'8px 14px',background:'#378ADD',color:'#fff',border:'none',borderRadius:8,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',marginBottom:10}}>
+                  {T.wizAvviaTest}
                 </button>
               </div>
               {d.cooperDistanza&&(()=>{
@@ -9075,17 +9249,17 @@ footer .center b{color:#3b82f6;font-weight:700}
                 var eta=d.annoNascita?new Date().getFullYear()-parseInt(d.annoNascita):35;
                 var vo2=parseFloat(((dist-504.9)/44.73).toFixed(1));
                 var cat=m?(vo2>=52?T.catEcc:vo2>=47?T.catBuono:vo2>=42?T.catSopraMed:vo2>=37?T.catMedia:vo2>=33?T.catSottoMed:T.catScarso):(vo2>=45?T.catEcc:vo2>=40?T.catBuono:vo2>=35?T.catSopraMed:vo2>=30?T.catMedia:vo2>=25?T.catSottoMed:T.catScarso);
-                return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>VO₂max stimato: {vo2} ml/kg/min — {cat}</strong></div>;
+                return <div style={{background:'#E6F1FB',borderRadius:8,padding:'10px 14px',marginTop:6,fontSize:13,color:'#0C447C'}}><strong style={{fontWeight:600}}>{T.wizVo2max.replace('{vo2}',vo2).replace('{cat}',cat)}</strong></div>;
               })()}
             </div>}
 
             {/* Test avanzati (solo Smart) */}
             {_sm&&_sm.avanzati.length>0&&(
               <details style={{background:C.bg,border:'1px solid '+C.border2,borderRadius:14,padding:'12px 16px'}}>
-                <summary style={{fontSize:13,fontWeight:500,cursor:'pointer',color:C.muted}}>Aggiungi test avanzati ({_sm.avanzati.length} non consigliati per questo profilo)</summary>
-                <div style={{background:'#FAEEDA',borderRadius:8,padding:'10px 14px',marginTop:10,fontSize:12,color:'#633806',lineHeight:1.5}}>⚠️ Questi test non sono tipicamente informativi per il profilo di questo cliente. Lo score potrebbe essere poco discriminante. Procedi solo se hai un motivo specifico.</div>
+                <summary style={{fontSize:13,fontWeight:500,cursor:'pointer',color:C.muted}}>{T.wizTestAvanzatiSummary.replace('{n}',_sm.avanzati.length)}</summary>
+                <div style={{background:'#FAEEDA',borderRadius:8,padding:'10px 14px',marginTop:10,fontSize:12,color:'#633806',lineHeight:1.5}}>{T.wizTestAvanzatiWarn}</div>
                 <div style={{marginTop:8,fontSize:12,color:C.muted}}>{_sm.avanzati.map(function(c){return({'mwt':'6MWT','sts':'STS 30s','tug':'TUG','pushup':'Push-up','plank':'Plank','handgrip':'Handgrip','slb':'Single Leg Balance','rm':'1RM','stepTest':'Step test YMCA','cmj':'CMJ','cooper':'Cooper 12 min'})[c]||c;}).join(' · ')}</div>
-                <div style={{marginTop:6,fontSize:11,color:C.muted}}>Passa a modalità <strong>Completa</strong> per inserire i dati di questi test.</div>
+                <div style={{marginTop:6,fontSize:11,color:C.muted}}>{T.wizTestAvanzatiInfo}</div>
               </details>
             )}
           </div>);
@@ -9341,7 +9515,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             {stepIdx>0&&<div className="tt"><button onClick={function(){setStep(stepsArr[stepIdx-1]);}} style={S.btn('ghost',true)}>{T.wPrev}</button><span className="tp">{T.wizPrevTooltip}</span></div>}
             {stepIdx<TOTAL-1&&<div className="tt"><button onClick={function(){
               if(step===1&&(!d.nome.trim()||!d.cognome.trim())){showToast(T.wizErrNomeCogn,'error');return;}
-              if(step===1&&d.obiettivo){var _m=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso);if(_m.livello==='red'&&!(d.obiettivoStrutturato||{}).warningAccettato){showToast('Obiettivo non realistico — conferma il warning prima di procedere','error');return;}}
+              if(step===1&&d.obiettivo){var _m=calcolaObiettivoMetrics(d.obiettivo,d.obiettivoStrutturato,d.peso,T);if(_m.livello==='red'&&!(d.obiettivoStrutturato||{}).warningAccettato){showToast(T.wizObjUnrealisticToast,'error');return;}}
               setStep(stepsArr[stepIdx+1]);
             }} style={S.btn()}>{T.wNext}</button><span className="tp">{T.wizNextTooltip}</span></div>}
             {stepIdx===TOTAL-1&&<div className="tt"><button onClick={function(){
@@ -9361,7 +9535,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                 screeningMedico:{tipo:d.screenTipo||'',dataRilascio:d.screenDataRilascio||'',dataScadenza:d.screenDataScad||'',medicoRilasciante:d.screenMedico||'',noteCertificato:d.screenNote||''},
                 parqPlus:{q1:d.parqQ1||'NO',q2:d.parqQ2||'NO',q3:d.parqQ3||'NO',q4:d.parqQ4||'NO',q5:d.parqQ5||'NO',q6:d.parqQ6||'NO',q7:d.parqQ7||'NO'},
                 modalitaValutazione:d.modalitaVal||'',
-                obiettivoStrutturato:(function(){var os=d.obiettivoStrutturato||{};var m=calcolaObiettivoMetrics(d.obiettivo,os,d.peso);return {...os,warningLivello:m.livello,tassoAttesoSettimana:m.tassoAttesoSettimana,kcalTargetCalcolato:m.kcalDelta,durataProgrammaMesi:m.durataProgrammaMesi};})(),
+                obiettivoStrutturato:(function(){var os=d.obiettivoStrutturato||{};var m=calcolaObiettivoMetrics(d.obiettivo,os,d.peso,T);return {...os,warningLivello:m.livello,tassoAttesoSettimana:m.tassoAttesoSettimana,kcalTargetCalcolato:m.kcalDelta,durataProgrammaMesi:m.durataProgrammaMesi};})(),
               };
               if(typeof gtag!=='undefined')gtag('event','wizard_complete',{profile:pr.code});
               onSave(p);
