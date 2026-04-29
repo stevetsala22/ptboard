@@ -1339,6 +1339,7 @@ const LANGS={
     paywallTeamNote:'Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.',paywallAlreadyPaid:'Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.info@gmail.com',
     paywallBack:'← Torna',paywallTrialLeft:'Hai ancora {days} giorni di prova gratuita',pianiTitle:'Scegli il tuo piano',
     langChooseTitle:'Scegli la lingua',langChooseDesc:"La lingua cambia subito in tutta l'app",
+    planPro:'Piano Pro',planTeam:'Piano Team',planTrial:'Trial gratuito',changePlan:'Cambia piano',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -2156,6 +2157,7 @@ const LANGS={
     paywallTeamNote:'After payment, send your PT emails to ptboard.info@gmail.com to activate their accounts.',paywallAlreadyPaid:"Already paid? The plan activates automatically within 1 minute. If it doesn't activate, contact us: ptboard.info@gmail.com",
     paywallBack:'← Back',paywallTrialLeft:'You have {days} trial days left',pianiTitle:'Choose your plan',
     langChooseTitle:'Choose language',langChooseDesc:'Language changes immediately throughout the app',
+    planPro:'Pro Plan',planTeam:'Team Plan',planTrial:'Free trial',changePlan:'Change plan',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2973,6 +2975,7 @@ const LANGS={
     paywallTeamNote:"Après paiement, envoyez les emails de vos PT à ptboard.info@gmail.com pour activer leurs comptes.",paywallAlreadyPaid:"Déjà payé ? Le plan s'active automatiquement en 1 minute. Si ce n'est pas le cas, contactez-nous : ptboard.info@gmail.com",
     paywallBack:'← Retour',paywallTrialLeft:"Il vous reste {days} jours d'essai",pianiTitle:'Choisissez votre plan',
     langChooseTitle:'Choisir la langue',langChooseDesc:"La langue change immédiatement dans toute l'application",
+    planPro:'Plan Pro',planTeam:'Plan Team',planTrial:'Essai gratuit',changePlan:'Changer de plan',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
@@ -4137,7 +4140,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
                   <StatCard label="Sedute settimana" value={<span>{sedute7} <span style={{color:arrow.c,fontWeight:800,fontSize:13}}>{arrow.s}</span></span>} color={C.cyan} icon="💪" delay={0.15}/>
                   <StatCard label="Prossimi 7gg" value={prossimi7} color={C.orange} icon="📅" delay={0.2}/>
                 </div>
-                <div style={S.st}>Sedute per settimana</div>
+                <div style={S.st}>{T.dashSedWeek}</div>
                 <BarChartComp data={weekData} color={C.blue} T={T}/>
               </>
             )}
@@ -6396,14 +6399,14 @@ function AppInner({user,profile,setProfile,trialLeft}){
                 <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
                 {locked&&<span style={{marginLeft:'auto',fontSize:12}}>🔒</span>}
               </button>
-              <span className="tp">{locked?'Completa gli step precedenti per sbloccare':n.tip}</span>
+              <span className="tp">{locked?T.obLocked:n.tip}</span>
             </div>
           );})}
           <div className="tt">
             <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
               <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione</span>
             </button>
-            <span className="tp">Avvia nuova valutazione cliente</span>
+            <span className="tp">{T.obNewVal}</span>
           </div>
           <div style={{...S.navlbl,color:isLight?'#475569':'#cbd5e1'}}>{T.recent}</div>
           {patients.slice(-5).reverse().map(p=>(
@@ -6427,11 +6430,11 @@ function AppInner({user,profile,setProfile,trialLeft}){
               <button onClick={()=>{setShowParametri(false);setShowTutorial(true);}} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid '+(isLight?'#1d4ed840':'#60a5fa40'),background:isLight?'#1d4ed810':'#60a5fa10',color:isLight?'#1d4ed8':'#60a5fa',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>📖 {T.tutorial}</button>
               <button onClick={()=>window.open('/PTBoard_Guida_Rapida_PT.pdf','_blank')} style={{width:'100%',padding:'7px',borderRadius:7,border:'1px solid '+(isLight?'#1d4ed840':'#60a5fa40'),background:isLight?'#1d4ed810':'#60a5fa10',color:isLight?'#1d4ed8':'#60a5fa',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:8}}>📄 Guida PDF</button>
               {user?.email!==ADMIN_EMAIL&&<React.Fragment>
-              <div style={{fontSize:13,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6,marginTop:4}}>Il mio piano</div>
+              <div style={{fontSize:13,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6,marginTop:4}}>{T.sideMyPlan}</div>
               <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:10,marginBottom:8}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{trainerProfile?.plan==='pro'?'Piano Pro':trainerProfile?.plan==='team'?'Piano Team':'Trial gratuito'}</div>
-                <div style={{fontSize:13,color:C.muted,marginTop:4}}>{trainerProfile?.plan==='pro'||trainerProfile?.plan==='team'?(trainerProfile?.planExpiresAt?'Scade il '+new Date(trainerProfile.planExpiresAt).toLocaleDateString('it-IT'):'Attivo'):'Scade tra '+trialDaysLeft(trainerProfile)+' giorni'}</div>
-                <button onClick={()=>setShowPiani('voluntary')} style={{background:C.blue,color:'#fff',padding:'8px 14px',borderRadius:8,fontSize:12,fontWeight:700,width:'100%',border:'none',cursor:'pointer',fontFamily:'inherit',marginTop:12}}>{trainerProfile?.plan==='pro'||trainerProfile?.plan==='team'?'Cambia piano':'Vedi piani e upgrade'}</button>
+                <div style={{fontSize:13,fontWeight:700,color:C.strong}}>{trainerProfile?.plan==='pro'?T.planPro:trainerProfile?.plan==='team'?T.planTeam:T.planTrial}</div>
+                <div style={{fontSize:13,color:C.muted,marginTop:4}}>{trainerProfile?.plan==='pro'||trainerProfile?.plan==='team'?(trainerProfile?.planExpiresAt?T.sideExpires+' '+new Date(trainerProfile.planExpiresAt).toLocaleDateString('it-IT'):T.sideActive):T.sideExpiresIn+' '+trialDaysLeft(trainerProfile)+' '+T.trialDays}</div>
+                <button onClick={()=>setShowPiani('voluntary')} style={{background:C.blue,color:'#fff',padding:'8px 14px',borderRadius:8,fontSize:12,fontWeight:700,width:'100%',border:'none',cursor:'pointer',fontFamily:'inherit',marginTop:12}}>{trainerProfile?.plan==='pro'||trainerProfile?.plan==='team'?T.changePlan:T.seePlans}</button>
               </div>
               </React.Fragment>}
               <div style={{fontSize:13,fontWeight:700,color:C.muted,textTransform:'uppercase',letterSpacing:1,marginBottom:6}}>{T.account}</div>
@@ -6472,7 +6475,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               <div style={{flex:1,textAlign:'center',fontSize:12,color:C.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{tpNome||''}</div>
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {tpInitials&&<div style={{width:28,height:28,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">{T.disconnectAcc}</span></div>
               </div>
             </>
           ):(
@@ -6489,7 +6492,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
               <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
                 {tpInitials&&<div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
-                <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">Disconnetti il tuo account</span></div>
+                <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">{T.disconnectAcc}</span></div>
               </div>
             </>
           )}
@@ -6528,7 +6531,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           var urgent=daysLeft<7;
           return(
             <div style={{background:urgent?'linear-gradient(90deg,#ef444415,#ef444408)':'linear-gradient(90deg,#10b98115,#10b98108)',borderBottom:'1px solid '+(urgent?'#ef444420':'#10b98120'),padding:'8px 16px',textAlign:'center'}}>
-              <span style={{fontSize:13,fontWeight:600,color:urgent?'#ef4444':'#10b981'}}>{urgent?'Il tuo piano scade tra '+daysLeft+' giorni — rinnova ora':'Piano '+planLabel+' attivo — scade il '+expireDate}</span>
+              <span style={{fontSize:13,fontWeight:600,color:urgent?'#ef4444':'#10b981'}}>{urgent?T.planUrgentMsg.replace('{days}',daysLeft):T.planOkMsg.replace('{plan}',planLabel).replace('{date}',expireDate)}</span>
               {urgent&&' '}{urgent&&<button onClick={function(){setShowPiani(true);}} style={{background:'none',border:'none',color:'#ef4444',fontWeight:700,cursor:'pointer',textDecoration:'underline',fontSize:13}}>Rinnova →</button>}
             </div>
           );
@@ -6547,16 +6550,16 @@ function AppInner({user,profile,setProfile,trialLeft}){
             <div style={{animation:'fadeInUp .3s ease',maxWidth:600,margin:'0 auto',padding:isMobile?'20px 0':'40px 0'}}>
               <div style={{textAlign:'center',marginBottom:32}}>
                 <h1 style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,margin:0}}>{T.welcome}</h1>
-                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>Gestisci clienti, valutazioni e allenamenti in un unico posto.</p>
+                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>{T.dashManage}</p>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 <button onClick={()=>setShowValutazione(true)} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#3b82f620,#10b98115)',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>🎯</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>Valutazione 20 min</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Crea un nuovo cliente con il wizard guidato</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>Valutazione 20 min</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.dashValCta}</div></div>
                 </button>
                 <button onClick={()=>setPage('patients')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>👥</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>I miei clienti</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Vedi la lista completa e le schede</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>{T.patients}</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.dashClientsCta}</div></div>
                 </button>
                 <button onClick={()=>setPage('dash')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>📊</span>
@@ -6604,26 +6607,26 @@ function AppInner({user,profile,setProfile,trialLeft}){
         <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div style={{background:'#0c1225',border:'1px solid #1a2547',borderRadius:16,padding:32,maxWidth:340,width:'90%',textAlign:'center'}}>
             <div style={{fontSize:36,marginBottom:12}}>👋</div>
-            <div style={{fontSize:18,fontWeight:700,color:'#f1f5f9',marginBottom:8}}>Vuoi uscire?</div>
-            <div style={{fontSize:14,color:'#64748b',marginBottom:24}}>Verrai disconnesso dall'app.</div>
+            <div style={{fontSize:18,fontWeight:700,color:'#f1f5f9',marginBottom:8}}>{T.logoutTitle}</div>
+            <div style={{fontSize:14,color:'#64748b',marginBottom:24}}>{T.logoutDesc}</div>
             <div style={{display:'flex',gap:12}}>
-              <button onClick={()=>setShowLogoutModal(false)} style={{flex:1,padding:'12px',borderRadius:10,border:'1px solid #1a2547',background:'transparent',color:'#94a3b8',fontSize:14,fontWeight:600,cursor:'pointer'}}>Annulla</button>
-              <button onClick={()=>{setShowLogoutModal(false);localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{flex:1,padding:'12px',borderRadius:10,border:'none',background:'#ef4444',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>Sì, esci</button>
+              <button onClick={()=>setShowLogoutModal(false)} style={{flex:1,padding:'12px',borderRadius:10,border:'1px solid #1a2547',background:'transparent',color:'#94a3b8',fontSize:14,fontWeight:600,cursor:'pointer'}}>{T.cancel}</button>
+              <button onClick={()=>{setShowLogoutModal(false);localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{flex:1,padding:'12px',borderRadius:10,border:'none',background:'#ef4444',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>{T.logoutYes}</button>
             </div>
           </div>
         </div>
       )}
-      {showDeleteAccount&&<Modal title="Eliminare definitivamente il tuo account?" onClose={()=>{setShowDeleteAccount(false);setDeleteReason('');setDeleteDetail('');setDeleteConfirmText('');}}>
+      {showDeleteAccount&&<Modal title={T.deleteAccTitle} onClose={()=>{setShowDeleteAccount(false);setDeleteReason('');setDeleteDetail('');setDeleteConfirmText('');}}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          <div style={{fontSize:13,color:C.text,lineHeight:1.6,background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'10px 12px'}}>Tutti i tuoi dati, pazienti, appuntamenti e impostazioni verranno eliminati permanentemente. Questa azione non è reversibile.</div>
-          <div style={{fontSize:13,fontWeight:700,color:C.text,marginTop:4}}>Aiutaci a migliorare — perché vuoi eliminare il tuo account?</div>
+          <div style={{fontSize:13,color:C.text,lineHeight:1.6,background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'10px 12px'}}>{T.deleteAccWarn}</div>
+          <div style={{fontSize:13,fontWeight:700,color:C.text,marginTop:4}}>{T.deleteWhyTitle}</div>
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            {['Troppo costoso','Non mi serve più','Ho trovato un\'alternativa migliore','Troppo complicato da usare','Altro motivo'].map(r=>(
+            {[T.delReason1,T.delReason2,T.delReason3,T.delReason4,T.delReason5].map(r=>(
               <button key={r} onClick={()=>setDeleteReason(r)} style={{textAlign:'left',padding:'10px 14px',borderRadius:8,border:deleteReason===r?'1px solid #3b82f6':'1px solid #334155',background:deleteReason===r?'#3b82f620':'transparent',color:deleteReason===r?'#60a5fa':C.muted,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
             ))}
           </div>
-          {deleteReason==='Altro motivo'&&<textarea style={{...S.inp,border:'1px solid #334155',minHeight:60,resize:'vertical'}} placeholder="Descrivi il motivo..." value={deleteDetail} onChange={e=>setDeleteDetail(e.target.value)}/>}
-          <div style={{fontSize:12,color:C.muted,marginTop:4}}>Scrivi <strong style={{color:C.text}}>ELIMINA</strong> per confermare:</div>
+          {deleteReason===T.delReason5&&<textarea style={{...S.inp,border:'1px solid #334155',minHeight:60,resize:'vertical'}} placeholder={T.delDetailPh} value={deleteDetail} onChange={e=>setDeleteDetail(e.target.value)}/>}
+          <div style={{fontSize:12,color:C.muted,marginTop:4}}>{T.delConfirmWrite} <strong style={{color:C.text}}>ELIMINA</strong> {T.delConfirmFor}</div>
           <input style={{...S.inp,border:'1px solid #ef444440'}} placeholder="ELIMINA" value={deleteConfirmText} onChange={e=>setDeleteConfirmText(e.target.value)}/>
           <button disabled={deleteConfirmText!=='ELIMINA'} onClick={async()=>{
             try{
