@@ -191,10 +191,10 @@ function askSendEmail({pat,subject,message,trainerProfile}){
   const fromName=trainerProfile?.nomeStudio||(trainerProfile?.nome?(trainerProfile.nome+(trainerProfile.cognome?' '+trainerProfile.cognome:''))+' via PT Board':null)||'PT Board';
   const toName=(pat.nome||'')+(pat.cognome?' '+pat.cognome:'');
   const finalMsg=message.replace(/\[nomeMittente\]/g,fromName);
-  showAskToast('📧 Notificare '+pat.nome+' via email?',async()=>{
+  showAskToast(window.gT().toastAskEmail.replace('{nome}',pat.nome),async()=>{
     const r=await sendEmail({toEmail:pat.email,toName,subject,message:finalMsg,fromName});
-    if(r.ok)showToast('Email inviata a '+pat.email,'success');
-    else showToast('Errore invio email','error');
+    if(r.ok)showToast(window.gT().toastEmailSent.replace('{email}',pat.email),'success');
+    else showToast(window.gT().toastEmailErr,'error');
   });
 }
 // ── BREVO ONBOARDING EMAILS ─────────────────────────────────────────────────
@@ -1344,6 +1344,7 @@ const LANGS={
     authBackLogin:'← Torna al login',authResetTitle:'Recupera password',authPrivacy:'Privacy',authTerms:'Termini',authAccept:'Accetto',authBtnLoginLoading:'Accesso...',authBtnRegisterLoading:'Registrazione...',authBtnResetLoading:'Invio...',authBtnReset:'Invia email di recupero',authSafeData:'Dati salvati in modo sicuro su Google Firebase 🔒',authResetSent:'Email di recupero inviata!',authSubtitle:'Gestione clienti per Personal Trainer',
     authVerifyTitle:'Verifica la tua email',authVerifyDesc1:"Abbiamo inviato un'email di verifica a",authVerifyDesc2:"Clicca il link nell'email per attivare il tuo account.",authVerifyCheck:"Email non ancora verificata. Controlla la casella di posta (anche lo spam).",authVerifyResent:'Email rinviata!',authVerifyResendErr:"Errore nell'invio. Riprova tra qualche minuto.",authVerifyBtn:'Ho verificato, accedi',authVerifyResend:'Rinvia email',
     wFinish:'✓ Inizia ad usare PT Board',
+    toastAskEmail:'📧 Notificare {nome} via email?',toastEmailSent:'Email inviata a {email}',toastEmailErr:'Errore invio email',toastUndone:'Azione annullata',toastNoSesso:'Sesso non specificato — scheda generata con parametri neutri',planActivated:'{plan} attivato!',libUpdated:'Libreria aggiornata: {n} nuovi esercizi aggiunti',accDeleted:'Account eliminato',accDeleteErr:"Per sicurezza, esci e rientra prima di eliminare l'account",requiredFields:'Campi da correggere',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -2166,6 +2167,7 @@ const LANGS={
     authBackLogin:'← Back to login',authResetTitle:'Reset password',authPrivacy:'Privacy',authTerms:'Terms',authAccept:'I accept',authBtnLoginLoading:'Signing in...',authBtnRegisterLoading:'Creating account...',authBtnResetLoading:'Sending...',authBtnReset:'Send reset email',authSafeData:'Data securely saved on Google Firebase 🔒',authResetSent:'Reset email sent!',authSubtitle:'Client management for Personal Trainers',
     authVerifyTitle:'Verify your email',authVerifyDesc1:'We sent a verification email to',authVerifyDesc2:'Click the link in the email to activate your account.',authVerifyCheck:'Email not yet verified. Check your inbox (including spam).',authVerifyResent:'Email resent!',authVerifyResendErr:'Error sending. Try again in a few minutes.',authVerifyBtn:"I've verified, sign in",authVerifyResend:'Resend email',
     wFinish:'✓ Start using PT Board',
+    toastAskEmail:'📧 Notify {nome} via email?',toastEmailSent:'Email sent to {email}',toastEmailErr:'Error sending email',toastUndone:'Action cancelled',toastNoSesso:'Sex not specified — workout generated with neutral parameters',planActivated:'{plan} activated!',libUpdated:'Library updated: {n} new exercises added',accDeleted:'Account deleted',accDeleteErr:'For security, sign out and sign back in before deleting your account',requiredFields:'Fields to correct',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2988,11 +2990,13 @@ const LANGS={
     authBackLogin:'← Retour à la connexion',authResetTitle:'Réinitialiser le mot de passe',authPrivacy:'Confidentialité',authTerms:'Conditions',authAccept:"J'accepte",authBtnLoginLoading:'Connexion...',authBtnRegisterLoading:'Création du compte...',authBtnResetLoading:'Envoi...',authBtnReset:"Envoyer l'email de réinitialisation",authSafeData:'Données sauvegardées en toute sécurité sur Google Firebase 🔒',authResetSent:'Email de réinitialisation envoyé !',authSubtitle:'Gestion de clients pour Personal Trainers',
     authVerifyTitle:'Vérifiez votre email',authVerifyDesc1:"Nous avons envoyé un email de vérification à",authVerifyDesc2:"Cliquez sur le lien dans l'email pour activer votre compte.",authVerifyCheck:'Email pas encore vérifiée. Vérifiez votre boîte de réception (y compris les spams).',authVerifyResent:'Email renvoyé !',authVerifyResendErr:"Erreur d'envoi. Réessayez dans quelques minutes.",authVerifyBtn:"J'ai vérifié, me connecter",authVerifyResend:"Renvoyer l'email",
     wFinish:'✓ Commencer à utiliser PT Board',
+    toastAskEmail:'📧 Notifier {nome} par email ?',toastEmailSent:'Email envoyé à {email}',toastEmailErr:"Erreur d'envoi de l'email",toastUndone:'Action annulée',toastNoSesso:'Sexe non spécifié — séance générée avec des paramètres neutres',planActivated:'{plan} activé !',libUpdated:'Bibliothèque mise à jour : {n} nouveaux exercices ajoutés',accDeleted:'Compte supprimé',accDeleteErr:'Pour des raisons de sécurité, déconnectez-vous et reconnectez-vous avant de supprimer votre compte',requiredFields:'Champs à corriger',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
 const setLangStore=(l)=>{try{localStorage.setItem('ptboard_lang',l);}catch{}};
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
+window.gT=gT;
 
 const C={
   get bg(){return'var(--bg)'},
@@ -3845,7 +3849,7 @@ function ToastItem({item,onRemove}){
   const handleCancel=()=>{
     cancelled.current=true;
     onRemove(item.id);
-    showToast('Azione annullata','success');
+    showToast(gT().toastUndone,'success');
   };
   const closeToast=()=>{setExiting(true);setTimeout(()=>onRemove(item.id),300);};
   const bg=item.type==='error'?C.red:item.type==='warning'?'#f59e0b':item.type==='confirm'?'#f59e0b':isAsk?C.blue:C.green;
@@ -5525,7 +5529,7 @@ footer .center b{color:#3b82f6;font-weight:700}
             }
             upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
             showToast(nuoveSchede.length>1?nuoveSchede.length+' '+T.schedeGenerated+' ('+nuoveSchede[0].split+')':T.schedaGenerated+' '+nuoveSchede[0].nome,'success');
-            if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast('Sesso non specificato \u2014 scheda generata con parametri neutri','warning');}
+            if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast(T.toastNoSesso,'warning');}
             setShowGenEquipModal(false);
           }}>{T.genEquipConfirm}</button>
         </div>
@@ -6149,9 +6153,9 @@ function App(){
         var data=doc.data();
         setProfile(function(prev){
           if(prev&&!prev.plan&&data.plan&&data.plan!=='blocked'){
-            showToast('Piano '+data.plan.toUpperCase()+' attivato!','success');
+            showToast(gT().planActivated.replace('{plan}',data.plan.toUpperCase()),'success');
           }else if(prev&&prev.plan==='blocked'&&data.plan&&data.plan!=='blocked'){
-            showToast('Piano '+data.plan.toUpperCase()+' attivato!','success');
+            showToast(gT().planActivated.replace('{plan}',data.plan.toUpperCase()),'success');
           }
           return Object.assign({},prev,{plan:data.plan,planType:data.planType,planActivatedAt:data.planActivatedAt,planExpiresAt:data.planExpiresAt});
         });
@@ -6272,7 +6276,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           var mergedData = {patients: remote.patients||[], bookings: remote.bookings||[], exercises: merged, isLight: remote.isLight, dataVersion:4};
           save(mergedData);
           fbSave(user.uid, mergedData);
-          showToast('Libreria aggiornata: ' + nuovi.length + ' nuovi esercizi aggiunti', 'success');
+          showToast(gT().libUpdated.replace('{n}',nuovi.length),'success');
           console.log('Libreria aggiornata: aggiunti ' + nuovi.length + ' nuovi esercizi');
         } else {
           if(remote.exercises) setExercises(remote.exercises);
@@ -6329,7 +6333,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
     if(form.altezza&&(+form.altezza<50||+form.altezza>250))errs.push('Altezza (50-250 cm)');
     if(form.fc&&(+form.fc<30||+form.fc>220))errs.push('FC riposo (30-220 bpm)');
     if(form.sonno&&(+form.sonno<0||+form.sonno>24))errs.push('Sonno (0-24 ore)');
-    if(errs.length){showToast((T.requiredFields||'Campi da correggere')+': '+errs.join(', '),'error');return;}
+    if(errs.length){showToast(T.requiredFields+': '+errs.join(', '),'error');return;}
     if(isNew){
       if(typeof gtag!=='undefined')gtag('event','patient_created');
       const id=nextPid(patients);
@@ -6654,11 +6658,11 @@ function AppInner({user,profile,setProfile,trialLeft}){
               await fbDb.collection('users').doc(uid).collection('appdata').doc('main').delete();
               await fbDb.collection('users').doc(uid).delete();
               await fbAuth.currentUser.delete();
-              showToast('Account eliminato','success');
+              showToast(T.accDeleted,'success');
               sessionStorage.setItem('entered','1');
               window.location.href='/';
             }catch(e){
-              showToast('Per sicurezza, esci e rientra prima di eliminare l\'account','error');
+              showToast(T.accDeleteErr,'error');
               setShowDeleteAccount(false);
             }
           }} style={{...S.btn(),background:'#ef4444',opacity:deleteConfirmText==='ELIMINA'?1:0.4,cursor:deleteConfirmText==='ELIMINA'?'pointer':'not-allowed'}}>🗑 Elimina account definitivamente</button>
