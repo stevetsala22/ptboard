@@ -1340,6 +1340,10 @@ const LANGS={
     paywallBack:'← Torna',paywallTrialLeft:'Hai ancora {days} giorni di prova gratuita',pianiTitle:'Scegli il tuo piano',
     langChooseTitle:'Scegli la lingua',langChooseDesc:"La lingua cambia subito in tutta l'app",
     planPro:'Piano Pro',planTeam:'Piano Team',planTrial:'Trial gratuito',changePlan:'Cambia piano',
+    authErrInvalidCred:'Email o password errati',authErrEmailInUse:'Email già registrata',authErrWeakPw:'Password troppo corta (minimo 6 caratteri)',authErrInvalidEmail:'Email non valida',authErrPopupBlocked:'Popup bloccato dal browser. Abilita i popup e riprova.',authErrGeneric:'Errore. Riprova.',authErrPwMatch:'Le password non coincidono',
+    authBackLogin:'← Torna al login',authResetTitle:'Recupera password',authPrivacy:'Privacy',authTerms:'Termini',authAccept:'Accetto',authBtnLoginLoading:'Accesso...',authBtnRegisterLoading:'Registrazione...',authBtnResetLoading:'Invio...',authBtnReset:'Invia email di recupero',authSafeData:'Dati salvati in modo sicuro su Google Firebase 🔒',authResetSent:'Email di recupero inviata!',authSubtitle:'Gestione clienti per Personal Trainer',
+    authVerifyTitle:'Verifica la tua email',authVerifyDesc1:"Abbiamo inviato un'email di verifica a",authVerifyDesc2:"Clicca il link nell'email per attivare il tuo account.",authVerifyCheck:"Email non ancora verificata. Controlla la casella di posta (anche lo spam).",authVerifyResent:'Email rinviata!',authVerifyResendErr:"Errore nell'invio. Riprova tra qualche minuto.",authVerifyBtn:'Ho verificato, accedi',authVerifyResend:'Rinvia email',
+    wFinish:'✓ Inizia ad usare PT Board',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -2158,6 +2162,10 @@ const LANGS={
     paywallBack:'← Back',paywallTrialLeft:'You have {days} trial days left',pianiTitle:'Choose your plan',
     langChooseTitle:'Choose language',langChooseDesc:'Language changes immediately throughout the app',
     planPro:'Pro Plan',planTeam:'Team Plan',planTrial:'Free trial',changePlan:'Change plan',
+    authErrInvalidCred:'Invalid email or password',authErrEmailInUse:'Email already registered',authErrWeakPw:'Password too short (minimum 6 characters)',authErrInvalidEmail:'Invalid email address',authErrPopupBlocked:'Popup blocked by browser. Enable popups and try again.',authErrGeneric:'Error. Please try again.',authErrPwMatch:'Passwords do not match',
+    authBackLogin:'← Back to login',authResetTitle:'Reset password',authPrivacy:'Privacy',authTerms:'Terms',authAccept:'I accept',authBtnLoginLoading:'Signing in...',authBtnRegisterLoading:'Creating account...',authBtnResetLoading:'Sending...',authBtnReset:'Send reset email',authSafeData:'Data securely saved on Google Firebase 🔒',authResetSent:'Reset email sent!',authSubtitle:'Client management for Personal Trainers',
+    authVerifyTitle:'Verify your email',authVerifyDesc1:'We sent a verification email to',authVerifyDesc2:'Click the link in the email to activate your account.',authVerifyCheck:'Email not yet verified. Check your inbox (including spam).',authVerifyResent:'Email resent!',authVerifyResendErr:'Error sending. Try again in a few minutes.',authVerifyBtn:"I've verified, sign in",authVerifyResend:'Resend email',
+    wFinish:'✓ Start using PT Board',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -2976,6 +2984,10 @@ const LANGS={
     paywallBack:'← Retour',paywallTrialLeft:"Il vous reste {days} jours d'essai",pianiTitle:'Choisissez votre plan',
     langChooseTitle:'Choisir la langue',langChooseDesc:"La langue change immédiatement dans toute l'application",
     planPro:'Plan Pro',planTeam:'Plan Team',planTrial:'Essai gratuit',changePlan:'Changer de plan',
+    authErrInvalidCred:'Email ou mot de passe incorrect',authErrEmailInUse:'Email déjà enregistrée',authErrWeakPw:'Mot de passe trop court (minimum 6 caractères)',authErrInvalidEmail:'Adresse email invalide',authErrPopupBlocked:'Popup bloquée par le navigateur. Activez les popups et réessayez.',authErrGeneric:'Erreur. Veuillez réessayer.',authErrPwMatch:'Les mots de passe ne correspondent pas',
+    authBackLogin:'← Retour à la connexion',authResetTitle:'Réinitialiser le mot de passe',authPrivacy:'Confidentialité',authTerms:'Conditions',authAccept:"J'accepte",authBtnLoginLoading:'Connexion...',authBtnRegisterLoading:'Création du compte...',authBtnResetLoading:'Envoi...',authBtnReset:"Envoyer l'email de réinitialisation",authSafeData:'Données sauvegardées en toute sécurité sur Google Firebase 🔒',authResetSent:'Email de réinitialisation envoyé !',authSubtitle:'Gestion de clients pour Personal Trainers',
+    authVerifyTitle:'Vérifiez votre email',authVerifyDesc1:"Nous avons envoyé un email de vérification à",authVerifyDesc2:"Cliquez sur le lien dans l'email pour activer votre compte.",authVerifyCheck:'Email pas encore vérifiée. Vérifiez votre boîte de réception (y compris les spams).',authVerifyResent:'Email renvoyé !',authVerifyResendErr:"Erreur d'envoi. Réessayez dans quelques minutes.",authVerifyBtn:"J'ai vérifié, me connecter",authVerifyResend:"Renvoyer l'email",
+    wFinish:'✓ Commencer à utiliser PT Board',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
@@ -6652,7 +6664,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           }} style={{...S.btn(),background:'#ef4444',opacity:deleteConfirmText==='ELIMINA'?1:0.4,cursor:deleteConfirmText==='ELIMINA'?'pointer':'not-allowed'}}>🗑 Elimina account definitivamente</button>
         </div>
       </Modal>}
-      {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile} user={user} voluntary={showPiani==='voluntary'}/>}
+      {showPiani&&<PianiModal onClose={()=>setShowPiani(false)} profile={profile} user={user} voluntary={showPiani==='voluntary'} lang={lang}/>}
       {showLingua&&<LinguaModal onClose={()=>setShowLingua(false)} lang={lang} setLang={setLang}/>}
       {showPersonalizza&&<PersonalizzaModal onClose={()=>setShowPersonalizza(false)} lang={lang} setLang={setLang} isLight={isLight} setIsLight={setIsLight} profile={profile} setProfile={setProfile} user={user}/>}
 
@@ -9636,9 +9648,9 @@ function PaywallScreen({user,profile,blocked}){
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
       <div style={{width:'100%',maxWidth:420,textAlign:'center'}}>
         <div style={{fontSize:40,marginBottom:12}}>🚫</div>
-        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>{profile?.planExpiredAt?'Abbonamento scaduto':'Account sospeso'}</div>
-        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>{profile?.planExpiredAt?'Il tuo abbonamento è scaduto. Rinnova per continuare.':'Il tuo account è stato sospeso. Contatta il supporto.'}</div>
-        <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>Esci dall'account ({user?.email})</button>
+        <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>{profile?.planExpiredAt?gT().paywallSubExpired:gT().paywallSubBlocked}</div>
+        <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>{profile?.planExpiredAt?gT().paywallSubExpiredDesc:gT().paywallSubBlockedDesc}</div>
+        <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>{gT().exitAcc.replace('{email}',user?.email)}</button>
       </div>
     </div>
   );
@@ -9646,7 +9658,7 @@ function PaywallScreen({user,profile,blocked}){
 }
 
 function TrialBlockScreen({user}){
-  const features=['Clienti illimitati','Tutte le funzionalità','PDF con il tuo logo','Supporto email'];
+  const features=[gT().paywallFeat1,gT().paywallFeat2,gT().paywallFeat3,gT().paywallFeat4];
   const planEntries=Object.entries(PLANS);
 
   useEffect(()=>{
@@ -9662,15 +9674,15 @@ function TrialBlockScreen({user}){
     <div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:C.bg,zIndex:9999,overflow:'auto',padding:'40px 20px'}}>
       <div style={{textAlign:'center',marginBottom:30}}>
         <div style={{fontSize:28,fontWeight:900,color:'#3b82f6',marginBottom:16}}>PT Board</div>
-        <div style={{fontSize:28,fontWeight:900,color:C.strong}}>Il tuo periodo di prova è terminato</div>
-        <div style={{fontSize:15,color:C.muted,marginTop:8,marginBottom:30}}>Scegli un piano per continuare a usare PT Board</div>
+        <div style={{fontSize:28,fontWeight:900,color:C.strong}}>{gT().trialExpiredTitle}</div>
+        <div style={{fontSize:15,color:C.muted,marginTop:8,marginBottom:30}}>{gT().trialExpiredDesc}</div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:16,maxWidth:700,margin:'0 auto'}}>
         {planEntries.map(([key,plan])=>{
           const isRecommended=key==='proYearly';
           return(
             <div key={key} style={{background:C.card,border:isRecommended?'2px solid '+C.blue:'1px solid '+C.border2,borderRadius:16,padding:20,position:'relative'}}>
-              {isRecommended&&<div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:C.blue,color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>Consigliato</div>}
+              {isRecommended&&<div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:C.blue,color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>{gT().paywallConsigliato}</div>}
               {plan.badge&&<div style={{position:'absolute',top:-10,right:10,background:C.blue,color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>{plan.badge}</div>}
               <div style={{fontSize:16,fontWeight:700,color:C.strong}}>{plan.name}</div>
               {plan.sub&&<div style={{fontSize:12,color:C.muted}}>{plan.sub}</div>}
@@ -9679,14 +9691,14 @@ function TrialBlockScreen({user}){
               <div style={{marginTop:12,marginBottom:12}}>
                 {features.map(f=><div key={f} style={{fontSize:13,color:C.muted,padding:'3px 0'}}><span style={{color:C.green}}>✓</span> {f}</div>)}
               </div>
-              <button onClick={()=>{if(typeof gtag!=='undefined')gtag('event','plan_click',{plan:key});openCheckout(key);}} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>Scegli questo piano</button>
-              {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
+              <button onClick={()=>{if(typeof gtag!=='undefined')gtag('event','plan_click',{plan:key});openCheckout(key);}} style={{background:C.blue,color:'#fff',width:'100%',padding:14,borderRadius:10,fontWeight:700,fontSize:15,border:'none',cursor:'pointer',marginTop:12}}>{gT().paywallChooseThis}</button>
+              {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>{gT().paywallTeamNote}</div>}
             </div>
           );
         })}
       </div>
-      <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:20}}>Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.info@gmail.com</div>
-      <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{fontSize:12,background:'transparent',color:'#ef4444',border:'none',cursor:'pointer',marginTop:20,display:'block',margin:'20px auto'}}>Esci</button>
+      <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:20}}>{gT().paywallAlreadyPaid}</div>
+      <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{fontSize:12,background:'transparent',color:'#ef4444',border:'none',cursor:'pointer',marginTop:20,display:'block',margin:'20px auto'}}>{gT().logout}</button>
     </div>
   );
 }
@@ -9793,10 +9805,11 @@ function PersonalizzaModal({onClose,lang,setLang,isLight,setIsLight,profile,setP
   );
 }
 
-function PianiModal({onClose,profile,user,voluntary}){
+function PianiModal({onClose,profile,user,voluntary,lang}){
+  const T=LANGS[lang]?.t||LANGS.it.t;
   const isPro=profile?.plan==='pro';
   const isTeam=profile?.plan==='team';
-  const features=['Clienti illimitati','Tutte le funzionalità','PDF con il tuo logo','Supporto email'];
+  const features=[T.paywallFeat1,T.paywallFeat2,T.paywallFeat3,T.paywallFeat4];
   const planEntries=Object.entries(PLANS);
 
   return(
@@ -9804,17 +9817,17 @@ function PianiModal({onClose,profile,user,voluntary}){
       <div style={{background:'#07090f',border:'1px solid #1e2d47',borderRadius:20,width:'min(860px,95vw)',maxHeight:'95vh',overflowY:'auto'}}>
         <div style={{padding:'24px 28px 0',textAlign:'center',position:'relative'}}>
           <button onClick={onClose} style={{position:'absolute',right:20,top:20,background:'none',border:'none',color:'#64748b',fontSize:20,cursor:'pointer'}}>✕</button>
-          <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>Scegli il tuo piano</div>
+          <div style={{fontSize:22,fontWeight:900,color:'#f8fafc',marginBottom:6}}>{T.pianiTitle}</div>
           <div style={{fontSize:13,color:'#64748b',marginBottom:20}}>
-            {isPro?('✅ Piano Pro attivo'+(profile?.planExpiresAt?' — scade il '+new Date(profile.planExpiresAt).toLocaleDateString('it-IT'):'')):isTeam?('✅ Piano Team attivo'+(profile?.planExpiresAt?' — scade il '+new Date(profile.planExpiresAt).toLocaleDateString('it-IT'):'')):`Hai ancora ${trialDaysLeft(profile)} giorni di prova gratuita`}
+            {isPro?('✅ '+T.paywallProActive+(profile?.planExpiresAt?' — scade il '+new Date(profile.planExpiresAt).toLocaleDateString('it-IT'):'')):isTeam?('✅ '+T.paywallTeamActive+(profile?.planExpiresAt?' — scade il '+new Date(profile.planExpiresAt).toLocaleDateString('it-IT'):'')):T.paywallTrialLeft.replace('{days}',trialDaysLeft(profile))}
           </div>
         </div>
         {(isPro||isTeam)?(
           <div style={{padding:'20px 24px 28px',textAlign:'center'}}>
             <div style={{fontSize:48,marginBottom:12}}>✅</div>
-            <div style={{fontSize:18,fontWeight:700,color:'#10b981'}}>{isPro?'Piano Pro attivo':'Piano Team attivo'}</div>
-            {profile?.planExpiresAt&&<div style={{fontSize:13,color:'#94a3b8',marginTop:6}}>Scade il {new Date(profile.planExpiresAt).toLocaleDateString('it-IT')}</div>}
-            <div style={{fontSize:13,color:'#64748b',marginTop:8}}>Grazie per il supporto!</div>
+            <div style={{fontSize:18,fontWeight:700,color:'#10b981'}}>{isPro?T.paywallProActive:T.paywallTeamActive}</div>
+            {profile?.planExpiresAt&&<div style={{fontSize:13,color:'#94a3b8',marginTop:6}}>{T.sideExpires} {new Date(profile.planExpiresAt).toLocaleDateString('it-IT')}</div>}
+            <div style={{fontSize:13,color:'#64748b',marginTop:8}}>{T.paywallThanks}</div>
           </div>
         ):(
           <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(2,1fr)',gap:16,padding:'0 24px 28px',maxWidth:700,margin:'0 auto'}}>
@@ -9822,7 +9835,7 @@ function PianiModal({onClose,profile,user,voluntary}){
               const isRecommended=key==='proYearly';
               return(
                 <div key={key} style={{background:'#0f1623',border:isRecommended?'2px solid #3b82f6':'1px solid #1e2d47',borderRadius:16,padding:20,position:'relative',display:'flex',flexDirection:'column'}}>
-                  {isRecommended&&<div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>Consigliato</div>}
+                  {isRecommended&&<div style={{position:'absolute',top:-12,left:'50%',transform:'translateX(-50%)',background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:700,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap'}}>{T.paywallConsigliato}</div>}
                   {plan.badge&&<div style={{position:'absolute',top:-10,right:10,background:'#3b82f6',color:'#fff',fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>{plan.badge}</div>}
                   <div style={{fontSize:16,fontWeight:700,color:'#f8fafc'}}>{plan.name}</div>
                   {plan.sub&&<div style={{fontSize:12,color:'#64748b'}}>{plan.sub}</div>}
@@ -9831,17 +9844,17 @@ function PianiModal({onClose,profile,user,voluntary}){
                   <div style={{flex:1,marginTop:12,marginBottom:12}}>
                     {features.map(f=><div key={f} style={{fontSize:12,color:'#cbd5e1',padding:'3px 0'}}><span style={{color:'#10b981'}}>✓</span> {f}</div>)}
                   </div>
-                  <button onClick={()=>{if(typeof gtag!=='undefined')gtag('event','plan_click',{plan:key});openCheckout(key);}} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>Scegli questo piano</button>
-                  {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com per attivare i loro account.</div>}
+                  <button onClick={()=>{if(typeof gtag!=='undefined')gtag('event','plan_click',{plan:key});openCheckout(key);}} style={{display:'block',padding:'11px',borderRadius:9,background:'#3b82f6',color:'#fff',fontSize:13,fontWeight:700,textAlign:'center',border:'none',cursor:'pointer',width:'100%'}}>{T.paywallChooseThis}</button>
+                  {key.startsWith('team')&&<div style={{fontSize:11,color:C.muted,textAlign:'center',marginTop:8,fontStyle:'italic'}}>{T.paywallTeamNote}</div>}
                 </div>
               );
             })}
           </div>
         )}
         <div style={{padding:'0 24px 20px',textAlign:'center',fontSize:11,color:'#334155'}}>
-          Hai già pagato? Il piano si attiva automaticamente entro 1 minuto. Se non si attiva, contattaci: ptboard.info@gmail.com
+          {T.paywallAlreadyPaid}
         </div>
-        {voluntary&&<div style={{padding:'0 24px 20px',textAlign:'center'}}><button onClick={onClose} style={{background:'transparent',border:'1px solid #334155',color:'#94a3b8',padding:'10px 28px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>← Torna</button></div>}
+        {voluntary&&<div style={{padding:'0 24px 20px',textAlign:'center'}}><button onClick={onClose} style={{background:'transparent',border:'1px solid #334155',color:'#94a3b8',padding:'10px 28px',borderRadius:8,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.paywallBack}</button></div>}
       </div>
     </div>
   );
@@ -10053,6 +10066,7 @@ function AdminModal({onClose}){
 }
 
 function EmailVerifyScreen({user}){
+  const T=gT();
   const [msg,setMsg]=useState('');
   const [err,setErr]=useState('');
   const [loading,setLoading]=useState(false);
@@ -10064,9 +10078,9 @@ function EmailVerifyScreen({user}){
       if(fbAuth.currentUser.emailVerified){
         window.location.reload();
       }else{
-        setErr('Email non ancora verificata. Controlla la casella di posta (anche lo spam).');
+        setErr(T.authVerifyCheck);
       }
-    }catch(e){setErr('Errore. Riprova.');}
+    }catch(e){setErr(T.authErrGeneric);}
     setLoading(false);
   };
 
@@ -10074,8 +10088,8 @@ function EmailVerifyScreen({user}){
     setErr('');setMsg('');setLoading(true);
     try{
       await fbAuth.currentUser.sendEmailVerification();
-      setMsg('Email rinviata!');
-    }catch(e){setErr('Errore nell\'invio. Riprova tra qualche minuto.');}
+      setMsg(T.authVerifyResent);
+    }catch(e){setErr(T.authVerifyResendErr);}
     setLoading(false);
   };
 
@@ -10086,15 +10100,15 @@ function EmailVerifyScreen({user}){
       <div style={{width:'100%',maxWidth:420}}>
         <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:32,textAlign:'center'}}>
           <div style={{fontSize:56,marginBottom:16}}>📧</div>
-          <div style={{fontSize:20,fontWeight:800,color:'#f8fafc',marginBottom:10}}>Verifica la tua email</div>
+          <div style={{fontSize:20,fontWeight:800,color:'#f8fafc',marginBottom:10}}>{T.authVerifyTitle}</div>
           <div style={{fontSize:14,color:'#94a3b8',lineHeight:1.7,marginBottom:24}}>
-            Abbiamo inviato un'email di verifica a <strong style={{color:'#e2e8f0'}}>{user.email}</strong>. Clicca il link nell'email per attivare il tuo account.
+            {T.authVerifyDesc1} <strong style={{color:'#e2e8f0'}}>{user.email}</strong>. {T.authVerifyDesc2}
           </div>
           {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:12}}>{err}</div>}
           {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:12}}>{msg}</div>}
-          <button onClick={checkVerified} disabled={loading} style={{width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1}}>Ho verificato, accedi</button>
-          <button onClick={resend} disabled={loading} style={{width:'100%',padding:'12px',borderRadius:9,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:13,fontWeight:600,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8}}>Rinvia email</button>
-          <button onClick={logout} style={{width:'100%',padding:'8px',borderRadius:9,border:'none',background:'transparent',color:'#64748b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>Esci</button>
+          <button onClick={checkVerified} disabled={loading} style={{width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1}}>{T.authVerifyBtn}</button>
+          <button onClick={resend} disabled={loading} style={{width:'100%',padding:'12px',borderRadius:9,border:'1px solid #334155',background:'transparent',color:'#94a3b8',fontSize:13,fontWeight:600,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8}}>{T.authVerifyResend}</button>
+          <button onClick={logout} style={{width:'100%',padding:'8px',borderRadius:9,border:'none',background:'transparent',color:'#64748b',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>{T.logout}</button>
         </div>
       </div>
     </div>
@@ -10115,13 +10129,13 @@ function AuthScreen({onProfileReady}){
   const [showPw2,setShowPw2]=useState(false);
 
   const errMap=(code)=>{
-    if(code==='auth/user-not-found'||code==='auth/wrong-password'||code==='auth/invalid-credential') return 'Email o password errati';
-    if(code==='auth/email-already-in-use') return 'Email già registrata';
-    if(code==='auth/weak-password') return 'Password troppo corta (minimo 6 caratteri)';
-    if(code==='auth/invalid-email') return 'Email non valida';
+    if(code==='auth/user-not-found'||code==='auth/wrong-password'||code==='auth/invalid-credential') return T.authErrInvalidCred;
+    if(code==='auth/email-already-in-use') return T.authErrEmailInUse;
+    if(code==='auth/weak-password') return T.authErrWeakPw;
+    if(code==='auth/invalid-email') return T.authErrInvalidEmail;
     if(code==='auth/popup-closed-by-user') return '';
-    if(code==='auth/popup-blocked') return 'Popup bloccato dal browser. Abilita i popup e riprova.';
-    return 'Errore. Riprova.';
+    if(code==='auth/popup-blocked') return T.authErrPopupBlocked;
+    return T.authErrGeneric;
   };
 
   const buildDemoPatient=()=>{
@@ -10147,7 +10161,7 @@ function AuthScreen({onProfileReady}){
   };
 
   const doLogin=async()=>{setErr('');setLoading(true);try{await fbAuth.signInWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','login',{method:'email'});}catch(e){setErr(errMap(e.code));}setLoading(false);};
-  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr('Le password non coincidono');return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});const profile={email,displayName:'',nome:'',cognome:'',telefono:'',citta:'',plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,'',1);await c.user.sendEmailVerification();const seeded=await seedDemoIfEmpty(c.user.uid);if(seeded)showToast(T.demoToast,'success',5000);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doRegister=async()=>{setErr('');if(pw!==pw2){setErr(T.authErrPwMatch);return;}setLoading(true);try{const c=await fbAuth.createUserWithEmailAndPassword(email,pw);if(typeof gtag!=='undefined')gtag('event','sign_up',{method:'email'});const profile={email,displayName:'',nome:'',cognome:'',telefono:'',citta:'',plan:'trial',trialStart:Date.now(),createdAt:new Date().toISOString(),gdprConsent:true,gdprConsentDate:Date.now()};await fbSaveUserProfile(c.user.uid,profile);sendBrevoEmail(email,'',1);await c.user.sendEmailVerification();const seeded=await seedDemoIfEmpty(c.user.uid);if(seeded)showToast(T.demoToast,'success',5000);if(onProfileReady)onProfileReady(profile);}catch(e){setErr(errMap(e.code));}setLoading(false);};
   const doGoogle=async()=>{
     setErr('');setLoading(true);
     try{
@@ -10170,7 +10184,7 @@ function AuthScreen({onProfileReady}){
     }catch(e){setErr(errMap(e.code));}
     setLoading(false);
   };
-  const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg('Email di recupero inviata!');}catch(e){setErr(errMap(e.code));}setLoading(false);};
+  const doReset=async()=>{setErr('');setLoading(true);try{await fbAuth.sendPasswordResetEmail(email);setMsg(T.authResetSent);}catch(e){setErr(errMap(e.code));}setLoading(false);};
 
   const inp={width:'100%',padding:'11px 14px',borderRadius:9,border:'1px solid #334155',background:'#0f172a',color:'#e2e8f0',fontSize:14,fontFamily:'inherit',outline:'none',marginBottom:10};
   const btn={width:'100%',padding:'12px',borderRadius:9,border:'none',background:'#3b82f6',color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'inherit',marginBottom:8,opacity:loading?0.6:1};
@@ -10182,20 +10196,20 @@ function AuthScreen({onProfileReady}){
       <div style={{width:'100%',maxWidth:400}}>
         <div style={{textAlign:'center',marginBottom:32}}>
           <div style={{fontSize:32,fontWeight:900,color:'#3b82f6',marginBottom:6}}>PT Board</div>
-          <div style={{fontSize:13,color:'#64748b'}}>Gestione clienti per Personal Trainer</div>
+          <div style={{fontSize:13,color:'#64748b'}}>{T.authSubtitle}</div>
         </div>
         <div style={{background:'#0f1623',border:'1px solid #1e2d47',borderRadius:14,padding:28}}>
           {mode!=='reset'&&(
             <div style={{display:'flex',gap:4,background:'#080d1a',borderRadius:9,padding:4,marginBottom:22}}>
-              {[['register','Crea account'],['login','Accedi']].map(([m,l])=>(
+              {[['register',T.authSignUp],['login',T.authSignIn]].map(([m,l])=>(
                 <button key={m} onClick={()=>{setMode(m);setErr('');setMsg('');}} style={{flex:1,padding:'8px',borderRadius:7,border:'none',background:mode===m?'#3b82f6':'transparent',color:mode===m?'#fff':'#64748b',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',transition:'all .2s'}}>{l}</button>
               ))}
             </div>
           )}
           {mode==='reset'&&(
             <div style={{marginBottom:16}}>
-              <button onClick={()=>{setMode('login');setErr('');setMsg('');}} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:13,fontFamily:'inherit',padding:0}}>← Torna al login</button>
-              <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>Recupera password</div>
+              <button onClick={()=>{setMode('login');setErr('');setMsg('');}} style={{background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:13,fontFamily:'inherit',padding:0}}>{T.authBackLogin}</button>
+              <div style={{fontSize:18,fontWeight:800,color:'#f8fafc',marginTop:8}}>{T.authResetTitle}</div>
             </div>
           )}
           {mode!=='reset'&&<>
@@ -10211,16 +10225,16 @@ function AuthScreen({onProfileReady}){
           {mode==='register'&&<div style={{position:'relative',marginBottom:10}}><input style={{...inp,marginBottom:0,paddingRight:38}} placeholder={T.authPhConfirm} type={showPw2?'text':'password'} value={pw2} onChange={e=>setPw2(e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()}/><button type="button" onClick={()=>setShowPw2(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',color:'#64748b',fontSize:18,padding:4}}>{showPw2?'🙈':'👁'}</button></div>}
           {mode==='register'&&<label style={{display:'flex',alignItems:'center',gap:8,fontSize:11,color:'#64748b',marginBottom:12,cursor:'pointer',lineHeight:1.4}}>
             <input type="checkbox" checked={gdpr} onChange={e=>setGdpr(e.target.checked)} style={{flexShrink:0,accentColor:'#3b82f6'}}/>
-            <span>Accetto <a href="/privacy.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Privacy</a> e <a href="/terms.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>Termini</a></span>
+            <span>{T.authAccept} <a href="/privacy.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>{T.authPrivacy}</a> e <a href="/terms.html" target="_blank" rel="noreferrer" style={{color:'#3b82f6',textDecoration:'none'}}>{T.authTerms}</a></span>
           </label>}
           {err&&<div style={{background:'#ef444415',border:'1px solid #ef444430',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#ef4444',marginBottom:10}}>{err}</div>}
           {msg&&<div style={{background:'#10b98115',border:'1px solid #10b98130',borderRadius:8,padding:'9px 13px',fontSize:12,color:'#10b981',marginBottom:10}}>{msg}</div>}
-          {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?'Accesso...':'Accedi'}</button>}
-          {mode==='register'&&<button style={{...btn,opacity:(loading||!gdpr)?0.5:1,cursor:(loading||!gdpr)?'not-allowed':'pointer'}} onClick={doRegister} disabled={loading||!gdpr}>{loading?'Registrazione...':'Crea account'}</button>}
-          {mode==='reset'&&<button style={btn} onClick={doReset} disabled={loading}>{loading?'Invio...':'Invia email di recupero'}</button>}
-          {mode==='login'&&<button onClick={()=>{setMode('reset');setErr('');setMsg('');}} style={{width:'100%',background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:12,fontFamily:'inherit',textAlign:'center',padding:'4px 0'}}>Password dimenticata?</button>}
+          {mode==='login'&&<button style={btn} onClick={doLogin} disabled={loading}>{loading?T.authBtnLoginLoading:T.authSignIn}</button>}
+          {mode==='register'&&<button style={{...btn,opacity:(loading||!gdpr)?0.5:1,cursor:(loading||!gdpr)?'not-allowed':'pointer'}} onClick={doRegister} disabled={loading||!gdpr}>{loading?T.authBtnRegisterLoading:T.authSignUp}</button>}
+          {mode==='reset'&&<button style={btn} onClick={doReset} disabled={loading}>{loading?T.authBtnResetLoading:T.authBtnReset}</button>}
+          {mode==='login'&&<button onClick={()=>{setMode('reset');setErr('');setMsg('');}} style={{width:'100%',background:'none',border:'none',color:'#64748b',cursor:'pointer',fontSize:12,fontFamily:'inherit',textAlign:'center',padding:'4px 0'}}>{T.authForgot}</button>}
         </div>
-        <div style={{textAlign:'center',marginTop:20,fontSize:11,color:'#334155'}}>Dati salvati in modo sicuro su Google Firebase 🔒</div>
+        <div style={{textAlign:'center',marginTop:20,fontSize:11,color:'#334155'}}>{T.authSafeData}</div>
       </div>
     </div>
   );
@@ -10367,7 +10381,7 @@ function TutorialModal({onClose,isLight,lang}){
             {cur>0&&<button onClick={()=>setCur(c=>c-1)} style={{padding:'8px 18px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.muted,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.wPrev}</button>}
             {cur<total-1
               ?<button onClick={()=>setCur(c=>c+1)} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.blue,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.wNext}</button>
-              :<button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.green,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>✓ Inizia ad usare PT Board</button>
+              :<button onClick={onClose} style={{padding:'8px 18px',borderRadius:8,border:'none',background:C.green,color:'#fff',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>{T.wFinish}</button>
             }
           </div>
         </div>
