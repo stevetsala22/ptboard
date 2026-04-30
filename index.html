@@ -3488,10 +3488,10 @@ const interpPushup=(rip,sesso,eta)=>{
   const norme=PUSHUP_NORME[key][fascia]; // [low, below_avg, avg, above_avg] soglie minime
   var l,c,cons;
   if(r<norme[0]){l=T.veryLow;c='#ef4444';cons=T.consPushupBeg;}
-  else if(r<norme[1]){l=T.below_avg||'Sotto media';c='#f97316';cons=T.consPushupBeg;}
+  else if(r<norme[1]){l=T.catSottoMed;c='#f97316';cons=T.consPushupBeg;}
   else if(r<norme[2]){l=T.average;c='#f59e0b';cons=T.consPushupStd;}
-  else if(r<norme[3]){l=T.above_avg||'Sopra media';c='#84cc16';cons=T.consPushupAdv;}
-  else{l=T.excellent||'Eccellente';c='#10b981';cons=T.consPushupAdv;}
+  else if(r<norme[3]){l=T.catSopraMed;c='#84cc16';cons=T.consPushupAdv;}
+  else{l=T.excellent;c='#10b981';cons=T.consPushupAdv;}
   // Età sul risultato
   var etaLabel=eta?' ('+eta+' anni)':'';
   return{l,c,cons,etaLabel,norma:norme[2]+' rip. norma fascia età'+etaLabel};
