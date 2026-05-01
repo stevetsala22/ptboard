@@ -8262,6 +8262,35 @@ function ScoreBreakdown({pr,compact,T}){
 }
 
 // ── TIMER MODAL ──────────────────────────────────────────────────────────────
+var _exAudioCtx=null;
+function _getAudioCtx(){
+  if(!_exAudioCtx){try{_exAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(_exAudioCtx&&_exAudioCtx.state==='suspended')_exAudioCtx.resume();
+  return _exAudioCtx;
+}
+function _playTone(freq,dur,vol,type){
+  var ctx=_getAudioCtx();if(!ctx)return;
+  try{
+    var osc=ctx.createOscillator();var g=ctx.createGain();
+    osc.connect(g);g.connect(ctx.destination);
+    osc.type=type||'sine';osc.frequency.value=freq;
+    g.gain.setValueAtTime(vol||0.35,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+function _playTick(){_playTone(880,0.08,0.3);}
+function _playGo(){
+  _playTone(523,0.25,0.45);
+  setTimeout(()=>_playTone(784,0.35,0.5),80);
+  setTimeout(()=>_playTone(1047,0.5,0.4),200);
+}
+function _playDone(){
+  _playTone(660,0.15,0.4);
+  setTimeout(()=>_playTone(880,0.15,0.4),180);
+  setTimeout(()=>_playTone(1320,0.5,0.45),360);
+}
+
 function ExerciseCountdown({seconds,mode,T,onClose}){
   const start=mode==='prep'?3:seconds;
   const [t,setT]=React.useState(start);
@@ -8273,12 +8302,15 @@ function ExerciseCountdown({seconds,mode,T,onClose}){
     if(go)return;
     const id=setInterval(()=>{
       setT(prev=>{
-        if(prev<=1){
+        const next=prev<=1?0:prev-1;
+        if(next===0){
           clearInterval(id);
-          if(mode==='prep'){setGo(true);setTimeout(onClose,900);}
-          return 0;
+          if(mode==='prep'){_playGo();setGo(true);setTimeout(onClose,900);}
+          else{_playDone();}
+        } else {
+          if(mode==='prep'||(mode==='rest'&&next<=3))_playTick();
         }
-        return prev-1;
+        return next;
       });
     },1000);
     return()=>clearInterval(id);
