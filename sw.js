@@ -1,8 +1,7 @@
-const CACHE='ptboard-v53';
+const CACHE='ptboard-v54';
 const ASSETS=[
   '/',
   '/index.html',
-  '/landing.html',
   '/manifest.json',
   '/icon192.png',
   '/icon512.png'
@@ -10,7 +9,11 @@ const ASSETS=[
 
 self.addEventListener('install',e=>{
   e.waitUntil(
-    caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())
+    caches.open(CACHE).then(c=>
+      Promise.all(ASSETS.map(url=>
+        fetch(url,{cache:'no-store'}).then(res=>{if(res.ok)c.put(url,res);}).catch(()=>{})
+      ))
+    ).then(()=>self.skipWaiting())
   );
 });
 
@@ -34,10 +37,7 @@ self.addEventListener('fetch',e=>{
       caches.match(e.request).then(cached=>{
         if(cached)return cached;
         return fetch(e.request).then(res=>{
-          if(res.ok){
-            const clone=res.clone();
-            caches.open(CACHE).then(c=>c.put(e.request,clone));
-          }
+          if(res.ok){const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}
           return res;
         }).catch(()=>cached);
       })
@@ -45,11 +45,8 @@ self.addEventListener('fetch',e=>{
     return;
   }
   e.respondWith(
-    fetch(e.request).then(res=>{
-      if(res.ok){
-        const clone=res.clone();
-        caches.open(CACHE).then(c=>c.put(e.request,clone));
-      }
+    fetch(e.request,{cache:'no-store'}).then(res=>{
+      if(res.ok){const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}
       return res;
     }).catch(()=>caches.match(e.request))
   );

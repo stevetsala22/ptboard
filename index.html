@@ -75,6 +75,18 @@ src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 <script>
+// SW registration first — must run before landing redirect to survive document.write()
+if('serviceWorker' in navigator){
+  var _swRefreshing=false;
+  function _swReload(){if(!_swRefreshing){_swRefreshing=true;window.location.reload();}}
+  navigator.serviceWorker.addEventListener('controllerchange',_swReload);
+  navigator.serviceWorker.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='SW_UPDATED')_swReload();
+  });
+  navigator.serviceWorker.register('/sw.js').then(function(reg){reg.update();}).catch(function(){});
+}
+</script>
+<script>
 if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
   var came=sessionStorage.getItem('entered');
   if(!came&&!document.referrer.includes('personaltrainerboard.com')){
