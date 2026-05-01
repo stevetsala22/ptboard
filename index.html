@@ -83,14 +83,14 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('message',function(e){
     if(e.data&&e.data.type==='SW_UPDATED')_swReload();
   });
-  navigator.serviceWorker.register('/sw.js').then(function(reg){reg.update();}).catch(function(){});
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
 }
 </script>
 <script>
 if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
-  var came=sessionStorage.getItem('entered');
+  var came=localStorage.getItem('ptb_entered');
   if(!came&&!document.referrer.includes('personaltrainerboard.com')){
-    sessionStorage.setItem('entered','1');
+    localStorage.setItem('ptb_entered','1');
     window.location.replace('/landing.html');
   }
 }
@@ -417,7 +417,7 @@ setTimeout(function(){
     var err=document.getElementById('loading-error');
     if(err) err.style.display='block';
   }
-},10000);
+},25000);
 </script>
 <script type="text/babel" data-presets="react">
 (function(){
