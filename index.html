@@ -14,7 +14,7 @@
   ║  of this code is strictly prohibited.                        ║
   ╚══════════════════════════════════════════════════════════════╝
 -->
-<html lang="it">
+<html lang="'+(lang||'it')+'">
 <head>
 <script
   src="https://js-de.sentry-cdn.com/57393661f5ebf80ff4e43d5cd42d7cd8.min.js"
@@ -469,11 +469,13 @@ const exportCSV=(patients)=>{
 };
 
 // ── PDF LISTA CLIENTI ─────────────────────────────────────────────────────
-const exportPDFLista=(patients,trainerProfile)=>{
+const exportPDFLista=(patients,trainerProfile,lang)=>{
+  const T=LANGS[lang]?.t||LANGS.it.t;
+  const locale=lang==='en'?'en-GB':lang==='fr'?'fr-FR':'it-IT';
   const pdfC=trainerProfile?.primaryColor||'#3b82f6';
   const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
   const logoHtml=trainerProfile?.logo?'<img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;object-fit:contain"/>':'<div style="font-size:22px;font-weight:900;color:'+pdfC+'">PT Board</div>';
-  const dataOggi=new Date().toLocaleDateString('it-IT');
+  const dataOggi=new Date().toLocaleDateString(locale);
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
   const righe=patients.map((p,i)=>{
     const b=p.peso&&p.altezza?(p.peso/(p.altezza/100)**2).toFixed(1):'—';
@@ -491,31 +493,31 @@ const exportPDFLista=(patients,trainerProfile)=>{
       '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.dataValutazione||'—')+'</td>'+
     '</tr>';
   }).join('');
-  const html='<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Lista Clienti — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
+  const html='<!DOCTYPE html><html lang="'+(lang||'it')+'"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+T.pdfListTitle+' — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
     '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid '+pdfC+'">'+
-    '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">← Torna all\'app</button>'+
-    '<button onclick="window.print()" style="background:'+pdfC+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">🖨️ Stampa / Salva PDF</button>'+
+    '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfBackToApp+'</button>'+
+    '<button onclick="window.print()" style="background:'+pdfC+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfPrint+'</button>'+
     '</div>'+
     '<div style="max-width:1100px;margin:0 auto;padding:40px">'+
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid '+pdfC+';padding-bottom:20px;margin-bottom:24px">'+
-    '<div>'+logoHtml+'<div style="font-size:11px;color:#64748b;margin-top:8px">Lista clienti — '+dataOggi+'</div></div>'+
-    '<div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">'+patients.length+' Clienti</div><div style="font-size:13px;color:#64748b;margin-top:4px">'+totSedute+' sedute totali</div></div>'+
+    '<div>'+logoHtml+'<div style="font-size:11px;color:#64748b;margin-top:8px">'+T.pdfListTitle+' — '+dataOggi+'</div></div>'+
+    '<div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">'+patients.length+' '+T.patients+'</div><div style="font-size:13px;color:#64748b;margin-top:4px">'+totSedute+' '+T.pdfListTotSes+'</div></div>'+
     '</div>'+
     '<table style="width:100%;border-collapse:collapse">'+
     '<thead><tr style="background:'+pdfC+'">'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Cliente</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Sesso</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Peso</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListClient+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfGender+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListWeight+'</th>'+
     '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">BMI</th>'+
-    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Profilo</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Obiettivo</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Patologie</th>'+
-    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Sedute</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">Ultima val.</th>'+
+    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.profileCode+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfGoal+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfPath+'</th>'+
+    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.sessions+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListLastAss+'</th>'+
     '</tr></thead>'+
     '<tbody>'+righe+'</tbody>'+
     '</table>'+
-    '<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">'+nomeStudio+' · Lista clienti generata il '+dataOggi+'</div><div style="font-size:10px;color:#94a3b8">'+patients.length+' clienti</div></div>'+
+    '<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">'+nomeStudio+' · '+T.pdfListGenOn+' '+dataOggi+'</div><div style="font-size:10px;color:#94a3b8">'+patients.length+' '+T.patients+'</div></div>'+
     '</div></body></html>';
   const w=window.open('','_blank');
   w.document.write(html);
@@ -1361,6 +1363,7 @@ const LANGS={
     gpRazDur4w:'4 settimane: ciclo breve — principianti/riabilitazione, rivalutazione frequente.',gpRazDur8w:'8 settimane: ciclo avanzato ipertrofia/forza — adattamenti neurali e strutturali.',gpRazDur6w:'6 settimane: ciclo standard evidence-based — adattamenti significativi + deload finale.',gpRazDurObj:'Durata calibrata sull'obiettivo strutturato: {m} mesi ({w} sett.). {prev}',
     gpRazSplFbBeg:'Full Body: lavoro globale ogni seduta (principiante/riabilitazione).',gpRazSplFb1:'Full Body ×1: massima copertura muscolare nell'unica seduta disponibile.',gpRazSplFb2:'Full Body ×2: frequenza minima ≥2×/muscolo/sett (Schoenfeld 2016).',gpRazSplPpl3:'PPL ×3: struttura ottimale per performance atletica con 3 sessioni.',gpRazSplFb3H:'Full Body ×3: superiore a PPL per ipertrofia — 3×/muscolo/sett vs 1× (Schoenfeld 2016). Compound multi-articolari con volume modulato.',gpRazSplFb3G:'Full Body ×3: massima frequenza, ideale per salute generale e perdita di peso.',gpRazSplUl2:'Upper/Lower ×2: ogni gruppo muscolare 2×/sett — bilancio ottimale volume-recupero.',gpRazSplFb4:'Full Body ×4: continuità di stimolo per salute/riabilitazione.',gpRazSplPpl5:'PPL ×2 (5 giorni): alto volume — ogni muscolo 2×/sett.',gpRazSplUlC:'Upper/Lower + cardio extra: 5 sedute per obiettivo metabolico/performance.',gpRazSplPpl6:'PPL ×2 (6 giorni): volume massimo per ipertrofia avanzata.',gpRazSplUl3:'Upper/Lower ×3 (6 giorni): alta frequenza per performance/composizione avanzata.',
     gpRazFreq:'Sedute/sett.: {n} (ACSM 11th ed. — profilo {pr}, obiettivo {ob}).',gpRazInt:'RPE target {rpe1}–{rpe2}, recupero {rec}s, {s} serie base (post-modulatori).',
+    pdfKpiSets:'Serie × Rip',pdfKpiRest:'Recupero',pdfListTitle:'Lista clienti',pdfListGenOn:'Lista clienti generata il',pdfListTotSes:'sedute totali',pdfListClient:'Cliente',pdfListWeight:'Peso',pdfListLastAss:'Ultima val.',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
@@ -2200,6 +2203,7 @@ const LANGS={
     gpRazDur4w:'4 weeks: short cycle — beginners/rehabilitation, frequent reassessment.',gpRazDur8w:'8 weeks: advanced hypertrophy/strength cycle — neural and structural adaptations.',gpRazDur6w:'6 weeks: evidence-based standard cycle — significant adaptations + final deload.',gpRazDurObj:'Duration calibrated to structured goal: {m} months ({w} wks). {prev}',
     gpRazSplFbBeg:'Full Body: full-body work each session (beginner/rehabilitation).',gpRazSplFb1:'Full Body ×1: maximum muscle coverage in the single available session.',gpRazSplFb2:'Full Body ×2: minimum frequency ≥2×/muscle/week (Schoenfeld 2016).',gpRazSplPpl3:'PPL ×3: optimal structure for athletic performance with 3 sessions.',gpRazSplFb3H:'Full Body ×3: superior to PPL for hypertrophy — 3×/muscle/week vs 1× (Schoenfeld 2016). Multi-joint compounds with modulated volume.',gpRazSplFb3G:'Full Body ×3: maximum frequency, ideal for general health and weight loss.',gpRazSplUl2:'Upper/Lower ×2: each muscle group 2×/week — optimal volume-recovery balance.',gpRazSplFb4:'Full Body ×4: continuous stimulus for health/rehabilitation.',gpRazSplPpl5:'PPL ×2 (5 days): high volume — each muscle 2×/week.',gpRazSplUlC:'Upper/Lower + extra cardio: 5 sessions for metabolic/performance goal.',gpRazSplPpl6:'PPL ×2 (6 days): maximum volume for advanced hypertrophy.',gpRazSplUl3:'Upper/Lower ×3 (6 days): high frequency for advanced performance/body composition.',
     gpRazFreq:'Sessions/week: {n} (ACSM 11th ed. — profile {pr}, goal {ob}).',gpRazInt:'RPE target {rpe1}–{rpe2}, rest {rec}s, {s} base sets (post-modulators).',
+    pdfKpiSets:'Sets × Reps',pdfKpiRest:'Rest',pdfListTitle:'Client list',pdfListGenOn:'Client list generated on',pdfListTotSes:'total sessions',pdfListClient:'Client',pdfListWeight:'Weight',pdfListLastAss:'Last assess.',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
@@ -3039,6 +3043,7 @@ const LANGS={
     gpRazDur4w:'4 semaines : cycle court — débutants/rééducation, réévaluation fréquente.',gpRazDur8w:'8 semaines : cycle avancé hypertrophie/force — adaptations neurales et structurelles.',gpRazDur6w:'6 semaines : cycle standard fondé sur les données — adaptations significatives + décharge finale.',gpRazDurObj:'Durée calibrée selon l'objectif structuré : {m} mois ({w} sem.). {prev}',
     gpRazSplFbBeg:'Full Body : travail global à chaque séance (débutant/rééducation).',gpRazSplFb1:'Full Body ×1 : couverture musculaire maximale dans la seule séance disponible.',gpRazSplFb2:'Full Body ×2 : fréquence minimale ≥2×/muscle/sem (Schoenfeld 2016).',gpRazSplPpl3:'PPL ×3 : structure optimale pour la performance athlétique avec 3 séances.',gpRazSplFb3H:'Full Body ×3 : supérieur au PPL pour l'hypertrophie — 3×/muscle/sem vs 1× (Schoenfeld 2016). Polyarticulaires avec volume modulé.',gpRazSplFb3G:'Full Body ×3 : fréquence maximale, idéal pour la santé générale et la perte de poids.',gpRazSplUl2:'Upper/Lower ×2 : chaque groupe musculaire 2×/sem — équilibre optimal volume-récupération.',gpRazSplFb4:'Full Body ×4 : stimulation continue pour la santé/rééducation.',gpRazSplPpl5:'PPL ×2 (5 jours) : volume élevé — chaque muscle 2×/sem.',gpRazSplUlC:'Upper/Lower + cardio supplémentaire : 5 séances pour objectif métabolique/performance.',gpRazSplPpl6:'PPL ×2 (6 jours) : volume maximal pour l'hypertrophie avancée.',gpRazSplUl3:'Upper/Lower ×3 (6 jours) : haute fréquence pour performance/composition corporelle avancée.',
     gpRazFreq:'Séances/sem. : {n} (ACSM 11e éd. — profil {pr}, objectif {ob}).',gpRazInt:'RPE cible {rpe1}–{rpe2}, récupération {rec}s, {s} séries de base (post-modulateurs).',
+    pdfKpiSets:'Séries × Rép',pdfKpiRest:'Récupération',pdfListTitle:'Liste des clients',pdfListGenOn:'Liste des clients générée le',pdfListTotSes:'séances au total',pdfListClient:'Client',pdfListWeight:'Poids',pdfListLastAss:'Dern. éval.',
   }},
 };
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
@@ -4160,7 +4165,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
           <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{(function(){var h=new Date().getHours();var g=h>=5&&h<12?'Buongiorno':h>=12&&h<18?'Buon pomeriggio':'Buonasera';var n=trainerProfile?.nome||trainerProfile?.displayName||'';return n?g+', '+n+'!':'Dashboard';})()}</h1>
           <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
         </div>
-        {patients.length>0&&<button onClick={()=>exportPDFLista(patients,trainerProfile)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📄 Export PDF</button>}
+        {patients.length>0&&<button onClick={()=>exportPDFLista(patients,trainerProfile,lang)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📄 Export PDF</button>}
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
         <StatCard label={T.totalPatients} value={patients.length} color={C.blue} icon="👥" delay={0} onClick={onNavigate?function(){onNavigate('patients');}:undefined}/>
@@ -4507,8 +4512,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '<div class="kpi-row">'+
       '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||'Full Body')+'</div><div class="kpi-lbl">Split</div></div>'+
       '<div class="kpi sets"><div class="kpi-val">'+(scheda.config?.serie||3)+'\u00D7'+(scheda.config?.rip||10)+'</div><div class="kpi-lbl">Serie \u00D7 Rip</div></div>'+
-      '<div class="kpi rest"><div class="kpi-val">'+(scheda.config?.rec||60)+'s</div><div class="kpi-lbl">Recupero</div></div>'+
-      '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">Attrezzatura</div></div>'+
+      '<div class="kpi rest"><div class="kpi-val">'+(scheda.config?.rec||60)+'s</div><div class="kpi-lbl">'+(T.pdfKpiRest)+'</div></div>'+
+      '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">'+(T.exEquip)+'</div></div>'+
       '</div>'+
       tablesHtml+
       noteHtml+
