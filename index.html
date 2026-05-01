@@ -717,6 +717,7 @@ const LANGS={
     schedaDeleted:'Scheda eliminata',schedaTitle:'Scheda Allenamento',
     // PDF tables
     tblExercise:'Esercizio',tblGroup:'Gruppo',tblLevel:'Livello',tblSets:'Serie',tblReps:'Rip',tblRest:'Rec',
+    exTimerPrep:'Preparati',exTimerGo:'VAI!',exTimerRecov:'Recupero',exTimerDone:'Stop!',
     schedaEmpty:'Questa scheda non ha ancora esercizi.',
     generatedWith:'Generata con PT Board',pdfAge:'Età',
     // Sedute (Bookings)
@@ -1558,6 +1559,7 @@ const LANGS={
     schedaDeleted:'Workout deleted',schedaTitle:'Workout Sheet',
     // PDF tables
     tblExercise:'Exercise',tblGroup:'Group',tblLevel:'Level',tblSets:'Sets',tblReps:'Reps',tblRest:'Rest',
+    exTimerPrep:'Get ready',exTimerGo:'GO!',exTimerRecov:'Rest',exTimerDone:'Stop!',
     schedaEmpty:'This workout has no exercises yet.',
     generatedWith:'Generated with PT Board',pdfAge:'Age',
     // Sedute (Bookings)
@@ -2399,6 +2401,7 @@ const LANGS={
     schedaDeleted:'Fiche supprimée',schedaTitle:"Fiche d'Entraînement",
     // PDF tables
     tblExercise:'Exercice',tblGroup:'Groupe',tblLevel:'Niveau',tblSets:'Séries',tblReps:'Rép',tblRest:'Repos',
+    exTimerPrep:'Préparez-vous',exTimerGo:'ALLEZ!',exTimerRecov:'Repos',exTimerDone:'Stop!',
     schedaEmpty:"Cette fiche n'a pas encore d'exercices.",
     generatedWith:'Généré avec PT Board',pdfAge:'Âge',
     // Sedute (Bookings)
@@ -4333,6 +4336,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [openSchede,setOpenSchede]=useState(false);
   const [expandedScheda,setExpandedScheda]=useState(null);
   const [expandedWeek,setExpandedWeek]=useState(0);
+  const [exTimer,setExTimer]=React.useState(null);
 
   const p=patient;
   const b=bmi(p.peso,p.altezza);
@@ -5370,8 +5374,11 @@ footer .center b{color:#3b82f6;font-weight:700}
                             </div>
                             <button title={T.swapExercise} aria-label={T.swapExercise} style={{background:isSwapOpen?C.blue+'20':'transparent',border:'1px solid '+C.border2,borderRadius:8,width:28,height:28,cursor:'pointer',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,padding:0}} onClick={()=>setSwapTarget(isSwapOpen?null:{si:si,ei:ei})}>{'\u{1F504}'}</button>
                             <div style={{textAlign:'right',flexShrink:0}}>
-                              <div style={{fontSize:13,fontWeight:800,color:C.strong}}>{ex.serie}×{ex.reps}</div>
-                              {ex.rec > 0 && <div style={{fontSize:10,color:C.muted}}>{T.tblRest.toLowerCase()} {ex.rec}s</div>}
+                              <div style={{display:'flex',alignItems:'center',gap:6,justifyContent:'flex-end'}}>
+                                <div style={{fontSize:13,fontWeight:800,color:C.strong}}>{ex.serie}×{ex.reps}</div>
+                                <button title={T.exTimerPrep} onClick={e=>{e.stopPropagation();setExTimer({mode:'prep',sec:3});}} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:13,padding:0,color:C.blue,lineHeight:1,display:'flex',alignItems:'center'}}>▶</button>
+                              </div>
+                              {ex.rec>0&&<button onClick={e=>{e.stopPropagation();setExTimer({mode:'rest',sec:ex.rec});}} title={T.exTimerRecov} style={{fontSize:10,color:'#f59e0b',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:5,padding:'2px 7px',cursor:'pointer',fontFamily:'inherit',marginTop:2}}>{'⏱ '+ex.rec+'s'}</button>}
                             </div>
                           </div>
                           {isSwapOpen&&<div style={{position:'absolute',top:'100%',right:8,zIndex:10,background:C.card,border:'1px solid '+C.border2,borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.35)',padding:8,minWidth:240,maxWidth:340}}>
@@ -5555,6 +5562,7 @@ footer .center b{color:#3b82f6;font-weight:700}
       </Modal>}
 
       {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)} T={T}/>}
+      {exTimer&&<ExerciseCountdown seconds={exTimer.sec} mode={exTimer.mode} T={T} onClose={()=>setExTimer(null)}/>}
       {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <FF label={T.genEquipLabel} name="genEquip" value={genEquip} onChange={e=>setGenEquip(e.target.value)} options={[{v:'gym',l:T.genEquipFull},{v:'home',l:T.genEquipHome},{v:'body',l:T.genEquipBody}]}/>
@@ -8254,6 +8262,54 @@ function ScoreBreakdown({pr,compact,T}){
 }
 
 // ── TIMER MODAL ──────────────────────────────────────────────────────────────
+function ExerciseCountdown({seconds,mode,T,onClose}){
+  const start=mode==='prep'?3:seconds;
+  const [t,setT]=React.useState(start);
+  const [go,setGo]=React.useState(false);
+  const done=mode==='rest'&&t===0;
+  const fmt=s=>{const m=Math.floor(s/60);const sec=s%60;return m>0?m+':'+(sec<10?'0':'')+sec:String(s);};
+
+  React.useEffect(()=>{
+    if(go)return;
+    const id=setInterval(()=>{
+      setT(prev=>{
+        if(prev<=1){
+          clearInterval(id);
+          if(mode==='prep'){setGo(true);setTimeout(onClose,900);}
+          return 0;
+        }
+        return prev-1;
+      });
+    },1000);
+    return()=>clearInterval(id);
+  },[go]);
+
+  const bigColor=go||done?'#22c55e':mode==='prep'?'#7c3aed':t<=5?'#ef4444':'#378ADD';
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9998}} onClick={()=>{if(!go)onClose();}}>
+      <div style={{background:'#fff',borderRadius:28,padding:'36px 44px',textAlign:'center',minWidth:240,boxShadow:'0 24px 64px rgba(0,0,0,0.45)'}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontSize:11,fontWeight:800,color:'#999',textTransform:'uppercase',letterSpacing:1.2,marginBottom:12}}>
+          {mode==='prep'?T.exTimerPrep:T.exTimerRecov}
+        </div>
+        <div style={{fontSize:go||done?68:96,fontWeight:900,color:bigColor,lineHeight:1,fontFamily:'monospace',fontVariantNumeric:'tabular-nums',transition:'color .3s',minHeight:110,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          {go?T.exTimerGo:done?T.exTimerDone:fmt(t)}
+        </div>
+        {mode==='rest'&&!done&&(
+          <div style={{marginTop:14,height:6,background:'#e5e7eb',borderRadius:999,overflow:'hidden'}}>
+            <div style={{height:'100%',background:t<=5?'#ef4444':'#378ADD',width:(seconds>0?t/seconds*100:0)+'%',transition:'width 1s linear',borderRadius:999}}/>
+          </div>
+        )}
+        {!go&&(
+          <button onClick={onClose} style={{marginTop:22,padding:'10px 28px',background:'#f1f5f9',border:'none',borderRadius:10,fontSize:13,color:'#555',cursor:'pointer',fontFamily:'inherit'}}>
+            {T.timerClose}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TimerModal({config,onClose,lang}){
   const T=LANGS[lang]?.t||LANGS.it.t;
   const {durata,titolo,descrizione,permettiFermaPrima,onSave}=config;
