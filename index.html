@@ -377,18 +377,6 @@ document.addEventListener('mouseout',function(e){
 });
 </script>
 <script>
-// ── PROTEZIONE CODICE ──
-document.addEventListener('contextmenu',function(e){e.preventDefault();});
-document.addEventListener('keydown',function(e){
-  // Blocca F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-  if(e.key==='F12')e.preventDefault();
-  if(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='i'))e.preventDefault();
-  if(e.ctrlKey&&e.shiftKey&&(e.key==='J'||e.key==='j'))e.preventDefault();
-  if(e.ctrlKey&&(e.key==='U'||e.key==='u'))e.preventDefault();
-  if(e.ctrlKey&&(e.key==='S'||e.key==='s'))e.preventDefault();
-});
-</script>
-<script>
 // Avviso nella console del browser
 console.log('%c⚠️ ATTENZIONE','font-size:24px;color:#ef4444;font-weight:900');
 console.log('%cQuesto software è protetto da copyright © 2026 PT Board.','font-size:14px;color:#f59e0b');
