@@ -6444,7 +6444,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               
               <div>
-                <div onClick={()=>{setPage('home');setSidebarOpen(false);}} style={{textAlign:'center',padding:'8px 0',cursor:'pointer'}}>
+                <div onClick={()=>{setPage('home');if(isMobile)setSidebarOpen(false);}} style={{textAlign:'center',padding:'8px 0',cursor:'pointer'}}>
               <div style={{fontSize:16,fontWeight:900,letterSpacing:0.5}}><span style={{color:'#3b82f6'}}>PT </span><span style={{color:isLight?'#0f172a':'#f1f5f9'}}>Board</span></div>
               <div style={{fontSize:10,fontWeight:700,color:'#e8c84a',letterSpacing:2,textTransform:'uppercase',marginTop:2}}></div>
             </div>
@@ -6457,7 +6457,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           <div style={{...S.navlbl,color:isLight?'#475569':'#cbd5e1'}}>Menu</div>
           {navItems.map(n=>{const act=page===n.id||((page==='detail'||page==='form')&&n.id==='patients');const locked=isNavLocked(n.id);const justUnlocked=justUnlockedItems.indexOf(n.id)!==-1;return(
             <div key={n.id} className="tt">
-              <button disabled={locked} aria-disabled={locked} className={justUnlocked?'nav-just-unlocked':undefined} style={{...S.navi(act),color:locked?(isLight?'#94a3b8':'#64748b'):(act?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9')),background:act?(isLight?C.blue+'15':C.blue+'30'):'transparent',opacity:locked?0.4:1,cursor:locked?'not-allowed':'pointer'}} onClick={()=>{if(locked)return;setPage(n.id);setSelectedId(null);setSidebarOpen(false);}}>
+              <button disabled={locked} aria-disabled={locked} className={justUnlocked?'nav-just-unlocked':undefined} style={{...S.navi(act),color:locked?(isLight?'#94a3b8':'#64748b'):(act?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9')),background:act?(isLight?C.blue+'15':C.blue+'30'):'transparent',opacity:locked?0.4:1,cursor:locked?'not-allowed':'pointer'}} onClick={()=>{if(locked)return;setPage(n.id);setSelectedId(null);if(isMobile)setSidebarOpen(false);}}>
                 <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
                 {locked&&<span style={{marginLeft:'auto',fontSize:12}}>🔒</span>}
               </button>
@@ -6465,14 +6465,14 @@ function AppInner({user,profile,setProfile,trialLeft}){
             </div>
           );})}
           <div className="tt">
-            <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
+            <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);if(isMobile)setSidebarOpen(false);}}>
               <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>{T.valutazione}</span>
             </button>
             <span className="tp">{T.obNewVal}</span>
           </div>
           <div style={{...S.navlbl,color:isLight?'#475569':'#cbd5e1'}}>{T.recent}</div>
           {patients.slice(-5).reverse().map(p=>(
-            <button key={p.id} style={{...S.navi(selectedId===p.id&&page==='detail'),gap:7,color:(selectedId===p.id&&page==='detail')?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9'),background:(selectedId===p.id&&page==='detail')?(isLight?C.blue+'15':C.blue+'30'):'transparent'}} onClick={()=>{setSelectedId(p.id);setPage('detail');setSidebarOpen(false);}}>
+            <button key={p.id} style={{...S.navi(selectedId===p.id&&page==='detail'),gap:7,color:(selectedId===p.id&&page==='detail')?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9'),background:(selectedId===p.id&&page==='detail')?(isLight?C.blue+'15':C.blue+'30'):'transparent'}} onClick={()=>{setSelectedId(p.id);setPage('detail');if(isMobile)setSidebarOpen(false);}}>
               <Avatar nome={p.nome} cognome={p.cognome} size={22} foto={p.foto||''}/>
               <span style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:12}}>{p.nome} {p.cognome}</span>
             </button>
