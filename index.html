@@ -564,7 +564,7 @@ const LANGS={
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
-    noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede cliente',
+    noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede cliente',homeSubtitle:'Gestisci clienti, valutazioni e allenamenti in un unico posto.',homeCard1Desc:'Crea un nuovo cliente con il wizard guidato',homeCard2Title:'I miei clienti',homeCard2Desc:'Vedi la lista completa e le schede',homeCard3Desc:'Panoramica rapida e statistiche',
     noData:'Dati insufficienti',
     tabDash:'Dashboard',tabAna:'Anagrafica',tabTest:'Test',tabProg:'Programma',tabStorico:'Progressi',
     tabSchede:'Allenamento',tabNutri:'Nutrizione',tabLog:'Log',tabStats:'Statistiche',
@@ -1256,11 +1256,11 @@ const LANGS={
     wizMwtPain:'Dolore',wizMwtStopped:'Test interrotto',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
-    dashboard:'Dashboard',patients:'Patients',calendar:'Calendar',exercises:'Exercises',
+    dashboard:'Dashboard',patients:'Clients',calendar:'Calendar',exercises:'Exercises',
     settings:'Settings',theme:'Theme',dark:'Dark',light:'Light',account:'Account',
     logout:'Sign out',language:'Language',
     addPatient:'+ New patient',search:'Search patient...',
-    noPatients:'No patients yet.\nStart with the Assessment.',
+    noPatients:'No clients yet.\nStart with the Assessment.',
     startVal:'🎯 Assessment',addManual:'+ Add manually',
     save:'Save',cancel:'Cancel',edit:'Edit',delete:'Delete',back:'Back',confirm:'Confirm',close:'Close',
     exportPdf:'📄 Export PDF',exportCsv:'📊 Export Excel',
@@ -1293,10 +1293,10 @@ const LANGS={
     trialDaysLeft3:'⚠️ Last {n} days of trial! Activate Pro to keep your data →',
     trialDaysLeft1:'⚠️ Last day of trial! Activate Pro to keep your data →',
     trialDaysLeft0:'⚠️ Your trial ends TODAY — Activate Pro now →',
-    noResult:'No patients found',admin:'👑 Admin',
-    totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
+    noResult:'No clients found',admin:'👑 Admin',
+    totalPatients:'Clients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
-    noApptToday:'No appointments today',noWeightData:'Add measurements in patient profiles',
+    noApptToday:'No appointments today',noWeightData:'Add measurements in patient profiles',homeSubtitle:'Manage clients, assessments and workouts in one place.',homeCard1Desc:'Create a new client with the guided wizard',homeCard2Title:'My Clients',homeCard2Desc:'See the full list and programs',homeCard3Desc:'Quick overview and statistics',
     noData:'Insufficient data',
     tabDash:'Dashboard',tabAna:'Profile',tabTest:'Tests',tabProg:'Program',tabStorico:'Progress',
     tabSchede:'Training',tabNutri:'Nutrition',tabLog:'Log',tabStats:'Statistics',
@@ -1988,11 +1988,11 @@ const LANGS={
     wizMwtPain:'Pain',wizMwtStopped:'Test stopped',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
-    dashboard:'Tableau de bord',patients:'Patients',calendar:'Calendrier',exercises:'Exercices',
+    dashboard:'Tableau de bord',patients:'Clients',calendar:'Calendrier',exercises:'Exercices',
     settings:'Paramètres',theme:'Thème',dark:'Sombre',light:'Clair',account:'Compte',
     logout:'Se déconnecter',language:'Langue',
     addPatient:'+ Nouveau patient',search:'Rechercher un patient...',
-    noPatients:"Aucun patient pour l'instant.\nCommencez par l'évaluation.",
+    noPatients:"Aucun client pour l'instant.\nCommencez par l'évaluation.",
     startVal:"🎯 Évaluation",addManual:'+ Ajouter manuellement',
     save:'Enregistrer',cancel:'Annuler',edit:'Modifier',delete:'Supprimer',back:'Retour',confirm:'Confirmer',close:'Fermer',
     exportPdf:'📄 Exporter PDF',exportCsv:'📊 Exporter Excel',
@@ -2025,10 +2025,10 @@ const LANGS={
     trialDaysLeft3:'⚠️ Derniers {n} jours d\'essai ! Activez Pro pour ne pas perdre vos données →',
     trialDaysLeft1:'⚠️ Dernier jour d\'essai ! Activez Pro pour ne pas perdre vos données →',
     trialDaysLeft0:'⚠️ Votre essai se termine AUJOURD\'HUI — Activez Pro maintenant →',
-    noResult:'Aucun patient trouvé',admin:'👑 Admin',
-    totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
+    noResult:'Aucun client trouvé',admin:'👑 Admin',
+    totalPatients:'Clients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
-    noApptToday:"Aucun rendez-vous aujourd'hui",noWeightData:'Ajoutez des mesures dans les fiches patient',
+    noApptToday:"Aucun rendez-vous aujourd'hui",noWeightData:'Ajoutez des mesures dans les fiches patient',homeSubtitle:'Gérez vos clients, évaluations et entraînements en un seul endroit.',homeCard1Desc:'Créez un nouveau client avec le wizard guidé',homeCard2Title:'Mes clients',homeCard2Desc:'Voir la liste complète et les fiches',homeCard3Desc:'Aperçu rapide et statistiques',
     noData:'Données insuffisantes',
     tabDash:'Tableau de bord',tabAna:'Profil',tabTest:'Tests',tabProg:'Programme',tabStorico:'Progression',
     tabSchede:'Entraînement',tabNutri:'Nutrition',tabLog:'Journal',tabStats:'Statistiques',
@@ -6006,7 +6006,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           );})}
           <div className="tt">
             <button data-wizard style={{...S.navi(false),background:'linear-gradient(135deg,#3b82f620,#10b98115)',border:'1px solid #3b82f640',marginTop:8}} onClick={()=>{setShowValutazione(true);setSidebarOpen(false);}}>
-              <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>Valutazione</span>
+              <span style={{fontSize:14}}>🎯</span><span style={{color:C.blue,fontWeight:700}}>{T.valutazione}</span>
             </button>
             <span className="tp">Avvia nuova valutazione cliente</span>
           </div>
@@ -6089,7 +6089,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               <div onClick={function(){setPage('home');}} style={{cursor:'pointer',flexShrink:0}}>
                 <div style={{fontSize:14,fontWeight:900,color:'#3b82f6',letterSpacing:0.5}}>PT Board</div>
               </div>
-              <div style={{flex:1,textAlign:'center',fontSize:13,color:C.muted}}>{tpNome?<span><span style={{fontWeight:600,color:C.text}}>{tpNome}{tpCognome?' '+tpCognome:''}</span> · PT Board</span>:'PT Board'}</div>
+              <div style={{flex:1,textAlign:'center',fontSize:13,color:C.muted}}>{tpNome?<span><span style={{fontWeight:600,color:C.text}}>{tpNome}{tpCognome?' '+tpCognome:''}</span> · PT Board</span>:(trainerProfile?.nomeStudio||'')}</div>
               {syncing&&<span style={{fontSize:11,color:C.blue,fontWeight:600}}>☁ Sincronizzazione...</span>}
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
               <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
@@ -6152,20 +6152,20 @@ function AppInner({user,profile,setProfile,trialLeft}){
             <div style={{animation:'fadeInUp .3s ease',maxWidth:600,margin:'0 auto',padding:isMobile?'20px 0':'40px 0'}}>
               <div style={{textAlign:'center',marginBottom:32}}>
                 <h1 style={{fontSize:isMobile?22:28,fontWeight:900,color:C.strong,margin:0}}>{T.welcome}</h1>
-                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>Gestisci clienti, valutazioni e allenamenti in un unico posto.</p>
+                <p style={{fontSize:13,color:C.muted,marginTop:8,lineHeight:1.6}}>{T.homeSubtitle}</p>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:12}}>
                 <button onClick={()=>setShowValutazione(true)} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#3b82f620,#10b98115)',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>🎯</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>Valutazione 20 min</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Crea un nuovo cliente con il wizard guidato</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.blue}}>{T.valutazione}</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.homeCard1Desc}</div></div>
                 </button>
                 <button onClick={()=>setPage('patients')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>👥</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>I miei clienti</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Vedi la lista completa e le schede</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>{T.homeCard2Title}</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.homeCard2Desc}</div></div>
                 </button>
                 <button onClick={()=>setPage('dash')} style={{display:'flex',alignItems:'center',gap:12,padding:'16px 20px',borderRadius:12,border:'1px solid '+C.border2,background:'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left'}}>
                   <span style={{fontSize:28}}>📊</span>
-                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>Dashboard</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Panoramica rapida e statistiche</div></div>
+                  <div><div style={{fontSize:15,fontWeight:700,color:C.strong}}>Dashboard</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>{T.homeCard3Desc}</div></div>
                 </button>
               </div>
             </div>
