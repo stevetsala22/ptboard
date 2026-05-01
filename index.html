@@ -4561,6 +4561,9 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       (p.programma&&p.programma.forza?'<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid #10b981;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:9px;font-weight:800;color:#10b981;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+T.pdfForza+'</div><div style="font-size:12px;color:#0f172a;line-height:1.5">'+esc(p.programma.forza)+'</div></div>':'')
     );
     var progKpiRows=p.programma?[[T.pdfProgStart,p.programma.dataInizio],[T.pdfProgSessions,p.programma.sedute],[T.pdfProgCardioMin,p.programma.minCardio?p.programma.minCardio+' min':'—'],[T.pdfProgForzaMin,p.programma.minForza?p.programma.minForza+' min':'—'],[T.progRpeTarget,p.programma.rpeRange||'—'],[T.progZonaFC,p.programma.zonaFC||'—']]:[];
+    var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
+    var prog2=pr2?generaProgramma({profilo:pr2.code,obiettivo:p.obiettivo||'',eta:eta2,sesso:p.sesso||'M',patologie:p.patologie||'',score:pr2.score,attivita:p.attivita||'Sedentaria',stress:p.stressPercepito||'Medio',infortuni:p.infortuni||''}):null;
+    var prof2CompHtml=(pr2?.components||[]).map(function(comp){var barC=comp.score>=70?'#10b981':comp.score>=40?'#f59e0b':'#ef4444';return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><div style="font-size:11px;font-weight:600;color:#0f172a">'+(comp.icon||'')+' '+esc(comp.label)+'</div><div style="font-size:10px;color:#64748b">'+esc(comp.val)+' &middot; <span style="font-weight:800;color:'+barC+'">'+comp.score+'/100</span></div></div><div style="height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:'+comp.score+'%;height:100%;background:'+barC+';border-radius:4px"></div></div></div>';}).join('');
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Report – ${esc(p.nome)} ${esc(p.cognome)}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -4622,6 +4625,18 @@ footer .center b{color:#3b82f6;font-weight:700}
     </div>
   </div>
   <div class="hdr-line"></div>
+
+  ${pr2?`<div style="padding:22px 26px;border-radius:14px;margin-bottom:22px;background:${profGrad};border:2px solid ${profBorder};box-shadow:0 1px 3px rgba(0,0,0,.06)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:22px;font-weight:900;color:${profBorder};letter-spacing:-.5px;line-height:1">${profLbl}</div>
+        <div style="font-size:13px;font-weight:700;color:#334155;margin-top:3px">${pr2.l}</div>
+      </div>
+      <div style="font-size:30px;font-weight:900;color:${profBorder};line-height:1;letter-spacing:-1px">${pr2.score}<span style="font-size:13px;font-weight:700;color:#64748b">/100</span></div>
+    </div>
+    ${prog2?.desc?`<div style="font-size:12px;color:#475569;line-height:1.6;margin-bottom:${prof2CompHtml?'16':'0'}px">${esc(prog2.desc)}</div>`:''}
+    ${prof2CompHtml?`<div style="background:rgba(255,255,255,.55);border-radius:10px;padding:14px 16px">${prof2CompHtml}</div>`:''}
+  </div>`:''}
 
   <div class="kpi-row">
     <div class="kpi bmi"><div class="kpi-val">${b2||'—'}</div><div class="kpi-lbl">BMI &middot; ${bl2}</div></div>
@@ -4685,6 +4700,10 @@ footer .center b{color:#3b82f6;font-weight:700}
       ${p.progressi.map(function(x){return '<div class="weight-card"><div class="weight-val">'+x.peso+' kg</div><div class="weight-date">'+esc(x.data)+'</div></div>';}).join('')}
     </div>
   </div>`:''}
+
+  ${prog2?.precauzioni?.length>0?`<div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-bottom:18px"><div style="font-size:11px;font-weight:800;color:#b45309;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">${T.wizPrecCliniche||'Precauzioni cliniche'}</div>${prog2.precauzioni.map(function(pc){return '<div style="font-size:11px;color:#78350f;line-height:1.6;padding:3px 0">'+esc(pc)+'</div>';}).join('')}</div>`:''}
+
+  ${prog2?.riferimenti?`<div style="font-size:9px;color:#94a3b8;font-style:italic;margin-bottom:14px;line-height:1.5">${prog2.riferimenti}</div>`:''}
 
   <div class="footer-line"></div>
   <footer>
