@@ -8355,8 +8355,10 @@ function TimerModal({config,onClose,lang}){
     if(running&&!finished){
       intervalRef.current=setInterval(()=>{
         setSecondiRimasti(s=>{
-          if(s<=1){clearInterval(intervalRef.current);setFinished(true);setRunning(false);return 0;}
-          return s-1;
+          const next=s<=1?0:s-1;
+          if(next===0){clearInterval(intervalRef.current);setFinished(true);setRunning(false);_playDone();}
+          else if(next<=10)_playTick();
+          return next;
         });
       },1000);
     }
