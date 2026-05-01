@@ -566,7 +566,7 @@ const LANGS={
     noResult:'Nessun cliente trovato',admin:'👑 Admin',
     totalPatients:'Clienti',sessions:'Sedute',todayLabel:'Oggi',
     appointmentsToday:'📅 Appuntamenti oggi',weightProgress:'📊 Progressi peso',
-    noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede cliente',
+    noApptToday:'Nessun appuntamento oggi',noWeightData:'Aggiungi misurazioni nelle schede cliente',greetMorn:'Buongiorno',greetAft:'Buon pomeriggio',greetEve:'Buonasera',greetWelcome:'Benvenuto',dashNextSession:'Prossima seduta',dashNoneToday:'Nessuna oggi',dashMetricsBiz:'📊 Metriche Business',dashNoMetrics:'📈 Inizia ad aggiungere sedute per vedere le metriche',dashActiveClients:'Clienti attivi',dashAvgSessions:'Media sedute/mese',dashRetention:'Retention %',dashSessWeekCard:'Sedute settimana',dashNext7d:'Prossimi 7gg',toastSend:'Invia',calErrSelectClient:'Seleziona un cliente',calErrDataReq:'Data obbligatoria',calErrOraReq:'Ora obbligatoria',schedaAddPeso:'Peso kg',schedaAddRec:'Rec. (s)',schedaAddBtn:'+ Aggiungi',schedaChoose:'-- Scegli --',
     noData:'Dati insufficienti',
     tabDash:'Dashboard',tabAna:'Anagrafica',tabTest:'Test',tabProg:'Programma',tabStorico:'Progressi',
     tabSchede:'Allenamento',tabNutri:'Nutrizione',tabLog:'Log',tabStats:'Statistiche',
@@ -794,7 +794,7 @@ const LANGS={
     nextSessions:'Prossime sedute',expired:'scadute',noScheduled:'Nessuna seduta programmata',
     completeBtn:'Completa',phRpe:'Sforzo percepito 0-10 (RPE)',phHowWent:'Come è andata?',
     bookSession:'+ Prenota seduta',sessionRecorded:'Seduta registrata!',sessionBooked:'Seduta prenotata',
-    confirmDeleteSession:'Eliminare questa seduta del',
+    confirmDeleteSession:'Eliminare questa seduta del',confirmDeletePatient:'⚠️ Eliminare {nome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.',ariaNavMain:'Menu principale',ariaOpenMenu:'Apri menu',
     enterDateTime:'Inserisci data e ora',noCompletedSessions:'Nessuna seduta completata',
     // Modal Booking
     bookSessionTitle:'Prenota seduta',
@@ -811,7 +811,7 @@ const LANGS={
     calcWith:'Calcolato con',noObjective:'nessun obiettivo',
     noNote:'Nessuna nota',noMealPlan:'Nessun piano pasti inserito',
     // Email
-    emailSessionRecap:'Riepilogo seduta',emailGoodJob:'Ottimo lavoro oggi!',
+    emailSessionRecap:'Riepilogo seduta',emailGoodJob:'Ottimo lavoro oggi!',emailEvalSubj:'Valutazione completata',emailEvalBody1:'La tua valutazione è stata completata!',emailEvalFit:'📊 Profilo fitness: ',emailEvalScore:'⭐ Score: ',emailEvalNext:'Nel prossimo incontro vedremo insieme il programma personalizzato.',
     emailSessionDetails:'Ecco il riepilogo della seduta:',emailIntensity:'Intensità:',
     emailKeepGoing:'Continua così! Alla prossima.',
     // Interp test labels
@@ -1406,7 +1406,7 @@ const LANGS={
     noResult:'No patients found',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Sessions',todayLabel:'Today',
     appointmentsToday:"📅 Today's appointments",weightProgress:'📊 Weight progress',
-    noApptToday:'No appointments today',noWeightData:'Add measurements in patient profiles',
+    noApptToday:'No appointments today',noWeightData:'Add measurements in patient profiles',greetMorn:'Good morning',greetAft:'Good afternoon',greetEve:'Good evening',greetWelcome:'Welcome',dashNextSession:'Next session',dashNoneToday:'None today',dashMetricsBiz:'📊 Business Metrics',dashNoMetrics:'📈 Add sessions to see metrics',dashActiveClients:'Active clients',dashAvgSessions:'Avg sessions/month',dashRetention:'Retention %',dashSessWeekCard:'Sessions this week',dashNext7d:'Next 7 days',toastSend:'Send',calErrSelectClient:'Select a client',calErrDataReq:'Date required',calErrOraReq:'Time required',schedaAddPeso:'Weight kg',schedaAddRec:'Rest (s)',schedaAddBtn:'+ Add',schedaChoose:'-- Choose --',
     noData:'Insufficient data',
     tabDash:'Dashboard',tabAna:'Profile',tabTest:'Tests',tabProg:'Program',tabStorico:'Progress',
     tabSchede:'Training',tabNutri:'Nutrition',tabLog:'Log',tabStats:'Statistics',
@@ -1634,7 +1634,7 @@ const LANGS={
     nextSessions:'Upcoming sessions',expired:'expired',noScheduled:'No sessions scheduled',
     completeBtn:'Complete',phRpe:'Perceived effort 0-10 (RPE)',phHowWent:'How did it go?',
     bookSession:'+ Book session',sessionRecorded:'Session recorded!',sessionBooked:'Session booked',
-    confirmDeleteSession:'Delete this session on',
+    confirmDeleteSession:'Delete this session on',confirmDeletePatient:'⚠️ Delete {nome}? All data will be lost. You have 5 seconds to cancel.',ariaNavMain:'Main menu',ariaOpenMenu:'Open menu',
     enterDateTime:'Enter date and time',noCompletedSessions:'No completed sessions',
     // Modal Booking
     bookSessionTitle:'Book session',
@@ -1651,7 +1651,7 @@ const LANGS={
     calcWith:'Calculated with',noObjective:'no objective',
     noNote:'No notes',noMealPlan:'No meal plan entered',
     // Email
-    emailSessionRecap:'Session recap',emailGoodJob:'Great job today!',
+    emailSessionRecap:'Session recap',emailGoodJob:'Great job today!',emailEvalSubj:'Assessment completed',emailEvalBody1:'Your assessment has been completed!',emailEvalFit:'📊 Fitness profile: ',emailEvalScore:'⭐ Score: ',emailEvalNext:'In our next session we will review your personalised programme together.',
     emailSessionDetails:"Here's your session recap:",emailIntensity:'Intensity:',
     emailKeepGoing:'Keep it up! See you next time.',
     // Interp test labels
@@ -2246,7 +2246,7 @@ const LANGS={
     noResult:'Aucun patient trouvé',admin:'👑 Admin',
     totalPatients:'Patients',sessions:'Séances',todayLabel:"Aujourd'hui",
     appointmentsToday:"📅 Rendez-vous aujourd'hui",weightProgress:'📊 Progrès poids',
-    noApptToday:"Aucun rendez-vous aujourd'hui",noWeightData:'Ajoutez des mesures dans les fiches patient',
+    noApptToday:"Aucun rendez-vous aujourd'hui",noWeightData:'Ajoutez des mesures dans les fiches patient',greetMorn:'Bonjour',greetAft:'Bon après-midi',greetEve:'Bonsoir',greetWelcome:'Bienvenue',dashNextSession:'Prochaine séance',dashNoneToday:'Aucune aujourd\'hui',dashMetricsBiz:'📊 Métriques Business',dashNoMetrics:'📈 Ajoutez des séances pour voir les métriques',dashActiveClients:'Clients actifs',dashAvgSessions:'Séances moy./mois',dashRetention:'Rétention %',dashSessWeekCard:'Séances cette semaine',dashNext7d:'7 prochains jours',toastSend:'Envoyer',calErrSelectClient:'Sélectionner un client',calErrDataReq:'Date obligatoire',calErrOraReq:'Heure obligatoire',schedaAddPeso:'Poids kg',schedaAddRec:'Repos (s)',schedaAddBtn:'+ Ajouter',schedaChoose:'-- Choisir --',
     noData:'Données insuffisantes',
     tabDash:'Tableau de bord',tabAna:'Profil',tabTest:'Tests',tabProg:'Programme',tabStorico:'Progression',
     tabSchede:'Entraînement',tabNutri:'Nutrition',tabLog:'Journal',tabStats:'Statistiques',
@@ -2474,7 +2474,7 @@ const LANGS={
     nextSessions:'Prochaines séances',expired:'expirées',noScheduled:'Aucune séance programmée',
     completeBtn:'Terminer',phRpe:'Effort perçu 0-10 (RPE)',phHowWent:"Comment ça s'est passé ?",
     bookSession:'+ Réserver séance',sessionRecorded:'Séance enregistrée !',sessionBooked:'Séance réservée',
-    confirmDeleteSession:'Supprimer cette séance du',
+    confirmDeleteSession:'Supprimer cette séance du',confirmDeletePatient:'⚠️ Supprimer {nome} ? Toutes les données seront perdues. Vous avez 5 secondes pour annuler.',ariaNavMain:'Menu principal',ariaOpenMenu:'Ouvrir le menu',
     enterDateTime:'Entrer date et heure',noCompletedSessions:'Aucune séance terminée',
     // Modal Booking
     bookSessionTitle:'Réserver séance',
@@ -2491,7 +2491,7 @@ const LANGS={
     calcWith:'Calculé avec',noObjective:'aucun objectif',
     noNote:'Aucune note',noMealPlan:'Aucun plan de repas saisi',
     // Email
-    emailSessionRecap:'Récapitulatif séance',emailGoodJob:"Excellent travail aujourd'hui !",
+    emailSessionRecap:'Récapitulatif séance',emailGoodJob:"Excellent travail aujourd'hui !",emailEvalSubj:'Évaluation terminée',emailEvalBody1:'Votre évaluation a été complétée !',emailEvalFit:'📊 Profil fitness : ',emailEvalScore:'⭐ Score : ',emailEvalNext:'Lors de notre prochaine séance, nous examinerons ensemble votre programme personnalisé.',
     emailSessionDetails:'Voici le récapitulatif de la séance :',emailIntensity:'Intensité :',
     emailKeepGoing:'Continuez ! À la prochaine.',
     // Interp test labels
@@ -3917,9 +3917,9 @@ function ToastItem({item,onRemove}){
       <div style={{display:'flex',alignItems:'center',gap:10}}>
         <div style={{width:28,height:28,borderRadius:'50%',background:bg+'20',border:`1px solid ${bg}40`,display:'flex',alignItems:'center',justifyContent:'center',color:bg,fontWeight:700,fontSize:14,flexShrink:0}}>{icon}</div>
         <div style={{flex:1,fontSize:13,color:C.text,lineHeight:1.4}}>{item.msg}</div>
-        {isConfirm&&<button onClick={handleCancel} style={{background:'#ef444420',color:C.red,border:'1px solid #ef444440',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0}}>Annulla</button>}
+        {isConfirm&&<button onClick={handleCancel} style={{background:'#ef444420',color:C.red,border:'1px solid #ef444440',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer',flexShrink:0}}>{gT().cancel}</button>}
         {isAsk&&<div style={{display:'flex',gap:6,flexShrink:0}}>
-          <button onClick={()=>{cancelled.current=true;closeToast();item.action();}} style={{background:C.blue,color:'#fff',border:'none',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer'}}>Invia</button>
+          <button onClick={()=>{cancelled.current=true;closeToast();item.action();}} style={{background:C.blue,color:'#fff',border:'none',borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer'}}>{gT().toastSend}</button>
           <button onClick={()=>{cancelled.current=true;closeToast();}} style={{background:'transparent',color:C.muted,border:`1px solid ${C.border2}`,borderRadius:7,padding:'4px 10px',fontSize:12,fontWeight:700,cursor:'pointer'}}>No</button>
         </div>}
         {!isConfirm&&!isAsk&&<button onClick={closeToast} style={{background:'transparent',border:'none',cursor:'pointer',color:C.muted,fontSize:16,padding:'0 2px',lineHeight:1}}>✕</button>}
@@ -3998,7 +3998,7 @@ function Modal({title,onClose,children,width='520px'}){
         {isMobile&&<div style={{width:40,height:4,borderRadius:2,background:C.border2,margin:'0 auto 16px'}}/>}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <h3 style={{fontSize:15,fontWeight:700,color:C.strong,margin:0}}>{title}</h3>
-          <button aria-label="Chiudi" style={{...S.btn('ghost',true),padding:'4px 8px'}} onClick={onClose}>✕</button>
+          <button aria-label={gT().close} style={{...S.btn('ghost',true),padding:'4px 8px'}} onClick={onClose}>✕</button>
         </div>
         {children}
       </div>
@@ -4071,9 +4071,9 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
   const todayBookings=bookings.filter(b=>new Date(b.data).toLocaleDateString('it-IT')===today);
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
   var nextAppt=todayBookings.sort(function(a,b2){return(a.ora||'').localeCompare(b2.ora||'')})[0];
-  var nextApptLabel='Prossima seduta';
+  var nextApptLabel=T.dashNextSession;
   var nextApptVal=nextAppt?nextAppt.ora:'--:--';
-  var nextApptSub=nextAppt?(function(){var pp=patients.find(function(x){return x.id===nextAppt.patientId});return pp?(pp.nome+' '+pp.cognome):'';})():'Nessuna oggi';
+  var nextApptSub=nextAppt?(function(){var pp=patients.find(function(x){return x.id===nextAppt.patientId});return pp?(pp.nome+' '+pp.cognome):'';})():T.dashNoneToday;
   var hasAssessment=function(p){return !!(p&&p.test&&(p.test.mwtDist||p.test.stsRip));};
   var hasProgram=function(p){return !!(p&&p.programma&&p.programma.sedute);};
   var fullName=function(p){return p?(p.nome+' '+p.cognome).trim():'';};
@@ -4163,10 +4163,10 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
       </div>}
       <div style={{marginBottom:14,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <div>
-          <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{(function(){var h=new Date().getHours();var g=h>=5&&h<12?'Buongiorno':h>=12&&h<18?'Buon pomeriggio':'Buonasera';var n=trainerProfile?.nome||trainerProfile?.displayName||'';return n?g+', '+n+'!':'Dashboard';})()}</h1>
+          <h1 style={{fontSize:isMobile?18:20,fontWeight:800,color:C.strong}}>{(function(){var h=new Date().getHours();var g=h>=5&&h<12?T.greetMorn:h>=12&&h<18?T.greetAft:T.greetEve;var n=trainerProfile?.nome||trainerProfile?.displayName||'';return n?g+', '+n+'!':T.greetWelcome;})()}</h1>
           <p style={{fontSize:13,color:C.muted,marginTop:3}}>{today}</p>
         </div>
-        {patients.length>0&&<button onClick={()=>exportPDFLista(patients,trainerProfile,lang)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📄 Export PDF</button>}
+        {patients.length>0&&<button onClick={()=>exportPDFLista(patients,trainerProfile,getLang())} style={{padding:'8px 14px',borderRadius:8,border:'1px solid '+C.border2,background:'transparent',color:C.dim,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>📄 Export PDF</button>}
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
         <StatCard label={T.totalPatients} value={patients.length} color={C.blue} icon="👥" delay={0} onClick={onNavigate?function(){onNavigate('patients');}:undefined}/>
@@ -4199,20 +4199,20 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
         return(
           <div style={{...S.card,marginTop:14}}>
             <button type="button" onClick={()=>setMetricsOpen(v=>!v)} aria-expanded={metricsOpen} style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%',background:'none',border:'none',padding:0,margin:0,cursor:'pointer',fontFamily:'inherit',color:'inherit',textAlign:'left'}}>
-              <div style={S.st}>📊 Metriche Business</div>
+              <div style={S.st}>{T.dashMetricsBiz}</div>
               <span style={{fontSize:12,color:C.muted,transition:'transform .25s ease',transform:metricsOpen?'rotate(180deg)':'rotate(0deg)',display:'inline-block',marginLeft:8}}>▼</span>
             </button>
             <div style={{overflow:'hidden',maxHeight:metricsOpen?2000:0,opacity:metricsOpen?1:0,transition:'max-height .35s ease, opacity .25s ease',marginTop:metricsOpen?12:0}}>
             {noData?(
-              <div style={{textAlign:'center',padding:'24px 0',color:C.muted,fontSize:13}}>📈 Inizia ad aggiungere sedute per vedere le metriche</div>
+              <div style={{textAlign:'center',padding:'24px 0',color:C.muted,fontSize:13}}>{T.dashNoMetrics}</div>
             ):(
               <>
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(3,1fr)',gap:isMobile?8:12,marginBottom:16}}>
-                  <StatCard label="Clienti attivi" value={active.length+' / '+patients.length} color={C.blue} icon="👥" delay={0}/>
-                  <StatCard label="Media sedute/mese" value={mediaSedute!==null?mediaSedute:'—'} color={C.green} icon="📋" delay={0.05}/>
-                  <StatCard label="Retention %" value={retention!==null?retention+'%':'—'} color={C.purple} icon="🔄" delay={0.1}/>
-                  <StatCard label="Sedute settimana" value={<span>{sedute7} <span style={{color:arrow.c,fontWeight:800,fontSize:13}}>{arrow.s}</span></span>} color={C.cyan} icon="💪" delay={0.15}/>
-                  <StatCard label="Prossimi 7gg" value={prossimi7} color={C.orange} icon="📅" delay={0.2}/>
+                  <StatCard label={T.dashActiveClients} value={active.length+' / '+patients.length} color={C.blue} icon="👥" delay={0}/>
+                  <StatCard label={T.dashAvgSessions} value={mediaSedute!==null?mediaSedute:'—'} color={C.green} icon="📋" delay={0.05}/>
+                  <StatCard label={T.dashRetention} value={retention!==null?retention+'%':'—'} color={C.purple} icon="🔄" delay={0.1}/>
+                  <StatCard label={T.dashSessWeekCard} value={<span>{sedute7} <span style={{color:arrow.c,fontWeight:800,fontSize:13}}>{arrow.s}</span></span>} color={C.cyan} icon="💪" delay={0.15}/>
+                  <StatCard label={T.dashNext7d} value={prossimi7} color={C.orange} icon="📅" delay={0.2}/>
                 </div>
                 <div style={S.st}>{T.dashSedWeek}</div>
                 <BarChartComp data={weekData} color={C.blue} T={T}/>
@@ -4225,7 +4225,7 @@ function Dashboard({patients,bookings,T,onNavigate,trainerProfile,onboardingStep
       <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:isMobile?10:14,marginTop:14}}>
         <div style={S.card}>
           <div style={S.st}>{T.appointmentsToday}</div>
-          {todayBookings.length===0&&<div style={{textAlign:'center',padding:'20px 0'}}><div style={{fontSize:36,marginBottom:8}}>&#9728;&#65039;</div><div style={{color:C.muted,fontSize:13,lineHeight:1.6}}>Nessun appuntamento oggi.<br/>Goditi la pausa!</div></div>}
+          {todayBookings.length===0&&<div style={{textAlign:'center',padding:'20px 0'}}><div style={{fontSize:36,marginBottom:8}}>&#9728;&#65039;</div><div style={{color:C.muted,fontSize:13,lineHeight:1.6}}>{T.noApptToday}.<br/>{T.dashFreeDay}</div></div>}
           {todayBookings.map(b=>{
             const p=patients.find(x=>x.id===b.patientId);
             return(
@@ -4314,8 +4314,8 @@ function PatientList({patients,onSelect,onAdd,onNewVal,search,T}){
               </div>
               <div style={{display:'flex',gap:isMobile?10:18,alignItems:'center',flexShrink:0}}>
                 {!isMobile&&b>0&&<div style={{textAlign:'center'}}><div style={{fontSize:16,fontWeight:800,color:C.strong}}>{b}</div><div style={{fontSize:10,color:bc,fontWeight:600}}>BMI</div></div>}
-                {pr&&<span style={{...S.tag(pr.c,pr.bg),fontSize:isMobile?13:11,padding:isMobile?'4px 12px':'2px 9px'}}>{pr.code==='A'?'Forma Bassa':pr.code==='B'?'Forma Media':'Buona Forma'}</span>}
-                {!isMobile&&<div style={{textAlign:'center'}}><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{p.log?.length||0}</div><div style={{fontSize:10,color:C.muted}}>sedute</div></div>}
+                {pr&&<span style={{...S.tag(pr.c,pr.bg),fontSize:isMobile?13:11,padding:isMobile?'4px 12px':'2px 9px'}}>{pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:T.profileGoodShort}</span>}
+                {!isMobile&&<div style={{textAlign:'center'}}><div style={{fontSize:14,fontWeight:700,color:C.strong}}>{p.log?.length||0}</div><div style={{fontSize:10,color:C.muted}}>{T.calSessions}</div></div>}
               </div>
             </div>
           );
@@ -4369,7 +4369,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
     const numEx=(scheda.esercizi||[]).length;
     const hasSezioni=(scheda.esercizi||[]).some(function(ex){return ex.sezione;});
     const equipVal=scheda.config?.equip||'gym';
-    const equipLabel=equipVal==='gym'?'Palestra':equipVal==='home'?'Home gym':'Corpo libero';
+    const equipLabel=equipVal==='gym'?T.equipGym:equipVal==='home'?T.equipHome:T.equipBody;
     // Colori sezioni (Upper / Lower / Push / Pull / Legs / Full Body) — no emoji
     const sectionIcon=function(name){
       var n=(name||'').toLowerCase();
@@ -5605,31 +5605,31 @@ function SchedaModal({exercises,onSave,onClose,T}){
     <Modal title={_T.schedaModalTitle} onClose={onClose} width="660px">
       <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 1fr',gap:12,marginBottom:16}}>
         <FF label={_T.schedaNome} name="nome" value={form.nome} onChange={upd}/>
-        <FF label="Tipo" name="tipo" value={form.tipo} onChange={upd} options={['Forza','Cardio','Funzionale','Mobilità','Full Body','Upper','Lower','HIIT']}/>
+        <FF label={_T.calType} name="tipo" value={form.tipo} onChange={upd} options={['Forza','Cardio','Funzionale','Mobilità','Full Body','Upper','Lower','HIIT']}/>
         <FF label={_T.fDate} name="data" value={form.data} onChange={upd}/>
       </div>
       <div style={{...S.card,marginBottom:14}}>
         <div style={S.st}>{_T.schedaAddExTitle}</div>
         <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'2fr 1fr 1fr 1fr 1fr',gap:8,alignItems:'end'}}>
           <div style={{gridColumn:isMobile?'1 / -1':'auto'}}>
-            <FF label="Esercizio" name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:'-- Scegli --'}].concat(exercises.map(e=>({v:e.id,l:e.nome+' ('+e.cat+')'})))}/>
+            <FF label={_T.tblExercise} name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:_T.schedaChoose}].concat(exercises.map(e=>({v:e.id,l:exName(e,getLang())+' ('+e.cat+')'})))}/>
           </div>
-          <FF label="Serie" name="serie" type="number" value={addEx.serie} onChange={e=>setAddEx(f=>({...f,serie:+e.target.value}))}/>
-          <FF label="Rip." name="reps" type="number" value={addEx.reps} onChange={e=>setAddEx(f=>({...f,reps:+e.target.value}))}/>
-          <FF label="Peso kg" name="peso" value={addEx.peso} onChange={e=>setAddEx(f=>({...f,peso:e.target.value}))}/>
-          <FF label="Rec. (s)" name="rec" type="number" value={addEx.rec} onChange={e=>setAddEx(f=>({...f,rec:+e.target.value}))}/>
+          <FF label={_T.tblSets} name="serie" type="number" value={addEx.serie} onChange={e=>setAddEx(f=>({...f,serie:+e.target.value}))}/>
+          <FF label={_T.tblReps} name="reps" type="number" value={addEx.reps} onChange={e=>setAddEx(f=>({...f,reps:+e.target.value}))}/>
+          <FF label={_T.schedaAddPeso} name="peso" value={addEx.peso} onChange={e=>setAddEx(f=>({...f,peso:e.target.value}))}/>
+          <FF label={_T.schedaAddRec} name="rec" type="number" value={addEx.rec} onChange={e=>setAddEx(f=>({...f,rec:+e.target.value}))}/>
         </div>
-        <button style={{...S.btn('success',true),marginTop:8}} onClick={()=>{if(addEx.eId){setForm(f=>({...f,esercizi:[...f.esercizi,{...addEx}]}));setAddEx({eId:'',serie:3,reps:12,peso:'',rec:60})}}}>+ Aggiungi</button>
+        <button style={{...S.btn('success',true),marginTop:8}} onClick={()=>{if(addEx.eId){setForm(f=>({...f,esercizi:[...f.esercizi,{...addEx}]}));setAddEx({eId:'',serie:3,reps:12,peso:'',rec:60})}}}>{_T.schedaAddBtn}</button>
       </div>
       {form.esercizi.length>0&&(
         <div style={{marginBottom:14}}>
-          <div style={S.st}>Esercizi ({form.esercizi.length})</div>
+          <div style={S.st}>{_T.schedaEsercizi.charAt(0).toUpperCase()+_T.schedaEsercizi.slice(1)} ({form.esercizi.length})</div>
           {form.esercizi.map((ex,i)=>{
             const info=exercises.find(e=>e.id===ex.eId);
             return(
               <div key={ex.eId+'-'+i} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:5}}>
                 <span style={{fontSize:12,color:C.blue,fontWeight:700,minWidth:20}}>{i+1}</span>
-                <span style={{flex:1,fontSize:13,color:C.strong}}>{info?.nome}</span>
+                <span style={{flex:1,fontSize:13,color:C.strong}}>{exName(info,getLang())}</span>
                 <span style={{fontSize:12,color:C.muted}}>{ex.serie}×{ex.reps}{ex.peso?` @ ${ex.peso}kg`:''} · rec {ex.rec}s</span>
                 <button style={{...S.btn('danger',true),padding:'2px 7px'}} onClick={()=>setForm(f=>({...f,esercizi:f.esercizi.filter((_,ii)=>ii!==i)}))}>✕</button>
               </div>
@@ -5662,9 +5662,9 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
   const touchB=n=>setBTouched(t=>({...t,[n]:true}));
   const bErr=field=>{
     if(!bTouched[field])return null;
-    if(field==='patientId'&&!newB.patientId)return'Seleziona un cliente';
-    if(field==='data'&&!newB.data)return'Data obbligatoria';
-    if(field==='ora'&&!newB.ora)return'Ora obbligatoria';
+    if(field==='patientId'&&!newB.patientId)return T.calErrSelectClient;
+    if(field==='data'&&!newB.data)return T.calErrDataReq;
+    if(field==='ora'&&!newB.ora)return T.calErrOraReq;
     return null;
   };
   const canBook=newB.patientId&&newB.data&&newB.ora;
@@ -6011,18 +6011,18 @@ function ExercisesPage({exercises,setExercises,T}){
       {showModal&&(
         <Modal title={editing?T.exEdit:T.exAdd} onClose={()=>setShowModal(false)}>
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            <FF label="Nome" name="nome" value={form.nome} onChange={upd}/>
+            <FF label={T.exName} name="nome" value={form.nome} onChange={upd}/>
             <div style={S.grid(2)}>
-              <FF label="Categoria" name="cat" value={form.cat} onChange={upd} options={['Forza','Cardio','Core','Mobilità','Mobilita','Funzionale']}/>
-              <FF label="Muscoli" name="muscoli" value={form.muscoli} onChange={upd}/>
+              <FF label={T.exCat} name="cat" value={form.cat} onChange={upd} options={['Forza','Cardio','Core','Mobilità','Mobilita','Funzionale']}/>
+              <FF label={T.exMuscle} name="muscoli" value={form.muscoli} onChange={upd}/>
             </div>
-            <FF label="Livello" name="livello" value={form.livello} onChange={upd} options={['base','intermedio','avanzato']}/>
+            <FF label={T.tblLevel} name="livello" value={form.livello} onChange={upd} options={['base','intermedio','avanzato']}/>
             <div style={S.grid(2)}>
               <FF label={T.exEquip} name="equip" value={form.equip} onChange={upd} options={[{v:'gym',l:T.equipGym},{v:'home',l:T.equipHome},{v:'body',l:T.equipBody},{v:'any',l:T.equipAny}]}/>
               <FF label={T.exMove} name="move" value={form.move} onChange={upd} options={[{v:'push',l:T.movePush},{v:'pull',l:T.movePull},{v:'legs',l:T.moveLegs},{v:'core',l:T.moveCore},{v:'cardio',l:T.moveCardio}]}/>
             </div>
             <FF label={T.exPrimary} name="primary" value={form.primary} onChange={upd} options={[{v:'petto',l:T.musPetto},{v:'dorso',l:T.musDorso},{v:'spalle',l:T.musSpalle},{v:'bicipiti',l:T.musBicipiti},{v:'tricipiti',l:T.musTricipiti},{v:'quadricipiti',l:T.musQuadricipiti},{v:'femorali',l:T.musFemorali},{v:'glutei',l:T.musGlutei},{v:'polpacci',l:T.musPolpacci},{v:'core',l:T.musCore},{v:'cardio',l:T.musCardio},{v:'fullbody',l:T.musFullbody}]}/>
-            <FF label="Descrizione / note tecniche" name="desc" type="textarea" value={form.desc} onChange={upd}/>
+            <FF label={T.exDesc} name="desc" type="textarea" value={form.desc} onChange={upd}/>
           </div>
           <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
             <button style={S.btn('ghost')} onClick={()=>setShowModal(false)}>{T.cancel}</button>
@@ -6256,8 +6256,8 @@ function AppInner({user,profile,setProfile,trialLeft}){
   var tpCognome=trainerProfile?.cognome||'';
   var tpInitials=(tpNome?tpNome.charAt(0):'')+(tpCognome?tpCognome.charAt(0):'');
   var greetHour=new Date().getHours();
-  var greetText=greetHour>=5&&greetHour<12?'Buongiorno':greetHour>=12&&greetHour<18?'Buon pomeriggio':'Buonasera';
-  var greetFull=tpNome?(greetText+', '+tpNome):'Benvenuto';
+  var greetText=greetHour>=5&&greetHour<12?T.greetMorn:greetHour>=12&&greetHour<18?T.greetAft:T.greetEve;
+  var greetFull=tpNome?(greetText+', '+tpNome):T.greetWelcome;
   const stored=load();
   const [patients,setPatients]=useState(stored?.patients?.length?stored.patients:INIT_PATIENTS);
   const [bookings,setBookings]=useState(stored?.bookings||INIT_BOOKINGS);
@@ -6447,7 +6447,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
       {sidebarOpen&&isMobile&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000070',zIndex:50}}/>}
 
       {/* Sidebar */}
-      <nav role="navigation" aria-label="Menu principale" style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
+      <nav role="navigation" aria-label={T.ariaNavMain} style={{...S.sb,position:'fixed',top:0,left:0,height:'100%',zIndex:100,
         transform:(sidebarOpen&&!showValutazione)?'translateX(0)':'translateX(-100%)',
         transition:'transform .25s ease',boxShadow:(isMobile&&sidebarOpen)?'4px 0 20px #0008':'none'}}>
         <div style={S.sbh}>
@@ -6540,7 +6540,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
       {/* Main content — occupa tutto lo schermo */}
       <main role="main" style={{...S.main,width:'100%',marginLeft:(sidebarOpen&&!isMobile&&!showValutazione)?220:0,transition:'margin-left .25s ease'}}>
         <div style={{...S.topbar,position:'relative',height:isMobile?56:52}}>
-          <button aria-label="Apri menu" onClick={function(){if(showValutazione)return;setSidebarOpen(function(v){return!v;});}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
+          <button aria-label={T.ariaOpenMenu} onClick={function(){if(showValutazione)return;setSidebarOpen(function(v){return!v;});}} style={{background:'transparent',border:'none',cursor:'pointer',color:C.dim,fontSize:22,padding:'4px 8px',borderRadius:6,flexShrink:0,lineHeight:1}}>☰</button>
           {isMobile?(
             <>
               <div onClick={function(){setPage('home');}} style={{cursor:'pointer',flexShrink:0}}>
@@ -6644,7 +6644,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           )}
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile} onboardingStep={onboardingStep} onCreateClient={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form');}} onStartWizard={()=>{setShowValutazione(true);}} onOpenPatient={(id)=>{setSelectedId(id);setPage('detail');}} onValuta={(p)=>{setReevalPatient(p);setShowValutazione(true);}}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(`⚠️ Eliminare ${selected.nome} ${selected.cognome}? Tutti i dati verranno persi. Hai 5 secondi per annullare.`,()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(T.confirmDeletePatient.replace('{nome}',selected.nome+' '+selected.cognome),()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew} lang={lang}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
@@ -6671,7 +6671,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
             setShowValutazione(false);
             setSelectedId(id);setPage('detail');
           }
-          askSendEmail({pat:p,subject:'Valutazione completata',message:'La tua valutazione è stata completata!\n\n📊 Profilo fitness: '+(pr2?.code==='A'?'Forma Bassa':pr2?.code==='B'?'Forma Media':pr2?.code==='C'?'Buona Forma':'-')+'\n⭐ Score: '+(sc2?.score||'-')+'/100\n\nNel prossimo incontro vedremo insieme il programma personalizzato.\n\n[nomeMittente]',trainerProfile});
+          askSendEmail({pat:p,subject:T.emailEvalSubj,message:T.emailEvalBody1+'\n\n'+T.emailEvalFit+(pr2?.code==='A'?T.profileLowShort:pr2?.code==='B'?T.profileMedShort:pr2?.code==='C'?T.profileGoodShort:'-')+'\n'+T.emailEvalScore+(sc2?.score||'-')+'/100\n\n'+T.emailEvalNext+'\n\n[nomeMittente]',trainerProfile});
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
