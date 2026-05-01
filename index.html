@@ -91,12 +91,7 @@ if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
   var came=sessionStorage.getItem('entered');
   if(!came&&!document.referrer.includes('personaltrainerboard.com')){
     sessionStorage.setItem('entered','1');
-    fetch('/landing.html').then(function(r){return r.text();}).then(function(html){
-      document.open();
-      document.write(html);
-      document.close();
-      history.replaceState(null,'','/');
-    });
+    window.location.replace('/landing.html');
   }
 }
 </script>
