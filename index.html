@@ -453,62 +453,6 @@ const exportCSV=(patients)=>{
   a.click();URL.revokeObjectURL(url);
 };
 
-// ── PDF LISTA CLIENTI ─────────────────────────────────────────────────────
-const exportPDFLista=(patients,trainerProfile,lang)=>{
-  const T=LANGS[lang]?.t||LANGS.it.t;
-  const locale=lang==='en'?'en-GB':lang==='fr'?'fr-FR':'it-IT';
-  const pdfC=trainerProfile?.primaryColor||'#3b82f6';
-  const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
-  const logoHtml=trainerProfile?.logo?'<img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;object-fit:contain"/>':'<div style="font-size:22px;font-weight:900;color:'+pdfC+'">PT Board</div>';
-  const dataOggi=new Date().toLocaleDateString(locale);
-  const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
-  const righe=patients.map((p,i)=>{
-    const b=p.peso&&p.altezza?(p.peso/(p.altezza/100)**2).toFixed(1):'—';
-    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
-    const bg=i%2===0?'#f8fafc':'#ffffff';
-    return '<tr style="background:'+bg+'">'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;font-weight:600">'+esc(p.nome)+' '+esc(p.cognome)+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.sesso||'—')+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b">'+(p.peso?p.peso+' kg':'—')+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b">'+b+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;text-align:center">'+(pr?'<span style="background:'+(pr.c)+'20;color:'+pr.c+';padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px">'+pr.code+'</span>':'—')+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.obiettivo||'—')+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.patologie||'—')+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;text-align:center">'+(p.log?.length||0)+'</td>'+
-      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.dataValutazione||'—')+'</td>'+
-    '</tr>';
-  }).join('');
-  const html='<!DOCTYPE html><html lang="'+(lang||'it')+'"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+T.pdfListTitle+' — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
-    '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid '+pdfC+'">'+
-    '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfBackToApp+'</button>'+
-    '<button onclick="window.print()" style="background:'+pdfC+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfPrint+'</button>'+
-    '</div>'+
-    '<div style="max-width:1100px;margin:0 auto;padding:40px">'+
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid '+pdfC+';padding-bottom:20px;margin-bottom:24px">'+
-    '<div>'+logoHtml+'<div style="font-size:11px;color:#64748b;margin-top:8px">'+T.pdfListTitle+' — '+dataOggi+'</div></div>'+
-    '<div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">'+patients.length+' '+T.patients+'</div><div style="font-size:13px;color:#64748b;margin-top:4px">'+totSedute+' '+T.pdfListTotSes+'</div></div>'+
-    '</div>'+
-    '<table style="width:100%;border-collapse:collapse">'+
-    '<thead><tr style="background:'+pdfC+'">'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListClient+'</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfGender+'</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListWeight+'</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">BMI</th>'+
-    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.profileCode+'</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfGoal+'</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfPath+'</th>'+
-    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.sessions+'</th>'+
-    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListLastAss+'</th>'+
-    '</tr></thead>'+
-    '<tbody>'+righe+'</tbody>'+
-    '</table>'+
-    '<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">'+nomeStudio+' · '+T.pdfListGenOn+' '+dataOggi+'</div><div style="font-size:10px;color:#94a3b8">'+patients.length+' '+T.patients+'</div></div>'+
-    '</div></body></html>';
-  const w=window.open('','_blank');
-  w.document.write(html);
-  w.document.close();
-};
-
 const LANGS={
   it:{flag:'🇮🇹',name:'Italiano',t:{
     dashboard:'Dashboard',patients:'Clienti',calendar:'Calendario',exercises:'Esercizi',
@@ -3034,6 +2978,62 @@ const LANGS={
     pdfKpiSets:'Séries × Rép',pdfKpiRest:'Récupération',pdfListTitle:'Liste des clients',pdfListGenOn:'Liste des clients générée le',pdfListTotSes:'séances au total',pdfListClient:'Client',pdfListWeight:'Poids',pdfListLastAss:'Dern. éval.',
   }},
 };
+// ── PDF LISTA CLIENTI ─────────────────────────────────────────────────────
+const exportPDFLista=(patients,trainerProfile,lang)=>{
+  const T=LANGS[lang]?.t||LANGS.it.t;
+  const locale=lang==='en'?'en-GB':lang==='fr'?'fr-FR':'it-IT';
+  const pdfC=trainerProfile?.primaryColor||'#3b82f6';
+  const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
+  const logoHtml=trainerProfile?.logo?'<img src="'+trainerProfile.logo+'" alt="logo" style="max-height:50px;object-fit:contain"/>':'<div style="font-size:22px;font-weight:900;color:'+pdfC+'">PT Board</div>';
+  const dataOggi=new Date().toLocaleDateString(locale);
+  const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
+  const righe=patients.map((p,i)=>{
+    const b=p.peso&&p.altezza?(p.peso/(p.altezza/100)**2).toFixed(1):'—';
+    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
+    const bg=i%2===0?'#f8fafc':'#ffffff';
+    return '<tr style="background:'+bg+'">'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;font-weight:600">'+esc(p.nome)+' '+esc(p.cognome)+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.sesso||'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b">'+(p.peso?p.peso+' kg':'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b">'+b+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;text-align:center">'+(pr?'<span style="background:'+(pr.c)+'20;color:'+pr.c+';padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px">'+pr.code+'</span>':'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.obiettivo||'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.patologie||'—')+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;text-align:center">'+(p.log?.length||0)+'</td>'+
+      '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.dataValutazione||'—')+'</td>'+
+    '</tr>';
+  }).join('');
+  const html='<!DOCTYPE html><html lang="'+(lang||'it')+'"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+T.pdfListTitle+' — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
+    '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid '+pdfC+'">'+
+    '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfBackToApp+'</button>'+
+    '<button onclick="window.print()" style="background:'+pdfC+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfPrint+'</button>'+
+    '</div>'+
+    '<div style="max-width:1100px;margin:0 auto;padding:40px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid '+pdfC+';padding-bottom:20px;margin-bottom:24px">'+
+    '<div>'+logoHtml+'<div style="font-size:11px;color:#64748b;margin-top:8px">'+T.pdfListTitle+' — '+dataOggi+'</div></div>'+
+    '<div style="text-align:right"><div style="font-size:20px;font-weight:800;color:#1e293b">'+patients.length+' '+T.patients+'</div><div style="font-size:13px;color:#64748b;margin-top:4px">'+totSedute+' '+T.pdfListTotSes+'</div></div>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse">'+
+    '<thead><tr style="background:'+pdfC+'">'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListClient+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfGender+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListWeight+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">BMI</th>'+
+    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.profileCode+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfGoal+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfPath+'</th>'+
+    '<th style="text-align:center;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.sessions+'</th>'+
+    '<th style="text-align:left;color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;padding:10px">'+T.pdfListLastAss+'</th>'+
+    '</tr></thead>'+
+    '<tbody>'+righe+'</tbody>'+
+    '</table>'+
+    '<div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between"><div style="font-size:10px;color:#94a3b8">'+nomeStudio+' · '+T.pdfListGenOn+' '+dataOggi+'</div><div style="font-size:10px;color:#94a3b8">'+patients.length+' '+T.patients+'</div></div>'+
+    '</div></body></html>';
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+};
+
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
 const setLangStore=(l)=>{try{localStorage.setItem('ptboard_lang',l);}catch{}};
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
