@@ -930,6 +930,7 @@ const LANGS={
     gpDescFmt:'Programma personalizzato per {sex} di {eta} anni. Obiettivo: {ob}. Profilo: {pr} (score {score}/100).',
     gpDescPrec:' Attenzione: {n} precauzioni cliniche.',
     schedaNoteAuto:'Scheda generata automaticamente',schedaNoteOb:'Obiettivo',schedaNoteRpe:'Registrare RPE e carichi',schedaNoteCardioInterf:' · Cardio post-strength: per minimizzare interferenza ipertrofia, preferire cardio in giorni separati o almeno 6h dopo la forza (Wilson 2012).',
+    splitPush:'Spinta',splitPull:'Tirata',splitLegs:'Gambe',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
     gpUomo:'uomo',gpDonna:'donna',
     // generaProgramma — Focus adattamenti test-based
     gpFocusAerobic:'Focus prioritario: capacità aerobica',
@@ -1772,6 +1773,7 @@ const LANGS={
     gpDescFmt:'Personalized program for {sex} aged {eta}. Goal: {ob}. Profile: {pr} (score {score}/100).',
     gpDescPrec:' Attention: {n} clinical precautions.',
     schedaNoteAuto:'Automatically generated workout',schedaNoteOb:'Goal',schedaNoteRpe:'Record RPE and weights',schedaNoteCardioInterf:' · Post-strength cardio: to minimize hypertrophy interference, prefer cardio on separate days or at least 6h after strength (Wilson 2012).',
+    splitPush:'Push',splitPull:'Pull',splitLegs:'Legs',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
     gpUomo:'man',gpDonna:'woman',
     // generaProgramma — Test-based focus adaptations
     gpFocusAerobic:'Priority focus: aerobic capacity',
@@ -2614,6 +2616,7 @@ const LANGS={
     gpDescFmt:'Programme personnalisé pour {sex} de {eta} ans. Objectif : {ob}. Profil : {pr} (score {score}/100).',
     gpDescPrec:" Attention : {n} précautions cliniques.",
     schedaNoteAuto:'Séance générée automatiquement',schedaNoteOb:'Objectif',schedaNoteRpe:'Enregistrer RPE et charges',schedaNoteCardioInterf:' · Cardio post-force : pour minimiser l\'interférence hypertrophie, préférer le cardio les jours séparés ou au moins 6h après la force (Wilson 2012).',
+    splitPush:'Poussée',splitPull:'Tirage',splitLegs:'Jambes',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
     gpUomo:'homme',gpDonna:'femme',
     // generaProgramma — Adaptations ciblées basées sur les tests
     gpFocusAerobic:'Focus prioritaire : capacité aérobie',
@@ -3006,7 +3009,7 @@ const exportPDFLista=(patients,trainerProfile,lang)=>{
       '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">'+esc(p.dataValutazione||'—')+'</td>'+
     '</tr>';
   }).join('');
-  const html='<!DOCTYPE html><html lang="'+(lang||'it')+'"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+T.pdfListTitle+' — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+
+  const html='<!DOCTYPE html><html lang="'+(lang||'it')+'"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>'+T.pdfListTitle+' — '+nomeStudio+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Segoe UI",Arial,sans-serif;background:#fff;color:#1e293b}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:0}}</style></head><body>'+
     '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;border-bottom:2px solid '+pdfC+'">'+
     '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfBackToApp+'</button>'+
     '<button onclick="window.print()" style="background:'+pdfC+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+T.pdfPrint+'</button>'+
@@ -4485,7 +4488,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       'footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}'+
       'footer .center{flex:1;text-align:center;color:#64748b}'+
       'footer .center b{color:#3b82f6;font-weight:700}'+
-      '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:24px 28px}@page{margin:14mm 10mm}}'+
+      '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}'+
       '</style></head><body>'+
       '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6">'+
       '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+esc(T.pdfBackToApp)+'</button>'+
@@ -4611,7 +4614,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#0f1
 footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}
 footer .center{flex:1;text-align:center;color:#64748b}
 footer .center b{color:#3b82f6;font-weight:700}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:24px 28px}@page{margin:14mm 10mm}}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}
 </style></head><body>
 <div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div>
 <div class="pg">
@@ -7034,15 +7037,15 @@ var generaSchedaAuto = function(params, esercizi) {
         return (ex.muscoli || '').toLowerCase().indexOf(filters.muscoliLegacy.toLowerCase()) !== -1;
       });
     }
-    // Fallback 3a: rilassa primary ma mantieni equip
+    // Fallback 3a: rilassa cat ma MANTIENI primary — evita esercizi del gruppo muscolare sbagliato
     if (!c.length) {
       c = libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
-        if (filters.cat && ex.cat !== filters.cat) return false;
+        if (filters.primary && filters.primary.length && filters.primary.indexOf(ex.primary || '') === -1) return false;
         return true;
       });
     }
-    // Fallback 3b: rilassa tutto (ultimo resort)
+    // Fallback 3b: ultimo resort — rilassa equip ma mantieni primary se specificato
     if (!c.length) {
       c = esercizi.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
@@ -7414,18 +7417,22 @@ var generaSchedaAuto = function(params, esercizi) {
 
   var days;
   if (splitType === 'Full Body') {
-    days = [{name:'Full Body', slots: buildDaySlots('Full Body'), addCardio:true}];
+    days = [{name:(TParam&&TParam.splitFullBody)||'Full Body', slots: buildDaySlots('Full Body'), addCardio:true}];
   } else if (splitType === 'Upper / Lower') {
     days = [
-      {name:'Upper A', slots: buildDaySlots('Upper A'), addCardio:true},
-      {name:'Lower B', slots: buildDaySlots('Lower B'), addCardio:true}
+      {name:(TParam&&TParam.splitUpperA)||'Upper A', slots: buildDaySlots('Upper A'), addCardio:true},
+      {name:(TParam&&TParam.splitLowerB)||'Lower B', slots: buildDaySlots('Lower B'), addCardio:true}
     ];
   } else {
+    // PPL: cap a 6 esercizi per seduta (evita volume eccessivo in una singola sessione)
+    var savedMax = MAX_SLOTS_PER_DAY_EFF;
+    MAX_SLOTS_PER_DAY_EFF = Math.min(MAX_SLOTS_PER_DAY_EFF, 6);
     days = [
-      {name:'Push', slots: buildDaySlots('Push'), addCardio:false},
-      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:false},
-      {name:'Legs', slots: buildDaySlots('Legs'), addCardio:true}
+      {name:(TParam&&TParam.splitPush)||'Push', slots: buildDaySlots('Push'), addCardio:false},
+      {name:(TParam&&TParam.splitPull)||'Pull', slots: buildDaySlots('Pull'), addCardio:false},
+      {name:(TParam&&TParam.splitLegs)||'Legs', slots: buildDaySlots('Legs'), addCardio:true}
     ];
+    MAX_SLOTS_PER_DAY_EFF = savedMax;
   }
 
   // ── CARDIO durata reale (stringa per il campo reps) ──
@@ -8720,7 +8727,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#0f1
 footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}
 footer .center{flex:1;text-align:center;color:#64748b}
 footer .center b{color:#3b82f6;font-weight:700}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:24px 28px}@page{margin:14mm 10mm}}
+@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}
 </style></head>
 <body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div>
 <div class="pg">
