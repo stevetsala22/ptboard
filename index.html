@@ -899,7 +899,7 @@ const LANGS={
     gpForzaCOtherW3:'Volume alto: {s} serie x 8-10 rip. Compound: stacco, panca, squat',
     gpForzaCOtherW4:'Deload parziale: {s} serie x 12 rip, carico -20%. Mobilita',
     // generaProgramma — C+ (atleta) cardio e forza
-    gpCardioCPlusW1:'HIIT 4x4 min {zona} RPE 7-8 con 3 min recupero attivo. 2-3 sessioni/sett, {min} min totali',
+    gpCardioCPlusW1:'Settimana di base aerobica: LISS 30-40 min ({zona}) RPE 5-6. Nessun HIIT questa settimana — costruire la base prima di intensificare (ACSM).',
     gpCardioCPlusW2:'Intervalli piramidali 30/60/90/60/30s alta intensita + Tabata finale 4 min ({zona})',
     gpCardioCPlusW3:'HIIT polarizzato: 80% basso + 20% alto ({zona}). {min} min settimanali. Aggiungere LISS lungo 45 min',
     gpCardioCPlusW4:'Deload attivo: 50% volume. 1 HIIT + 2 LISS supercompensazione ({zona})',
@@ -929,7 +929,7 @@ const LANGS={
     gpNomeFmt:'Programma {ob} — {pr}',
     gpDescFmt:'Programma personalizzato per {sex} di {eta} anni. Obiettivo: {ob}. Profilo: {pr} (score {score}/100).',
     gpDescPrec:' Attenzione: {n} precauzioni cliniche.',
-    schedaNoteAuto:'Scheda generata automaticamente',schedaNoteOb:'Obiettivo',schedaNoteRpe:'Registrare RPE e carichi',
+    schedaNoteAuto:'Scheda generata automaticamente',schedaNoteOb:'Obiettivo',schedaNoteRpe:'Registrare RPE e carichi',schedaNoteCardioInterf:' · Cardio post-strength: per minimizzare interferenza ipertrofia, preferire cardio in giorni separati o almeno 6h dopo la forza (Wilson 2012).',
     gpUomo:'uomo',gpDonna:'donna',
     // generaProgramma — Focus adattamenti test-based
     gpFocusAerobic:'Focus prioritario: capacità aerobica',
@@ -1741,7 +1741,7 @@ const LANGS={
     gpForzaCOtherW3:'High volume: {s} sets x 8-10 reps. Compound: deadlift, bench, squat',
     gpForzaCOtherW4:'Partial deload: {s} sets x 12 reps, -20% load. Mobility',
     // generaProgramma — C+ (athlete) cardio and strength
-    gpCardioCPlusW1:'HIIT 4x4 min {zona} RPE 7-8 with 3 min active recovery. 2-3 sessions/week, {min} total min',
+    gpCardioCPlusW1:'Aerobic base week: LISS 30-40 min ({zona}) RPE 5-6. No HIIT this week — build the base before intensifying (ACSM).',
     gpCardioCPlusW2:'Pyramid intervals 30/60/90/60/30s high intensity + final Tabata 4 min ({zona})',
     gpCardioCPlusW3:'Polarized HIIT: 80% easy + 20% hard ({zona}). {min} weekly min. Add long LISS 45 min',
     gpCardioCPlusW4:'Active deload: 50% volume. 1 HIIT + 2 LISS for supercompensation ({zona})',
@@ -1771,7 +1771,7 @@ const LANGS={
     gpNomeFmt:'{ob} Program — {pr}',
     gpDescFmt:'Personalized program for {sex} aged {eta}. Goal: {ob}. Profile: {pr} (score {score}/100).',
     gpDescPrec:' Attention: {n} clinical precautions.',
-    schedaNoteAuto:'Automatically generated workout',schedaNoteOb:'Goal',schedaNoteRpe:'Record RPE and weights',
+    schedaNoteAuto:'Automatically generated workout',schedaNoteOb:'Goal',schedaNoteRpe:'Record RPE and weights',schedaNoteCardioInterf:' · Post-strength cardio: to minimize hypertrophy interference, prefer cardio on separate days or at least 6h after strength (Wilson 2012).',
     gpUomo:'man',gpDonna:'woman',
     // generaProgramma — Test-based focus adaptations
     gpFocusAerobic:'Priority focus: aerobic capacity',
@@ -2583,7 +2583,7 @@ const LANGS={
     gpForzaCOtherW3:'Volume élevé : {s} séries x 8-10 rép. Compound : soulevé, presse, squat',
     gpForzaCOtherW4:'Deload partiel : {s} séries x 12 rép, charge -20%. Mobilité',
     // generaProgramma — C+ (athlète) cardio et force
-    gpCardioCPlusW1:'HIIT 4x4 min {zona} RPE 7-8 avec 3 min récupération active. 2-3 séances/sem, {min} min totales',
+    gpCardioCPlusW1:'Semaine de base aérobie : LISS 30-40 min ({zona}) RPE 5-6. Pas de HIIT cette semaine — construire la base avant d\'intensifier (ACSM).',
     gpCardioCPlusW2:'Intervalles pyramidaux 30/60/90/60/30s haute intensité + Tabata final 4 min ({zona})',
     gpCardioCPlusW3:'HIIT polarisé : 80% bas + 20% haut ({zona}). {min} min hebdomadaires. Ajouter LISS long 45 min',
     gpCardioCPlusW4:'Deload actif : 50% volume. 1 HIIT + 2 LISS pour surcompensation ({zona})',
@@ -2613,7 +2613,7 @@ const LANGS={
     gpNomeFmt:'Programme {ob} — {pr}',
     gpDescFmt:'Programme personnalisé pour {sex} de {eta} ans. Objectif : {ob}. Profil : {pr} (score {score}/100).',
     gpDescPrec:" Attention : {n} précautions cliniques.",
-    schedaNoteAuto:'Séance générée automatiquement',schedaNoteOb:'Objectif',schedaNoteRpe:'Enregistrer RPE et charges',
+    schedaNoteAuto:'Séance générée automatiquement',schedaNoteOb:'Objectif',schedaNoteRpe:'Enregistrer RPE et charges',schedaNoteCardioInterf:' · Cardio post-force : pour minimiser l\'interférence hypertrophie, préférer le cardio les jours séparés ou au moins 6h après la force (Wilson 2012).',
     gpUomo:'homme',gpDonna:'femme',
     // generaProgramma — Adaptations ciblées basées sur les tests
     gpFocusAerobic:'Focus prioritaire : capacité aérobie',
@@ -6883,28 +6883,28 @@ var generaSchedaAuto = function(params, esercizi) {
   // (valori dalla spec: ranges medi)
   var exParams = {
     compound: {
-      A:   {serie:3, rip:10, rec:120},
-      B:   {serie:3, rip:8,  rec:90},
-      C:   {serie:4, rip:7,  rec:75},
-      'C+':{serie:4, rip:6,  rec:60}
+      A:   {serie:3, rip:12, rec:120},
+      B:   {serie:3, rip:10, rec:150},
+      C:   {serie:4, rip:8,  rec:180},
+      'C+':{serie:5, rip:5,  rec:240}
     },
     big: {
-      A:   {serie:2, rip:12, rec:90},
-      B:   {serie:3, rip:10, rec:65},
-      C:   {serie:3, rip:10, rec:50},
-      'C+':{serie:4, rip:9,  rec:45}
+      A:   {serie:2, rip:15, rec:90},
+      B:   {serie:3, rip:12, rec:90},
+      C:   {serie:4, rip:10, rec:75},
+      'C+':{serie:4, rip:8,  rec:90}
     },
     small: {
-      A:   {serie:2, rip:13, rec:75},
-      B:   {serie:3, rip:12, rec:50},
-      C:   {serie:3, rip:13, rec:40},
-      'C+':{serie:3, rip:11, rec:30}
+      A:   {serie:2, rip:15, rec:60},
+      B:   {serie:3, rip:12, rec:60},
+      C:   {serie:3, rip:12, rec:60},
+      'C+':{serie:3, rip:10, rec:60}
     },
     core: {
-      A:   {serie:3, rip:17, rec:35},
-      B:   {serie:3, rip:17, rec:35},
-      C:   {serie:3, rip:17, rec:35},
-      'C+':{serie:3, rip:17, rec:35}
+      A:   {serie:2, rip:10, rec:45},
+      B:   {serie:3, rip:12, rec:40},
+      C:   {serie:3, rip:15, rec:35},
+      'C+':{serie:4, rip:15, rec:30}
     }
   };
   // Parametri finali per categoria, con modificatori obiettivo e età
@@ -6912,36 +6912,68 @@ var generaSchedaAuto = function(params, esercizi) {
     var tbl = exParams[category] || exParams.big;
     var b = tbl[profilo] || tbl.B;
     var serie = b.serie, rip = b.rip, rec = b.rec;
+    // Modificatori obiettivo (NSCA Tab 17.6)
     if (obiettivo === 'Forza') {
-      if (category === 'compound') { serie += 1; rip = Math.max(3, rip - 2); }
-      rec += 15;
+      if (category === 'compound') {
+        serie = Math.min(serie + 1, 6);
+        rip = Math.max(1, rip - 4);
+        rec = Math.max(rec, 180);
+      } else {
+        rip = Math.max(3, rip - 2);
+        rec = Math.max(rec, 120);
+      }
     } else if (obiettivo === 'Aumentare massa') {
-      serie += 1;
-      rec += 15;
+      // Ipertrofia: 6-12 rep, 60-90s (Schoenfeld 2010)
+      serie = Math.min(serie + 1, 5);
+      rip = Math.min(Math.max(rip, 8), 12);
+      rec = Math.max(rec, 75);
     } else if (obiettivo === 'Perdere peso') {
+      // Circuiti metabolici: rep alte, recupero breve (ACSM)
       serie = Math.max(2, serie - 1);
-      rip += 3;
-      rec = Math.max(20, rec - 10);
+      rip = rip + 4;
+      rec = Math.max(30, rec - 30);
     } else if (obiettivo === 'Resistenza') {
+      // Resistenza muscolare: >15 rep, rec <60s (NSCA)
       serie = Math.max(2, serie - 1);
-      rip += 5;
+      rip = rip + 6;
+      rec = Math.min(rec, 60);
+    } else if (obiettivo === 'Performance') {
+      // Potenza: 3-6 rep esplosivi, recupero completo (NSCA)
+      if (category === 'compound') {
+        rip = Math.max(3, rip - 3);
+        rec = Math.max(rec, 180);
+      }
     }
-    // BUG 7: Sedentari/Poco attivi con profilo B → parametri più conservativi
+    // Modificatori attività (sedentari conservativi)
     if (profilo === 'B' && (attivita === 'Sedentaria' || attivita === 'Poco attiva')) {
-      if (category === 'compound') { serie = Math.min(serie, 3); rip = Math.max(rip, 10); }
-      if (category === 'big') rip = Math.max(rip, 12);
+      if (category === 'compound') { serie = Math.min(serie, 3); rip = Math.max(rip, 12); }
+      if (category === 'big') { serie = Math.min(serie, 3); rip = Math.max(rip, 12); }
       if (category === 'small') rip = Math.max(rip, 12);
     }
-    // Modificatori età (applicati a tutte le categorie tranne core)
+    // Modificatori età (ACSM older adults guidelines)
     if (category !== 'core') {
-      if (eta > 65) { rec += 15; rip = Math.max(6, rip - 2); }
+      if (eta > 60) { rec += 30; rip = Math.max(rip, 10); }
+      if (eta > 70) { rec += 30; rip = Math.max(6, rip - 2); serie = Math.min(serie, 3); }
       if (eta > 75) { serie = Math.min(serie, 2); }
     }
-    // Scala recuperi e serie in base alla durata (ipertrofia ottimale ACSM)
-    if (durataSeduta >= 60 && category === 'compound') { serie = Math.min(serie + 1, 4); rec += 45; }
-    if (durataSeduta >= 60 && category === 'big')      { rec += 20; }
-    if (durataSeduta >= 90 && category === 'compound') { rec += 30; }
-    if (durataSeduta >= 90 && category === 'big')      { rec += 20; }
+    // Scala per durata seduta
+    if (durataSeduta <= 45) {
+      serie = Math.max(2, serie - 1);
+      rec = Math.max(30, rec - 20);
+    } else if (durataSeduta >= 60 && category === 'compound') {
+      serie = Math.min(serie + 1, 6);
+      rec += 30;
+    }
+    if (durataSeduta >= 90 && category === 'compound') rec += 30;
+    if (durataSeduta >= 90 && category === 'big') rec += 15;
+    // Patologie: ipertensione → recuperi più lunghi (ACSM)
+    if (patologie.includes('ipertensione')) rec = Math.max(rec, 90);
+    // Cardiopatia → recuperi conservativi
+    if (patologie.includes('cardiopatia') || patologie.includes('scompenso')) {
+      rec = Math.max(rec, 120);
+      serie = Math.min(serie, 3);
+      rip = Math.max(rip, 12);
+    }
     return {serie: serie, rip: rip, rec: rec};
   }
   // Valori rappresentativi (categoria big) per il config della scheda (usati nei badge UI)
@@ -7404,6 +7436,7 @@ var generaSchedaAuto = function(params, esercizi) {
   var nomeProfilo = profilo === 'A' ? (TParam && TParam.profileLowShort || 'Forma Bassa') : profilo === 'B' ? (TParam && TParam.profileMedShort || 'Forma Media') : profilo === 'C+' ? (TParam && TParam.profileExcellentShort || 'Ottima Forma') : (TParam && TParam.profileGoodShort || 'Buona Forma');
   var equipLabel = equip === 'gym' ? (TParam && TParam.equipGym || 'Palestra') : equip === 'home' ? (TParam && TParam.equipHome || 'Home gym') : (TParam && TParam.equipBody || 'Corpo libero');
   var noteText = (TParam && TParam.schedaNoteAuto || 'Scheda generata automaticamente') + ' (' + equipLabel + ', ' + durataSeduta + ' min). ' + nomeProfilo + ' \u2014 ' + (TParam && TParam.schedaNoteOb || 'Obiettivo') + ': ' + nomeObiettivo + '. ' + (TParam && TParam.schedaNoteRpe || 'Registrare RPE e carichi.');
+  if (obiettivo === 'Aumentare massa' && TParam && TParam.schedaNoteCardioInterf) noteText += TParam.schedaNoteCardioInterf;
   if (volumeWasTrimmed) {
     var trimNote = TParam && TParam.volumeAdaptedNote
       ? TParam.volumeAdaptedNote.replace('{min}', durataSeduta)
@@ -7541,7 +7574,7 @@ var generaSchedaAuto = function(params, esercizi) {
         maxTempoForzaSec = trimDay.tempoSec;
         maxDayHasCardio = day.addCardio;
       }
-      // Aggiungi cardio alla fine del giorno (non rientra nel budget forza)
+      // Cardio post-strength: una sola sessione per seduta PPL (ACSM interference model)
       if (day.addCardio) {
         var cardioExMulti = pickCardio(usatiGlobale);
         if (cardioExMulti) {
