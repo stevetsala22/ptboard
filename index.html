@@ -719,6 +719,8 @@ const LANGS={
     tblExercise:'Esercizio',tblGroup:'Gruppo',tblLevel:'Livello',tblSets:'Serie',tblReps:'Rip',tblRest:'Rec',
     exTimerPrep:'Preparati',exTimerGo:'VAI!',exTimerRecov:'Recupero',exTimerDone:'Stop!',
     schedaEmpty:'Questa scheda non ha ancora esercizi.',
+    splitPush:'Push',splitPull:'Pull',splitLegs:'Gambe',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
+    slotLegsComp:'Gambe compound',slotBack:'Dorso',slotBackComp:'Dorso compound',slotBackAcc:'Dorso accessorio',slotBackExtra:'Dorso extra',slotShoulders:'Spalle',slotShouldersAcc:'Spalle accessorio',slotCore:'Core',slotBalance:'Equilibrio / Stabilita',slotExplosive:'Esplosivo (salti/box)',slotGlutesComp:'Glutei compound',slotGlutesIso:'Glutei isolamento',slotGlutesExtra:'Glutei extra',slotGlutes:'Glutei',slotChest:'Petto',slotChestComp:'Petto compound',slotChestAcc:'Petto accessorio',slotChestExtra:'Petto extra',slotBiceps:'Bicipiti',slotBicepsExtra:'Bicipiti extra',slotTraps:'Trapezio / Deltoidi',slotTriceps:'Tricipiti',slotQuadsComp:'Quadricipiti compound',slotQuadsAcc:'Quadricipiti accessorio',slotHams:'Femorali',slotHamsAcc:'Femorali accessorio',slotCalves:'Polpacci',slotHamsGlutes:'Femorali / Glutei',
     generatedWith:'Generata con PT Board',pdfAge:'Età',
     // Sedute (Bookings)
     nextSessions:'Prossime sedute',expired:'scadute',noScheduled:'Nessuna seduta programmata',
@@ -1562,6 +1564,8 @@ const LANGS={
     tblExercise:'Exercise',tblGroup:'Group',tblLevel:'Level',tblSets:'Sets',tblReps:'Reps',tblRest:'Rest',
     exTimerPrep:'Get ready',exTimerGo:'GO!',exTimerRecov:'Rest',exTimerDone:'Stop!',
     schedaEmpty:'This workout has no exercises yet.',
+    splitPush:'Push',splitPull:'Pull',splitLegs:'Legs',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
+    slotLegsComp:'Legs compound',slotBack:'Back',slotBackComp:'Back compound',slotBackAcc:'Back accessory',slotBackExtra:'Back extra',slotShoulders:'Shoulders',slotShouldersAcc:'Shoulders accessory',slotCore:'Core',slotBalance:'Balance / Stability',slotExplosive:'Explosive (jumps/box)',slotGlutesComp:'Glutes compound',slotGlutesIso:'Glutes isolation',slotGlutesExtra:'Glutes extra',slotGlutes:'Glutes',slotChest:'Chest',slotChestComp:'Chest compound',slotChestAcc:'Chest accessory',slotChestExtra:'Chest extra',slotBiceps:'Biceps',slotBicepsExtra:'Biceps extra',slotTraps:'Traps / Rear Delts',slotTriceps:'Triceps',slotQuadsComp:'Quads compound',slotQuadsAcc:'Quads accessory',slotHams:'Hamstrings',slotHamsAcc:'Hamstrings accessory',slotCalves:'Calves',slotHamsGlutes:'Hamstrings / Glutes',
     generatedWith:'Generated with PT Board',pdfAge:'Age',
     // Sedute (Bookings)
     nextSessions:'Upcoming sessions',expired:'expired',noScheduled:'No sessions scheduled',
@@ -2405,6 +2409,8 @@ const LANGS={
     tblExercise:'Exercice',tblGroup:'Groupe',tblLevel:'Niveau',tblSets:'Séries',tblReps:'Rép',tblRest:'Repos',
     exTimerPrep:'Préparez-vous',exTimerGo:'ALLEZ!',exTimerRecov:'Repos',exTimerDone:'Stop!',
     schedaEmpty:"Cette fiche n'a pas encore d'exercices.",
+    splitPush:'Poussée',splitPull:'Tirage',splitLegs:'Jambes',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
+    slotLegsComp:'Jambes (compound)',slotBack:'Dos',slotBackComp:'Dos (compound)',slotBackAcc:'Dos (accessoire)',slotBackExtra:'Dos (extra)',slotShoulders:'Épaules',slotShouldersAcc:'Épaules (accessoire)',slotCore:'Gainage',slotBalance:'Équilibre / Stabilité',slotExplosive:'Explosif (sauts/box)',slotGlutesComp:'Fessiers (compound)',slotGlutesIso:'Fessiers (isolation)',slotGlutesExtra:'Fessiers (extra)',slotGlutes:'Fessiers',slotChest:'Pectoraux',slotChestComp:'Pectoraux (compound)',slotChestAcc:'Pectoraux (accessoire)',slotChestExtra:'Pectoraux (extra)',slotBiceps:'Biceps',slotBicepsExtra:'Biceps (extra)',slotTraps:'Trapèzes / Deltoïdes',slotTriceps:'Triceps',slotQuadsComp:'Quadriceps (compound)',slotQuadsAcc:'Quadriceps (accessoire)',slotHams:'Ischio-jambiers',slotHamsAcc:'Ischio-jambiers (accessoire)',slotCalves:'Mollets',slotHamsGlutes:'Ischio-jambiers / Fessiers',
     generatedWith:'Généré avec PT Board',pdfAge:'Âge',
     // Sedute (Bookings)
     nextSessions:'Prochaines séances',expired:'expirées',noScheduled:'Aucune séance programmée',
@@ -4410,9 +4416,12 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       var n=(name||'').toLowerCase();
       if(n.indexOf('upper')!==-1)return{color:'#3b82f6',grad:'linear-gradient(90deg,#eff6ff,#ffffff)'};
       if(n.indexOf('lower')!==-1)return{color:'#10b981',grad:'linear-gradient(90deg,#f0fdf4,#ffffff)'};
-      if(n.indexOf('push')!==-1)return{color:'#f97316',grad:'linear-gradient(90deg,#fff7ed,#ffffff)'};
-      if(n.indexOf('pull')!==-1)return{color:'#8b5cf6',grad:'linear-gradient(90deg,#faf5ff,#ffffff)'};
-      if(n.indexOf('legs')!==-1)return{color:'#06b6d4',grad:'linear-gradient(90deg,#ecfeff,#ffffff)'};
+      // Push: English 'push', French 'pouss', Italian 'push'
+      if(n.indexOf('push')!==-1||n.indexOf('pouss')!==-1)return{color:'#f97316',grad:'linear-gradient(90deg,#fff7ed,#ffffff)'};
+      // Pull: English 'pull', French 'tirage', Italian 'pull'
+      if(n.indexOf('pull')!==-1||n.indexOf('tirage')!==-1)return{color:'#8b5cf6',grad:'linear-gradient(90deg,#faf5ff,#ffffff)'};
+      // Legs: English 'legs', French 'jambe', Italian 'gambe'
+      if(n.indexOf('legs')!==-1||n.indexOf('jambe')!==-1||n.indexOf('gambe')!==-1)return{color:'#06b6d4',grad:'linear-gradient(90deg,#ecfeff,#ffffff)'};
       return{color:'#3b82f6',grad:'linear-gradient(90deg,#eff6ff,#ffffff)'};
     };
     var currentSezione='';
@@ -7042,11 +7051,21 @@ var generaSchedaAuto = function(params, esercizi) {
     return plyoKeywords.some(function(k) { return n.indexOf(k) !== -1; });
   }
   function pick(used, filters) {
+    // primarySplit is captured once and enforced through ALL fallback paths.
+    // This is the hard constraint: a Push slot NEVER gets a pull exercise, etc.
+    var ps = filters.primarySplit || null;
+
+    function psCheck(ex) {
+      // core and cardio exercises are always allowed (finishers, warm-up)
+      if (!ps) return true;
+      if (ex.primarySplit === 'core' || ex.primarySplit === 'cardio') return true;
+      return ex.primarySplit === ps;
+    }
+
     function tryFilter(f, compoundOnly) {
       return libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
-        // primarySplit: hard constraint — Push slot only picks push exercises, Pull only pull, etc.
-        if (f.primarySplit && ex.primarySplit !== f.primarySplit) return false;
+        if (!psCheck(ex)) return false; // primarySplit always enforced
         if (f.cat && ex.cat !== f.cat) return false;
         if (f.primary && f.primary.length && f.primary.indexOf(ex.primary || '') === -1) return false;
         if (f.move && f.move.length && f.move.indexOf(ex.move || '') === -1) return false;
@@ -7055,10 +7074,12 @@ var generaSchedaAuto = function(params, esercizi) {
         return true;
       });
     }
+
     var c = [];
+    // Pass 1: full filter with compound preference
     if (filters.preferCompound) {
       c = tryFilter(filters, true);
-      // BUG 3: Donna + glutei → preferisci hip thrust/ponte glutei
+      // Female + glutei: prefer hip thrust / ponte glutei
       if (c.length > 1 && (sesso === 'F' || sesso === 'Donna') && filters.primary && filters.primary.indexOf('glutei') !== -1) {
         var htPref = c.filter(function(ex) {
           var nm = (ex.nome?.it||ex.nome||'').toLowerCase();
@@ -7067,47 +7088,63 @@ var generaSchedaAuto = function(params, esercizi) {
         if (htPref.length) c = htPref;
       }
     }
+    // Pass 2: full filter, no compound requirement
     if (!c.length) c = tryFilter(filters, false);
-    // Fallback 1: ignora move, mantieni primary
+    // Fallback 1: relax move constraint, keep primary + primarySplit
     if (!c.length && filters.move) {
       c = tryFilter({cat:filters.cat, primary:filters.primary}, false);
     }
-    // Fallback 2: ignora primary, cerca per text muscoli legacy
+    // Fallback 2: text-based muscoli search, keep primarySplit
     if (!c.length && filters.muscoliLegacy) {
       c = libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
+        if (!psCheck(ex)) return false;
         if (filters.cat && ex.cat !== filters.cat) return false;
         return (ex.muscoli || '').toLowerCase().indexOf(filters.muscoliLegacy.toLowerCase()) !== -1;
       });
     }
-    // Fallback 3a: rilassa cat ma MANTIENI primary — evita esercizi del gruppo muscolare sbagliato
+    // Fallback 3: relax primary + move, keep primarySplit + cat
     if (!c.length) {
       c = libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
-        if (filters.primary && filters.primary.length && filters.primary.indexOf(ex.primary || '') === -1) return false;
+        if (!psCheck(ex)) return false;
+        if (filters.cat && ex.cat !== filters.cat) return false;
         return true;
       });
     }
-    // Fallback 3b: ultimo resort — rilassa equip ma mantieni primary se specificato
+    // Fallback 4: relax cat too, keep primarySplit only + equip from libCompat
+    if (!c.length) {
+      c = libCompat.filter(function(ex) {
+        if (used.indexOf(ex.id) !== -1) return false;
+        if (!psCheck(ex)) return false;
+        return true;
+      });
+    }
+    // Fallback 5: relax equip (full esercizi list), keep primarySplit
     if (!c.length) {
       c = esercizi.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
+        if (!psCheck(ex)) return false;
         if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
         var nmLow = (ex.nome?.it||ex.nome||'').toLowerCase();
         for (var i = 0; i < esclusiNomi.length; i++) { if (nmLow.indexOf(esclusiNomi[i]) !== -1) return false; }
-        if (filters.cat && ex.cat !== filters.cat) return false;
-        if (filters.primary && filters.primary.length && filters.primary.indexOf(ex.primary || '') === -1) return false;
         return true;
       });
     }
-    // Escludi sempre pliometrici se obiettivo non è Performance/C+
+    // Exclude plyometric unless Performance/C+
     if (obiettivo !== 'Performance' && profilo !== 'C+') {
       var cNonPlyo = c.filter(function(ex) { return !isPlyometric(ex); });
       if (cNonPlyo.length) c = cNonPlyo;
     }
     if (!c.length) return null;
-    return c[Math.floor(Math.random() * c.length)];
+    var chosen = c[Math.floor(Math.random() * c.length)];
+    // Safety check: warn if primarySplit doesn't match (should never happen after above)
+    if (ps && chosen.primarySplit && chosen.primarySplit !== ps && chosen.primarySplit !== 'core' && chosen.primarySplit !== 'cardio') {
+      console.warn('[PT Board] pick() returned wrong split: ' + (chosen.nome?.it||chosen.id) + ' ps=' + chosen.primarySplit + ' expected=' + ps);
+    }
+    return chosen;
   }
+
 
   // ── CARDIO durata e budget tempo ──
   // Cardio minuti base per profilo, modulati da obiettivo
@@ -7162,6 +7199,38 @@ var generaSchedaAuto = function(params, esercizi) {
   // Lower: 1 compound gambe + 1 glutei + 1 femorali + 1 polpacci + 1 core = 5
   // Push: 1 compound petto + 1 petto accessorio + 1 spalle + 1 tricipiti = 4
   // Pull: 1 dorso compound + 1 dorso accessorio + 1 bicipiti + 1 trapezio = 4
+  // Slot label dictionary — always in the current language via TParam
+  var SL = {
+    legsComp:  (TParam&&TParam.slotLegsComp)||'Gambe compound',
+    back:      (TParam&&TParam.slotBack)||'Dorso',
+    backComp:  (TParam&&TParam.slotBackComp)||'Dorso compound',
+    backAcc:   (TParam&&TParam.slotBackAcc)||'Dorso accessorio',
+    backExtra: (TParam&&TParam.slotBackExtra)||'Dorso extra',
+    shoulders: (TParam&&TParam.slotShoulders)||'Spalle',
+    shouldersAcc:(TParam&&TParam.slotShouldersAcc)||'Spalle accessorio',
+    core:      (TParam&&TParam.slotCore)||'Core',
+    balance:   (TParam&&TParam.slotBalance)||'Equilibrio / Stabilita',
+    explosive: (TParam&&TParam.slotExplosive)||'Esplosivo (salti/box)',
+    glutesComp:(TParam&&TParam.slotGlutesComp)||'Glutei compound',
+    glutesIso: (TParam&&TParam.slotGlutesIso)||'Glutei isolamento',
+    glutesExtra:(TParam&&TParam.slotGlutesExtra)||'Glutei extra',
+    glutes:    (TParam&&TParam.slotGlutes)||'Glutei',
+    chest:     (TParam&&TParam.slotChest)||'Petto',
+    chestComp: (TParam&&TParam.slotChestComp)||'Petto compound',
+    chestAcc:  (TParam&&TParam.slotChestAcc)||'Petto accessorio',
+    chestExtra:(TParam&&TParam.slotChestExtra)||'Petto extra',
+    biceps:    (TParam&&TParam.slotBiceps)||'Bicipiti',
+    bicepsExtra:(TParam&&TParam.slotBicepsExtra)||'Bicipiti extra',
+    traps:     (TParam&&TParam.slotTraps)||'Trapezio / Deltoidi',
+    triceps:   (TParam&&TParam.slotTriceps)||'Tricipiti',
+    quadsComp: (TParam&&TParam.slotQuadsComp)||'Quadricipiti compound',
+    quadsAcc:  (TParam&&TParam.slotQuadsAcc)||'Quadricipiti accessorio',
+    hams:      (TParam&&TParam.slotHams)||'Femorali',
+    hamsAcc:   (TParam&&TParam.slotHamsAcc)||'Femorali accessorio',
+    hamsGlutes:(TParam&&TParam.slotHamsGlutes)||'Femorali / Glutei',
+    calves:    (TParam&&TParam.slotCalves)||'Polpacci'
+  };
+
   // Legs: 1 compound quad + 1 glutei + 1 femorali + 1 polpacci = 4
   // Full Body: 5 base (A/forza), 6 (peso/benessere con +glutei), 7 (default con +glutei+petto accessorio)
   // Modificatori durata: 30 min → rimuovi isolamento piccolo; 90 min → +1-2 accessori
@@ -7169,104 +7238,85 @@ var generaSchedaAuto = function(params, esercizi) {
     var isFemale = sesso === 'F' || sesso === 'Donna';
     var slots = [];
     if (dayName === 'Full Body') {
-      // Base per tutti
-      slots.push({primary:['quadricipiti','femorali','glutei'], move:['legs'], label:'Gambe compound', preferCompound:true});
-      slots.push({primary:['dorso'], move:['pull'], label:'Dorso', preferCompound:true});
-      slots.push({primary:['spalle'], label:'Spalle'});
-      slots.push({primary:['core'], move:['core'], label:'Core'});
+      slots.push({primary:['quadricipiti','femorali','glutei'], move:['legs'], primarySplit:'legs', label:SL.legsComp, preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.back, preferCompound:true});
+      slots.push({primary:['spalle'], primarySplit:'push', label:SL.shoulders});
+      slots.push({primary:['core'], move:['core'], primarySplit:'core', label:SL.core});
       if (isFemale) {
-        // Donna: +1 glutei compound, petto solo se 90 min
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
-        if (durataSeduta >= 90) slots.push({primary:['petto'], move:['push'], label:'Petto'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesComp, preferCompound:true});
+        if (durataSeduta >= 90) slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chest});
       } else {
-        // Uomo: petto compound standard
-        slots.push({primary:['petto'], move:['push'], label:'Petto', preferCompound:true});
+        slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chest, preferCompound:true});
       }
-      // Bonus per profilo non-A, non-forza
       if (profilo !== 'A' && obiettivo !== 'Forza') {
-        if (isFemale) {
-          slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
-        } else {
-          slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei isolamento'});
-          if (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance') {
-            slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
-          }
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesIso});
+        if (!isFemale && (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance')) {
+          slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestAcc});
         }
       }
     } else if (dayName === 'Upper A') {
       if (isFemale) {
-        // Donna: max 1 petto, +1 dorso extra
-        slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
-        slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
-        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
-        slots.push({primary:['spalle'], label:'Spalle'});
-        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
-        slots.push({primary:['core'], move:['core'], label:'Core'});
+        slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestComp, preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backComp, preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backAcc});
+        slots.push({primary:['spalle'], primarySplit:'push', label:SL.shoulders});
+        slots.push({primary:['bicipiti'], move:['pull'], primarySplit:'pull', label:SL.biceps});
+        slots.push({primary:['core'], move:['core'], primarySplit:'core', label:SL.core});
       } else {
-        // Uomo: 2 petto + 2 dorso
-        slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
-        slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
-        slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
-        slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
-        slots.push({primary:['spalle'], label:'Spalle'});
-        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
-        slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
-        slots.push({primary:['core'], move:['core'], label:'Core'});
+        slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestComp, preferCompound:true});
+        slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestAcc});
+        slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backComp, preferCompound:true});
+        slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backAcc});
+        slots.push({primary:['spalle'], primarySplit:'push', label:SL.shoulders});
+        slots.push({primary:['bicipiti'], move:['pull'], primarySplit:'pull', label:SL.biceps});
+        slots.push({primary:['tricipiti'], move:['push'], primarySplit:'push', label:SL.triceps});
+        slots.push({primary:['core'], move:['core'], primarySplit:'core', label:SL.core});
       }
     } else if (dayName === 'Lower B') {
-      slots.push({primary:['quadricipiti'], move:['legs'], label:'Gambe compound', preferCompound:true});
-      slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
-      slots.push({primary:['polpacci'], label:'Polpacci'});
-      slots.push({primary:['core'], move:['core'], label:'Core'});
+      slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:SL.legsComp, preferCompound:true});
+      slots.push({primary:['femorali','glutei'], move:['legs'], primarySplit:'legs', label:SL.hams});
+      slots.push({primary:['polpacci'], primarySplit:'legs', label:SL.calves});
+      slots.push({primary:['core'], move:['core'], primarySplit:'core', label:SL.core});
       if (isFemale) {
-        // Donna: +1 glutei compound (hip thrust/ponte glutei)
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
-        slots.push({primary:['glutei'], label:'Glutei isolamento'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesComp, preferCompound:true});
+        slots.push({primary:['glutei'], primarySplit:'legs', label:SL.glutesIso});
       } else {
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutes});
       }
     } else if (dayName === 'Push') {
-      slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:'Petto compound', preferCompound:true});
-      if (!isFemale) slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:'Petto accessorio'});
-      slots.push({primary:['spalle'], primarySplit:'push', label:'Spalle'});
-      slots.push({primary:['tricipiti'], move:['push'], primarySplit:'push', label:'Tricipiti'});
+      slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestComp, preferCompound:true});
+      if (!isFemale) slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestAcc});
+      slots.push({primary:['spalle'], primarySplit:'push', label:SL.shoulders});
+      slots.push({primary:['tricipiti'], move:['push'], primarySplit:'push', label:SL.triceps});
     } else if (dayName === 'Pull') {
-      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:'Dorso compound', preferCompound:true});
-      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:'Dorso accessorio'});
-      slots.push({primary:['bicipiti'], move:['pull'], primarySplit:'pull', label:'Bicipiti'});
-      slots.push({primary:['spalle'], primarySplit:'pull', label:'Trapezio / Deltoidi'});
+      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backComp, preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backAcc});
+      slots.push({primary:['bicipiti'], move:['pull'], primarySplit:'pull', label:SL.biceps});
+      slots.push({primary:['spalle'], primarySplit:'pull', label:SL.traps});
     } else if (dayName === 'Legs') {
-      slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:'Quadricipiti compound', preferCompound:true});
-      slots.push({primary:['femorali','glutei'], move:['legs'], primarySplit:'legs', label:'Femorali'});
+      slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:SL.quadsComp, preferCompound:true});
+      slots.push({primary:['femorali','glutei'], move:['legs'], primarySplit:'legs', label:SL.hams});
       if (isFemale) {
-        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:'Glutei compound', preferCompound:true});
-        slots.push({primary:['glutei'], primarySplit:'legs', label:'Glutei isolamento'});
-        slots.push({primary:['polpacci'], primarySplit:'legs', label:'Polpacci'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesComp, preferCompound:true});
+        slots.push({primary:['glutei'], primarySplit:'legs', label:SL.glutesIso});
+        slots.push({primary:['polpacci'], primarySplit:'legs', label:SL.calves});
       } else {
-        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:'Glutei'});
-        slots.push({primary:['polpacci'], primarySplit:'legs', label:'Polpacci'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutes});
+        slots.push({primary:['polpacci'], primarySplit:'legs', label:SL.calves});
       }
     }
 
-    // ── PART 2: Modificatori età ──
-    // Over 60: escludi esplosivi, aggiungi equilibrio se mancante
+    // Modificatori età
     if (eta >= 60) {
-      // Aggiungi slot equilibrio se non c'è core/equilibrio
-      var hasBalance = slots.some(function(s) { return s.label && s.label.indexOf('quilibri') !== -1; });
-      if (!hasBalance) {
-        slots.push({primary:['core'], move:['core'], label:'Equilibrio / Stabilita'});
-      }
+      var hasBalance = slots.some(function(s) { return s.primarySplit === 'core'; });
+      if (!hasBalance) slots.push({primary:['core'], move:['core'], primarySplit:'core', label:SL.balance});
     }
-    // Over 70: max 5 esercizi per seduta
-    if (eta >= 70) {
-      MAX_SLOTS_PER_DAY_EFF = 5;
-    }
-    // Under 30 + C/C+ + Performance: ammetti esplosivi
+    if (eta >= 70) MAX_SLOTS_PER_DAY_EFF = 5;
     if (eta < 30 && (profilo === 'C' || profilo === 'C+') && obiettivo === 'Performance') {
-      slots.push({primary:['quadricipiti'], move:['legs'], label:'Esplosivo (jump/box)'});
+      slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:SL.explosive});
     }
 
-    // ── Forza su Full Body: togli isolamento piccoli ──
+    // Forza su Full Body: togli isolamento piccoli
     if (dayName === 'Full Body' && obiettivo === 'Forza') {
       slots = slots.filter(function(s) {
         var isSmall = s.primary && s.primary.length === 1 &&
@@ -7277,21 +7327,21 @@ var generaSchedaAuto = function(params, esercizi) {
     // Durata >= 90 min: aggiungi 1-2 accessori
     if (durataSeduta >= 90) {
       if (dayName === 'Upper A') {
-        if (isFemale) { slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'}); }
-        else { slots.push({primary:['petto'], move:['push'], label:'Petto extra'}); slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'}); }
+        if (isFemale) { slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backExtra}); }
+        else { slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestExtra}); slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backExtra}); }
       } else if (dayName === 'Lower B') {
-        slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti accessorio'});
-        slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali accessorio'});
+        slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:SL.quadsAcc});
+        slots.push({primary:['femorali','glutei'], move:['legs'], primarySplit:'legs', label:SL.hamsAcc});
       } else if (dayName === 'Push') {
-        slots.push({primary:['spalle'], label:'Spalle accessorio'});
+        slots.push({primary:['spalle'], primarySplit:'push', label:SL.shouldersAcc});
       } else if (dayName === 'Pull') {
-        slots.push({primary:['dorso'], move:['pull'], label:'Dorso extra'});
-        slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti extra'});
+        slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backExtra});
+        slots.push({primary:['bicipiti'], move:['pull'], primarySplit:'pull', label:SL.bicepsExtra});
       } else if (dayName === 'Legs') {
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei extra'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesExtra});
       } else if (dayName === 'Full Body') {
-        if (isFemale) { slots.push({primary:['glutei'], label:'Glutei extra'}); }
-        else { slots.push({primary:['petto'], move:['push'], label:'Petto extra'}); }
+        if (isFemale) { slots.push({primary:['glutei'], primarySplit:'legs', label:SL.glutesExtra}); }
+        else { slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestExtra}); }
       }
     }
     // Durata <= 30 min: togli isolamento piccoli
@@ -7302,7 +7352,6 @@ var generaSchedaAuto = function(params, esercizi) {
         return !onlySmall;
       });
     }
-    // Safety cap — MAX_SLOTS_PER_DAY_EFF può essere ridotto per over 70
     if (slots.length > MAX_SLOTS_PER_DAY_EFF) slots = slots.slice(0, MAX_SLOTS_PER_DAY_EFF);
     return slots;
   }
@@ -7472,20 +7521,20 @@ var generaSchedaAuto = function(params, esercizi) {
 
   var days;
   if (splitType === 'Full Body') {
-    days = [{name:(TParam&&TParam.splitFullBody)||'Full Body', slots: buildDaySlots('Full Body'), addCardio:true}];
+    days = [{name:(TParam&&TParam.splitFullBody)||'Full Body', splitCode:'fullbody', slots: buildDaySlots('Full Body'), addCardio:true}];
   } else if (splitType === 'Upper / Lower') {
     days = [
-      {name:(TParam&&TParam.splitUpperA)||'Upper A', slots: buildDaySlots('Upper A'), addCardio:true},
-      {name:(TParam&&TParam.splitLowerB)||'Lower B', slots: buildDaySlots('Lower B'), addCardio:true}
+      {name:(TParam&&TParam.splitUpperA)||'Upper A', splitCode:'upper', slots: buildDaySlots('Upper A'), addCardio:true},
+      {name:(TParam&&TParam.splitLowerB)||'Lower B', splitCode:'lower', slots: buildDaySlots('Lower B'), addCardio:true}
     ];
   } else {
     // PPL: cap a 6 esercizi per seduta (evita volume eccessivo in una singola sessione)
     var savedMax = MAX_SLOTS_PER_DAY_EFF;
     MAX_SLOTS_PER_DAY_EFF = Math.min(MAX_SLOTS_PER_DAY_EFF, 6);
     days = [
-      {name:(TParam&&TParam.splitPush)||'Push', slots: buildDaySlots('Push'), addCardio:false},
-      {name:(TParam&&TParam.splitPull)||'Pull', slots: buildDaySlots('Pull'), addCardio:false},
-      {name:(TParam&&TParam.splitLegs)||'Legs', slots: buildDaySlots('Legs'), addCardio:true}
+      {name:(TParam&&TParam.splitPush)||'Push', splitCode:'push', slots: buildDaySlots('Push'), addCardio:true},
+      {name:(TParam&&TParam.splitPull)||'Pull', splitCode:'pull', slots: buildDaySlots('Pull'), addCardio:true},
+      {name:(TParam&&TParam.splitLegs)||'Legs', splitCode:'legs', slots: buildDaySlots('Legs'), addCardio:true}
     ];
     MAX_SLOTS_PER_DAY_EFF = savedMax;
   }
@@ -7591,7 +7640,7 @@ var generaSchedaAuto = function(params, esercizi) {
         var p = exParamsFor(category);
         var _slotLabel = slot.label;
         if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
-        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, category:category});
+        dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, splitCode:day.splitCode||null, category:category});
       });
       // PART 3: Aggiungi slot extra dai test deboli (sezione-aware)
       testExtrasForDay(day.name).forEach(function(slot) {
@@ -7602,11 +7651,11 @@ var generaSchedaAuto = function(params, esercizi) {
           var p = exParamsFor(category);
           var _slotLabel = slot.label;
           if (slot.preferCompound && scelto && !isCompound(scelto)) { _slotLabel = _slotLabel.replace(' compound','').replace('compound ',''); }
-          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, category:category});
+          dayEsercizi.push({eId:scelto.id, serie:p.serie, reps:p.rip, rec:p.rec, peso:'', note:_slotLabel, sezione:day.name, splitCode:day.splitCode||null, category:category});
         }
       });
-      // BUG 5: Verifica Lower abbia almeno 1 femorali reale
-      if (day.name === 'Lower B' || day.name === 'Legs') {
+      // Verifica Lower/Legs abbia almeno 1 femorali reale
+      if (day.splitCode === 'lower' || day.splitCode === 'legs') {
         var hasFem = dayEsercizi.some(function(e) {
           var ex = esercizi.find(function(x) { return x.id === e.eId; });
           return ex && ex.primary === 'femorali';
@@ -7616,12 +7665,12 @@ var generaSchedaAuto = function(params, esercizi) {
           for (var fi = dayEsercizi.length - 1; fi >= 0; fi--) {
             var fex = esercizi.find(function(x) { return x.id === dayEsercizi[fi].eId; });
             if (fex && fex.primary === 'glutei' && !isCompound(fex)) {
-              var femEx = pick(usatiGlobale, {primary:['femorali'], move:['legs']});
+              var femEx = pick(usatiGlobale, {primary:['femorali'], move:['legs'], primarySplit:'legs'});
               if (femEx) {
                 usatiGlobale.push(femEx.id);
                 var fCat = classifyExercise(femEx);
                 var fP = exParamsFor(fCat);
-                dayEsercizi[fi] = {eId:femEx.id, serie:fP.serie, reps:fP.rip, rec:fP.rec, peso:'', note:'Femorali', sezione:day.name, category:fCat};
+                dayEsercizi[fi] = {eId:femEx.id, serie:fP.serie, reps:fP.rip, rec:fP.rec, peso:'', note:SL.hams, sezione:day.name, splitCode:day.splitCode||null, category:fCat};
               }
               break;
             }
@@ -7665,6 +7714,16 @@ var generaSchedaAuto = function(params, esercizi) {
       note: noteText,
       config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning, profilo:profilo}
     });
+    // Post-generation split validation: log any wrong-section exercise
+    tuttiEsercizi.forEach(function(entry) {
+      if (!entry.splitCode || !entry.eId) return;
+      var ex = esercizi.find(function(e){ return e.id === entry.eId; });
+      if (!ex || !ex.primarySplit) return;
+      if (ex.primarySplit === 'core' || ex.primarySplit === 'cardio') return;
+      if (ex.primarySplit !== entry.splitCode) {
+        console.warn('[PT Board] SPLIT MISMATCH: "' + (ex.nome&&ex.nome.it||ex.id) + '" primarySplit=' + ex.primarySplit + ' placed in ' + entry.sezione + ' (splitCode=' + entry.splitCode + ')');
+      }
+    });
   }
   return schedeGenerate;
 };
@@ -7674,13 +7733,22 @@ var generaSchedaAuto = function(params, esercizi) {
 var validateScheda = function(scheda, esercizi, lang) {
   var issues = [];
   if (!scheda || !scheda.esercizi || !esercizi) return {valid:true, issues:[]};
-  var sectionSplitMap = {'push':'push','pull':'pull','legs':'legs','upper':'push','lower':'legs'};
+  // Fallback: derive splitCode from section name string (handles translated names)
+  var sectionSplitMap = {
+    'push':'push','pouss':'push',
+    'pull':'pull','tirage':'pull',
+    'legs':'legs','jambe':'legs','gambe':'legs',
+    'upper':'upper','lower':'lower'
+  };
   scheda.esercizi.forEach(function(entry) {
     if (!entry.sezione) return;
-    var sez = (entry.sezione||'').toLowerCase();
-    var expectedSplit = null;
-    for (var k in sectionSplitMap) {
-      if (sez.indexOf(k) !== -1) { expectedSplit = sectionSplitMap[k]; break; }
+    // Prefer splitCode stored on the entry, fall back to string detection
+    var expectedSplit = entry.splitCode || null;
+    if (!expectedSplit) {
+      var sez = (entry.sezione||'').toLowerCase();
+      for (var k in sectionSplitMap) {
+        if (sez.indexOf(k) !== -1) { expectedSplit = sectionSplitMap[k]; break; }
+      }
     }
     if (!expectedSplit) return;
     var ex = esercizi.find(function(e){ return e.id === entry.eId; });
