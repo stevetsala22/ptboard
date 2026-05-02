@@ -6776,11 +6776,63 @@ var generaSchedaAuto = function(params, esercizi) {
   else if (equip === 'home') equipAmmessi = ['home', 'body', 'any'];
   else equipAmmessi = ['body', 'any'];
 
-  // ── ESERCIZI ESCLUSI per patologie (match per nome) ──
+  // ── ESERCIZI ESCLUSI per patologie (match per nome e ID) ──
   var esclusiNomi = [];
-  if (patologie.includes('ernia')) esclusiNomi = esclusiNomi.concat(['squat', 'romanian deadlift', 'hip hinge', 'stacco']);
-  if (patologie.includes('artrosi') && patologie.includes('ginocchio')) esclusiNomi = esclusiNomi.concat(['squat', 'affondi', 'affondo']);
-  if (patologie.includes('spalla') || patologie.includes('cuffia')) esclusiNomi = esclusiNomi.concat(['push-up', 'military press', 'lento avanti']);
+  var esclusiIds = [];
+  // ERNIA LOMBARE / LOMBALGIA / DISCO
+  if (patologie.includes('ernia') || lesioni.includes('lombal') || lesioni.includes('lombar') || lesioni.includes('disco') || lesioni.includes('l4') || lesioni.includes('l5')) {
+    esclusiNomi = esclusiNomi.concat(['stacco','deadlift','romanian','hip hinge','good morning','back extension','sit-up','crunch','mezzi rumeni','superman','hyperextension','jefferson curl','toe touch']);
+    esclusiIds = esclusiIds.concat(['E96']);
+  }
+  // GINOCCHIO / MENISCO / LEGAMENTI
+  if (lesioni.includes('ginocchio') || lesioni.includes('menisco') || lesioni.includes('legamento') || lesioni.includes('acl') || lesioni.includes('mcl') || lesioni.includes('pcl')) {
+    esclusiNomi = esclusiNomi.concat(['squat profondo','affondi','affondo','leg extension','leg press','jump squat','box jump','jump lunge','pistol squat','hack squat','sissy squat']);
+  }
+  // SPALLA / CUFFIA / IMPINGEMENT
+  if (lesioni.includes('spalla') || lesioni.includes('cuffia') || lesioni.includes('rotatoria') || lesioni.includes('impingement') || lesioni.includes('lussazione') || patologie.includes('spalla')) {
+    esclusiNomi = esclusiNomi.concat(['military press','lento avanti','shoulder press','overhead press','push press','alzate frontali','upright row','behind neck','lat machine presa stretta','dip','push-up stretta']);
+  }
+  // CERVICALE
+  if (patologie.includes('cervic') || lesioni.includes('cervic')) {
+    esclusiNomi = esclusiNomi.concat(['shrug','alzate laterali con carico pesante','neck press','behind neck']);
+  }
+  // POLSO / TUNNEL CARPALE
+  if (lesioni.includes('polso') || lesioni.includes('tunnel carpale') || lesioni.includes('carpale')) {
+    esclusiNomi = esclusiNomi.concat(['push-up','panca manubri','curl manubri','wrist curl','plank sulle mani']);
+  }
+  // CARDIOPATIA / PROBLEMI CARDIACI
+  if (patologie.includes('cardiopatia') || patologie.includes('scompenso') || patologie.includes('aritmia') || patologie.includes('infarto')) {
+    esclusiNomi = esclusiNomi.concat(['hiit','sprint','burpee','jump squat','box jump','tabata','corsa veloce']);
+  }
+  // IPERTENSIONE
+  if (patologie.includes('ipertensione')) {
+    esclusiNomi = esclusiNomi.concat(['isometrico intenso','valsalva','stacco massimale']);
+  }
+  // OSTEOPOROSI
+  if (patologie.includes('osteoporosi')) {
+    esclusiNomi = esclusiNomi.concat(['jump squat','box jump','salto','corsa','running','sprint','burpee','torsioni con carico']);
+  }
+  // OBESITA
+  if (patologie.includes('obesi') || patologie.includes('obesita')) {
+    esclusiNomi = esclusiNomi.concat(['jump squat','box jump','burpee','jump lunge','salto corda ad alta intensita','sprint']);
+  }
+  // SCOLIOSI MODERATA
+  if (patologie.includes('scoliosi moderata') || patologie.includes('scoliosi grado 2') || patologie.includes('scoliosi 2')) {
+    esclusiNomi = esclusiNomi.concat(['stacco','squat bilanciere','carico assiale asimmetrico','suitcase carry pesante']);
+  }
+  // BPCO / ASMA
+  if (patologie.includes('bpco') || patologie.includes('asma')) {
+    esclusiNomi = esclusiNomi.concat(['sprint','hiit ad alta intensita','burpee','corsa veloce']);
+  }
+  // GRAVIDANZA (solo sesso F)
+  if (sesso === 'F' && (patologie.includes('gravid') || patologie.includes('post-parto') || patologie.includes('postparto'))) {
+    esclusiNomi = esclusiNomi.concat(['crunch','sit-up','russian twist','leg raise','esercizi proni','plank lungo','valsalva','salti']);
+  }
+  // ARTROSI GINOCCHIO
+  if (patologie.includes('artrosi') && patologie.includes('ginocchio')) {
+    esclusiNomi = esclusiNomi.concat(['squat','affondi','affondo']);
+  }
+  // Plyo escluso per default (solo Performance / C+)
   if (obiettivo !== 'Performance' && profilo !== 'C+') {
     esclusiNomi = esclusiNomi.concat(['jump squat','box jump','burpee','jump lunge']);
   }
@@ -6797,6 +6849,7 @@ var generaSchedaAuto = function(params, esercizi) {
     if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
     var eq = ex.equip || 'any';
     if (equipAmmessi.indexOf(eq) === -1) return false;
+    if (esclusiIds.indexOf(ex.id) !== -1) return false;
     var nmLow = (ex.nome?.it||ex.nome||'').toLowerCase();
     for (var i = 0; i < esclusiNomi.length; i++) {
       if (nmLow.indexOf(esclusiNomi[i]) !== -1) return false;
@@ -7337,8 +7390,8 @@ var generaSchedaAuto = function(params, esercizi) {
     ];
   } else {
     days = [
-      {name:'Push', slots: buildDaySlots('Push'), addCardio:true},
-      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:true},
+      {name:'Push', slots: buildDaySlots('Push'), addCardio:false},
+      {name:'Pull', slots: buildDaySlots('Pull'), addCardio:false},
       {name:'Legs', slots: buildDaySlots('Legs'), addCardio:true}
     ];
   }
