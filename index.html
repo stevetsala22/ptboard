@@ -3711,138 +3711,178 @@ const MONTHS=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov',
 
 const INIT_EXERCISES=[
   // ── FORZA — QUADRICIPITI ──
-  {id:'E01',nome:{it:'Squat',en:'Squat',fr:'Squat'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Piegamento sulle ginocchia a corpo libero o con bilanciere',livello:'intermedio',equip:'any',primary:'quadricipiti',move:'legs'},
-  {id:'E02',nome:{it:'Box Squat',en:'Box Squat',fr:'Squat sur box'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat con seduta su panca — ideale per principianti',livello:'base',equip:'home',primary:'quadricipiti',move:'legs'},
-  {id:'E03',nome:{it:'Goblet Squat',en:'Goblet Squat',fr:'Goblet Squat'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat con manubrio al petto — ottimo per tecnica',livello:'base',equip:'home',primary:'quadricipiti',move:'legs'},
-  {id:'E04',nome:{it:'Leg Press',en:'Leg Press',fr:'Presse à cuisses'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Pressa a 45 gradi per gambe — riduce carico sulla schiena',livello:'intermedio',equip:'gym',primary:'quadricipiti',move:'legs'},
-  {id:'E05',nome:{it:'Bulgarian Split Squat',en:'Bulgarian Split Squat',fr:'Fente bulgare'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Affondo con piede posteriore elevato su panca',livello:'avanzato',equip:'home',primary:'quadricipiti',move:'legs'},
-  {id:'E06',nome:{it:'Sissy Squat',en:'Sissy Squat',fr:'Sissy Squat'},cat:'Forza',muscoli:'Quadricipiti',desc:'Squat con inclinazione indietro — isolamento quadricipiti',livello:'avanzato',equip:'body',primary:'quadricipiti',move:'legs'},
+  {id:'E01',nome:{it:'Squat',en:'Squat',fr:'Squat'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Piegamento sulle ginocchia a corpo libero o con bilanciere',livello:'intermedio',equip:'any',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E02',nome:{it:'Box Squat',en:'Box Squat',fr:'Squat sur box'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat con seduta su panca — ideale per principianti',livello:'base',equip:'home',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E03',nome:{it:'Goblet Squat',en:'Goblet Squat',fr:'Goblet Squat'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Squat con manubrio al petto — ottimo per tecnica',livello:'base',equip:'home',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E04',nome:{it:'Leg Press',en:'Leg Press',fr:'Presse à cuisses'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Pressa a 45 gradi per gambe — riduce carico sulla schiena',livello:'intermedio',equip:'gym',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E05',nome:{it:'Bulgarian Split Squat',en:'Bulgarian Split Squat',fr:'Fente bulgare'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Affondo con piede posteriore elevato su panca',livello:'avanzato',equip:'home',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E06',nome:{it:'Sissy Squat',en:'Sissy Squat',fr:'Sissy Squat'},cat:'Forza',muscoli:'Quadricipiti',desc:'Squat con inclinazione indietro — isolamento quadricipiti',livello:'avanzato',equip:'body',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   // ── FORZA — GLUTEI / FEMORALI ──
-  {id:'E07',nome:{it:'Ponte Glutei',en:'Glute Bridge',fr:'Pont fessier'},cat:'Forza',muscoli:'Glutei, Femorali',desc:'Sollevamento bacino da supino a terra',livello:'base',equip:'body',primary:'glutei',move:'legs'},
-  {id:'E08',nome:{it:'Hip Thrust',en:'Hip Thrust',fr:'Hip Thrust'},cat:'Forza',muscoli:'Glutei',desc:'Ponte glutei con schiena su panca e bilanciere',livello:'intermedio',equip:'gym',primary:'glutei',move:'legs'},
-  {id:'E09',nome:{it:'Affondi',en:'Lunges',fr:'Fentes'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Passo avanti con piegamento alternato',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs'},
-  {id:'E10',nome:{it:'Step-Up',en:'Step-Up',fr:'Montée de marche'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Salita su rialzo con una gamba alla volta',livello:'base',equip:'body',primary:'quadricipiti',move:'legs'},
-  {id:'E11',nome:{it:'Romanian Deadlift',en:'Romanian Deadlift',fr:'Soulevé de terre roumain'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Stacco rumeno con manubri o bilanciere — catena posteriore',livello:'intermedio',equip:'home',primary:'femorali',move:'legs'},
-  {id:'E12',nome:{it:'Hip Hinge',en:'Hip Hinge',fr:'Charnière de hanche'},cat:'Forza',muscoli:'Femorali, Glutei, Lombari',desc:'Cerniera dell anca a corpo libero — pattern fondamentale',livello:'base',equip:'body',primary:'femorali',move:'legs'},
-  {id:'E13',nome:{it:'Good Morning',en:'Good Morning',fr:'Good Morning'},cat:'Forza',muscoli:'Femorali, Lombari',desc:'Flessione del busto in avanti con bilanciere sulle spalle',livello:'avanzato',equip:'gym',primary:'femorali',move:'legs'},
-  {id:'E14',nome:{it:'Leg Curl',en:'Leg Curl',fr:'Leg Curl'},cat:'Forza',muscoli:'Femorali',desc:'Flessione ginocchio alla macchina — isolamento femorali',livello:'intermedio',equip:'gym',primary:'femorali',move:'legs'},
-  {id:'E15',nome:{it:'Nordic Curl',en:'Nordic Hamstring Curl',fr:'Curl nordique'},cat:'Forza',muscoli:'Femorali',desc:'Eccentrica femorali in ginocchio — molto avanzato',livello:'avanzato',equip:'body',primary:'femorali',move:'legs'},
+  {id:'E07',nome:{it:'Ponte Glutei',en:'Glute Bridge',fr:'Pont fessier'},cat:'Forza',muscoli:'Glutei, Femorali',desc:'Sollevamento bacino da supino a terra',livello:'base',equip:'body',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E08',nome:{it:'Hip Thrust',en:'Hip Thrust',fr:'Hip Thrust'},cat:'Forza',muscoli:'Glutei',desc:'Ponte glutei con schiena su panca e bilanciere',livello:'intermedio',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E09',nome:{it:'Affondi',en:'Lunges',fr:'Fentes'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Passo avanti con piegamento alternato',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E10',nome:{it:'Step-Up',en:'Step-Up',fr:'Montée de marche'},cat:'Forza',muscoli:'Quadricipiti, Glutei',desc:'Salita su rialzo con una gamba alla volta',livello:'base',equip:'body',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E11',nome:{it:'Romanian Deadlift',en:'Romanian Deadlift',fr:'Soulevé de terre roumain'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Stacco rumeno con manubri o bilanciere — catena posteriore',livello:'intermedio',equip:'home',primary:'femorali',move:'legs',primarySplit:'legs'},
+  {id:'E12',nome:{it:'Hip Hinge',en:'Hip Hinge',fr:'Charnière de hanche'},cat:'Forza',muscoli:'Femorali, Glutei, Lombari',desc:'Cerniera dell anca a corpo libero — pattern fondamentale',livello:'base',equip:'body',primary:'femorali',move:'legs',primarySplit:'legs'},
+  {id:'E13',nome:{it:'Good Morning',en:'Good Morning',fr:'Good Morning'},cat:'Forza',muscoli:'Femorali, Lombari',desc:'Flessione del busto in avanti con bilanciere sulle spalle',livello:'avanzato',equip:'gym',primary:'femorali',move:'legs',primarySplit:'legs'},
+  {id:'E14',nome:{it:'Leg Curl',en:'Leg Curl',fr:'Leg Curl'},cat:'Forza',muscoli:'Femorali',desc:'Flessione ginocchio alla macchina — isolamento femorali',livello:'intermedio',equip:'gym',primary:'femorali',move:'legs',primarySplit:'legs'},
+  {id:'E15',nome:{it:'Nordic Curl',en:'Nordic Hamstring Curl',fr:'Curl nordique'},cat:'Forza',muscoli:'Femorali',desc:'Eccentrica femorali in ginocchio — molto avanzato',livello:'avanzato',equip:'body',primary:'femorali',move:'legs',primarySplit:'legs'},
   // ── FORZA — PETTORALI ──
-  {id:'E16',nome:{it:'Push-up',en:'Push-Up',fr:'Pompes'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni sulle braccia a terra',livello:'intermedio',equip:'body',primary:'petto',move:'push'},
-  {id:'E17',nome:{it:'Wall Push-up',en:'Wall Push-Up',fr:'Pompes au mur'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni al muro — versione facilitata',livello:'base',equip:'body',primary:'petto',move:'push'},
-  {id:'E18',nome:{it:'Push-up Ginocchia',en:'Kneeling Push-Up',fr:'Pompes sur genoux'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni con ginocchia a terra',livello:'base',equip:'body',primary:'petto',move:'push'},
-  {id:'E19',nome:{it:'Panca Manubri',en:'Dumbbell Bench Press',fr:'Développé couché haltères'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Distensioni su panca piana con manubri',livello:'intermedio',equip:'home',primary:'petto',move:'push'},
-  {id:'E20',nome:{it:'Panca Bilanciere',en:'Barbell Bench Press',fr:'Développé couché barre'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Distensioni su panca piana con bilanciere',livello:'avanzato',equip:'gym',primary:'petto',move:'push'},
-  {id:'E21',nome:{it:'Croci Manubri',en:'Dumbbell Fly',fr:'Écarté haltères'},cat:'Forza',muscoli:'Pettorali',desc:'Aperture su panca piana — isolamento pettorali',livello:'intermedio',equip:'home',primary:'petto',move:'push'},
-  {id:'E22',nome:{it:'Dip',en:'Dip',fr:'Dips'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Parallele — spinta verticale corpo libero',livello:'avanzato',equip:'body',primary:'petto',move:'push'},
+  {id:'E16',nome:{it:'Push-up',en:'Push-Up',fr:'Pompes'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni sulle braccia a terra',livello:'intermedio',equip:'body',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E17',nome:{it:'Wall Push-up',en:'Wall Push-Up',fr:'Pompes au mur'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni al muro — versione facilitata',livello:'base',equip:'body',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E18',nome:{it:'Push-up Ginocchia',en:'Kneeling Push-Up',fr:'Pompes sur genoux'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Flessioni con ginocchia a terra',livello:'base',equip:'body',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E19',nome:{it:'Panca Manubri',en:'Dumbbell Bench Press',fr:'Développé couché haltères'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Distensioni su panca piana con manubri',livello:'intermedio',equip:'home',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E20',nome:{it:'Panca Bilanciere',en:'Barbell Bench Press',fr:'Développé couché barre'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Distensioni su panca piana con bilanciere',livello:'avanzato',equip:'gym',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E21',nome:{it:'Croci Manubri',en:'Dumbbell Fly',fr:'Écarté haltères'},cat:'Forza',muscoli:'Pettorali',desc:'Aperture su panca piana — isolamento pettorali',livello:'intermedio',equip:'home',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E22',nome:{it:'Dip',en:'Dip',fr:'Dips'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Parallele — spinta verticale corpo libero',livello:'avanzato',equip:'body',primary:'petto',move:'push',primarySplit:'push'},
   // ── FORZA — DORSALI ──
-  {id:'E23',nome:{it:'Rematore Manubrio',en:'Dumbbell Row',fr:'Rowing haltère'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata con un manubrio in appoggio su panca',livello:'intermedio',equip:'home',primary:'dorso',move:'pull'},
-  {id:'E24',nome:{it:'Lat Machine',en:'Lat Pulldown',fr:'Tirage vertical poulie'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata verticale alla lat machine',livello:'intermedio',equip:'gym',primary:'dorso',move:'pull'},
-  {id:'E25',nome:{it:'Trazioni',en:'Pull-Up',fr:'Tractions'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — corpo libero',livello:'avanzato',equip:'home',primary:'dorso',move:'pull'},
-  {id:'E26',nome:{it:'Pulley Basso',en:'Low Cable Row',fr:'Rowing poulie basse'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata orizzontale al cavo basso',livello:'intermedio',equip:'gym',primary:'dorso',move:'pull'},
-  {id:'E27',nome:{it:'Row Elastico',en:'Resistance Band Row',fr:'Rowing élastique'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata con elastico — ideale a casa o per principianti',livello:'base',equip:'home',primary:'dorso',move:'pull'},
-  {id:'E28',nome:{it:'Rematore Bilanciere',en:'Barbell Row',fr:'Rowing barre'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata bilanciere a busto flesso',livello:'avanzato',equip:'gym',primary:'dorso',move:'pull'},
+  {id:'E23',nome:{it:'Rematore Manubrio',en:'Dumbbell Row',fr:'Rowing haltère'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata con un manubrio in appoggio su panca',livello:'intermedio',equip:'home',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E24',nome:{it:'Lat Machine',en:'Lat Pulldown',fr:'Tirage vertical poulie'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata verticale alla lat machine',livello:'intermedio',equip:'gym',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E25',nome:{it:'Trazioni',en:'Pull-Up',fr:'Tractions'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — corpo libero',livello:'avanzato',equip:'home',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E26',nome:{it:'Pulley Basso',en:'Low Cable Row',fr:'Rowing poulie basse'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata orizzontale al cavo basso',livello:'intermedio',equip:'gym',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E27',nome:{it:'Row Elastico',en:'Resistance Band Row',fr:'Rowing élastique'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata con elastico — ideale a casa o per principianti',livello:'base',equip:'home',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E28',nome:{it:'Rematore Bilanciere',en:'Barbell Row',fr:'Rowing barre'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Tirata bilanciere a busto flesso',livello:'avanzato',equip:'gym',primary:'dorso',move:'pull',primarySplit:'pull'},
   // ── FORZA — SPALLE ──
-  {id:'E29',nome:{it:'Press Spalle Manubri',en:'Dumbbell Shoulder Press',fr:'Développé épaules haltères'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Distensioni sopra la testa con manubri',livello:'intermedio',equip:'home',primary:'spalle',move:'push'},
-  {id:'E30',nome:{it:'Alzate Laterali',en:'Lateral Raise',fr:'Élévations latérales'},cat:'Forza',muscoli:'Spalle',desc:'Sollevamento manubri laterale — deltoide laterale',livello:'base',equip:'home',primary:'spalle',move:'push'},
-  {id:'E31',nome:{it:'Face Pull',en:'Face Pull',fr:'Face Pull'},cat:'Forza',muscoli:'Spalle, Dorsali',desc:'Tirata al viso con cavo o elastico — salute spalle',livello:'intermedio',equip:'gym',primary:'spalle',move:'pull'},
-  {id:'E32',nome:{it:'Arnold Press',en:'Arnold Press',fr:'Arnold Press'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Press con rotazione dei manubri — tutti i capi del deltoide',livello:'avanzato',equip:'home',primary:'spalle',move:'push'},
-  {id:'E33',nome:{it:'Shrug',en:'Shrug',fr:'Haussement d\'épaules'},cat:'Forza',muscoli:'Spalle',desc:'Alzate di spalle con manubri o bilanciere — trapezio',livello:'intermedio',equip:'home',primary:'spalle',move:'pull'},
+  {id:'E29',nome:{it:'Press Spalle Manubri',en:'Dumbbell Shoulder Press',fr:'Développé épaules haltères'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Distensioni sopra la testa con manubri',livello:'intermedio',equip:'home',primary:'spalle',move:'push',primarySplit:'push'},
+  {id:'E30',nome:{it:'Alzate Laterali',en:'Lateral Raise',fr:'Élévations latérales'},cat:'Forza',muscoli:'Spalle',desc:'Sollevamento manubri laterale — deltoide laterale',livello:'base',equip:'home',primary:'spalle',move:'push',primarySplit:'push'},
+  {id:'E31',nome:{it:'Face Pull',en:'Face Pull',fr:'Face Pull'},cat:'Forza',muscoli:'Spalle, Dorsali',desc:'Tirata al viso con cavo o elastico — salute spalle',livello:'intermedio',equip:'gym',primary:'spalle',move:'pull',primarySplit:'pull'},
+  {id:'E32',nome:{it:'Arnold Press',en:'Arnold Press',fr:'Arnold Press'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Press con rotazione dei manubri — tutti i capi del deltoide',livello:'avanzato',equip:'home',primary:'spalle',move:'push',primarySplit:'push'},
+  {id:'E33',nome:{it:'Shrug',en:'Shrug',fr:'Haussement d\'épaules'},cat:'Forza',muscoli:'Spalle',desc:'Alzate di spalle con manubri o bilanciere — trapezio',livello:'intermedio',equip:'home',primary:'spalle',move:'pull',primarySplit:'pull'},
   // ── FORZA — BICIPITI ──
-  {id:'E34',nome:{it:'Curl Manubri',en:'Dumbbell Biceps Curl',fr:'Curl haltères'},cat:'Forza',muscoli:'Bicipiti',desc:'Flessione avambraccio con manubri alternati',livello:'base',equip:'home',primary:'bicipiti',move:'pull'},
-  {id:'E35',nome:{it:'Curl Bilanciere',en:'Barbell Biceps Curl',fr:'Curl barre'},cat:'Forza',muscoli:'Bicipiti',desc:'Flessione avambraccio con bilanciere',livello:'intermedio',equip:'gym',primary:'bicipiti',move:'pull'},
-  {id:'E36',nome:{it:'Hammer Curl',en:'Hammer Curl',fr:'Curl marteau'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl con presa neutra — brachioradiale e bicipiti',livello:'intermedio',equip:'home',primary:'bicipiti',move:'pull'},
-  {id:'E37',nome:{it:'Curl Concentrato',en:'Concentration Curl',fr:'Curl concentré'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl seduto con gomito appoggiato alla coscia — isolamento',livello:'avanzato',equip:'home',primary:'bicipiti',move:'pull'},
+  {id:'E34',nome:{it:'Curl Manubri',en:'Dumbbell Biceps Curl',fr:'Curl haltères'},cat:'Forza',muscoli:'Bicipiti',desc:'Flessione avambraccio con manubri alternati',livello:'base',equip:'home',primary:'bicipiti',move:'pull',primarySplit:'pull'},
+  {id:'E35',nome:{it:'Curl Bilanciere',en:'Barbell Biceps Curl',fr:'Curl barre'},cat:'Forza',muscoli:'Bicipiti',desc:'Flessione avambraccio con bilanciere',livello:'intermedio',equip:'gym',primary:'bicipiti',move:'pull',primarySplit:'pull'},
+  {id:'E36',nome:{it:'Hammer Curl',en:'Hammer Curl',fr:'Curl marteau'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl con presa neutra — brachioradiale e bicipiti',livello:'intermedio',equip:'home',primary:'bicipiti',move:'pull',primarySplit:'pull'},
+  {id:'E37',nome:{it:'Curl Concentrato',en:'Concentration Curl',fr:'Curl concentré'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl seduto con gomito appoggiato alla coscia — isolamento',livello:'avanzato',equip:'home',primary:'bicipiti',move:'pull',primarySplit:'pull'},
   // ── FORZA — TRICIPITI ──
-  {id:'E38',nome:{it:'French Press',en:'French Press',fr:'Extension triceps allongé'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione sopra la testa con manubrio — tricipiti',livello:'intermedio',equip:'home',primary:'tricipiti',move:'push'},
-  {id:'E39',nome:{it:'Pushdown Cavo',en:'Cable Triceps Pushdown',fr:'Pushdown poulie'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione al cavo alto — isolamento tricipiti',livello:'intermedio',equip:'gym',primary:'tricipiti',move:'push'},
-  {id:'E40',nome:{it:'Dip Panca',en:'Bench Dip',fr:'Dips sur banc'},cat:'Forza',muscoli:'Tricipiti',desc:'Flessioni inverse con mani su panca dietro',livello:'base',equip:'home',primary:'tricipiti',move:'push'},
-  {id:'E41',nome:{it:'Kickback',en:'Triceps Kickback',fr:'Kickback triceps'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione indietro con manubrio a busto flesso',livello:'base',equip:'home',primary:'tricipiti',move:'push'},
+  {id:'E38',nome:{it:'French Press',en:'French Press',fr:'Extension triceps allongé'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione sopra la testa con manubrio — tricipiti',livello:'intermedio',equip:'home',primary:'tricipiti',move:'push',primarySplit:'push'},
+  {id:'E39',nome:{it:'Pushdown Cavo',en:'Cable Triceps Pushdown',fr:'Pushdown poulie'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione al cavo alto — isolamento tricipiti',livello:'intermedio',equip:'gym',primary:'tricipiti',move:'push',primarySplit:'push'},
+  {id:'E40',nome:{it:'Dip Panca',en:'Bench Dip',fr:'Dips sur banc'},cat:'Forza',muscoli:'Tricipiti',desc:'Flessioni inverse con mani su panca dietro',livello:'base',equip:'home',primary:'tricipiti',move:'push',primarySplit:'push'},
+  {id:'E41',nome:{it:'Kickback',en:'Triceps Kickback',fr:'Kickback triceps'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione indietro con manubrio a busto flesso',livello:'base',equip:'home',primary:'tricipiti',move:'push',primarySplit:'push'},
   // ── FORZA — POLPACCI ──
-  {id:'E42',nome:{it:'Calf Raise',en:'Standing Calf Raise',fr:'Mollet debout'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni in piedi — gastrocnemio',livello:'base',equip:'any',primary:'polpacci',move:'legs'},
-  {id:'E43',nome:{it:'Calf Seduto',en:'Seated Calf Raise',fr:'Mollet assis'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni seduto — soleo',livello:'intermedio',equip:'gym',primary:'polpacci',move:'legs'},
+  {id:'E42',nome:{it:'Calf Raise',en:'Standing Calf Raise',fr:'Mollet debout'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni in piedi — gastrocnemio',livello:'base',equip:'any',primary:'polpacci',move:'legs',primarySplit:'legs'},
+  {id:'E43',nome:{it:'Calf Seduto',en:'Seated Calf Raise',fr:'Mollet assis'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni seduto — soleo',livello:'intermedio',equip:'gym',primary:'polpacci',move:'legs',primarySplit:'legs'},
   // ── CORE ──
-  {id:'E44',nome:{it:'Plank',en:'Plank',fr:'Planche'},cat:'Core',muscoli:'Core, Addome',desc:'Posizione isometrica in appoggio sugli avambracci',livello:'base',equip:'body',primary:'core',move:'core'},
-  {id:'E45',nome:{it:'Dead Bug',en:'Dead Bug',fr:'Dead Bug'},cat:'Core',muscoli:'Core',desc:'Stabilizzazione lombare a terra — braccia e gambe alternate',livello:'base',equip:'body',primary:'core',move:'core'},
-  {id:'E46',nome:{it:'Mountain Climbers',en:'Mountain Climbers',fr:'Grimpeur'},cat:'Core',muscoli:'Core, Full Body',desc:'Arrampicata sul posto in posizione plank',livello:'intermedio',equip:'body',primary:'core',move:'cardio'},
-  {id:'E47',nome:{it:'Crunch',en:'Crunch',fr:'Crunch'},cat:'Core',muscoli:'Addome',desc:'Flessione del busto da supino — retto addominale',livello:'base',equip:'body',primary:'core',move:'core'},
-  {id:'E48',nome:{it:'Russian Twist',en:'Russian Twist',fr:'Rotation russe'},cat:'Core',muscoli:'Addome, Obliqui',desc:'Rotazione del busto seduto con o senza peso',livello:'intermedio',equip:'body',primary:'core',move:'core'},
-  {id:'E49',nome:{it:'Pallof Press',en:'Pallof Press',fr:'Pallof Press'},cat:'Core',muscoli:'Core, Obliqui',desc:'Press anti-rotazione al cavo — stabilita core',livello:'intermedio',equip:'gym',primary:'core',move:'core'},
-  {id:'E50',nome:{it:'Bird Dog',en:'Bird Dog',fr:'Bird Dog'},cat:'Core',muscoli:'Core, Lombari',desc:'Estensione braccio-gamba opposti in quadrupedia',livello:'base',equip:'body',primary:'core',move:'core'},
-  {id:'E51',nome:{it:'Ab Wheel',en:'Ab Wheel Rollout',fr:'Roue abdominale'},cat:'Core',muscoli:'Core, Addome',desc:'Rollout con ruota addominale — molto avanzato',livello:'avanzato',equip:'home',primary:'core',move:'core'},
-  {id:'E52',nome:{it:'Plank Laterale',en:'Side Plank',fr:'Planche latérale'},cat:'Core',muscoli:'Obliqui, Core',desc:'Plank su un fianco — obliqui e stabilita laterale',livello:'intermedio',equip:'body',primary:'core',move:'core'},
-  {id:'E53',nome:{it:'Hollow Hold',en:'Hollow Body Hold',fr:'Hollow Body'},cat:'Core',muscoli:'Addome, Core',desc:'Posizione a corpo cavo supino — isometrica addominale',livello:'avanzato',equip:'body',primary:'core',move:'core'},
+  {id:'E44',nome:{it:'Plank',en:'Plank',fr:'Planche'},cat:'Core',muscoli:'Core, Addome',desc:'Posizione isometrica in appoggio sugli avambracci',livello:'base',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E45',nome:{it:'Dead Bug',en:'Dead Bug',fr:'Dead Bug'},cat:'Core',muscoli:'Core',desc:'Stabilizzazione lombare a terra — braccia e gambe alternate',livello:'base',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E46',nome:{it:'Mountain Climbers',en:'Mountain Climbers',fr:'Grimpeur'},cat:'Core',muscoli:'Core, Full Body',desc:'Arrampicata sul posto in posizione plank',livello:'intermedio',equip:'body',primary:'core',move:'cardio',primarySplit:'core'},
+  {id:'E47',nome:{it:'Crunch',en:'Crunch',fr:'Crunch'},cat:'Core',muscoli:'Addome',desc:'Flessione del busto da supino — retto addominale',livello:'base',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E48',nome:{it:'Russian Twist',en:'Russian Twist',fr:'Rotation russe'},cat:'Core',muscoli:'Addome, Obliqui',desc:'Rotazione del busto seduto con o senza peso',livello:'intermedio',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E49',nome:{it:'Pallof Press',en:'Pallof Press',fr:'Pallof Press'},cat:'Core',muscoli:'Core, Obliqui',desc:'Press anti-rotazione al cavo — stabilita core',livello:'intermedio',equip:'gym',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E50',nome:{it:'Bird Dog',en:'Bird Dog',fr:'Bird Dog'},cat:'Core',muscoli:'Core, Lombari',desc:'Estensione braccio-gamba opposti in quadrupedia',livello:'base',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E51',nome:{it:'Ab Wheel',en:'Ab Wheel Rollout',fr:'Roue abdominale'},cat:'Core',muscoli:'Core, Addome',desc:'Rollout con ruota addominale — molto avanzato',livello:'avanzato',equip:'home',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E52',nome:{it:'Plank Laterale',en:'Side Plank',fr:'Planche latérale'},cat:'Core',muscoli:'Obliqui, Core',desc:'Plank su un fianco — obliqui e stabilita laterale',livello:'intermedio',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E53',nome:{it:'Hollow Hold',en:'Hollow Body Hold',fr:'Hollow Body'},cat:'Core',muscoli:'Addome, Core',desc:'Posizione a corpo cavo supino — isometrica addominale',livello:'avanzato',equip:'body',primary:'core',move:'core',primarySplit:'core'},
   // ── CARDIO ──
-  {id:'E54',nome:{it:'Camminata',en:'Walking',fr:'Marche'},cat:'Cardio',muscoli:'Full Body',desc:'Camminata a ritmo moderato — base cardio',livello:'base',equip:'body',primary:'cardio',move:'cardio'},
-  {id:'E55',nome:{it:'Cyclette',en:'Stationary Bike',fr:'Vélo stationnaire'},cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Ciclismo stazionario — basso impatto',livello:'base',equip:'gym',primary:'cardio',move:'cardio'},
-  {id:'E56',nome:{it:'Corsa',en:'Running',fr:'Course'},cat:'Cardio',muscoli:'Full Body',desc:'Corsa continua a ritmo moderato',livello:'intermedio',equip:'body',primary:'cardio',move:'cardio'},
-  {id:'E57',nome:{it:'Vogatore',en:'Rowing Machine',fr:'Rameur'},cat:'Cardio',muscoli:'Full Body',desc:'Rowing machine — cardio e forza combinati',livello:'intermedio',equip:'gym',primary:'fullbody',move:'cardio'},
-  {id:'E58',nome:{it:'Jumping Jack',en:'Jumping Jacks',fr:'Jumping Jacks'},cat:'Cardio',muscoli:'Full Body',desc:'Salti con apertura braccia e gambe',livello:'intermedio',equip:'body',primary:'cardio',move:'cardio'},
-  {id:'E59',nome:{it:'Burpee',en:'Burpee',fr:'Burpee'},cat:'Cardio',muscoli:'Full Body',desc:'Squat thrust con salto — massima intensita',livello:'avanzato',equip:'body',primary:'fullbody',move:'cardio'},
-  {id:'E60',nome:{it:'Salto Corda',en:'Jump Rope',fr:'Corde à sauter'},cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Salto con corda — coordinazione e cardio',livello:'intermedio',equip:'home',primary:'cardio',move:'cardio'},
+  {id:'E54',nome:{it:'Camminata',en:'Walking',fr:'Marche'},cat:'Cardio',muscoli:'Full Body',desc:'Camminata a ritmo moderato — base cardio',livello:'base',equip:'body',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E55',nome:{it:'Cyclette',en:'Stationary Bike',fr:'Vélo stationnaire'},cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Ciclismo stazionario — basso impatto',livello:'base',equip:'gym',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E56',nome:{it:'Corsa',en:'Running',fr:'Course'},cat:'Cardio',muscoli:'Full Body',desc:'Corsa continua a ritmo moderato',livello:'intermedio',equip:'body',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E57',nome:{it:'Vogatore',en:'Rowing Machine',fr:'Rameur'},cat:'Cardio',muscoli:'Full Body',desc:'Rowing machine — cardio e forza combinati',livello:'intermedio',equip:'gym',primary:'fullbody',move:'cardio',primarySplit:'cardio'},
+  {id:'E58',nome:{it:'Jumping Jack',en:'Jumping Jacks',fr:'Jumping Jacks'},cat:'Cardio',muscoli:'Full Body',desc:'Salti con apertura braccia e gambe',livello:'intermedio',equip:'body',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E59',nome:{it:'Burpee',en:'Burpee',fr:'Burpee'},cat:'Cardio',muscoli:'Full Body',desc:'Squat thrust con salto — massima intensita',livello:'avanzato',equip:'body',primary:'fullbody',move:'cardio',primarySplit:'cardio'},
+  {id:'E60',nome:{it:'Salto Corda',en:'Jump Rope',fr:'Corde à sauter'},cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Salto con corda — coordinazione e cardio',livello:'intermedio',equip:'home',primary:'cardio',move:'cardio',primarySplit:'cardio'},
   // ── MOBILITÀ ──
-  {id:'E61',nome:{it:'Cat-Cow',en:'Cat-Cow Stretch',fr:'Étirement chat-vache'},cat:'Mobilita',muscoli:'Colonna, Core',desc:'Flessione-estensione colonna in quadrupedia',livello:'base',equip:'body',primary:'core',move:'core'},
-  {id:'E62',nome:{it:'Stretching Psoas',en:'Hip Flexor Stretch',fr:'Étirement psoas'},cat:'Mobilita',muscoli:'Flessori Anca',desc:'Allungamento flessori anca in affondo basso',livello:'base',equip:'body',primary:'quadricipiti',move:'legs'},
-  {id:'E63',nome:{it:'90/90 Hip Stretch',en:'90/90 Hip Stretch',fr:'Étirement hanche 90/90'},cat:'Mobilita',muscoli:'Anca',desc:'Rotazione anca in posizione 90/90 a terra',livello:'intermedio',equip:'body',primary:'glutei',move:'legs'},
-  {id:'E64',nome:{it:'World Greatest Stretch',en:'World\'s Greatest Stretch',fr:'Grand étirement global'},cat:'Mobilita',muscoli:'Full Body',desc:'Affondo con rotazione toracica — mobilita completa',livello:'intermedio',equip:'body',primary:'fullbody',move:'core'},
-  {id:'E65',nome:{it:'Foam Rolling',en:'Foam Rolling',fr:'Rouleau de massage'},cat:'Mobilita',muscoli:'Full Body',desc:'Auto-massaggio con rullo — rilascio miofasciale',livello:'base',equip:'home',primary:'fullbody',move:'core'},
+  {id:'E61',nome:{it:'Cat-Cow',en:'Cat-Cow Stretch',fr:'Étirement chat-vache'},cat:'Mobilita',muscoli:'Colonna, Core',desc:'Flessione-estensione colonna in quadrupedia',livello:'base',equip:'body',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E62',nome:{it:'Stretching Psoas',en:'Hip Flexor Stretch',fr:'Étirement psoas'},cat:'Mobilita',muscoli:'Flessori Anca',desc:'Allungamento flessori anca in affondo basso',livello:'base',equip:'body',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E63',nome:{it:'90/90 Hip Stretch',en:'90/90 Hip Stretch',fr:'Étirement hanche 90/90'},cat:'Mobilita',muscoli:'Anca',desc:'Rotazione anca in posizione 90/90 a terra',livello:'intermedio',equip:'body',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E64',nome:{it:'World Greatest Stretch',en:'World\'s Greatest Stretch',fr:'Grand étirement global'},cat:'Mobilita',muscoli:'Full Body',desc:'Affondo con rotazione toracica — mobilita completa',livello:'intermedio',equip:'body',primary:'fullbody',move:'core',primarySplit:'core'},
+  {id:'E65',nome:{it:'Foam Rolling',en:'Foam Rolling',fr:'Rouleau de massage'},cat:'Mobilita',muscoli:'Full Body',desc:'Auto-massaggio con rullo — rilascio miofasciale',livello:'base',equip:'home',primary:'fullbody',move:'core',primarySplit:'core'},
   // ── FORZA PALESTRA — PETTO ──
-  {id:'E66',nome:{it:'Chest Press Macchina',en:'Machine Chest Press',fr:'Développé couché machine'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Spinta orizzontale con macchina guidata — ottima per principianti',livello:'intermedio',equip:'gym',primary:'petto',move:'push'},
-  {id:'E67',nome:{it:'Panca Inclinata Manubri',en:'Incline Dumbbell Press',fr:'Développé incliné haltères'},cat:'Forza',muscoli:'Pettorali alto, Spalle',desc:'Distensioni su panca inclinata 30-45° — enfasi pettorale alto',livello:'intermedio',equip:'home',primary:'petto',move:'push'},
-  {id:'E68',nome:{it:'Croci ai Cavi',en:'Cable Fly',fr:'Écarté poulie'},cat:'Forza',muscoli:'Pettorali',desc:'Aperture ai cavi — isolamento con tensione costante',livello:'intermedio',equip:'gym',primary:'petto',move:'push'},
-  {id:'E69',nome:{it:'Pectoral Machine',en:'Pec Deck Machine',fr:'Machine pectoraux'},cat:'Forza',muscoli:'Pettorali',desc:'Macchina ad abbraccio per isolamento pettorali',livello:'base',equip:'gym',primary:'petto',move:'push'},
+  {id:'E66',nome:{it:'Chest Press Macchina',en:'Machine Chest Press',fr:'Développé couché machine'},cat:'Forza',muscoli:'Pettorali, Tricipiti',desc:'Spinta orizzontale con macchina guidata — ottima per principianti',livello:'intermedio',equip:'gym',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E67',nome:{it:'Panca Inclinata Manubri',en:'Incline Dumbbell Press',fr:'Développé incliné haltères'},cat:'Forza',muscoli:'Pettorali alto, Spalle',desc:'Distensioni su panca inclinata 30-45° — enfasi pettorale alto',livello:'intermedio',equip:'home',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E68',nome:{it:'Croci ai Cavi',en:'Cable Fly',fr:'Écarté poulie'},cat:'Forza',muscoli:'Pettorali',desc:'Aperture ai cavi — isolamento con tensione costante',livello:'intermedio',equip:'gym',primary:'petto',move:'push',primarySplit:'push'},
+  {id:'E69',nome:{it:'Pectoral Machine',en:'Pec Deck Machine',fr:'Machine pectoraux'},cat:'Forza',muscoli:'Pettorali',desc:'Macchina ad abbraccio per isolamento pettorali',livello:'base',equip:'gym',primary:'petto',move:'push',primarySplit:'push'},
   // ── FORZA PALESTRA — DORSO ──
-  {id:'E70',nome:{it:'Pulley Alto',en:'High Cable Row',fr:'Tirage poulie haute'},cat:'Forza',muscoli:'Dorsali, Trapezi',desc:'Tirata verso il viso al cavo alto — dorso e parte alta schiena',livello:'intermedio',equip:'gym',primary:'dorso',move:'pull'},
-  {id:'E71',nome:{it:'Pullover Manubrio',en:'Dumbbell Pullover',fr:'Pull-over haltère'},cat:'Forza',muscoli:'Dorsali, Pettorali',desc:'Pullover su panca con manubrio — espansione toracica e dorsali',livello:'intermedio',equip:'home',primary:'dorso',move:'pull'},
+  {id:'E70',nome:{it:'Pulley Alto',en:'High Cable Row',fr:'Tirage poulie haute'},cat:'Forza',muscoli:'Dorsali, Trapezi',desc:'Tirata verso il viso al cavo alto — dorso e parte alta schiena',livello:'intermedio',equip:'gym',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E71',nome:{it:'Pullover Manubrio',en:'Dumbbell Pullover',fr:'Pull-over haltère'},cat:'Forza',muscoli:'Dorsali, Pettorali',desc:'Pullover su panca con manubrio — espansione toracica e dorsali',livello:'intermedio',equip:'home',primary:'dorso',move:'pull',primarySplit:'pull'},
   // ── FORZA PALESTRA — SPALLE ──
-  {id:'E72',nome:{it:'Military Press Bilanciere',en:'Barbell Overhead Press',fr:'Développé militaire barre'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Distensioni sopra la testa con bilanciere in piedi',livello:'intermedio',equip:'gym',primary:'spalle',move:'push'},
-  {id:'E73',nome:{it:'Vertical Press Macchina',en:'Machine Shoulder Press',fr:'Développé épaules machine'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Press verticale con macchina guidata per spalle',livello:'base',equip:'gym',primary:'spalle',move:'push'},
-  {id:'E74',nome:{it:'Rear Delt Machine',en:'Rear Delt Fly Machine',fr:'Machine deltoïde postérieur'},cat:'Forza',muscoli:'Spalle posteriori',desc:'Macchina reverse fly per deltoidi posteriori',livello:'base',equip:'gym',primary:'spalle',move:'pull'},
+  {id:'E72',nome:{it:'Military Press Bilanciere',en:'Barbell Overhead Press',fr:'Développé militaire barre'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Distensioni sopra la testa con bilanciere in piedi',livello:'intermedio',equip:'gym',primary:'spalle',move:'push',primarySplit:'push'},
+  {id:'E73',nome:{it:'Vertical Press Macchina',en:'Machine Shoulder Press',fr:'Développé épaules machine'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Press verticale con macchina guidata per spalle',livello:'base',equip:'gym',primary:'spalle',move:'push',primarySplit:'push'},
+  {id:'E74',nome:{it:'Rear Delt Machine',en:'Rear Delt Fly Machine',fr:'Machine deltoïde postérieur'},cat:'Forza',muscoli:'Spalle posteriori',desc:'Macchina reverse fly per deltoidi posteriori',livello:'base',equip:'gym',primary:'spalle',move:'pull',primarySplit:'pull'},
   // ── FORZA PALESTRA — BICIPITI ──
-  {id:'E75',nome:{it:'Curl Cavo Basso',en:'Low Cable Biceps Curl',fr:'Curl poulie basse'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl bicipiti al cavo basso — tensione costante',livello:'intermedio',equip:'gym',primary:'bicipiti',move:'pull'},
+  {id:'E75',nome:{it:'Curl Cavo Basso',en:'Low Cable Biceps Curl',fr:'Curl poulie basse'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl bicipiti al cavo basso — tensione costante',livello:'intermedio',equip:'gym',primary:'bicipiti',move:'pull',primarySplit:'pull'},
   // ── FORZA PALESTRA — TRICIPITI ──
-  {id:'E76',nome:{it:'Tricipiti Seduta Macchina',en:'Triceps Machine',fr:'Machine triceps'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione tricipiti seduto alla macchina guidata',livello:'base',equip:'gym',primary:'tricipiti',move:'push'},
+  {id:'E76',nome:{it:'Tricipiti Seduta Macchina',en:'Triceps Machine',fr:'Machine triceps'},cat:'Forza',muscoli:'Tricipiti',desc:'Estensione tricipiti seduto alla macchina guidata',livello:'base',equip:'gym',primary:'tricipiti',move:'push',primarySplit:'push'},
   // ── FORZA PALESTRA — QUADRICIPITI ──
-  {id:'E77',nome:{it:'Squat Sumo',en:'Sumo Squat',fr:'Squat sumo'},cat:'Forza',muscoli:'Quadricipiti, Glutei, Adduttori',desc:'Squat con base larga e punte ruotate esterne — enfasi adduttori e glutei',livello:'intermedio',equip:'any',primary:'quadricipiti',move:'legs'},
-  {id:'E78',nome:{it:'Leg Extension',en:'Leg Extension',fr:'Extension des jambes'},cat:'Forza',muscoli:'Quadricipiti',desc:'Estensione ginocchio alla macchina — isolamento quadricipiti',livello:'base',equip:'gym',primary:'quadricipiti',move:'legs'},
+  {id:'E77',nome:{it:'Squat Sumo',en:'Sumo Squat',fr:'Squat sumo'},cat:'Forza',muscoli:'Quadricipiti, Glutei, Adduttori',desc:'Squat con base larga e punte ruotate esterne — enfasi adduttori e glutei',livello:'intermedio',equip:'any',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
+  {id:'E78',nome:{it:'Leg Extension',en:'Leg Extension',fr:'Extension des jambes'},cat:'Forza',muscoli:'Quadricipiti',desc:'Estensione ginocchio alla macchina — isolamento quadricipiti',livello:'base',equip:'gym',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   // ── FORZA PALESTRA — FEMORALI ──
-  {id:'E79',nome:{it:'Mezzi Rumeni Manubri',en:'Dumbbell Romanian Deadlift',fr:'Soulevé de terre roumain haltères'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Versione corta dello stacco rumeno con manubri — femorali',livello:'intermedio',equip:'home',primary:'femorali',move:'legs'},
+  {id:'E79',nome:{it:'Mezzi Rumeni Manubri',en:'Dumbbell Romanian Deadlift',fr:'Soulevé de terre roumain haltères'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Versione corta dello stacco rumeno con manubri — femorali',livello:'intermedio',equip:'home',primary:'femorali',move:'legs',primarySplit:'legs'},
   // ── FORZA PALESTRA — GLUTEI ──
-  {id:'E80',nome:{it:'Slanci Glutei al Cavo',en:'Cable Glute Kickback',fr:'Extension hanche poulie'},cat:'Forza',muscoli:'Glutei',desc:'Estensione posteriore dell\'anca al cavo basso — isolamento gluteo',livello:'base',equip:'gym',primary:'glutei',move:'legs'},
-  {id:'E81',nome:{it:'Slanci Glutei con Disco',en:'Standing Hip Extension (Plate)',fr:'Extension hanche avec disque'},cat:'Forza',muscoli:'Glutei',desc:'Hip extension in quadrupedia con disco sopra il ginocchio',livello:'base',equip:'home',primary:'glutei',move:'legs'},
-  {id:'E82',nome:{it:'Adduttori Macchina',en:'Adductor Machine',fr:'Machine adducteurs'},cat:'Forza',muscoli:'Adduttori',desc:'Chiusura gambe alla macchina — adduttori interno coscia',livello:'base',equip:'gym',primary:'glutei',move:'legs'},
-  {id:'E83',nome:{it:'Abduttori Macchina',en:'Abductor Machine',fr:'Machine abducteurs'},cat:'Forza',muscoli:'Glutei medio, Abduttori',desc:'Apertura gambe alla macchina seduto — gluteo medio',livello:'base',equip:'gym',primary:'glutei',move:'legs'},
-  {id:'E84',nome:{it:'Stand Abductor',en:'Standing Hip Abduction',fr:'Abduction hanche debout'},cat:'Forza',muscoli:'Glutei medio',desc:'Abductor machine in piedi — gluteo medio e stabilita',livello:'base',equip:'gym',primary:'glutei',move:'legs'},
+  {id:'E80',nome:{it:'Slanci Glutei al Cavo',en:'Cable Glute Kickback',fr:'Extension hanche poulie'},cat:'Forza',muscoli:'Glutei',desc:'Estensione posteriore dell\'anca al cavo basso — isolamento gluteo',livello:'base',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E81',nome:{it:'Slanci Glutei con Disco',en:'Standing Hip Extension (Plate)',fr:'Extension hanche avec disque'},cat:'Forza',muscoli:'Glutei',desc:'Hip extension in quadrupedia con disco sopra il ginocchio',livello:'base',equip:'home',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E82',nome:{it:'Adduttori Macchina',en:'Adductor Machine',fr:'Machine adducteurs'},cat:'Forza',muscoli:'Adduttori',desc:'Chiusura gambe alla macchina — adduttori interno coscia',livello:'base',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E83',nome:{it:'Abduttori Macchina',en:'Abductor Machine',fr:'Machine abducteurs'},cat:'Forza',muscoli:'Glutei medio, Abduttori',desc:'Apertura gambe alla macchina seduto — gluteo medio',livello:'base',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E84',nome:{it:'Stand Abductor',en:'Standing Hip Abduction',fr:'Abduction hanche debout'},cat:'Forza',muscoli:'Glutei medio',desc:'Abductor machine in piedi — gluteo medio e stabilita',livello:'base',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
   // ── CORE PALESTRA ──
-  {id:'E85',nome:{it:'Crunch Macchina',en:'Machine Crunch',fr:'Crunch machine'},cat:'Core',muscoli:'Addome',desc:'Crunch guidato alla macchina con resistenza regolabile',livello:'base',equip:'gym',primary:'core',move:'core'},
-  {id:'E86',nome:{it:'Leg Raise',en:'Hanging Leg Raise',fr:'Relevé de jambes'},cat:'Core',muscoli:'Addome basso',desc:'Sollevamento gambe da supino o appeso — addome basso',livello:'intermedio',equip:'body',primary:'core',move:'core'},
+  {id:'E85',nome:{it:'Crunch Macchina',en:'Machine Crunch',fr:'Crunch machine'},cat:'Core',muscoli:'Addome',desc:'Crunch guidato alla macchina con resistenza regolabile',livello:'base',equip:'gym',primary:'core',move:'core',primarySplit:'core'},
+  {id:'E86',nome:{it:'Leg Raise',en:'Hanging Leg Raise',fr:'Relevé de jambes'},cat:'Core',muscoli:'Addome basso',desc:'Sollevamento gambe da supino o appeso — addome basso',livello:'intermedio',equip:'body',primary:'core',move:'core',primarySplit:'core'},
   // ── CARDIO PALESTRA ──
-  {id:'E87',nome:{it:'Tapis Roulant',en:'Treadmill',fr:'Tapis de course'},cat:'Cardio',muscoli:'Full Body',desc:'Corsa o camminata su tappeto — cardio controllato',livello:'base',equip:'gym',primary:'cardio',move:'cardio'},
-  {id:'E88',nome:{it:'Ellittica',en:'Elliptical Trainer',fr:'Elliptique'},cat:'Cardio',muscoli:'Full Body',desc:'Macchina ellittica — cardio a basso impatto articolare',livello:'base',equip:'gym',primary:'cardio',move:'cardio'},
-  {id:'E89',nome:{it:'Pedalata Gambe Alte',en:'High Knees Cycling',fr:'Pédalage genoux hauts'},cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Pedalata con gambe elevate su macchina recumbent',livello:'base',equip:'gym',primary:'cardio',move:'cardio'},
-  {id:'E90',nome:{it:'Runner Passo Salita',en:'Incline Walk / Run',fr:'Marche / Course en côte'},cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Tapis roulant con inclinazione — camminata in salita intensa',livello:'intermedio',equip:'gym',primary:'cardio',move:'cardio'},
+  {id:'E87',nome:{it:'Tapis Roulant',en:'Treadmill',fr:'Tapis de course'},cat:'Cardio',muscoli:'Full Body',desc:'Corsa o camminata su tappeto — cardio controllato',livello:'base',equip:'gym',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E88',nome:{it:'Ellittica',en:'Elliptical Trainer',fr:'Elliptique'},cat:'Cardio',muscoli:'Full Body',desc:'Macchina ellittica — cardio a basso impatto articolare',livello:'base',equip:'gym',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E89',nome:{it:'Pedalata Gambe Alte',en:'High Knees Cycling',fr:'Pédalage genoux hauts'},cat:'Cardio',muscoli:'Gambe, Cuore',desc:'Pedalata con gambe elevate su macchina recumbent',livello:'base',equip:'gym',primary:'cardio',move:'cardio',primarySplit:'cardio'},
+  {id:'E90',nome:{it:'Runner Passo Salita',en:'Incline Walk / Run',fr:'Marche / Course en côte'},cat:'Cardio',muscoli:'Full Body, Polpacci',desc:'Tapis roulant con inclinazione — camminata in salita intensa',livello:'intermedio',equip:'gym',primary:'cardio',move:'cardio',primarySplit:'cardio'},
   // ── CORPO LIBERO — PLIOMETRIA ──
-  {id:'E91',nome:{it:'Jump Squat',en:'Jump Squat',fr:'Squat sauté'},cat:'Funzionale',muscoli:'Quadricipiti, Glutei',desc:'Squat esplosivo con salto — pliometria arti inferiori',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs'},
+  {id:'E91',nome:{it:'Jump Squat',en:'Jump Squat',fr:'Squat sauté'},cat:'Funzionale',muscoli:'Quadricipiti, Glutei',desc:'Squat esplosivo con salto — pliometria arti inferiori',livello:'intermedio',equip:'body',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   // Polpacci body
-  {id:'E92',nome:{it:'Calf Raise Corpo Libero',en:'Bodyweight Calf Raise',fr:'Mollet poids du corps'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni a corpo libero su gradino o pavimento',livello:'base',equip:'body',primary:'polpacci',move:'legs'},
-  {id:'E93',nome:{it:'Calf Raise Monopodalico',en:'Single-Leg Calf Raise',fr:'Mollet unijambiste'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento tallone su una gamba — intensità maggiore',livello:'intermedio',equip:'body',primary:'polpacci',move:'legs'},
+  {id:'E92',nome:{it:'Calf Raise Corpo Libero',en:'Bodyweight Calf Raise',fr:'Mollet poids du corps'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento talloni a corpo libero su gradino o pavimento',livello:'base',equip:'body',primary:'polpacci',move:'legs',primarySplit:'legs'},
+  {id:'E93',nome:{it:'Calf Raise Monopodalico',en:'Single-Leg Calf Raise',fr:'Mollet unijambiste'},cat:'Forza',muscoli:'Polpacci',desc:'Sollevamento tallone su una gamba — intensità maggiore',livello:'intermedio',equip:'body',primary:'polpacci',move:'legs',primarySplit:'legs'},
   // Dorso body
-  {id:'E94',nome:{it:'Trazioni (bodyweight)',en:'Pull-Up (Bodyweight)',fr:'Tractions poids du corps'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — tirata verticale corpo libero',livello:'avanzato',equip:'body',primary:'dorso',move:'pull'},
-  {id:'E95',nome:{it:'Inverted Row',en:'Inverted Row',fr:'Rowing inversé'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Rematore invertito sotto tavolo o barra bassa',livello:'intermedio',equip:'body',primary:'dorso',move:'pull'},
-  {id:'E96',nome:{it:'Superman',en:'Superman',fr:'Superman'},cat:'Forza',muscoli:'Lombari, Glutei',desc:'Estensione prona a terra — catena posteriore lombari',livello:'base',equip:'body',primary:'dorso',move:'pull'},
+  {id:'E94',nome:{it:'Trazioni (bodyweight)',en:'Pull-Up (Bodyweight)',fr:'Tractions poids du corps'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Pull-up alla sbarra — tirata verticale corpo libero',livello:'avanzato',equip:'body',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E95',nome:{it:'Inverted Row',en:'Inverted Row',fr:'Rowing inversé'},cat:'Forza',muscoli:'Dorsali, Bicipiti',desc:'Rematore invertito sotto tavolo o barra bassa',livello:'intermedio',equip:'body',primary:'dorso',move:'pull',primarySplit:'pull'},
+  {id:'E96',nome:{it:'Superman',en:'Superman',fr:'Superman'},cat:'Forza',muscoli:'Lombari, Glutei',desc:'Estensione prona a terra — catena posteriore lombari',livello:'base',equip:'body',primary:'dorso',move:'pull',primarySplit:'pull'},
   // Bicipiti body
-  {id:'E97',nome:{it:'Chin-up',en:'Chin-Up',fr:'Traction supination'},cat:'Forza',muscoli:'Bicipiti, Dorsali',desc:'Trazioni presa supina — enfasi bicipiti',livello:'avanzato',equip:'body',primary:'bicipiti',move:'pull'},
-  {id:'E98',nome:{it:'Curl Asciugamano',en:'Towel Biceps Curl',fr:'Curl serviette'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl isometrico con asciugamano o elastico',livello:'base',equip:'body',primary:'bicipiti',move:'pull'},
+  {id:'E97',nome:{it:'Chin-up',en:'Chin-Up',fr:'Traction supination'},cat:'Forza',muscoli:'Bicipiti, Dorsali',desc:'Trazioni presa supina — enfasi bicipiti',livello:'avanzato',equip:'body',primary:'bicipiti',move:'pull',primarySplit:'pull'},
+  {id:'E98',nome:{it:'Curl Asciugamano',en:'Towel Biceps Curl',fr:'Curl serviette'},cat:'Forza',muscoli:'Bicipiti',desc:'Curl isometrico con asciugamano o elastico',livello:'base',equip:'body',primary:'bicipiti',move:'pull',primarySplit:'pull'},
   // Tricipiti body
-  {id:'E99',nome:{it:'Diamond Push-up',en:'Diamond Push-Up',fr:'Pompes diamant'},cat:'Forza',muscoli:'Tricipiti, Pettorali',desc:'Flessioni con mani a diamante — isolamento tricipiti',livello:'intermedio',equip:'body',primary:'tricipiti',move:'push'},
-  {id:'E100',nome:{it:'Tricep Dip Sedia',en:'Chair / Bench Dip',fr:'Dips sur chaise'},cat:'Forza',muscoli:'Tricipiti',desc:'Dip su sedia o bordo panca — tricipiti a corpo libero',livello:'base',equip:'body',primary:'tricipiti',move:'push'},
+  {id:'E99',nome:{it:'Diamond Push-up',en:'Diamond Push-Up',fr:'Pompes diamant'},cat:'Forza',muscoli:'Tricipiti, Pettorali',desc:'Flessioni con mani a diamante — isolamento tricipiti',livello:'intermedio',equip:'body',primary:'tricipiti',move:'push',primarySplit:'push'},
+  {id:'E100',nome:{it:'Tricep Dip Sedia',en:'Chair / Bench Dip',fr:'Dips sur chaise'},cat:'Forza',muscoli:'Tricipiti',desc:'Dip su sedia o bordo panca — tricipiti a corpo libero',livello:'base',equip:'body',primary:'tricipiti',move:'push',primarySplit:'push'},
   // Spalle body
-  {id:'E101',nome:{it:'Pike Push-up',en:'Pike Push-Up',fr:'Pompes en pique'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Push-up con bacino alto — enfasi deltoide anteriore',livello:'intermedio',equip:'body',primary:'spalle',move:'push'},
-  {id:'E102',nome:{it:'Shoulder Tap',en:'Shoulder Tap Plank',fr:'Planche avec toucher d\'épaule'},cat:'Forza',muscoli:'Spalle, Core',desc:'Plank con tocco alternato delle spalle — stabilita scapolare',livello:'base',equip:'body',primary:'spalle',move:'push'},
+  {id:'E101',nome:{it:'Pike Push-up',en:'Pike Push-Up',fr:'Pompes en pique'},cat:'Forza',muscoli:'Spalle, Tricipiti',desc:'Push-up con bacino alto — enfasi deltoide anteriore',livello:'intermedio',equip:'body',primary:'spalle',move:'push',primarySplit:'push'},
+  {id:'E102',nome:{it:'Shoulder Tap',en:'Shoulder Tap Plank',fr:'Planche avec toucher d\'épaule'},cat:'Forza',muscoli:'Spalle, Core',desc:'Plank con tocco alternato delle spalle — stabilita scapolare',livello:'base',equip:'body',primary:'spalle',move:'push',primarySplit:'core'},
   // Glutei body
-  {id:'E103',nome:{it:'Donkey Kick',en:'Donkey Kick',fr:'Coup de pied âne'},cat:'Forza',muscoli:'Glutei',desc:'Calcio asinello in quadrupedia — isolamento gluteo medio',livello:'base',equip:'body',primary:'glutei',move:'legs'},
-  {id:'E104',nome:{it:'Ponte Glutei Monopodalico',en:'Single-Leg Glute Bridge',fr:'Pont fessier unilatéral'},cat:'Forza',muscoli:'Glutei, Femorali',desc:'Hip thrust su una gamba a terra — unilaterale intermedio',livello:'intermedio',equip:'body',primary:'glutei',move:'legs'},
+  {id:'E103',nome:{it:'Donkey Kick',en:'Donkey Kick',fr:'Coup de pied âne'},cat:'Forza',muscoli:'Glutei',desc:'Calcio asinello in quadrupedia — isolamento gluteo medio',livello:'base',equip:'body',primary:'glutei',move:'legs',primarySplit:'legs'},
+  {id:'E104',nome:{it:'Ponte Glutei Monopodalico',en:'Single-Leg Glute Bridge',fr:'Pont fessier unilatéral'},cat:'Forza',muscoli:'Glutei, Femorali',desc:'Hip thrust su una gamba a terra — unilaterale intermedio',livello:'intermedio',equip:'body',primary:'glutei',move:'legs',primarySplit:'legs'},
 ];
+
+// ── MUSCLE GROUP LOCALIZATION ─────────────────────────────────────────────────
+var MUSCOLI_TRANS={
+  en:{
+    'Quadricipiti':'Quadriceps','Glutei':'Glutes','Femorali':'Hamstrings','Polpacci':'Calves',
+    'Pettorali':'Chest','Dorsali':'Back','Spalle':'Shoulders','Bicipiti':'Biceps',
+    'Tricipiti':'Triceps','Core':'Core','Addome':'Abs','Obliqui':'Obliques',
+    'Lombari':'Lower Back','Full Body':'Full Body','Gambe':'Legs',
+    'Flessori Anca':'Hip Flexors','Anca':'Hip','Colonna':'Spine',
+    'Adduttori':'Adductors','Abduttori':'Abductors','Trapezi':'Traps',
+    'Cuore':'Cardio','Spalle posteriori':'Rear Delts','Gluteo medio':'Glute Med',
+    'Glutei medio':'Glute Med','Pettorali alto':'Upper Chest'
+  },
+  fr:{
+    'Quadricipiti':'Quadriceps','Glutei':'Fessiers','Femorali':'Ischio-jambiers','Polpacci':'Mollets',
+    'Pettorali':'Pectoraux','Dorsali':'Dorsaux','Spalle':'Épaules','Bicipiti':'Biceps',
+    'Tricipiti':'Triceps','Core':'Sangle abdominale','Addome':'Abdominaux','Obliqui':'Obliques',
+    'Lombari':'Bas du dos','Full Body':'Corps entier','Gambe':'Jambes',
+    'Flessori Anca':'Fléchisseurs hanche','Anca':'Hanche','Colonna':'Colonne',
+    'Adduttori':'Adducteurs','Abduttori':'Abducteurs','Trapezi':'Trapèzes',
+    'Cuore':'Cardio','Spalle posteriori':'Deltoïdes postérieurs','Gluteo medio':'Fessiers moyens',
+    'Glutei medio':'Fessiers moyens','Pettorali alto':'Pectoraux hauts'
+  }
+};
+function muscoliLocale(muscoli,lang){
+  if(!muscoli||lang==='it')return muscoli||'';
+  var trans=MUSCOLI_TRANS[lang];
+  if(!trans)return muscoli;
+  return muscoli.split(',').map(function(m){
+    var t=m.trim();
+    return trans[t]||t;
+  }).join(', ');
+}
+function livelloLocale(livello,lang){
+  if(!livello||lang==='it')return livello||'';
+  var map={en:{base:'beginner',intermedio:'intermediate',avanzato:'advanced'},
+           fr:{base:'débutant',intermedio:'intermédiaire',avanzato:'avancé'}};
+  return (map[lang]&&map[lang][livello])||livello;
+}
+// ── END MUSCLE GROUP LOCALIZATION ─────────────────────────────────────────────
 
 const INIT_PATIENTS=[];
 const INIT_BOOKINGS=[];
@@ -4398,15 +4438,17 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       }
       var rowsHtml=block.righe.map(function(r){
         var ex=r.ex,eInfo=r.eInfo,ei=r.ei;
-        var nome=exName(eInfo,getLang())||ex.eId||'';
-        var gruppo=(eInfo.muscoli||eInfo.target||eInfo.gruppo||'').toString();
+        var _pdfLang=getLang();
+        var nome=exName(eInfo,_pdfLang)||ex.eId||'';
+        var gruppo=muscoliLocale((eInfo.muscoli||eInfo.target||eInfo.gruppo||'').toString(),_pdfLang);
         var cat=(eInfo.cat||eInfo.categoria||'').toLowerCase();
         var primary=(eInfo.primary||'').toLowerCase();
         var isCardio=cat==='cardio'||primary==='cardio';
         var isCore=cat==='core'||primary==='core';
-        var livello=eInfo.livello||'';
-        var livBg=livello==='base'?'#d1fae5':livello==='intermedio'?'#fef3c7':livello==='avanzato'?'#fee2e2':'#f1f5f9';
-        var livClr=livello==='base'?'#10b981':livello==='intermedio'?'#f59e0b':livello==='avanzato'?'#ef4444':'#64748b';
+        var livelloRaw=eInfo.livello||'';
+        var livello=livelloLocale(livelloRaw,_pdfLang);
+        var livBg=livelloRaw==='base'?'#d1fae5':livelloRaw==='intermedio'?'#fef3c7':livelloRaw==='avanzato'?'#fee2e2':'#f1f5f9';
+        var livClr=livelloRaw==='base'?'#10b981':livelloRaw==='intermedio'?'#f59e0b':livelloRaw==='avanzato'?'#ef4444':'#64748b';
         var ripCol=ex.reps||'—';
         var recCol=ex.rec?ex.rec+'s':'—';
         if(isCardio){ripCol=String(ex.reps||'15').indexOf('min')!==-1?ex.reps:(ex.reps||'15')+' min';recCol='—';}
@@ -7003,11 +7045,12 @@ var generaSchedaAuto = function(params, esercizi) {
     function tryFilter(f, compoundOnly) {
       return libCompat.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
+        // primarySplit: hard constraint — Push slot only picks push exercises, Pull only pull, etc.
+        if (f.primarySplit && ex.primarySplit !== f.primarySplit) return false;
         if (f.cat && ex.cat !== f.cat) return false;
         if (f.primary && f.primary.length && f.primary.indexOf(ex.primary || '') === -1) return false;
         if (f.move && f.move.length && f.move.indexOf(ex.move || '') === -1) return false;
         if (compoundOnly && !isCompound(ex)) return false;
-        // BUG 2: Escludi pliometrici dai compound se non Performance/C+
         if (compoundOnly && isPlyometric(ex) && obiettivo !== 'Performance' && profilo !== 'C+') return false;
         return true;
       });
@@ -7183,26 +7226,25 @@ var generaSchedaAuto = function(params, esercizi) {
         slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
       }
     } else if (dayName === 'Push') {
-      slots.push({primary:['petto'], move:['push'], label:'Petto compound', preferCompound:true});
-      if (!isFemale) slots.push({primary:['petto'], move:['push'], label:'Petto accessorio'});
-      slots.push({primary:['spalle'], label:'Spalle'});
-      slots.push({primary:['tricipiti'], move:['push'], label:'Tricipiti'});
+      slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:'Petto compound', preferCompound:true});
+      if (!isFemale) slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:'Petto accessorio'});
+      slots.push({primary:['spalle'], primarySplit:'push', label:'Spalle'});
+      slots.push({primary:['tricipiti'], move:['push'], primarySplit:'push', label:'Tricipiti'});
     } else if (dayName === 'Pull') {
-      slots.push({primary:['dorso'], move:['pull'], label:'Dorso compound', preferCompound:true});
-      slots.push({primary:['dorso'], move:['pull'], label:'Dorso accessorio'});
-      slots.push({primary:['bicipiti'], move:['pull'], label:'Bicipiti'});
-      slots.push({primary:['spalle'], label:'Trapezio / Deltoidi'});
+      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:'Dorso compound', preferCompound:true});
+      slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:'Dorso accessorio'});
+      slots.push({primary:['bicipiti'], move:['pull'], primarySplit:'pull', label:'Bicipiti'});
+      slots.push({primary:['spalle'], primarySplit:'pull', label:'Trapezio / Deltoidi'});
     } else if (dayName === 'Legs') {
-      slots.push({primary:['quadricipiti'], move:['legs'], label:'Quadricipiti compound', preferCompound:true});
-      slots.push({primary:['femorali','glutei'], move:['legs'], label:'Femorali'});
+      slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:'Quadricipiti compound', preferCompound:true});
+      slots.push({primary:['femorali','glutei'], move:['legs'], primarySplit:'legs', label:'Femorali'});
       if (isFemale) {
-        // Donna PPL Legs: 2 glutei (1 compound + 1 isolamento)
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei compound', preferCompound:true});
-        slots.push({primary:['glutei'], label:'Glutei isolamento'});
-        slots.push({primary:['polpacci'], label:'Polpacci'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:'Glutei compound', preferCompound:true});
+        slots.push({primary:['glutei'], primarySplit:'legs', label:'Glutei isolamento'});
+        slots.push({primary:['polpacci'], primarySplit:'legs', label:'Polpacci'});
       } else {
-        slots.push({primary:['glutei','femorali'], move:['legs'], label:'Glutei'});
-        slots.push({primary:['polpacci'], label:'Polpacci'});
+        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:'Glutei'});
+        slots.push({primary:['polpacci'], primarySplit:'legs', label:'Polpacci'});
       }
     }
 
@@ -7411,7 +7453,20 @@ var generaSchedaAuto = function(params, esercizi) {
       var ra = rank[a.category] != null ? rank[a.category] : 1;
       var rb = rank[b.category] != null ? rank[b.category] : 1;
       if (ra !== rb) return ra - rb;
-      return 0; // stabile
+      return 0;
+    });
+  }
+
+  // ── Anti-volume: max 2 heavy compound (rec >= 180s) per session ──
+  function applyVolumeRules(dayArr) {
+    var MAX_HEAVY = 2;
+    var heavyCount = 0;
+    return dayArr.filter(function(e) {
+      if (e.category === 'compound' && +e.rec >= 180) {
+        heavyCount++;
+        if (heavyCount > MAX_HEAVY) { volumeWasTrimmed = true; return false; }
+      }
+      return true;
     });
   }
 
@@ -7486,6 +7541,8 @@ var generaSchedaAuto = function(params, esercizi) {
     });
     // Ordina: compound → big → small → core (prima del trim per stabilità)
     schedaEsercizi = ordinaEsercizi(schedaEsercizi);
+    // Anti-volume: max 2 heavy compound per seduta
+    schedaEsercizi = applyVolumeRules(schedaEsercizi);
     // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound
     var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
     schedaEsercizi = trimFB.esercizi;
@@ -7573,6 +7630,8 @@ var generaSchedaAuto = function(params, esercizi) {
       }
       // Ordina: compound → big → small → core
       dayEsercizi = ordinaEsercizi(dayEsercizi);
+      // Anti-volume: max 2 heavy compound per giorno
+      dayEsercizi = applyVolumeRules(dayEsercizi);
       // Trim per tempo del singolo giorno
       var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
       dayEsercizi = trimDay.esercizi;
@@ -7608,6 +7667,30 @@ var generaSchedaAuto = function(params, esercizi) {
     });
   }
   return schedeGenerate;
+};
+
+// ── VALIDATE SCHEDA: verifica che ogni esercizio sia nel giorno corretto ──
+// Returns {valid:bool, issues:[{eId, nome, actualSplit, expectedSplit, sezione}]}
+var validateScheda = function(scheda, esercizi, lang) {
+  var issues = [];
+  if (!scheda || !scheda.esercizi || !esercizi) return {valid:true, issues:[]};
+  var sectionSplitMap = {'push':'push','pull':'pull','legs':'legs','upper':'push','lower':'legs'};
+  scheda.esercizi.forEach(function(entry) {
+    if (!entry.sezione) return;
+    var sez = (entry.sezione||'').toLowerCase();
+    var expectedSplit = null;
+    for (var k in sectionSplitMap) {
+      if (sez.indexOf(k) !== -1) { expectedSplit = sectionSplitMap[k]; break; }
+    }
+    if (!expectedSplit) return;
+    var ex = esercizi.find(function(e){ return e.id === entry.eId; });
+    if (!ex) return;
+    if (ex.primarySplit === 'core' || ex.primarySplit === 'cardio') return;
+    if (ex.primarySplit && ex.primarySplit !== expectedSplit) {
+      issues.push({eId:entry.eId, nome:exName(ex,lang||'it'), actualSplit:ex.primarySplit, expectedSplit:expectedSplit, sezione:entry.sezione});
+    }
+  });
+  return {valid: issues.length === 0, issues: issues};
 };
 
 // ── TROVA ALTERNATIVE per un esercizio (usato dal bottone swap) ──
