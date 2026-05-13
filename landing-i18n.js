@@ -516,18 +516,10 @@ TR.fr['proof.t2Text']='Mises \u00e0 jour hebdomadaires bas\u00e9es sur l\u2019us
 TR.fr['proof.t3Title']='Pens\u00e9 pour l\u2019Italie';
 TR.fr['proof.t3Text']='Terminologie du march\u00e9 italien, paiements s\u00e9curis\u00e9s via Stripe \u00b7 TVA italienne, support en italien \u00e9crit par une personne.';
 // Authority strip
-TR.en['authority.label']='Protocols based on';
-TR.en['authority.nsca']='NSCA';
-TR.en['authority.acsm']='ACSM';
-TR.en['authority.issn']='ISSN 2017';
-TR.en['authority.schoen']='Schoenfeld 2021';
-TR.en['authority.ers']='ERS-ATS 2014';
-TR.fr['authority.label']='Protocoles basés sur';
-TR.fr['authority.nsca']='NSCA';
-TR.fr['authority.acsm']='ACSM';
-TR.fr['authority.issn']='ISSN 2017';
-TR.fr['authority.schoen']='Schoenfeld 2021';
-TR.fr['authority.ers']='ERS-ATS 2014';
+TR.en['authority.title']='Protocols based on';
+TR.en['authority.sub']='18 real scientific references in the code — not just in the marketing.';
+TR.fr['authority.title']='Protocoles basés sur';
+TR.fr['authority.sub']='18 références scientifiques réelles dans le code — pas seulement dans le marketing.';
 // Proof refs grid
 TR.en['proof.refs.a1Title']='Aerobic capacity';
 TR.en['proof.refs.a1Text']='6MWT — ERS-ATS 2014. VO2max estimate via Cahalin equation. Age/sex norms.';
