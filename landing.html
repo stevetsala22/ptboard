@@ -32,6 +32,7 @@ src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
 <meta charset="UTF-8"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="apple-touch-icon" href="/favicon.png"/>
+<link rel="preload" as="image" href="/dashboard.jpg" fetchpriority="high"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#3b82f6"/>
 <meta name="description" content="PT Board — Software all-in-one per Personal Trainer italiani. Valutazione funzionale in 20 min, schede automatiche, PDF professionale. Prova gratis 15 giorni, senza carta di credito."/>
@@ -40,6 +41,18 @@ src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
 <meta property="og:description" content="Smetti di sprecare 2 ore per ogni cliente. Con PT Board valuti, programmi e generi la scheda PDF in 20 minuti — automaticamente. Da 9,99 euro/mese."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://personaltrainerboard.com/landing.html"/>
+<meta property="og:image" content="https://personaltrainerboard.com/dashboard.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="750"/>
+<meta property="og:image:alt" content="PT Board Dashboard - Software per Personal Trainer"/>
+<meta property="og:site_name" content="PT Board"/>
+<meta property="og:locale" content="it_IT"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<meta property="og:locale:alternate" content="fr_FR"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="PT Board - Il software che ogni Personal Trainer merita"/>
+<meta name="twitter:description" content="Valuta i tuoi clienti in 20 minuti. Schede automatiche, PDF professionale. Prova gratis 15 giorni."/>
+<meta name="twitter:image" content="https://personaltrainerboard.com/dashboard.jpg"/>
 <title>PT Board - Il software che ogni Personal Trainer merita</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
@@ -530,8 +543,8 @@ img{max-width:100%;height:auto}
       </div>
       <div class="hero-mockup">
         <div style="position:relative">
-          <img src="/dashboard.jpg" alt="PT Board Dashboard" data-i18n-alt="hero.imgDashAlt" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 32px 80px rgba(0,0,0,.5);display:block" loading="lazy"/>
-          <img src="/mobile.jpg" alt="PT Board Mobile" data-i18n-alt="hero.imgMobileAlt" class="hero-mobile-img" style="position:absolute;bottom:-20px;right:-20px;width:160px;border-radius:20px;border:2px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.6);z-index:2" loading="lazy"/>
+          <img src="/dashboard.jpg" alt="PT Board Dashboard" data-i18n-alt="hero.imgDashAlt" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 32px 80px rgba(0,0,0,.5);display:block" loading="eager" fetchpriority="high" decoding="async" width="1200" height="750"/>
+          <img src="/mobile.jpg" alt="PT Board Mobile" data-i18n-alt="hero.imgMobileAlt" class="hero-mobile-img" style="position:absolute;bottom:-20px;right:-20px;width:160px;border-radius:20px;border:2px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.6);z-index:2" loading="lazy" decoding="async" width="320" height="650"/>
         </div>
       </div>
     </div>
@@ -1069,11 +1082,6 @@ img{max-width:100%;height:auto}
     <div class="footer-bottom">
       <span data-i18n="footer.copyright">&copy; 2026 PT Board. Tutti i diritti riservati.</span>
       <span data-i18n="footer.madeWith">Costruito in Italia</span>
-    </div>
-    <div style="text-align:center;margin-top:16px;font-size:13px">
-      <a href="/privacy.html" style="color:#6b7280;text-decoration:none" data-i18n="footer.privacy" onmouseenter="this.style.color='#3b82f6'" onmouseleave="this.style.color='#6b7280'">Privacy Policy</a>
-      <span style="color:#374151;margin:0 8px">&middot;</span>
-      <a href="/terms.html" style="color:#6b7280;text-decoration:none" data-i18n="footer.terms" onmouseenter="this.style.color='#3b82f6'" onmouseleave="this.style.color='#6b7280'">Termini di Servizio</a>
     </div>
   </div>
 </footer>
