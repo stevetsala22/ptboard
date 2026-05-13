@@ -6,7 +6,7 @@ TR.en['nav.pricing']='Pricing';
 TR.en['nav.faq']='FAQ';
 TR.en['nav.login']='Sign in';
 TR.en['nav.cta']='Try free';
-TR.en['hero.badge']='The software for Personal Trainers &middot; Made in Italy';
+TR.en['hero.badge']='The software for Personal Trainers';
 TR.en['hero.title']='Assess your clients<br/>in <span class="text-gradient">20 minutes.</span><br/>Not 2 hours.';
 TR.en['hero.desc']='Stop wasting 2 hours per client. With PT Board you assess, plan and generate the PDF workout in 20 minutes — automatically.';
 TR.en['hero.microCopy']='No credit card &middot; No commitment &middot; Your data is safe';
@@ -252,7 +252,7 @@ TR.fr['nav.pricing']='Tarifs';
 TR.fr['nav.faq']='FAQ';
 TR.fr['nav.login']='Connexion';
 TR.fr['nav.cta']='Essai gratuit';
-TR.fr['hero.badge']='Le logiciel pour Personal Trainers \u2014 Made in Italy';
+TR.fr['hero.badge']='Le logiciel pour Personal Trainers';
 TR.fr['hero.title']='\u00c9valuez vos clients<br/>en <span class="text-gradient">20 minutes.</span><br/>Pas en 2 heures.';
 TR.fr['hero.desc']='Arr\u00eatez de perdre 2h par client. Avec PT Board vous \u00e9valuez, planifiez et g\u00e9n\u00e9rez la fiche PDF en 20 minutes \u2014 automatiquement.';
 TR.fr['hero.microCopy']='Sans carte de cr\u00e9dit &middot; Sans engagement &middot; Vos donn\u00e9es en s\u00e9curit\u00e9';
@@ -494,7 +494,7 @@ TR.fr['footer.copyright']='&copy; 2026 PT Board. Tous droits r\u00e9serv\u00e9s.
 TR.fr['footer.madeWith']='Construit en Italie';
 
 TR.en['hero.earlyTitle']='Launched in 2026';
-TR.en['hero.earlySub']='Weekly updates · Made in Italy';
+TR.en['hero.earlySub']='Weekly updates';
 TR.en['proof.badge']='The story behind PT Board';
 TR.en['proof.title']='Solid tools,<br/>no fluff.';
 TR.en['proof.intro']='PT Board is designed by a Sport Science student for the real work of Italian personal trainers. Three principles drive development.';
@@ -505,7 +505,7 @@ TR.en['proof.t2Text']='Weekly updates based on real usage. Requests and bug repo
 TR.en['proof.t3Title']='Built for Italy';
 TR.en['proof.t3Text']='Italian-market terminology, secure payments via Stripe \u00b7 Italian VAT, support in Italian written by a person.';
 TR.fr['hero.earlyTitle']='Lanc\u00e9 en 2026';
-TR.fr['hero.earlySub']='Mises \u00e0 jour hebdo \u00b7 Made in Italy';
+TR.fr['hero.earlySub']='Mises \u00e0 jour hebdomadaires';
 TR.fr['proof.badge']='L\u2019histoire derri\u00e8re PT Board';
 TR.fr['proof.title']='Des outils solides,<br/>sans superflu.';
 TR.fr['proof.intro']='PT Board est con\u00e7u par un \u00e9tudiant en Sciences du Sport pour le travail r\u00e9el des coachs italiens. Trois principes guident le d\u00e9veloppement.';
@@ -515,6 +515,37 @@ TR.fr['proof.t2Title']='D\u00e9veloppement continu';
 TR.fr['proof.t2Text']='Mises \u00e0 jour hebdomadaires bas\u00e9es sur l\u2019usage r\u00e9el. Demandes et bugs : ptboard.info@gmail.com ou chat in-app.';
 TR.fr['proof.t3Title']='Pens\u00e9 pour l\u2019Italie';
 TR.fr['proof.t3Text']='Terminologie du march\u00e9 italien, paiements s\u00e9curis\u00e9s via Stripe \u00b7 TVA italienne, support en italien \u00e9crit par une personne.';
+// Authority strip
+TR.en['authority.label']='Protocols based on';
+TR.en['authority.nsca']='NSCA';
+TR.en['authority.acsm']='ACSM';
+TR.en['authority.issn']='ISSN 2017';
+TR.en['authority.schoen']='Schoenfeld 2021';
+TR.en['authority.ers']='ERS-ATS 2014';
+TR.fr['authority.label']='Protocoles basés sur';
+TR.fr['authority.nsca']='NSCA';
+TR.fr['authority.acsm']='ACSM';
+TR.fr['authority.issn']='ISSN 2017';
+TR.fr['authority.schoen']='Schoenfeld 2021';
+TR.fr['authority.ers']='ERS-ATS 2014';
+// Proof refs grid
+TR.en['proof.refs.a1Title']='Aerobic capacity';
+TR.en['proof.refs.a1Text']='6MWT — ERS-ATS 2014. VO2max estimate via Cahalin equation. Age/sex norms.';
+TR.en['proof.refs.a2Title']='Strength & function';
+TR.en['proof.refs.a2Text']='STS 30s — Rikli & Jones. TUG, handgrip, push-up. Multi-domain weighted score.';
+TR.en['proof.refs.a3Title']='Body composition';
+TR.en['proof.refs.a3Text']='FM% via Deurenberg. BIA: PhA, ECW/TBW, BCM. BMI with WHO cut-offs.';
+TR.en['proof.refs.a4Title']='Nutrition';
+TR.en['proof.refs.a4Text']='BMR Mifflin-St Jeor. Macros per ISSN Position Stand 2017. Schoenfeld 2021 for hypertrophy.';
+TR.fr['proof.refs.a1Title']='Capacité aérobie';
+TR.fr['proof.refs.a1Text']='6MWT — ERS-ATS 2014. Estimation VO2max via équation Cahalin. Normes par âge et sexe.';
+TR.fr['proof.refs.a2Title']='Force & fonction';
+TR.fr['proof.refs.a2Text']='ADS 30s — Rikli & Jones. TUG, handgrip, push-up. Score pondéré multi-domaine.';
+TR.fr['proof.refs.a3Title']='Composition corporelle';
+TR.fr['proof.refs.a3Text']='% MG via Deurenberg. BIA : PhA, ECW/TBW, BCM. IMC selon seuils OMS.';
+TR.fr['proof.refs.a4Title']='Nutrition';
+TR.fr['proof.refs.a4Text']='MB Mifflin-St Jeor. Macros selon ISSN Position Stand 2017. Schoenfeld 2021 pour l’hypertrophie.';
+
 // Store original IT content on first run, then apply requested language
 var TR_ORIG={};
 var LANG_FLAGS={it:'\uD83C\uDDEE\uD83C\uDDF9',en:'\uD83C\uDDEC\uD83C\uDDE7',fr:'\uD83C\uDDEB\uD83C\uDDF7'};
