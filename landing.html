@@ -34,7 +34,9 @@ src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
 <link rel="apple-touch-icon" href="/favicon.png"/>
 <link rel="preload" as="image" href="/dashboard.jpg" fetchpriority="high"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="theme-color" content="#3b82f6"/>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)"/>
+<meta name="theme-color" content="#ffffff"/>
 <meta name="description" content="PT Board — Software all-in-one per Personal Trainer italiani. Valutazione funzionale in 20 min, schede automatiche, PDF professionale. Prova gratis 15 giorni, senza carta di credito."/>
 <meta name="keywords" content="personal trainer, gestione clienti, software PT, valutazione funzionale, programma allenamento, scheda cliente"/>
 <meta property="og:title" content="PT Board - Il software che ogni Personal Trainer merita"/>
@@ -58,10 +60,10 @@ src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#050a18;--card:#0c1225;--card2:#111a33;--border:#1a2547;
-  --text:#e2e8f0;--muted:#6b7280;--dim:#4b5563;--strong:#f9fafb;
-  --blue:#3b82f6;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;
-  --purple:#8b5cf6;--cyan:#06b6d4;--orange:#f97316;--pink:#ec4899;
+  --bg:#ffffff;--card:#ffffff;--card2:#f9fafb;--border:#e5e7eb;
+  --text:#374151;--muted:#6b7280;--dim:#9ca3af;--strong:#0f172a;
+  --blue:#2563eb;--green:#059669;--yellow:#d97706;--red:#dc2626;
+  --purple:#7c3aed;--cyan:#0891b2;--orange:#ea580c;--pink:#db2777;
 }
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);line-height:1.6;overflow-x:hidden}
@@ -80,8 +82,8 @@ img{max-width:100%;height:auto}
 .btn:active{transform:scale(.97)}
 .btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 24px rgba(59,130,246,.35)}
 .btn-primary:hover{background:#2563eb;box-shadow:0 8px 32px rgba(59,130,246,.45);transform:translateY(-1px)}
-.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border)}
-.btn-ghost:hover{background:rgba(255,255,255,.1);border-color:var(--blue)}
+.btn-ghost{background:#f9fafb;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:#f3f4f6;border-color:var(--blue)}
 .btn-lg{padding:20px 44px;font-size:18px;border-radius:16px}
 .btn-sm{padding:10px 22px;font-size:14px;border-radius:10px}
 
@@ -105,22 +107,22 @@ img{max-width:100%;height:auto}
 
 /* ── NAVBAR (alleggerita CRO) ── */
 .navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:all .3s ease}
-.navbar.scrolled{background:rgba(5,10,24,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 0}
+.navbar.scrolled{background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 0;box-shadow:0 1px 12px rgba(15,23,42,.08)}
 .navbar .container{display:flex;align-items:center;justify-content:space-between}
 .navbar-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;color:var(--strong);letter-spacing:-.5px}
 .navbar-logo span{color:var(--blue)}
 .navbar-cta{display:flex;gap:12px;align-items:center}
 .mobile-menu-btn{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:8px}
 .lang-switcher{position:relative;display:inline-flex;flex-shrink:0;margin-right:8px;font-family:inherit}
-.lang-trigger{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:18px;line-height:1;color:var(--text);transition:background .2s,border-color .2s;font-family:inherit;min-height:36px}
-.lang-trigger:hover{background:rgba(255,255,255,.08);border-color:var(--blue)}
+.lang-trigger{background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:18px;line-height:1;color:var(--text);transition:background .2s,border-color .2s;font-family:inherit;min-height:36px}
+.lang-trigger:hover{background:#f3f4f6;border-color:var(--blue)}
 .lang-trigger .chev{font-size:10px;color:var(--muted);transition:transform .2s}
 .lang-switcher.open .lang-trigger{border-color:var(--blue);background:rgba(59,130,246,.08)}
 .lang-switcher.open .lang-trigger .chev{transform:rotate(180deg)}
-.lang-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03);min-width:160px;display:none;z-index:200}
+.lang-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 4px 20px rgba(15,23,42,.12),0 0 0 1px rgba(0,0,0,.06);min-width:160px;display:none;z-index:200}
 .lang-switcher.open .lang-menu{display:block;animation:fadeIn .15s ease}
 .lang-option{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;background:none;border:none;border-radius:8px;cursor:pointer;font-size:14px;color:var(--text);font-family:inherit;text-align:left;transition:background .15s}
-.lang-option:hover{background:rgba(255,255,255,.06)}
+.lang-option:hover{background:#f3f4f6}
 .lang-option .flag{font-size:18px;line-height:1}
 .lang-option.active{background:rgba(59,130,246,.15);color:var(--strong);font-weight:600}
 
@@ -155,12 +157,12 @@ img{max-width:100%;height:auto}
 /* ── PROBLEM ── */
 .problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
 .problem-list{display:flex;flex-direction:column;gap:20px}
-.problem-item{display:flex;gap:16px;padding:20px;border-radius:14px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.1)}
+.problem-item{display:flex;gap:16px;padding:20px;border-radius:14px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18)}
 .problem-item .icon{width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .problem-item h4{font-size:15px;font-weight:700;color:var(--strong);margin-bottom:4px}
 .problem-item p{font-size:13px;color:var(--muted);line-height:1.6}
 
-.solution-card{background:linear-gradient(145deg,rgba(59,130,246,.06),rgba(139,92,246,.04));border:1px solid rgba(59,130,246,.15);border-radius:24px;padding:48px;position:relative;overflow:hidden}
+.solution-card{background:linear-gradient(145deg,rgba(59,130,246,.06),rgba(139,92,246,.04));border:1px solid rgba(59,130,246,.25);border-radius:24px;padding:48px;position:relative;overflow:hidden}
 .solution-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.1),transparent);pointer-events:none}
 .solution-card h3{font-size:28px;font-weight:900;color:var(--strong);margin-bottom:12px}
 .solution-card p{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:28px}
@@ -174,7 +176,7 @@ img{max-width:100%;height:auto}
 .features-header p{font-size:17px;color:var(--muted)}
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .feature-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px;transition:all .3s ease;position:relative;overflow:hidden}
-.feature-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.feature-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 32px rgba(15,23,42,.1)}
 .feature-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple));opacity:0;transition:opacity .3s}
 .feature-card:hover::after{opacity:1}
 .feature-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:20px}
@@ -194,7 +196,7 @@ img{max-width:100%;height:auto}
 .wizard-step.done .num{background:var(--green);color:#fff;border-color:var(--green)}
 .wizard-step .info h4{font-size:14px;font-weight:700;color:var(--strong)}
 .wizard-step .info p{font-size:12px;color:var(--muted)}
-.wizard-mockup{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.wizard-mockup{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 8px 32px rgba(15,23,42,.1)}
 .wizard-mockup-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
 .wizard-mockup-progress{height:4px;background:var(--border);border-radius:2px;margin-bottom:24px;overflow:hidden}
 .wizard-mockup-progress div{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:2px;transition:width .6s ease}
@@ -211,7 +213,7 @@ img{max-width:100%;height:auto}
 .pricing-section{position:relative}
 .pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start}
 .price-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px;position:relative;transition:all .3s}
-.price-card:hover{transform:translateY(-4px);box-shadow:0 24px 64px rgba(0,0,0,.3)}
+.price-card:hover{transform:translateY(-4px);box-shadow:0 8px 32px rgba(15,23,42,.1)}
 .price-card.popular{border-color:var(--blue);background:linear-gradient(170deg,rgba(59,130,246,.08),var(--card));box-shadow:0 0 0 1px rgba(59,130,246,.2),0 24px 64px rgba(59,130,246,.1)}
 .price-card.popular::before{content:'PIU\0027 POPOLARE';position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;padding:5px 20px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:1px}
 .price-name{font-size:16px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
@@ -276,12 +278,12 @@ img{max-width:100%;height:auto}
 /* ── DEMO INTERACTIVE SECTION ── */
 .demo-section{position:relative;padding:80px 0;background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.03),var(--bg))}
 .demo-wrap{max-width:700px;margin:0 auto;padding:0 24px}
-.demo-card{background:#0c1225;border:1px solid #1a2547;border-radius:24px;padding:40px;box-shadow:0 24px 64px rgba(0,0,0,.4);position:relative;overflow:hidden}
+.demo-card{background:#ffffff;border:1px solid var(--border);border-radius:24px;padding:40px;box-shadow:0 4px 24px rgba(15,23,42,.08);position:relative;overflow:hidden}
 .demo-stepper{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px}
-.demo-stepper .dot{width:30px;height:30px;border-radius:50%;background:#1a2547;color:#64748b;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .3s ease}
+.demo-stepper .dot{width:30px;height:30px;border-radius:50%;background:var(--border);color:var(--muted);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .3s ease}
 .demo-stepper .dot.active{background:var(--blue);color:#fff;box-shadow:0 0 0 4px rgba(59,130,246,.2)}
 .demo-stepper .dot.done{background:var(--green);color:#fff}
-.demo-stepper .line{width:36px;height:2px;background:#1a2547;transition:background .3s}
+.demo-stepper .line{width:36px;height:2px;background:var(--border);transition:background .3s}
 .demo-stepper .line.done{background:var(--green)}
 .demo-step{animation:demoFade .35s ease}
 @keyframes demoFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -291,7 +293,7 @@ img{max-width:100%;height:auto}
 .demo-field{display:flex;flex-direction:column;gap:5px}
 .demo-field.full{grid-column:1 / -1}
 .demo-field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-.demo-field input,.demo-field select{width:100%;padding:11px 14px;border-radius:8px;background:#050a18;border:1px solid #1a2547;color:#e2e8f0;font-size:14px;font-family:inherit;outline:none;transition:border-color .15s}
+.demo-field input,.demo-field select{width:100%;padding:11px 14px;border-radius:8px;background:#f9fafb;border:1px solid var(--border);color:var(--strong);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s}
 .demo-field input:focus,.demo-field select:focus{border-color:var(--blue)}
 .demo-info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:#cbd5e1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .demo-info-box .badge-num{font-size:18px;font-weight:900;color:var(--blue)}
@@ -301,7 +303,7 @@ img{max-width:100%;height:auto}
 .demo-bar-wrap{margin-top:10px}
 .demo-bar-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:5px}
 .demo-bar-label b{color:var(--strong);font-weight:700}
-.demo-bar{height:8px;background:#1a2547;border-radius:4px;overflow:hidden}
+.demo-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
 .demo-bar>div{height:100%;border-radius:4px;background:var(--blue);transition:width .6s cubic-bezier(.22,1,.36,1),background .3s}
 .demo-actions{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
 .demo-btn{padding:11px 22px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s ease}
@@ -318,23 +320,36 @@ img{max-width:100%;height:auto}
 .demo-profile-name{font-size:24px;font-weight:900;letter-spacing:-.5px;line-height:1}
 .demo-profile-score{font-size:46px;font-weight:900;color:var(--strong);margin-top:10px;line-height:1;font-variant-numeric:tabular-nums}
 .demo-profile-score small{font-size:18px;color:var(--muted);font-weight:700}
-.demo-profile-bar{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden;margin-top:18px}
+.demo-profile-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-top:18px}
 .demo-profile-bar>div{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
 .demo-comp{display:flex;flex-direction:column;gap:14px;margin-bottom:18px}
 .demo-mini-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
-.demo-mini{background:#050a18;border:1px solid #1a2547;border-radius:12px;padding:14px}
+.demo-mini{background:#f9fafb;border:1px solid var(--border);border-radius:12px;padding:14px}
 .demo-mini-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
 .demo-mini-val{font-size:14px;color:var(--strong);font-weight:600;line-height:1.4}
 
 /* Paywall overlay on result step */
-.demo-paywall{margin-top:8px;background:linear-gradient(180deg,rgba(12,18,37,.4),rgba(12,18,37,.95) 60%);border-radius:16px;padding:38px 24px 8px;text-align:center;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-.demo-paywall .pw-icon{font-size:38px;margin-bottom:8px}
+.demo-paywall{margin-top:8px;background:linear-gradient(180deg,rgba(255,255,255,.0),rgba(255,255,255,.98) 55%);border:1px solid var(--border);border-radius:16px;padding:38px 24px 8px;text-align:center}
 .demo-paywall h4{font-size:18px;font-weight:800;color:var(--strong);margin-bottom:6px;letter-spacing:-.3px}
 .demo-paywall p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;max-width:440px;margin-left:auto;margin-right:auto}
 .demo-paywall p b{color:#cbd5e1;font-weight:700}
 .demo-paywall .pw-btn{display:inline-block;background:var(--blue);color:#fff;padding:14px 30px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(59,130,246,.35);transition:all .15s}
 .demo-paywall .pw-btn:hover{background:#2563eb;transform:translateY(-1px)}
 .demo-paywall .pw-note{font-size:11px;color:var(--dim);margin-top:14px}
+
+/* ── AUTHORITY STRIP ── */
+.authority-strip{padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--card2)}
+.authority-strip .container{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap}
+.authority-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);white-space:nowrap}
+.authority-logos{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+.authority-logos span{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.3px}
+.authority-divider{color:var(--dim)!important;font-weight:400!important}
+
+/* ── PROOF REFS GRID ── */
+.proof-refs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.proof-ref-area{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.proof-ref-area-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--blue);margin-bottom:5px}
+.proof-ref-area-text{font-size:11px;color:var(--muted);line-height:1.55}
 
 /* ── RESPONSIVE ── */
 @media(max-width:968px){
@@ -353,6 +368,8 @@ img{max-width:100%;height:auto}
   .pricing-grid{max-width:420px;margin-left:auto;margin-right:auto}
 }
 @media(max-width:768px){
+  .authority-divider{display:none}
+  .proof-refs-grid{grid-template-columns:1fr}
   html,body{overflow-x:hidden;max-width:100vw}
   section,header,nav,footer,div{max-width:100vw}
   .hero{padding:100px 0 60px}
@@ -522,7 +539,7 @@ img{max-width:100%;height:auto}
   <div class="container">
     <div class="hero-grid">
       <div class="hero-content">
-        <div class="badge hero-badge" data-i18n="hero.badge">Il software per Personal Trainer &middot; Made in Italy</div>
+        <div class="badge hero-badge" data-i18n="hero.badge">Il software per Personal Trainer</div>
         <h1 class="hero-title" data-i18n="hero.title">Valuta i tuoi clienti<br/>in <span class="text-gradient">20 minuti.</span><br/>Non in 2 ore.</h1>
         <!-- CRO: sottotitolo riscritto con formula Problem+Solution -->
         <p class="hero-desc" data-i18n="hero.desc">Smetti di sprecare 2 ore per ogni cliente. Con PT Board valuti, programmi e generi la scheda PDF in 20 minuti — automaticamente.</p>
@@ -537,15 +554,15 @@ img{max-width:100%;height:auto}
             <span class="pulse-dot"></span>
             <div class="hero-social-text">
               <strong data-i18n="hero.earlyTitle">Lanciato nel 2026</strong>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="hero.earlySub">Aggiornamenti settimanali · Made in Italy</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="hero.earlySub">Aggiornamenti settimanali</div>
             </div>
           </div>
         </div>
       </div>
       <div class="hero-mockup">
         <div style="position:relative">
-          <img src="/dashboard.jpg" alt="PT Board Dashboard" data-i18n-alt="hero.imgDashAlt" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 32px 80px rgba(0,0,0,.5);display:block" loading="eager" fetchpriority="high" decoding="async" width="1200" height="750"/>
-          <img src="/mobile.jpg" alt="PT Board Mobile" data-i18n-alt="hero.imgMobileAlt" class="hero-mobile-img" style="position:absolute;bottom:-20px;right:-20px;width:160px;border-radius:20px;border:2px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.6);z-index:2" loading="lazy" decoding="async" width="320" height="650"/>
+          <img src="/dashboard.jpg" alt="PT Board Dashboard" data-i18n-alt="hero.imgDashAlt" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 8px 40px rgba(15,23,42,.12);display:block" loading="eager" fetchpriority="high" decoding="async" width="1200" height="750"/>
+          <img src="/mobile.jpg" alt="PT Board Mobile" data-i18n-alt="hero.imgMobileAlt" class="hero-mobile-img" style="position:absolute;bottom:-20px;right:-20px;width:160px;border-radius:20px;border:2px solid var(--border);box-shadow:0 8px 32px rgba(15,23,42,.1);z-index:2" loading="lazy" decoding="async" width="320" height="650"/>
         </div>
       </div>
     </div>
@@ -559,6 +576,24 @@ img{max-width:100%;height:auto}
     <div class="trust-item" data-i18n="trust.gdpr"><span>&#128737;&#65039;</span> GDPR compliant</div>
     <div class="trust-item" data-i18n="trust.langs"><span>&#127760;</span> IT &middot; EN &middot; FR</div>
     <div class="trust-item" data-i18n="trust.pwa"><span>&#128241;</span> PWA offline-ready</div>
+  </div>
+</div>
+
+<!-- ═══ AUTHORITY STRIP ═══ -->
+<div class="authority-strip">
+  <div class="container">
+    <span class="authority-label" data-i18n="authority.label">Protocolli basati su</span>
+    <div class="authority-logos">
+      <span data-i18n="authority.nsca">NSCA</span>
+      <span class="authority-divider">&middot;</span>
+      <span data-i18n="authority.acsm">ACSM</span>
+      <span class="authority-divider">&middot;</span>
+      <span data-i18n="authority.issn">ISSN 2017</span>
+      <span class="authority-divider">&middot;</span>
+      <span data-i18n="authority.schoen">Schoenfeld 2021</span>
+      <span class="authority-divider">&middot;</span>
+      <span data-i18n="authority.ers">ERS-ATS 2014</span>
+    </div>
   </div>
 </div>
 
@@ -818,7 +853,6 @@ img{max-width:100%;height:auto}
             </div>
           </div>
           <div class="demo-paywall">
-            <div class="pw-icon">&#128196;</div>
             <h4 data-i18n="demo.pwTitle">Esporta il PDF professionale per il tuo cliente</h4>
             <p><span data-i18n="demo.pwBody1">Non perdere questo risultato. Salva il profilo di</span> <b id="demoPwName">Sara Rossi</b> <span data-i18n="demo.pwBody2">nel tuo account</span></p>
             <a href="/?action=register" class="pw-btn" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')" data-i18n="demo.pwCta">Crea account gratis &rarr;</a>
@@ -940,18 +974,33 @@ img{max-width:100%;height:auto}
       <p style="font-size:15px;color:var(--muted);max-width:640px;margin:0 auto" data-i18n="proof.intro">PT Board &egrave; pensato da uno studente di Scienze Motorie per il lavoro reale dei personal trainer italiani. Tre principi guidano lo sviluppo.</p>
     </div>
     <div class="testimonial-grid">
-      <div class="testimonial-card animate">
-        <div style="font-size:24px;margin-bottom:12px">&#128214;</div>
+      <div class="testimonial-card animate" style="grid-column:span 2">
         <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t1Title">Rigore scientifico</h4>
         <div class="testimonial-text" data-i18n="proof.t1Text">Test e formule tratti dalla letteratura scientifica: 6MWT (ERS/ATS 2014), STS (Rikli &amp; Jones), BIA con PhA ed ECW/TBW, nutrizione secondo position stand ISSN 2017.</div>
+        <div class="proof-refs-grid">
+          <div class="proof-ref-area">
+            <div class="proof-ref-area-title" data-i18n="proof.refs.a1Title">Capacit&agrave; aerobica</div>
+            <div class="proof-ref-area-text" data-i18n="proof.refs.a1Text">6MWT — ERS-ATS 2014. Stima VO2max con equazione Cahalin. Valori norma per et&agrave; e sesso.</div>
+          </div>
+          <div class="proof-ref-area">
+            <div class="proof-ref-area-title" data-i18n="proof.refs.a2Title">Forza &amp; funzionalit&agrave;</div>
+            <div class="proof-ref-area-text" data-i18n="proof.refs.a2Text">STS 30s — Rikli &amp; Jones. TUG, handgrip, push-up. Score pesato multi-dominio.</div>
+          </div>
+          <div class="proof-ref-area">
+            <div class="proof-ref-area-title" data-i18n="proof.refs.a3Title">Composizione corporea</div>
+            <div class="proof-ref-area-text" data-i18n="proof.refs.a3Text">FM% con Deurenberg. BIA: PhA, ECW/TBW, BCM. BMI con cut-off WHO.</div>
+          </div>
+          <div class="proof-ref-area">
+            <div class="proof-ref-area-title" data-i18n="proof.refs.a4Title">Nutrizione</div>
+            <div class="proof-ref-area-text" data-i18n="proof.refs.a4Text">BMR Mifflin-St Jeor. Macro secondo ISSN Position Stand 2017. Schoenfeld 2021 per l&rsquo;ipertrofia.</div>
+          </div>
+        </div>
       </div>
       <div class="testimonial-card animate delay-1">
-        <div style="font-size:24px;margin-bottom:12px">&#128736;&#65039;</div>
         <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t2Title">Sviluppo continuo</h4>
         <div class="testimonial-text" data-i18n="proof.t2Text">Aggiornamenti settimanali basati sull'uso reale. Segnalazioni e richieste si inviano a ptboard.info@gmail.com o tramite la chat in-app.</div>
       </div>
       <div class="testimonial-card animate delay-2">
-        <div style="font-size:24px;margin-bottom:12px">&#127470;&#127481;</div>
         <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t3Title">Pensato per l'Italia</h4>
         <div class="testimonial-text" data-i18n="proof.t3Text">Terminologia del mercato italiano, pagamenti sicuri su Stripe &middot; IVA italiana, supporto in italiano scritto da una persona.</div>
       </div>
@@ -968,19 +1017,16 @@ img{max-width:100%;height:auto}
     </div>
     <div class="usecase-grid">
       <div class="testimonial-card animate" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
-        <div style="font-size:36px;margin-bottom:12px">&#127947;&#65039;</div>
         <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t1Name">PT Freelance</div>
         <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t1Text">Gestisci tutto dal telefono. Valutazione guidata in 20 minuti, programma automatico, promemoria email ai clienti. Funziona offline: la sincronizzazione avviene appena torni online.</div>
         <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t1Tag">Da 9,99&euro;/mese</div>
       </div>
       <div class="testimonial-card animate delay-1" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
-        <div style="font-size:36px;margin-bottom:12px">&#127970;</div>
         <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t2Name">PT in palestra</div>
         <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t2Text">Mostra ai clienti i loro progressi con dati reali. Report PDF con il tuo logo, schede allenamento condivisibili su WhatsApp, calendario sedute integrato.</div>
         <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t2Tag">Professionale</div>
       </div>
       <div class="testimonial-card animate delay-2" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
-        <div style="font-size:36px;margin-bottom:12px">&#128101;</div>
         <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t3Name">Studio con pi&ugrave; trainer</div>
         <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t3Text">Ogni trainer gestisce i propri clienti in modo indipendente. Dati isolati e sicuri. Dashboard personale. Tutto su un'unica piattaforma.</div>
         <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t3Tag">Piano Team</div>
@@ -1051,11 +1097,6 @@ img{max-width:100%;height:auto}
       <div>
         <div class="footer-brand"><span>PT</span> Board</div>
         <p class="footer-desc" data-i18n="footer.desc">Il software all-in-one per Personal Trainer. Valuta, programma e monitora i tuoi clienti come un professionista.</p>
-        <div style="margin-top:16px;display:flex;gap:6px">
-          <span style="font-size:20px">&#127470;&#127481;</span>
-          <span style="font-size:20px">&#127468;&#127463;</span>
-          <span style="font-size:20px">&#127467;&#127479;</span>
-        </div>
       </div>
       <div class="footer-col">
         <h4 data-i18n="footer.product">Prodotto</h4>
@@ -1079,7 +1120,6 @@ img{max-width:100%;height:auto}
     </div>
     <div class="footer-bottom">
       <span data-i18n="footer.copyright">&copy; 2026 PT Board. Tutti i diritti riservati.</span>
-      <span data-i18n="footer.madeWith">Costruito in Italia</span>
     </div>
   </div>
 </footer>
