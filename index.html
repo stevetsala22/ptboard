@@ -6557,20 +6557,52 @@ function AppInner({user,profile,setProfile,trialLeft}){
         }
         if(remote.bookings) setBookings(remote.bookings);
         if(remote.isLight!==undefined) setIsLight(remote.isLight);
-        // Aggiorna libreria esercizi: aggiungi nuovi esercizi di default senza toccare quelli esistenti
+        // Aggiorna libreria esercizi: aggiunge nuovi esercizi di default e
+        // ripara esercizi esistenti a cui mancano campi (es. primarySplit
+        // assente sugli E105-E254 in versioni precedenti).
+        // CONSERVATIVO: aggiunge solo campi mancanti, NON sovrascrive campi
+        // già presenti (per preservare modifiche manuali dell'utente).
         var currentExercises = remote.exercises || INIT_EXERCISES;
+        var initById = {};
+        INIT_EXERCISES.forEach(function(e){ initById[e.id] = e; });
         var currentIds = currentExercises.map(function(e){return e.id;});
         var nuovi = INIT_EXERCISES.filter(function(e){
           return currentIds.indexOf(e.id) === -1;
         });
-        if(nuovi.length > 0){
-          var merged = currentExercises.concat(nuovi);
+        // Ripara esercizi esistenti: aggiungi campi mancanti dalla versione di default.
+        var repairedCount = 0;
+        var currentExercisesPatched = currentExercises.map(function(e){
+          var def = initById[e.id];
+          if(!def) return e; // esercizio custom dell'utente, non toccare
+          var needsPatch = false;
+          var patched = Object.assign({}, e);
+          // Lista dei campi che devono esistere su ogni esercizio
+          var requiredFields = ['nome','cat','muscoli','desc','livello','equip','primary','move','primarySplit'];
+          for(var i=0;i<requiredFields.length;i++){
+            var f = requiredFields[i];
+            if(patched[f] === undefined || patched[f] === null || patched[f] === ''){
+              if(def[f] !== undefined){
+                patched[f] = def[f];
+                needsPatch = true;
+              }
+            }
+          }
+          if(needsPatch) repairedCount++;
+          return needsPatch ? patched : e;
+        });
+        if(nuovi.length > 0 || repairedCount > 0){
+          var merged = currentExercisesPatched.concat(nuovi);
           setExercises(merged);
           var mergedData = {patients: remote.patients||[], bookings: remote.bookings||[], exercises: merged, isLight: remote.isLight, dataVersion:4};
           save(mergedData);
           fbSave(user.uid, mergedData);
-          showToast(gT().libUpdated.replace('{n}',nuovi.length),'success');
-          console.log('Libreria aggiornata: aggiunti ' + nuovi.length + ' nuovi esercizi');
+          if(nuovi.length > 0){
+            showToast(gT().libUpdated.replace('{n}',nuovi.length),'success');
+            console.log('Libreria aggiornata: aggiunti ' + nuovi.length + ' nuovi esercizi');
+          }
+          if(repairedCount > 0){
+            console.log('Libreria riparata: aggiornati ' + repairedCount + ' esercizi con campi mancanti');
+          }
         } else {
           if(remote.exercises) setExercises(remote.exercises);
         }
