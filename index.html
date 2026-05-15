@@ -6560,17 +6560,29 @@ function AppInner({user,profile,setProfile,trialLeft}){
         // Aggiorna libreria esercizi: aggiungi nuovi esercizi di default senza toccare quelli esistenti
         var currentExercises = remote.exercises || INIT_EXERCISES;
         var currentIds = currentExercises.map(function(e){return e.id;});
+        // Step 1: esercizi completamente nuovi (ID non presente)
         var nuovi = INIT_EXERCISES.filter(function(e){
           return currentIds.indexOf(e.id) === -1;
         });
-        if(nuovi.length > 0){
-          var merged = currentExercises.concat(nuovi);
+        // Step 2: esercizi esistenti a cui manca primarySplit → aggiunge solo quel campo
+        var initMap = {};
+        INIT_EXERCISES.forEach(function(e){ initMap[e.id] = e; });
+        var psPatched = 0;
+        var withPs = currentExercises.map(function(ex){
+          if(ex.primarySplit) return ex;
+          var ref = initMap[ex.id];
+          if(ref && ref.primarySplit){ psPatched++; return Object.assign({},ex,{primarySplit:ref.primarySplit}); }
+          return ex;
+        });
+        var changed = nuovi.length > 0 || psPatched > 0;
+        if(changed){
+          var merged = withPs.concat(nuovi);
           setExercises(merged);
           var mergedData = {patients: remote.patients||[], bookings: remote.bookings||[], exercises: merged, isLight: remote.isLight, dataVersion:4};
           save(mergedData);
           fbSave(user.uid, mergedData);
-          showToast(gT().libUpdated.replace('{n}',nuovi.length),'success');
-          console.log('Libreria aggiornata: aggiunti ' + nuovi.length + ' nuovi esercizi');
+          if(nuovi.length > 0) showToast(gT().libUpdated.replace('{n}',nuovi.length),'success');
+          console.log('Libreria aggiornata: aggiunti ' + nuovi.length + ' nuovi esercizi, primarySplit patchati: ' + psPatched);
         } else {
           if(remote.exercises) setExercises(remote.exercises);
         }
