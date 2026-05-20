@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#f4f6fb;
@@ -114,6 +116,16 @@
   .foot .disc{font-size:11px;color:var(--dim);margin-top:14px;line-height:1.5;font-weight:500}
   .ex,.meta .chip,.day-head{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .loading{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;font-weight:500}
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--ink);color:#fff;font-size:13px;font-weight:600;
+    padding:11px 20px;border-radius:100px;box-shadow:0 4px 20px rgba(15,23,42,.2);
+    transition:transform .25s cubic-bezier(.2,.7,.2,1);z-index:99;white-space:nowrap;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.ok{background:var(--green)}
+  .toast.err{background:#dc2626}
 </style>
 </head>
 <body>
@@ -125,57 +137,117 @@
   </div>
   <div class="hero">
     <div class="wrap">
-      <h1 id="cliente">Marco Rossi</h1>
-      <div class="sub" id="programma">Programma Forza · Full Body ×3</div>
-      <div class="pt-by"><span class="dot"></span><span>Preparato da <b id="pt-nome">Steve Tsala</b></span></div>
+      <h1 id="cliente">…</h1>
+      <div class="sub" id="programma">Caricamento scheda…</div>
+      <div class="pt-by"><span class="dot"></span><span>Preparato da <b id="pt-nome">…</b></span></div>
     </div>
   </div>
   <div class="wrap">
     <div class="meta">
-      <div class="chip"><div class="n" id="m-sedute">3</div><div class="l">Sedute/sett</div></div>
-      <div class="chip"><div class="n" id="m-durata">60'</div><div class="l">Durata</div></div>
-      <div class="chip"><div class="n" id="m-settimane">4</div><div class="l">Settimane</div></div>
+      <div class="chip"><div class="n" id="m-sedute">—</div><div class="l">Sedute/sett</div></div>
+      <div class="chip"><div class="n" id="m-durata">—</div><div class="l">Durata</div></div>
+      <div class="chip"><div class="n" id="m-settimane">—</div><div class="l">Settimane</div></div>
     </div>
-    <div id="giorni"></div>
+    <div id="giorni"><div class="loading">Caricamento scheda…</div></div>
     <div class="foot">
       <div class="made">Creato con <span class="pt">PT&nbsp;Board</span></div>
       <div class="disc">Questa scheda è personale e preparata dal tuo personal trainer.<br>Esegui gli esercizi secondo le indicazioni ricevute.</div>
     </div>
   </div>
+  <div class="toast" id="toast"></div>
 <script>
-  /* DATI MOCK — finti, solo per vedere il layout. In fase 2 arriveranno da Firebase via ?id= */
-  const MOCK = {
-    cliente: "Marco Rossi",
-    ptNome: "Steve Tsala",
-    programma: "Programma Forza · Full Body ×3",
-    seduteSett: 3,
-    durata: "60'",
-    settimane: 4,
-    giorni: [
-      {
-        nome: "Full Body A",
-        focus: "Forza · 5 esercizi",
-        esercizi: [
-          {nome:"Squat con bilanciere", muscoli:"Quadricipiti, Glutei", serie:4, reps:"8", carico:"60 kg", rec:"180s", nota:"Tieni la schiena dritta, scendi a 90°."},
-          {nome:"Panca piana manubri", muscoli:"Pettorali, Tricipiti", serie:4, reps:"10", carico:"22 kg", rec:"120s", nota:""},
-          {nome:"Rematore bilanciere", muscoli:"Dorsali, Bicipiti", serie:4, reps:"10", carico:"45 kg", rec:"120s", nota:""},
-          {nome:"Military press", muscoli:"Spalle, Tricipiti", serie:3, reps:"12", carico:"30 kg", rec:"90s", nota:""},
-          {nome:"Plank", muscoli:"Core", serie:3, reps:"45s", carico:"corpo libero", rec:"45s", nota:"Mantieni il bacino allineato."},
-        ]
-      },
-      {
-        nome: "Full Body B",
-        focus: "Forza · 5 esercizi",
-        esercizi: [
-          {nome:"Stacco rumeno", muscoli:"Femorali, Glutei", serie:4, reps:"8", carico:"50 kg", rec:"180s", nota:"Spingi il bacino indietro."},
-          {nome:"Panca inclinata manubri", muscoli:"Pettorali alto", serie:3, reps:"12", carico:"18 kg", rec:"90s", nota:""},
-          {nome:"Lat machine", muscoli:"Dorsali", serie:4, reps:"10", carico:"40 kg", rec:"90s", nota:""},
-          {nome:"Affondi", muscoli:"Quadricipiti, Glutei", serie:3, reps:"12", carico:"14 kg", rec:"75s", nota:""},
-          {nome:"Crunch", muscoli:"Addome", serie:3, reps:"15", carico:"corpo libero", rec:"45s", nota:""},
-        ]
-      }
-    ]
-  };
+  /* ── FIREBASE INIT (no auth, no persistence) ── */
+  firebase.initializeApp({
+    apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
+    authDomain:"ptboard-1.firebaseapp.com",
+    projectId:"ptboard-1",
+    storageBucket:"ptboard-1.firebasestorage.app",
+    messagingSenderId:"223801010947",
+    appId:"1:223801010947:web:9c3f887243609bcdad9736"
+  });
+  var fbDb = firebase.firestore();
+
+  /* ── SHARE ID ── */
+  function getShareId(){
+    var p = new URLSearchParams(location.search);
+    if(p.get('id')) return p.get('id');
+    var m = location.pathname.match(/\/s\/([^\/?#]+)/);
+    if(m) return m[1];
+    var stored = sessionStorage.getItem('shareId');
+    if(stored){ sessionStorage.removeItem('shareId'); return stored; }
+    return null;
+  }
+
+  /* ── ERRORE SCHERMATA ── */
+  function mostraErrore(msg){
+    document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;'+
+      'align-items:center;justify-content:center;font-family:DM Sans,sans-serif;padding:40px;text-align:center;color:#0f172a">'+
+      '<div style="font-size:40px;margin-bottom:12px">📋</div>'+
+      '<div style="font-size:18px;font-weight:800;margin-bottom:8px">PT Board</div>'+
+      '<div style="font-size:14px;color:#64748b;max-width:300px">'+msg+'</div></div>';
+  }
+
+  /* ── TOAST ── */
+  var _toastTimer;
+  function showToast(msg, type){
+    var el = document.getElementById('toast');
+    if(!el) return;
+    el.textContent = msg;
+    el.className = 'toast show' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function(){ el.className = 'toast'; }, 3000);
+  }
+
+  /* ── SALVATAGGIO SU FIREBASE ──
+     ATTENZIONE: il client non loggato puo aggiornare SOLO log + updatedAt
+     (regola Firestore Tappa 3). Non includere altri campi nell'update. */
+  async function salvaSuFirebase(shareId, giornoNome, esercizi){
+    var entry = {
+      data: new Date().toLocaleDateString('it-IT'),
+      giorno: giornoNome,
+      esercizi: esercizi,
+      ts: Date.now()
+    };
+    try{
+      await fbDb.collection('sharedClients').doc(shareId).update({
+        log: firebase.firestore.FieldValue.arrayUnion(entry),
+        updatedAt: Date.now()
+      });
+      // backup locale (fallback se connessione cade in futuro)
+      try{
+        var key = 'ptb_share_' + shareId;
+        var prev = JSON.parse(localStorage.getItem(key) || '[]');
+        prev.push(entry);
+        localStorage.setItem(key, JSON.stringify(prev));
+      }catch(_){}
+      return true;
+    }catch(e){
+      // salva comunque in localStorage come backup
+      try{
+        var key2 = 'ptb_share_' + shareId;
+        var prev2 = JSON.parse(localStorage.getItem(key2) || '[]');
+        prev2.push(entry);
+        localStorage.setItem(key2, JSON.stringify(prev2));
+      }catch(_){}
+      return false;
+    }
+  }
+
+  /* ── ADAPTER: mappa i dati Firestore alla forma che render() si aspetta ── */
+  function adattaDaFirestore(data){
+    var sa = data.schedaAttuale || {};
+    return {
+      cliente:    data.cliente || '',
+      ptNome:     data.ptNome || '',
+      programma:  sa.programma || '',
+      seduteSett: sa.seduteSett || sa.sedute || '—',
+      durata:     sa.durata || '—',
+      settimane:  sa.settimane || '—',
+      giorni:     sa.giorni || []
+    };
+  }
+
+  /* ── RENDER (UI invariata rispetto alla versione mock) ── */
   function render(d){
     document.getElementById('cliente').textContent = d.cliente;
     document.getElementById('pt-nome').textContent = d.ptNome;
@@ -183,44 +255,70 @@
     document.getElementById('m-sedute').textContent = d.seduteSett;
     document.getElementById('m-durata').textContent = d.durata;
     document.getElementById('m-settimane').textContent = d.settimane;
-    const cont = document.getElementById('giorni');
-    const letters = ['A','B','C','D','E','F'];
-    cont.innerHTML = d.giorni.map((g, gi) => `
-      <div class="day">
-        <div class="day-head" style="animation-delay:${gi*.06}s">
-          <div class="badge">${letters[gi]||(gi+1)}</div>
-          <div>
-            <h2>${esc(g.nome)}</h2>
-            <div class="meta-day">${esc(g.focus)}</div>
-          </div>
-        </div>
-        ${g.esercizi.map((e, ei) => `
-          <div class="ex" style="animation-delay:${(gi*.06)+(ei*.04)}s">
-            <div class="ex-top">
-              <div>
-                <div class="ex-name">${esc(e.nome)}</div>
-                <div class="ex-muscles">${esc(e.muscoli)}</div>
-              </div>
-              <div class="ex-num">${ei+1}</div>
-            </div>
-            <div class="grid">
-              <div class="stat"><div class="v">${esc(String(e.serie))}</div><div class="k">Serie</div></div>
-              <div class="stat"><div class="v">${esc(String(e.reps))}</div><div class="k">Reps</div></div>
-              <div class="stat accent"><div class="v">${fmtCarico(e.carico)}</div><div class="k">Carico</div></div>
-            </div>
-            ${e.nota ? `<div class="ex-note"><span class="i">💡</span><span>${esc(e.nota)}</span></div>` : ``}
-          </div>
-        `).join('')}
-      </div>
-    `).join('');
+    var cont = document.getElementById('giorni');
+    var letters = ['A','B','C','D','E','F'];
+    cont.innerHTML = d.giorni.map(function(g, gi){ return (
+      '<div class="day">'+
+        '<div class="day-head" style="animation-delay:'+( gi*.06)+'s">'+
+          '<div class="badge">'+(letters[gi]||(gi+1))+'</div>'+
+          '<div>'+
+            '<h2>'+esc(g.nome)+'</h2>'+
+            '<div class="meta-day">'+esc(g.focus||'')+'</div>'+
+          '</div>'+
+        '</div>'+
+        g.esercizi.map(function(e, ei){ return (
+          '<div class="ex" style="animation-delay:'+((gi*.06)+(ei*.04))+'s">'+
+            '<div class="ex-top">'+
+              '<div>'+
+                '<div class="ex-name">'+esc(e.nome)+'</div>'+
+                '<div class="ex-muscles">'+esc(e.muscoli||'')+'</div>'+
+              '</div>'+
+              '<div class="ex-num">'+(ei+1)+'</div>'+
+            '</div>'+
+            '<div class="grid">'+
+              '<div class="stat"><div class="v">'+esc(String(e.serie))+'</div><div class="k">Serie</div></div>'+
+              '<div class="stat"><div class="v">'+esc(String(e.reps))+'</div><div class="k">Reps</div></div>'+
+              '<div class="stat accent"><div class="v">'+fmtCarico(e.carico)+'</div><div class="k">Carico</div></div>'+
+            '</div>'+
+            (e.nota ? '<div class="ex-note"><span class="i">💡</span><span>'+esc(e.nota)+'</span></div>' : '')+
+          '</div>'
+        );}).join('')+
+      '</div>'
+    );}).join('');
   }
+
   function fmtCarico(c){
-    const m = String(c).match(/^([\d.,]+)\s*kg$/i);
-    if(m) return `${m[1]}<span class="u"> kg</span>`;
+    var m = String(c).match(/^([\d.,]+)\s*kg$/i);
+    if(m) return m[1]+'<span class="u"> kg</span>';
     return esc(String(c));
   }
-  function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-  render(MOCK);
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);});}
+
+  /* ── INIT ──
+     Per testare con un documento reale:
+     1. Firebase Console → Firestore → crea collection "sharedClients"
+     2. Documento con id "test-demo", campi:
+        ownerUid:"qualsiasi", cliente:"Mario", ptNome:"Steve", attivo:true,
+        schedaAttuale:{programma:"Full Body", seduteSett:3, durata:"60'",
+          settimane:4, giorni:[{nome:"Full Body A", focus:"Forza · 3 esercizi",
+          esercizi:[{nome:"Squat",muscoli:"Quadricipiti",serie:4,reps:"8",carico:"60 kg",rec:"180s",nota:""}]}]},
+        log:[]
+     3. Aprire share.html?id=test-demo (localhost deve essere autorizzato in Firebase) */
+  async function init(){
+    var shareId = getShareId();
+    if(!shareId){ mostraErrore('Link non valido.'); return; }
+    try{
+      var doc = await fbDb.collection('sharedClients').doc(shareId).get();
+      if(!doc.exists){ mostraErrore('Scheda non trovata. Controlla il link.'); return; }
+      var data = doc.data();
+      if(data.attivo === false){ mostraErrore('Questo link non è più attivo. Contatta il tuo personal trainer.'); return; }
+      render(adattaDaFirestore(data));
+    }catch(e){
+      mostraErrore('Errore di connessione. Riprova.');
+    }
+  }
+
+  init();
 </script>
 </body>
 </html>
