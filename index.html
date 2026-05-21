@@ -672,6 +672,9 @@ const LANGS={
     tooltipStartAssess:'Avvia nuova valutazione',tooltipDownloadReport:'Scarica report completo',
     tooltipEditClient:'Modifica cliente',tooltipDeleteClient:'Elimina cliente definitivamente',tooltipWhatsapp:'Scrivi su WhatsApp',
     waMessage:'Ciao {name}! Ti scrivo da PT Board.',
+    waSchedaMessage:"Ciao {name}! 💪 Ecco la tua scheda di allenamento personale su PT Board: {link}\nSalvala nella home del telefono per aprirla con un tap.",
+    shareWhatsapp:'📲 Invia su WhatsApp',
+    shareCopied:'Link copiato!',
     profileLowShort:'Forma Bassa',profileMedShort:'Forma Media',profileGoodShort:'Buona Forma',profileExcellentShort:'Ottima Forma',
     // Panoramica
     bodyMassIndex:'Body Mass Index',belowTarget:'sotto target',targetLabel:'target',
@@ -1517,6 +1520,9 @@ const LANGS={
     tooltipStartAssess:'Start new assessment',tooltipDownloadReport:'Download full report',
     tooltipEditClient:'Edit client',tooltipDeleteClient:'Delete client permanently',tooltipWhatsapp:'Write on WhatsApp',
     waMessage:'Hi {name}! Writing from PT Board.',
+    waSchedaMessage:'Hi {name}! 💪 Here is your personal training program on PT Board: {link}\nSave it to your phone home screen to open it with one tap.',
+    shareWhatsapp:'📲 Send via WhatsApp',
+    shareCopied:'Link copied!',
     profileLowShort:'Low Fitness',profileMedShort:'Medium Fitness',profileGoodShort:'Good Fitness',profileExcellentShort:'Excellent Fitness',
     // Panoramica
     bodyMassIndex:'Body Mass Index',belowTarget:'below target',targetLabel:'target',
@@ -2362,6 +2368,9 @@ const LANGS={
     tooltipStartAssess:'Démarrer nouvelle évaluation',tooltipDownloadReport:'Télécharger rapport complet',
     tooltipEditClient:'Modifier client',tooltipDeleteClient:'Supprimer client définitivement',tooltipWhatsapp:'Écrire sur WhatsApp',
     waMessage:"Salut {name} ! J'écris depuis PT Board.",
+    waSchedaMessage:"Salut {name} ! 💪 Voici ton programme d'entraînement personnel sur PT Board : {link}\nEnregistre-le sur l'écran d'accueil de ton téléphone.",
+    shareWhatsapp:'📲 Envoyer sur WhatsApp',
+    shareCopied:'Lien copié !',
     profileLowShort:'Forme Basse',profileMedShort:'Forme Moyenne',profileGoodShort:'Bonne Forme',profileExcellentShort:'Excellente Forme',
     // Panoramica
     bodyMassIndex:'IMC',belowTarget:"sous l'objectif",targetLabel:'objectif',
@@ -5715,26 +5724,22 @@ footer .center b{color:#3b82f6;font-weight:700}
                           showToast(T.schedaDeleted,'info');
                         }}>{T.delete}</button>
                     </div>
-                    {showShareBox&&_shareId&&si===expandedScheda&&<div style={{marginTop:10,padding:12,background:C.card2,border:'1px solid '+C.border,borderRadius:10}}>
-                      <div style={{fontSize:11,fontWeight:700,color:C.strong,marginBottom:8}}>{T.shareLinkLabel||'Link scheda'}</div>
-                      <input readOnly value={'https://personaltrainerboard.com/s/'+_shareId}
-                        style={{display:'block',width:'100%',padding:'7px 10px',borderRadius:8,border:'1px solid '+C.border,fontSize:11,color:C.ink,background:C.bg,fontFamily:'inherit',marginBottom:8}}
-                        onClick={function(e){e.target.select();}}/>
-                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                        <button style={{fontSize:11,padding:'5px 10px',borderRadius:7,background:C.card,border:'1px solid '+C.border,cursor:'pointer',fontFamily:'inherit',color:C.ink,fontWeight:600}}
-                          onClick={function(){navigator.clipboard.writeText('https://personaltrainerboard.com/s/'+_shareId).then(function(){showToast((T.shareCopyLink||'Copiato')+' ✓','success',2000);});}}>{T.shareCopyLink||'Copia link'}</button>
-                        <button style={{fontSize:11,padding:'5px 10px',borderRadius:7,background:C.card,border:'1px solid '+C.border,cursor:'pointer',fontFamily:'inherit',color:C.ink,fontWeight:600}}
-                          onClick={function(){
-                            var tpl=T.shareMsgTemplate||'Ciao {nome}! 💪 {link} — {pt}';
-                            var msg=tpl.replace('{nome}',p.nome||'').replace('{link}','https://personaltrainerboard.com/s/'+_shareId).replace('{pt}',(trainerProfile&&(trainerProfile.nome||trainerProfile.nomeStudio))||'Il tuo PT');
-                            navigator.clipboard.writeText(msg).then(function(){showToast((T.shareCopyMsg||'Copiato')+' ✓','success',2000);});
-                          }}>{T.shareCopyMsg||'Copia messaggio'}</button>
-                        <button style={{fontSize:11,padding:'5px 10px',borderRadius:7,background:C.card,border:'1px solid '+C.border,cursor:'pointer',fontFamily:'inherit',color:C.ink,fontWeight:600}}
-                          onClick={function(){window.open('https://personaltrainerboard.com/s/'+_shareId,'_blank');}}>{T.shareOpen||'Apri'}</button>
-                        <button style={{fontSize:11,padding:'5px 10px',borderRadius:7,background:'#fef2f2',border:'1px solid #fecaca',cursor:'pointer',fontFamily:'inherit',color:C.red,fontWeight:600}}
-                          onClick={async function(){try{await fbDb.collection('sharedClients').doc(_shareId).update({attivo:false,updatedAt:Date.now()});showToast(T.shareInactive||'Link disattivato','info');}catch(e){showToast('Errore','error');}}}>{T.shareDeactivate||'Disattiva'}</button>
-                      </div>
-                    </div>}
+                    {showShareBox&&_shareId&&si===expandedScheda&&(function(){
+                      var _link='https://personaltrainerboard.com/s/'+_shareId;
+                      var _tel=(p.telefono||'').replace(/[\s\-\(\)\+]/g,'');
+                      var _testo=(T.waSchedaMessage||'Ciao {name}! 💪 {link}').replace('{name}',p.nome||'').replace('{link}',_link);
+                      var _waUrl=_tel?('https://wa.me/'+_tel+'?text='+encodeURIComponent(_testo)):('https://wa.me/?text='+encodeURIComponent(_testo));
+                      return <div style={{marginTop:10,padding:12,background:C.card2,border:'1px solid '+C.border,borderRadius:10}}>
+                        <a href={_waUrl} target="_blank" rel="noreferrer"
+                           style={{background:'#25D366',color:'#fff',padding:'13px',borderRadius:11,fontWeight:800,fontSize:14,textAlign:'center',textDecoration:'none',display:'flex',alignItems:'center',justifyContent:'center',gap:8,boxShadow:'0 3px 10px rgba(37,211,102,.35)'}}>
+                          {T.shareWhatsapp||'📲 Invia su WhatsApp'}
+                        </a>
+                        <button onClick={function(){navigator.clipboard.writeText(_link).then(function(){showToast(T.shareCopied||'Link copiato!','success',2000);});}}
+                           style={{display:'block',width:'100%',marginTop:8,background:'transparent',border:'none',color:C.muted,fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',padding:'5px 0',textAlign:'center'}}>
+                          {'🔗 '+(T.shareCopyLink||'Copia link')}
+                        </button>
+                      </div>;
+                    })()}
                   </div>}
                 </div>;
               })}
