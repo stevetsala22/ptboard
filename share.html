@@ -12,120 +12,98 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
-    --bg:#f4f6fb;
-    --card:#ffffff;
-    --ink:#0f172a;
-    --muted:#64748b;
-    --dim:#94a3b8;
-    --line:#e8edf5;
-    --blue:#2563eb;
-    --blue-soft:#eff4ff;
-    --green:#059669;
+    --bg:#f4f6fb;--card:#ffffff;--ink:#0f172a;--muted:#64748b;--dim:#94a3b8;
+    --line:#e8edf5;--blue:#2563eb;--blue-soft:#eff4ff;--green:#059669;--green-soft:#ecfdf5;--amber:#f59e0b;
     --shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.06);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{
-    font-family:'DM Sans',system-ui,-apple-system,sans-serif;
-    background:var(--bg);
-    color:var(--ink);
-    line-height:1.5;
-    padding:0 0 60px;
-    -webkit-font-smoothing:antialiased;
-  }
+  body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;padding:0 0 90px;-webkit-font-smoothing:antialiased}
   .wrap{max-width:560px;margin:0 auto;padding:0 16px}
-  .topbar{
-    background:var(--ink);
-    color:#fff;
-    padding:18px 0 20px;
-    position:sticky;top:0;z-index:10;
-    box-shadow:0 2px 16px rgba(15,23,42,.18);
-  }
+  input,button{font-family:inherit}
+  .topbar{background:var(--ink);color:#fff;padding:18px 0 20px;position:sticky;top:0;z-index:30;box-shadow:0 2px 16px rgba(15,23,42,.18)}
   .topbar .wrap{display:flex;align-items:center;justify-content:space-between}
   .logo{font-weight:900;font-size:19px;letter-spacing:-.5px;display:flex;align-items:center;gap:7px}
   .logo .pt{color:#60a5fa}
   .logo-badge{width:26px;height:26px;border-radius:7px;background:var(--blue);display:grid;place-items:center;font-size:13px}
   .topbar .lang{font-size:12px;color:#94a3b8;font-weight:500}
-  .hero{
-    background:linear-gradient(135deg,#1e293b,#0f172a);
-    color:#fff;
-    border-radius:0 0 22px 22px;
-    padding:6px 0 26px;
-    margin-bottom:-14px;
-  }
+  .hero{background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;border-radius:0 0 22px 22px;padding:6px 0 26px;margin-bottom:-14px}
   .hero .wrap{padding-top:6px}
   .hero h1{font-size:23px;font-weight:900;letter-spacing:-.4px;margin-bottom:3px}
   .hero .sub{font-size:13px;color:#cbd5e1;font-weight:500}
-  .hero .pt-by{
-    margin-top:16px;display:inline-flex;align-items:center;gap:8px;
-    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
-    padding:7px 13px;border-radius:100px;font-size:12.5px;color:#e2e8f0;font-weight:500;
-  }
+  .hero .pt-by{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:7px 13px;border-radius:100px;font-size:12.5px;color:#e2e8f0;font-weight:500}
   .hero .pt-by .dot{width:7px;height:7px;border-radius:50%;background:#34d399}
-  .meta{display:flex;gap:10px;margin:26px 0 18px}
-  .meta .chip{
-    flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;
-    padding:13px 12px;text-align:center;box-shadow:var(--shadow);
-  }
-  .meta .chip .n{font-size:20px;font-weight:900;color:var(--ink);letter-spacing:-.5px}
-  .meta .chip .l{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
-  .day{margin-bottom:22px}
-  .day-head{display:flex;align-items:center;gap:10px;margin:0 4px 12px}
-  .day-head .badge{
-    width:34px;height:34px;border-radius:10px;background:var(--blue);color:#fff;
-    display:grid;place-items:center;font-weight:900;font-size:14px;flex-shrink:0;
-    box-shadow:0 4px 12px rgba(37,99,235,.3);
-  }
-  .day-head h2{font-size:16px;font-weight:700;letter-spacing:-.3px}
-  .day-head .meta-day{font-size:12px;color:var(--dim);font-weight:500}
-  .ex{
-    background:var(--card);border:1px solid var(--line);border-radius:16px;
-    padding:15px 16px;margin-bottom:10px;box-shadow:var(--shadow);
-    transition:transform .15s ease,box-shadow .15s ease;
-  }
-  .ex:active{transform:scale(.992)}
-  .ex-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}
+  .day-tabs{display:flex;gap:8px;margin:24px 0 6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .day-tabs::-webkit-scrollbar{display:none}
+  .day-tab{flex-shrink:0;padding:9px 16px;border-radius:11px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
+  .day-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+  .datebar{display:flex;align-items:center;gap:10px;margin:14px 0 16px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 14px;box-shadow:var(--shadow)}
+  .datebar label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .datebar input{flex:1;border:none;background:transparent;font-size:14px;font-weight:700;color:var(--ink);outline:none}
+  .ex{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:11px;box-shadow:var(--shadow)}
+  .ex.done{border-color:#a7f3d0;background:linear-gradient(180deg,var(--green-soft),#fff 40%)}
+  .ex-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
   .ex-name{font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.3}
-  .ex-num{
-    font-size:11px;font-weight:800;color:var(--blue);background:var(--blue-soft);
-    padding:3px 8px;border-radius:7px;flex-shrink:0;
-  }
   .ex-muscles{font-size:11.5px;color:var(--dim);font-weight:500;margin-top:1px}
-  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-  .stat{
-    background:#f8fafc;border:1px solid var(--line);border-radius:11px;
-    padding:9px 6px;text-align:center;
-  }
-  .stat .v{font-size:18px;font-weight:900;color:var(--ink);letter-spacing:-.5px;line-height:1}
-  .stat .v .u{font-size:11px;font-weight:700;color:var(--muted)}
-  .stat .k{font-size:9.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-top:5px}
-  .stat.accent{background:var(--blue-soft);border-color:#dbe7ff}
-  .stat.accent .v{color:var(--blue)}
-  .ex-note{
-    margin-top:11px;font-size:12px;color:var(--muted);font-weight:500;
-    background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:8px 11px;
-    display:flex;gap:7px;align-items:flex-start;
-  }
+  .ex-check{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex-shrink:0;cursor:pointer;display:grid;place-items:center;font-size:14px;color:transparent;transition:all .15s;background:#fff}
+  .ex-check.on{background:var(--green);border-color:var(--green);color:#fff}
+  .prescribed{display:flex;gap:6px;margin-bottom:12px;font-size:11.5px;flex-wrap:wrap}
+  .pres-chip{background:#f1f5f9;border-radius:7px;padding:4px 9px;color:var(--muted);font-weight:600}
+  .pres-chip b{color:var(--ink);font-weight:800}
+  .sets-head,.set-row{display:grid;grid-template-columns:34px 1fr 1fr 1fr;gap:7px;align-items:center}
+  .sets-head{margin-bottom:6px}
+  .sets-head div{font-size:9.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.4px;text-align:center}
+  .sets-head div:first-child{text-align:left;padding-left:4px}
+  .set-row{margin-bottom:7px}
+  .set-n{font-size:13px;font-weight:800;color:var(--blue);padding-left:6px}
+  .set-row input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 4px;text-align:center;font-size:15px;font-weight:700;color:var(--ink);outline:none;background:#fbfcfe;transition:border-color .15s,background .15s}
+  .set-row input:focus{border-color:var(--blue);background:#fff}
+  .set-row input::placeholder{color:#cbd5e1;font-weight:600}
+  .timed-sets{display:flex;flex-direction:column;gap:7px}
+  .timed-row{display:flex;align-items:center;gap:10px;background:#fbfcfe;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px}
+  .timed-row.set-done{background:var(--green-soft);border-color:#a7f3d0}
+  .timed-row .tn{font-size:13px;font-weight:800;color:var(--blue);width:38px}
+  .timed-row .tval{flex:1;font-size:15px;font-weight:800;color:var(--ink)}
+  .timed-row .tval span{font-size:12px;color:var(--muted);font-weight:700}
+  .btn-play{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(37,99,235,.3)}
+  .btn-play.replay{background:var(--card);color:var(--blue);border:1.5px solid var(--blue-soft);box-shadow:none}
+  .ex-note{margin-top:11px;font-size:12px;color:var(--muted);font-weight:500;background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:8px 11px;display:flex;gap:7px;align-items:flex-start}
   .ex-note .i{flex-shrink:0}
-  .foot{text-align:center;margin-top:34px;padding:0 20px}
-  .foot .made{
-    display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
-    font-weight:600;background:var(--card);border:1px solid var(--line);
-    padding:9px 16px;border-radius:100px;box-shadow:var(--shadow);
-  }
+  .savebar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:12px 0;z-index:40;box-shadow:0 -4px 24px rgba(15,23,42,.08)}
+  .savebar .wrap{display:flex;align-items:center;gap:12px}
+  .savebar .progress{flex:1;font-size:13px;font-weight:700;color:var(--muted)}
+  .savebar .progress b{color:var(--ink)}
+  .btn-save{background:var(--blue);color:#fff;border:none;border-radius:13px;padding:13px 24px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.35);transition:transform .12s}
+  .btn-save:active{transform:scale(.96)}
+  .btn-save:disabled{opacity:.5}
+  .btn-save.saved{background:var(--green);box-shadow:0 4px 16px rgba(5,150,105,.35)}
+  .foot{text-align:center;margin-top:30px;padding:0 20px}
+  .foot .made{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:600;background:var(--card);border:1px solid var(--line);padding:9px 16px;border-radius:100px;box-shadow:var(--shadow)}
   .foot .made .pt{color:var(--blue);font-weight:900}
   .foot .disc{font-size:11px;color:var(--dim);margin-top:14px;line-height:1.5;font-weight:500}
-  .ex,.meta .chip,.day-head{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
-  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   .loading{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;font-weight:500}
-  .toast{
-    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
-    background:var(--ink);color:#fff;font-size:13px;font-weight:600;
-    padding:11px 20px;border-radius:100px;box-shadow:0 4px 20px rgba(15,23,42,.2);
-    transition:transform .25s cubic-bezier(.2,.7,.2,1);z-index:99;white-space:nowrap;
-  }
-  .toast.show{transform:translateX(-50%) translateY(0)}
-  .toast.ok{background:var(--green)}
-  .toast.err{background:#dc2626}
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:700;z-index:60;opacity:0;transition:all .3s;box-shadow:0 8px 32px rgba(15,23,42,.3);pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.ok{background:var(--green)}.toast.err{background:#dc2626}
+  .timer-overlay{position:fixed;inset:0;background:linear-gradient(160deg,#1e293b,#0f172a);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:30px}
+  .timer-overlay.show{display:flex;animation:fadeIn .25s}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .timer-overlay.rest{background:linear-gradient(160deg,#78350f,#451a03)}
+  .t-label{font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#cbd5e1;margin-bottom:6px}
+  .t-exname{font-size:20px;font-weight:900;margin-bottom:34px;text-align:center}
+  .t-ring{position:relative;width:260px;height:260px}
+  .t-ring svg{transform:rotate(-90deg)}
+  .t-ring .track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:14}
+  .t-ring .prog{fill:none;stroke:#fff;stroke-width:14;stroke-linecap:round;transition:stroke-dashoffset .95s linear}
+  .timer-overlay.rest .t-ring .prog{stroke:var(--amber)}
+  .t-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .t-num .big{font-size:74px;font-weight:900;line-height:1;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .t-num .unit{font-size:14px;color:#94a3b8;font-weight:700;margin-top:4px}
+  .t-actions{display:flex;gap:14px;margin-top:42px}
+  .t-btn{border:none;border-radius:14px;padding:15px 28px;font-size:15px;font-weight:800;cursor:pointer}
+  .t-btn.stop{background:rgba(255,255,255,.14);color:#fff}
+  .t-btn.skip{background:#fff;color:var(--ink)}
+  .ex{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -143,20 +121,38 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="meta">
-      <div class="chip"><div class="n" id="m-sedute">—</div><div class="l">Sedute/sett</div></div>
-      <div class="chip"><div class="n" id="m-durata">—</div><div class="l">Durata</div></div>
-      <div class="chip"><div class="n" id="m-settimane">—</div><div class="l">Settimane</div></div>
-    </div>
-    <div id="giorni"><div class="loading">Caricamento scheda…</div></div>
+    <div class="day-tabs" id="dayTabs"></div>
+    <div class="datebar" id="datebar" style="display:none"><label>Data seduta</label><input type="date" id="dataSeduta"></div>
+    <div id="esercizi"><div class="loading">Caricamento scheda…</div></div>
     <div class="foot">
       <div class="made">Creato con <span class="pt">PT&nbsp;Board</span></div>
-      <div class="disc">Questa scheda è personale e preparata dal tuo personal trainer.<br>Esegui gli esercizi secondo le indicazioni ricevute.</div>
+      <div class="disc">Inserisci reps e carico, oppure usa il cronometro per gli esercizi a tempo.</div>
     </div>
   </div>
+  <div class="savebar" id="savebar" style="display:none"><div class="wrap">
+    <div class="progress" id="progress">0 / 0 completati</div>
+    <button class="btn-save" id="btnSave" onclick="salva()">Salva seduta</button>
+  </div></div>
   <div class="toast" id="toast"></div>
+
+  <div class="timer-overlay" id="timerOv">
+    <div class="t-label" id="tLabel">Esercizio</div>
+    <div class="t-exname" id="tExname">—</div>
+    <div class="t-ring">
+      <svg width="260" height="260" viewBox="0 0 260 260">
+        <circle class="track" cx="130" cy="130" r="116"></circle>
+        <circle class="prog" id="tProg" cx="130" cy="130" r="116"></circle>
+      </svg>
+      <div class="t-num"><div class="big" id="tBig">0</div><div class="unit">secondi</div></div>
+    </div>
+    <div class="t-actions">
+      <button class="t-btn stop" onclick="stopTimer()">Annulla</button>
+      <button class="t-btn skip" id="tSkip" onclick="skipTimer()">Salta</button>
+    </div>
+  </div>
+
 <script>
-  /* ── FIREBASE INIT (no auth, no persistence) ── */
+  /* ── FIREBASE (no auth, no persistence) ── */
   firebase.initializeApp({
     apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
     authDomain:"ptboard-1.firebaseapp.com",
@@ -167,7 +163,11 @@
   });
   var fbDb = firebase.firestore();
 
-  /* ── SHARE ID ── */
+  var SHARE_ID = null;
+  var SCHEDA = null;          // { cliente, ptNome, programma, giorni:[{nome,esercizi:[...]}] }
+  var stato = null;           // stato compilazione (localStorage)
+  var giornoAttivo = 0;
+
   function getShareId(){
     var p = new URLSearchParams(location.search);
     if(p.get('id')) return p.get('id');
@@ -177,147 +177,171 @@
     if(stored){ sessionStorage.removeItem('shareId'); return stored; }
     return null;
   }
-
-  /* ── ERRORE SCHERMATA ── */
   function mostraErrore(msg){
-    document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;'+
-      'align-items:center;justify-content:center;font-family:DM Sans,sans-serif;padding:40px;text-align:center;color:#0f172a">'+
-      '<div style="font-size:40px;margin-bottom:12px">📋</div>'+
-      '<div style="font-size:18px;font-weight:800;margin-bottom:8px">PT Board</div>'+
+    document.body.innerHTML = '<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;padding:40px;text-align:center;color:#0f172a">'+
+      '<div style="font-size:40px;margin-bottom:12px">📋</div><div style="font-size:18px;font-weight:800;margin-bottom:8px">PT Board</div>'+
       '<div style="font-size:14px;color:#64748b;max-width:300px">'+msg+'</div></div>';
   }
+  var _tt;
+  function showToast(msg,type){ var el=document.getElementById('toast'); if(!el)return; el.textContent=msg; el.className='toast show'+(type==='ok'?' ok':type==='err'?' err':''); clearTimeout(_tt); _tt=setTimeout(function(){el.className='toast'+(type==='ok'?' ok':type==='err'?' err':'');},2600); }
 
-  /* ── TOAST ── */
-  var _toastTimer;
-  function showToast(msg, type){
-    var el = document.getElementById('toast');
-    if(!el) return;
-    el.textContent = msg;
-    el.className = 'toast show' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(function(){ el.className = 'toast'; }, 3000);
+  function isTimed(reps){ return /s|sec|:/i.test(String(reps)); }
+  function secFromReps(reps){ var s=String(reps); var mm=s.match(/(\d+):(\d+)/); if(mm) return (+mm[1])*60+(+mm[2]); var m=s.match(/(\d+)/); return m?+m[1]:30; }
+  function numCarico(c){ var m=String(c||'').match(/^([\d.,]+)/); return m?m[1]:'kg'; }
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);});}
+
+  /* ── stato compilazione locale ── */
+  function storageKey(){ return 'ptb_fill_'+SHARE_ID; }
+  function initStato(){
+    var saved=null;
+    try{ saved=JSON.parse(localStorage.getItem(storageKey())); }catch(e){}
+    if(saved && saved.giorni) return saved;
+    var st={ dataSeduta:new Date().toISOString().slice(0,10), giorni:{} };
+    SCHEDA.giorni.forEach(function(g,gi){
+      st.giorni[gi]={esercizi:{}};
+      g.esercizi.forEach(function(e,ei){
+        if(isTimed(e.reps)) st.giorni[gi].esercizi[ei]={done:false,timed:true,sets:Array.from({length:e.serie||1},function(){return{sec:'',fatto:false};})};
+        else st.giorni[gi].esercizi[ei]={done:false,timed:false,sets:Array.from({length:e.serie||1},function(){return{reps:'',kg:'',rpe:''};})};
+      });
+    });
+    return st;
+  }
+  function salvaStato(){ try{ localStorage.setItem(storageKey(),JSON.stringify(stato)); }catch(e){} }
+
+  function render(){
+    document.getElementById('cliente').textContent=SCHEDA.cliente||'';
+    document.getElementById('pt-nome').textContent=SCHEDA.ptNome||'';
+    document.getElementById('programma').textContent=SCHEDA.programma||'';
+    document.getElementById('datebar').style.display='flex';
+    document.getElementById('savebar').style.display='block';
+    document.getElementById('dataSeduta').value=stato.dataSeduta;
+
+    document.getElementById('dayTabs').innerHTML=SCHEDA.giorni.map(function(g,gi){
+      return '<div class="day-tab '+(gi===giornoAttivo?'active':'')+'" onclick="cambiaGiorno('+gi+')">'+esc(g.nome)+'</div>';
+    }).join('');
+
+    var g=SCHEDA.giorni[giornoAttivo];
+    document.getElementById('esercizi').innerHTML=g.esercizi.map(function(e,ei){
+      var st=stato.giorni[giornoAttivo].esercizi[ei];
+      var body;
+      if(st.timed){
+        body='<div class="timed-sets">'+st.sets.map(function(s,si){
+          return '<div class="timed-row '+(s.fatto?'set-done':'')+'">'+
+            '<span class="tn">Set '+(si+1)+'</span>'+
+            '<span class="tval">'+(s.sec?esc(s.sec)+'<span> s</span>':'<span style="color:#cbd5e1">— s</span>')+'</span>'+
+            '<button class="btn-play '+(s.fatto?'replay':'')+'" onclick="startTimer('+ei+','+si+')">'+(s.fatto?'↻ Rifai':'▶ '+secFromReps(e.reps)+'s')+'</button>'+
+          '</div>';
+        }).join('')+'</div>';
+      } else {
+        var rows=st.sets.map(function(s,si){
+          return '<div class="set-row">'+
+            '<div class="set-n">'+(si+1)+'</div>'+
+            '<input inputmode="numeric" placeholder="'+esc(String(e.reps))+'" value="'+esc(s.reps)+'" oninput="upd('+ei+','+si+',\'reps\',this.value)">'+
+            '<input inputmode="decimal" placeholder="'+esc(numCarico(e.carico))+'" value="'+esc(s.kg)+'" oninput="upd('+ei+','+si+',\'kg\',this.value)">'+
+            '<input inputmode="numeric" placeholder="—" value="'+esc(s.rpe||'')+'" oninput="upd('+ei+','+si+',\'rpe\',this.value)">'+
+          '</div>';
+        }).join('');
+        body='<div class="sets-head"><div>Set</div><div>Reps</div><div>Kg</div><div>RPE</div></div>'+rows;
+      }
+      return '<div class="ex '+(st.done?'done':'')+'">'+
+        '<div class="ex-top"><div><div class="ex-name">'+esc(e.nome)+'</div><div class="ex-muscles">'+esc(e.muscoli||'')+'</div></div>'+
+        '<div class="ex-check '+(st.done?'on':'')+'" onclick="toggleDone('+ei+')">✓</div></div>'+
+        '<div class="prescribed">'+
+          '<span class="pres-chip">Prescritto: <b>'+esc(String(e.serie||''))+'×'+esc(String(e.reps||''))+'</b></span>'+
+          (e.carico?'<span class="pres-chip">Carico: <b>'+esc(String(e.carico))+'</b></span>':'')+
+          (e.rec?'<span class="pres-chip">Rec: <b>'+esc(String(e.rec))+'</b></span>':'')+
+        '</div>'+body+
+        (e.nota?'<div class="ex-note"><span class="i">💡</span><span>'+esc(e.nota)+'</span></div>':'')+
+      '</div>';
+    }).join('');
+    aggiornaProgress();
   }
 
-  /* ── SALVATAGGIO SU FIREBASE ──
-     ATTENZIONE: il client non loggato puo aggiornare SOLO log + updatedAt
-     (regola Firestore Tappa 3). Non includere altri campi nell'update. */
-  async function salvaSuFirebase(shareId, giornoNome, esercizi){
-    var entry = {
-      data: new Date().toLocaleDateString('it-IT'),
-      giorno: giornoNome,
-      esercizi: esercizi,
-      ts: Date.now()
-    };
+  /* IMPORTANTE: upd NON richiama render() — altrimenti l'input perde il focus
+     mentre scrivi e sembra che il campo "non accetti" i numeri. */
+  function upd(ei,si,c,v){ stato.giorni[giornoAttivo].esercizi[ei].sets[si][c]=v; salvaStato(); }
+  function toggleDone(ei){ var st=stato.giorni[giornoAttivo].esercizi[ei]; st.done=!st.done; salvaStato(); render(); }
+  function cambiaGiorno(gi){ giornoAttivo=gi; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+  function aggiornaProgress(){ var ex=stato.giorni[giornoAttivo].esercizi; var tot=Object.keys(ex).length,done=Object.values(ex).filter(function(x){return x.done;}).length; document.getElementById('progress').innerHTML='<b>'+done+'</b> / '+tot+' completati'; }
+  document.addEventListener('change',function(e){ if(e.target&&e.target.id==='dataSeduta'){ stato.dataSeduta=e.target.value; salvaStato(); } });
+
+  /* ── TIMER ── */
+  var timerInt=null, timerCtx={};
+  var R=116, CIRC=2*Math.PI*R;
+  function startTimer(ei,si){ var e=SCHEDA.giorni[giornoAttivo].esercizi[ei]; var dur=secFromReps(e.reps); timerCtx={ei:ei,si:si,phase:'work',ex:e}; openTimer(e.nome,'Esercizio',dur,false); }
+  function openTimer(name,label,dur,isRest){
+    var ov=document.getElementById('timerOv'); ov.classList.toggle('rest',isRest); ov.classList.add('show');
+    document.getElementById('tProg').style.strokeDasharray=CIRC;
+    document.getElementById('tExname').textContent=name;
+    document.getElementById('tLabel').textContent=label;
+    document.getElementById('tSkip').textContent=isRest?'Salta riposo':'Salta';
+    document.querySelector('.t-num .unit').textContent=isRest?'riposo':'secondi';
+    var left=dur, big=document.getElementById('tBig'), prog=document.getElementById('tProg');
+    big.textContent=left; prog.style.strokeDashoffset=0;
+    clearInterval(timerInt);
+    timerInt=setInterval(function(){ left--; big.textContent=Math.max(left,0); prog.style.strokeDashoffset=CIRC*(1-left/dur); if(left<=0){ clearInterval(timerInt); finePhase(); } },1000);
+  }
+  function finePhase(){
+    beep();
+    if(timerCtx.phase==='work'){
+      var ei=timerCtx.ei,si=timerCtx.si,ex=timerCtx.ex;
+      var s=stato.giorni[giornoAttivo].esercizi[ei].sets[si]; s.sec=secFromReps(ex.reps); s.fatto=true; salvaStato();
+      var rec=secFromReps(ex.rec); if(rec>0){ timerCtx.phase='rest'; openTimer('Recupero','Riposo',rec,true); } else { stopTimer(); }
+    } else { stopTimer(); }
+  }
+  function skipTimer(){ if(timerCtx.phase==='work'){ clearInterval(timerInt); finePhase(); } else { stopTimer(); } }
+  function stopTimer(){ clearInterval(timerInt); document.getElementById('timerOv').classList.remove('show'); render(); }
+  function beep(){ try{ var ctx=new (window.AudioContext||window.webkitAudioContext)(); var o=ctx.createOscillator(),g=ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value=880; o.type='sine'; g.gain.setValueAtTime(.3,ctx.currentTime); g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.4); o.start(); o.stop(ctx.currentTime+.4); if(navigator.vibrate) navigator.vibrate(200); }catch(e){} }
+
+  /* ── SALVATAGGIO ── (solo log + updatedAt, come da regola Firestore) */
+  async function salva(){
+    var btn=document.getElementById('btnSave'); btn.disabled=true;
+    var g=SCHEDA.giorni[giornoAttivo];
+    var es=stato.giorni[giornoAttivo].esercizi;
+    var esercizi=g.esercizi.map(function(e,ei){
+      var st=es[ei];
+      return { nome:e.nome, timed:!!st.timed, done:!!st.done,
+        sets: st.sets.map(function(s){ return st.timed?{sec:s.sec||'',fatto:!!s.fatto}:{reps:s.reps||'',kg:s.kg||'',rpe:s.rpe||''}; }) };
+    });
+    var entry={ data:stato.dataSeduta, giorno:g.nome, esercizi:esercizi, ts:Date.now() };
     try{
-      await fbDb.collection('sharedClients').doc(shareId).update({
+      await fbDb.collection('sharedClients').doc(SHARE_ID).update({
         log: firebase.firestore.FieldValue.arrayUnion(entry),
         updatedAt: Date.now()
       });
-      // backup locale (fallback se connessione cade in futuro)
-      try{
-        var key = 'ptb_share_' + shareId;
-        var prev = JSON.parse(localStorage.getItem(key) || '[]');
-        prev.push(entry);
-        localStorage.setItem(key, JSON.stringify(prev));
-      }catch(_){}
-      return true;
+      btn.textContent='✓ Salvato'; btn.classList.add('saved');
+      showToast('Seduta salvata','ok');
+      setTimeout(function(){ btn.textContent='Salva seduta'; btn.classList.remove('saved'); btn.disabled=false; },2000);
     }catch(e){
-      // salva comunque in localStorage come backup
-      try{
-        var key2 = 'ptb_share_' + shareId;
-        var prev2 = JSON.parse(localStorage.getItem(key2) || '[]');
-        prev2.push(entry);
-        localStorage.setItem(key2, JSON.stringify(prev2));
-      }catch(_){}
-      return false;
+      btn.disabled=false;
+      showToast('Errore salvataggio, riprova','err');
     }
   }
 
-  /* ── ADAPTER: mappa i dati Firestore alla forma che render() si aspetta ── */
-  function adattaDaFirestore(data){
-    var sa = data.schedaAttuale || {};
-    return {
-      cliente:    data.cliente || '',
-      ptNome:     data.ptNome || '',
-      programma:  sa.programma || '',
-      seduteSett: sa.seduteSett || sa.sedute || '—',
-      durata:     sa.durata || '—',
-      settimane:  sa.settimane || '—',
-      giorni:     sa.giorni || []
-    };
+  /* ── ADAPTER Firestore → SCHEDA ── */
+  function adatta(data){
+    var sa=data.schedaAttuale||{};
+    return { cliente:data.cliente||'', ptNome:data.ptNome||'', programma:sa.programma||'', giorni:(sa.giorni||[]).map(function(g){
+      return { nome:g.nome||'Allenamento', esercizi:(g.esercizi||[]).map(function(e){
+        return { nome:e.nome||'Esercizio', muscoli:e.muscoli||'', serie:e.serie||1, reps:e.reps!=null?e.reps:'', carico:e.carico||'', rec:e.rec||'', nota:e.nota||'' };
+      }) };
+    }) };
   }
 
-  /* ── RENDER (UI invariata rispetto alla versione mock) ── */
-  function render(d){
-    document.getElementById('cliente').textContent = d.cliente;
-    document.getElementById('pt-nome').textContent = d.ptNome;
-    document.getElementById('programma').textContent = d.programma;
-    document.getElementById('m-sedute').textContent = d.seduteSett;
-    document.getElementById('m-durata').textContent = d.durata;
-    document.getElementById('m-settimane').textContent = d.settimane;
-    var cont = document.getElementById('giorni');
-    var letters = ['A','B','C','D','E','F'];
-    cont.innerHTML = d.giorni.map(function(g, gi){ return (
-      '<div class="day">'+
-        '<div class="day-head" style="animation-delay:'+( gi*.06)+'s">'+
-          '<div class="badge">'+(letters[gi]||(gi+1))+'</div>'+
-          '<div>'+
-            '<h2>'+esc(g.nome)+'</h2>'+
-            '<div class="meta-day">'+esc(g.focus||'')+'</div>'+
-          '</div>'+
-        '</div>'+
-        g.esercizi.map(function(e, ei){ return (
-          '<div class="ex" style="animation-delay:'+((gi*.06)+(ei*.04))+'s">'+
-            '<div class="ex-top">'+
-              '<div>'+
-                '<div class="ex-name">'+esc(e.nome)+'</div>'+
-                '<div class="ex-muscles">'+esc(e.muscoli||'')+'</div>'+
-              '</div>'+
-              '<div class="ex-num">'+(ei+1)+'</div>'+
-            '</div>'+
-            '<div class="grid">'+
-              '<div class="stat"><div class="v">'+esc(String(e.serie))+'</div><div class="k">Serie</div></div>'+
-              '<div class="stat"><div class="v">'+esc(String(e.reps))+'</div><div class="k">Reps</div></div>'+
-              '<div class="stat accent"><div class="v">'+fmtCarico(e.carico)+'</div><div class="k">Carico</div></div>'+
-            '</div>'+
-            (e.nota ? '<div class="ex-note"><span class="i">💡</span><span>'+esc(e.nota)+'</span></div>' : '')+
-          '</div>'
-        );}).join('')+
-      '</div>'
-    );}).join('');
-  }
-
-  function fmtCarico(c){
-    var m = String(c).match(/^([\d.,]+)\s*kg$/i);
-    if(m) return m[1]+'<span class="u"> kg</span>';
-    return esc(String(c));
-  }
-  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);});}
-
-  /* ── INIT ──
-     Per testare con un documento reale:
-     1. Firebase Console → Firestore → crea collection "sharedClients"
-     2. Documento con id "test-demo", campi:
-        ownerUid:"qualsiasi", cliente:"Mario", ptNome:"Steve", attivo:true,
-        schedaAttuale:{programma:"Full Body", seduteSett:3, durata:"60'",
-          settimane:4, giorni:[{nome:"Full Body A", focus:"Forza · 3 esercizi",
-          esercizi:[{nome:"Squat",muscoli:"Quadricipiti",serie:4,reps:"8",carico:"60 kg",rec:"180s",nota:""}]}]},
-        log:[]
-     3. Aprire share.html?id=test-demo (localhost deve essere autorizzato in Firebase) */
   async function init(){
-    var shareId = getShareId();
-    if(!shareId){ mostraErrore('Link non valido.'); return; }
+    SHARE_ID=getShareId();
+    if(!SHARE_ID){ mostraErrore('Link non valido.'); return; }
     try{
-      var doc = await fbDb.collection('sharedClients').doc(shareId).get();
+      var doc=await fbDb.collection('sharedClients').doc(SHARE_ID).get();
       if(!doc.exists){ mostraErrore('Scheda non trovata. Controlla il link.'); return; }
-      var data = doc.data();
-      if(data.attivo === false){ mostraErrore('Questo link non è più attivo. Contatta il tuo personal trainer.'); return; }
-      render(adattaDaFirestore(data));
-    }catch(e){
-      mostraErrore('Errore di connessione. Riprova.');
-    }
+      var data=doc.data();
+      if(data.attivo===false){ mostraErrore('Questo link non è più attivo. Contatta il tuo personal trainer.'); return; }
+      SCHEDA=adatta(data);
+      if(!SCHEDA.giorni.length){ mostraErrore('La scheda non contiene esercizi.'); return; }
+      stato=initStato();
+      render();
+    }catch(e){ mostraErrore('Errore di connessione. Riprova.'); }
   }
-
   init();
 </script>
 </body>
