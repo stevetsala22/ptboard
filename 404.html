@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>PT Board</title>
+<script>
+  (function(){
+    var m = location.pathname.match(/\/s\/([^\/?#]+)/);
+    if(m){
+      sessionStorage.setItem('shareId', m[1]);
+      location.replace('/share.html?id=' + encodeURIComponent(m[1]));
+    } else {
+      location.replace('/');
+    }
+  })();
+</script>
+</head>
+<body></body>
+</html>

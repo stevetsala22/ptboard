@@ -21,6 +21,38 @@ service cloud.firestore {
                   && request.auth.token.email == 'stevetsala22@gmail.com';
     }
 
+    // ── SHARED CLIENTS (condivisione scheda con cliente finale) ──
+    // Il PT (loggato) gestisce i propri documenti; il cliente (non loggato,
+    // ha solo il link) puo leggere e aggiornare SOLO il campo "log".
+    match /sharedClients/{shareId} {
+
+      // LETTURA: chiunque abbia il link puo leggere (il token e la chiave).
+      allow read: if true;
+
+      // CREAZIONE: solo il PT loggato, e deve impostarsi come owner.
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+
+      // UPDATE da parte del PT proprietario: pieno controllo.
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+
+      // UPDATE da parte del CLIENTE (non loggato): puo cambiare SOLO "log"
+      // e "updatedAt". Tutti gli altri campi devono restare identici.
+      allow update: if request.auth == null
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && request.resource.data.cliente == resource.data.cliente
+                    && request.resource.data.ptNome == resource.data.ptNome
+                    && request.resource.data.attivo == resource.data.attivo
+                    && request.resource.data.schedaAttuale == resource.data.schedaAttuale
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && resource.data.attivo == true;
+
+      // CANCELLAZIONE: solo il PT proprietario.
+      allow delete: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+    }
+
     // ── BLOCCA TUTTO IL RESTO ──
     match /{document=**} {
       allow read, write: if false;
