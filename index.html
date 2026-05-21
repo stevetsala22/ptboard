@@ -675,6 +675,7 @@ const LANGS={
     waSchedaMessage:"Ciao {name}! 💪 Ecco la tua scheda di allenamento personale su PT Board: {link}\nSalvala nella home del telefono per aprirla con un tap.",
     shareWhatsapp:'📲 Invia su WhatsApp',
     shareCopied:'Link copiato!',
+    notifTitle:'Notifiche',notifEmpty:'Nessuna notifica',
     profileLowShort:'Forma Bassa',profileMedShort:'Forma Media',profileGoodShort:'Buona Forma',profileExcellentShort:'Ottima Forma',
     // Panoramica
     bodyMassIndex:'Body Mass Index',belowTarget:'sotto target',targetLabel:'target',
@@ -1523,6 +1524,7 @@ const LANGS={
     waSchedaMessage:'Hi {name}! 💪 Here is your personal training program on PT Board: {link}\nSave it to your phone home screen to open it with one tap.',
     shareWhatsapp:'📲 Send via WhatsApp',
     shareCopied:'Link copied!',
+    notifTitle:'Notifications',notifEmpty:'No notifications',
     profileLowShort:'Low Fitness',profileMedShort:'Medium Fitness',profileGoodShort:'Good Fitness',profileExcellentShort:'Excellent Fitness',
     // Panoramica
     bodyMassIndex:'Body Mass Index',belowTarget:'below target',targetLabel:'target',
@@ -2371,6 +2373,7 @@ const LANGS={
     waSchedaMessage:"Salut {name} ! 💪 Voici ton programme d'entraînement personnel sur PT Board : {link}\nEnregistre-le sur l'écran d'accueil de ton téléphone.",
     shareWhatsapp:'📲 Envoyer sur WhatsApp',
     shareCopied:'Lien copié !',
+    notifTitle:'Notifications',notifEmpty:'Aucune notification',
     profileLowShort:'Forme Basse',profileMedShort:'Forme Moyenne',profileGoodShort:'Bonne Forme',profileExcellentShort:'Excellente Forme',
     // Panoramica
     bodyMassIndex:'IMC',belowTarget:"sous l'objectif",targetLabel:'objectif',
@@ -3060,6 +3063,25 @@ const setLangStore=(l)=>{try{localStorage.setItem('ptboard_lang',l);}catch{}};
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
 const exName=(ex,lang)=>ex.nome?.[lang]||ex.nome?.it||ex.nome||'';
 window.gT=gT;
+
+// ── NOTIFICHE STATICHE ──
+// Per aggiungere una notifica: aggiungi un oggetto IN CIMA all'array (le più
+// recenti per prime). Usa un id univoco — tutti i PT vedranno il badge.
+var NOTIFICHE=[
+  {
+    id:'share-2026-05',
+    data:'21/05/2026',
+    titolo:{it:'Novità: Condividi la scheda!',en:'New: Share the workout!',fr:'Nouveau : Partagez le programme !'},
+    testo:{
+      it:'Ora puoi condividere la scheda col tuo cliente via link/WhatsApp. Il cliente vede gli esercizi, inserisce carichi e reps, e usa il cronometro per gli esercizi a tempo. Trovi il pulsante "Condividi con cliente" nella scheda di ogni cliente.',
+      en:'You can now share a workout with your client via link/WhatsApp. The client sees the exercises, logs loads and reps, and uses the timer for timed exercises. Find the "Share with client" button in each client workout.',
+      fr:'Vous pouvez maintenant partager un programme avec votre client via lien/WhatsApp. Le client voit les exercices, enregistre charges et répétitions, et utilise le chrono. Bouton "Partager avec le client" dans chaque programme.'
+    }
+  }
+];
+var NOTIF_READ_KEY='ptb_notif_read';
+function getReadIds(){try{return JSON.parse(localStorage.getItem(NOTIF_READ_KEY)||'[]');}catch(e){return[];}}
+function markAllRead(){try{localStorage.setItem(NOTIF_READ_KEY,JSON.stringify(NOTIFICHE.map(function(n){return n.id;})));}catch(e){}}
 
 const C={
   get bg(){return'var(--bg)'},
@@ -6657,6 +6679,15 @@ function AppInner({user,profile,setProfile,trialLeft}){
   const [showAdmin,setShowAdmin]=useState(false);
   const [showPiani,setShowPiani]=useState(false);
   const [showLogoutModal,setShowLogoutModal]=React.useState(false);
+  const [showNotif,setShowNotif]=useState(false);
+  const [readIds,setReadIds]=useState(getReadIds);
+  const unreadCount=NOTIFICHE.filter(function(n){return readIds.indexOf(n.id)===-1;}).length;
+  useEffect(function(){
+    if(showNotif){
+      var t=setTimeout(function(){markAllRead();setReadIds(getReadIds());},1200);
+      return function(){clearTimeout(t);};
+    }
+  },[showNotif]);
   const [showLingua,setShowLingua]=useState(false);
   const [showPersonalizza,setShowPersonalizza]=useState(false);
   const firstLoad=useRef(true);
@@ -6954,6 +6985,34 @@ function AppInner({user,profile,setProfile,trialLeft}){
               <div style={{flex:1,textAlign:'center',fontSize:12,color:C.muted,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{tpNome||''}</div>
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {tpInitials&&<div style={{width:28,height:28,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
+                <div style={{position:'relative',display:'inline-block'}}>
+                  <button onClick={function(){setShowNotif(function(s){return !s;});}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 11px',borderRadius:7,fontSize:15,cursor:'pointer',transition:'all .2s',position:'relative',lineHeight:1}}>
+                    🔔
+                    {unreadCount>0&&<span style={{position:'absolute',top:-4,right:-4,background:'#ef4444',color:'#fff',fontSize:10,fontWeight:800,minWidth:16,height:16,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px'}}>{unreadCount}</span>}
+                  </button>
+                  {showNotif&&<>
+                    <div onClick={function(){setShowNotif(false);}} style={{position:'fixed',inset:0,zIndex:90}}/>
+                    <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',width:320,maxWidth:'90vw',background:C.card,border:'1px solid '+C.border2,borderRadius:14,boxShadow:'0 12px 40px rgba(0,0,0,.25)',zIndex:91,overflow:'hidden'}}>
+                      <div style={{padding:'13px 16px',borderBottom:'1px solid '+C.border2,fontWeight:800,fontSize:14,color:C.strong}}>{T.notifTitle||'Notifiche'}</div>
+                      <div style={{maxHeight:380,overflowY:'auto'}}>
+                        {NOTIFICHE.length===0
+                          ?<div style={{padding:24,textAlign:'center',color:C.muted,fontSize:13}}>{T.notifEmpty||'Nessuna notifica'}</div>
+                          :NOTIFICHE.map(function(n){
+                            var unread=readIds.indexOf(n.id)===-1;
+                            return <div key={n.id} style={{padding:'13px 16px',borderBottom:'1px solid '+C.border2,background:unread?C.blue+'0d':'transparent'}}>
+                              <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                                {unread&&<span style={{width:7,height:7,borderRadius:'50%',background:C.blue,flexShrink:0}}/>}
+                                <div style={{fontWeight:800,fontSize:13.5,color:C.strong}}>{n.titolo[lang]||n.titolo.it}</div>
+                              </div>
+                              <div style={{fontSize:12.5,color:C.muted,lineHeight:1.5}}>{n.testo[lang]||n.testo.it}</div>
+                              <div style={{fontSize:11,color:C.muted,marginTop:6,opacity:.7}}>{n.data}</div>
+                            </div>;
+                          })
+                        }
+                      </div>
+                    </div>
+                  </>}
+                </div>
                 <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">{T.disconnectAcc}</span></div>
               </div>
             </>
@@ -6971,6 +7030,34 @@ function AppInner({user,profile,setProfile,trialLeft}){
               {saveMsg&&<span style={{fontSize:12,color:C.green,fontWeight:600}}>{saveMsg}</span>}
               <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
                 {tpInitials&&<div style={{width:32,height:32,borderRadius:'50%',background:C.blue+'20',color:C.blue,fontSize:12,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{tpInitials}</div>}
+                <div style={{position:'relative',display:'inline-block'}}>
+                  <button onClick={function(){setShowNotif(function(s){return !s;});}} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 11px',borderRadius:7,fontSize:15,cursor:'pointer',transition:'all .2s',position:'relative',lineHeight:1}}>
+                    🔔
+                    {unreadCount>0&&<span style={{position:'absolute',top:-4,right:-4,background:'#ef4444',color:'#fff',fontSize:10,fontWeight:800,minWidth:16,height:16,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px'}}>{unreadCount}</span>}
+                  </button>
+                  {showNotif&&<>
+                    <div onClick={function(){setShowNotif(false);}} style={{position:'fixed',inset:0,zIndex:90}}/>
+                    <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',width:320,maxWidth:'90vw',background:C.card,border:'1px solid '+C.border2,borderRadius:14,boxShadow:'0 12px 40px rgba(0,0,0,.25)',zIndex:91,overflow:'hidden'}}>
+                      <div style={{padding:'13px 16px',borderBottom:'1px solid '+C.border2,fontWeight:800,fontSize:14,color:C.strong}}>{T.notifTitle||'Notifiche'}</div>
+                      <div style={{maxHeight:380,overflowY:'auto'}}>
+                        {NOTIFICHE.length===0
+                          ?<div style={{padding:24,textAlign:'center',color:C.muted,fontSize:13}}>{T.notifEmpty||'Nessuna notifica'}</div>
+                          :NOTIFICHE.map(function(n){
+                            var unread=readIds.indexOf(n.id)===-1;
+                            return <div key={n.id} style={{padding:'13px 16px',borderBottom:'1px solid '+C.border2,background:unread?C.blue+'0d':'transparent'}}>
+                              <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                                {unread&&<span style={{width:7,height:7,borderRadius:'50%',background:C.blue,flexShrink:0}}/>}
+                                <div style={{fontWeight:800,fontSize:13.5,color:C.strong}}>{n.titolo[lang]||n.titolo.it}</div>
+                              </div>
+                              <div style={{fontSize:12.5,color:C.muted,lineHeight:1.5}}>{n.testo[lang]||n.testo.it}</div>
+                              <div style={{fontSize:11,color:C.muted,marginTop:6,opacity:.7}}>{n.data}</div>
+                            </div>;
+                          })
+                        }
+                      </div>
+                    </div>
+                  </>}
+                </div>
                 <div className="tt"><button onClick={()=>setShowLogoutModal(true)} style={{background:C.card,border:'1px solid '+C.border2,color:C.text,padding:'6px 14px',borderRadius:7,fontSize:13,fontWeight:600,cursor:'pointer',transition:'all .2s'}}>Esci</button><span className="tp">{T.disconnectAcc}</span></div>
               </div>
             </>
