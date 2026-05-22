@@ -4593,8 +4593,7 @@ function buildSchedaAttuale(p,exercises,lang){
   return{programma:scheda.nome||(scheda.split||'Programma'),giorni:giorni,updatedAt:Date.now()};
 }
 // Costruisce i giorni da TUTTE le schede del paziente (una scheda = un giorno/tab).
-// Attivo solo per admin durante il test — vedi flag isAdmin nel bottone Condividi.
-// Per aprirlo a tutti: rimuovi il ramo else nel bottone e usa sempre questa funzione.
+// Ogni scheda del paziente diventa un giorno/tab nella share.html.
 function buildGiorniDaTutteLeSchede(p,exercises,lang){
   var giorni=[];
   (p.schede||[]).forEach(function(scheda,idx){
@@ -5746,23 +5745,15 @@ footer .center b{color:#3b82f6;font-weight:700}
                           try{
                             var user=fbAuth.currentUser;
                             if(!user){showToast('Devi essere loggato','error');setShareLoading(false);return;}
-                            var isAdmin=user.email===ADMIN_EMAIL;
                             var sid=generaShareId(p);
-                            var sa;
-                            if(isAdmin){
-                              // ADMIN TEST: tutte le schede come giorni/tab separati
-                              var tuttiGiorni=buildGiorniDaTutteLeSchede(p,exercises,getLang());
-                              if(!tuttiGiorni.length){showToast(T.shareBtn+': genera prima una scheda','warning');setShareLoading(false);return;}
-                              sa={
-                                programma:(p.schede&&p.schede.length>1)?((p.nome||'Programma')+' — '+p.schede.length+' schede'):((p.schede&&p.schede[0]&&p.schede[0].nome)||'Programma'),
-                                giorni:tuttiGiorni,
-                                updatedAt:Date.now()
-                              };
-                            }else{
-                              // Comportamento attuale: solo l'ultima scheda
-                              sa=buildSchedaAttuale(p,exercises,getLang());
-                              if(!sa){showToast(T.shareBtn+': genera prima una scheda','warning');setShareLoading(false);return;}
-                            }
+                            // Tutte le schede del cliente come giorni/tab separati
+                            var tuttiGiorni=buildGiorniDaTutteLeSchede(p,exercises,getLang());
+                            if(!tuttiGiorni.length){showToast(T.shareBtn+': genera prima una scheda','warning');setShareLoading(false);return;}
+                            var sa={
+                              programma:(p.schede&&p.schede.length>1)?((p.nome||'Programma')+' — '+p.schede.length+' schede'):((p.schede&&p.schede[0]&&p.schede[0].nome)||'Programma'),
+                              giorni:tuttiGiorni,
+                              updatedAt:Date.now()
+                            };
                             var ref=fbDb.collection('sharedClients').doc(sid);
                             var snap=await ref.get();
                             if(snap.exists){
