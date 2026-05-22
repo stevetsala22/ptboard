@@ -32,10 +32,10 @@
   .hero .sub{font-size:13px;color:#cbd5e1;font-weight:500}
   .hero .pt-by{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);padding:7px 13px;border-radius:100px;font-size:12.5px;color:#e2e8f0;font-weight:500}
   .hero .pt-by .dot{width:7px;height:7px;border-radius:50%;background:#34d399}
-  .day-tabs{display:flex;gap:8px;margin:24px 0 6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
-  .day-tabs::-webkit-scrollbar{display:none}
-  .day-tab{flex-shrink:0;padding:9px 16px;border-radius:11px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s}
-  .day-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+  .day-select-wrap{margin:24px 0 6px;position:relative}
+  .day-select-wrap::after{content:'▾';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--blue);font-size:14px;pointer-events:none;font-weight:900}
+  .day-select{width:100%;appearance:none;-webkit-appearance:none;background:var(--card);border:1.5px solid var(--blue-soft);border-radius:13px;padding:13px 40px 13px 15px;font-family:inherit;font-size:15px;font-weight:800;color:var(--ink);cursor:pointer;outline:none;box-shadow:var(--shadow)}
+  .day-select:focus{border-color:var(--blue)}
   .datebar{display:flex;align-items:center;gap:10px;margin:14px 0 16px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 14px;box-shadow:var(--shadow)}
   .datebar label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
   .datebar input{flex:1;border:none;background:transparent;font-size:14px;font-weight:700;color:var(--ink);outline:none}
@@ -121,7 +121,9 @@
     </div>
   </div>
   <div class="wrap">
-    <div class="day-tabs" id="dayTabs"></div>
+    <div class="day-select-wrap" id="daySelectWrap" style="display:none">
+      <select class="day-select" id="daySelect" onchange="cambiaGiorno(+this.value)"></select>
+    </div>
     <div class="datebar" id="datebar" style="display:none"><label>Data seduta</label><input type="date" id="dataSeduta"></div>
     <div id="esercizi"><div class="loading">Caricamento scheda…</div></div>
     <div class="foot">
@@ -216,9 +218,12 @@
     document.getElementById('savebar').style.display='block';
     document.getElementById('dataSeduta').value=stato.dataSeduta;
 
-    document.getElementById('dayTabs').innerHTML=SCHEDA.giorni.map(function(g,gi){
-      return '<div class="day-tab '+(gi===giornoAttivo?'active':'')+'" onclick="cambiaGiorno('+gi+')">'+esc(g.nome)+'</div>';
+    var sel=document.getElementById('daySelect');
+    var wrap=document.getElementById('daySelectWrap');
+    sel.innerHTML=SCHEDA.giorni.map(function(g,gi){
+      return '<option value="'+gi+'" '+(gi===giornoAttivo?'selected':'')+'>'+esc(g.nome)+'</option>';
     }).join('');
+    wrap.style.display=SCHEDA.giorni.length>1?'block':'none';
 
     var g=SCHEDA.giorni[giornoAttivo];
     document.getElementById('esercizi').innerHTML=g.esercizi.map(function(e,ei){
