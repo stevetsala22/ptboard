@@ -6720,6 +6720,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
   const [showLingua,setShowLingua]=useState(false);
   const [showPersonalizza,setShowPersonalizza]=useState(false);
   const firstLoad=useRef(true);
+  const loadedFromFirebase=useRef(false);
   const [syncing,setSyncing]=useState(true);
   const [,forceUpdate]=useState(0);
 
@@ -6739,16 +6740,21 @@ function AppInner({user,profile,setProfile,trialLeft}){
     setSyncing(true);
     fbLoad(user.uid).then(remote=>{
       if(remote&&remote.dataVersion>=4){
-        if(remote.patients?.length){
+        if(remote.patients&&remote.patients.length){
           var pNeedHydrate=false;
           var pHydrated=remote.patients.map(function(pat){
-            var hp=Object.assign({},pat);
-            if(!hp.screeningMedico){hp.screeningMedico={tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''};pNeedHydrate=true;}
-            if(!hp.parqPlus){hp.parqPlus={q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'};pNeedHydrate=true;}
-            if(hp.modalitaValutazione===undefined){hp.modalitaValutazione='';pNeedHydrate=true;}
-            if(!hp.obiettivoStrutturato){hp.obiettivoStrutturato={pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0};pNeedHydrate=true;}
-            if(hp.test&&(hp.test.rmEsercizio===undefined||hp.test.stepTestFc===undefined||hp.test.cmjAltezza===undefined||hp.test.cooperDistanza===undefined)){hp.test=Object.assign({rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',stepTestFc:'',stepTestSecondi:180,cmjAltezza:'',cmjTentativo:'',cooperDistanza:'',cooperVo2max:''},hp.test);pNeedHydrate=true;}
-            return hp;
+            try{
+              var hp=Object.assign({},pat);
+              if(!hp.screeningMedico){hp.screeningMedico={tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''};pNeedHydrate=true;}
+              if(!hp.parqPlus){hp.parqPlus={q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'};pNeedHydrate=true;}
+              if(hp.modalitaValutazione===undefined){hp.modalitaValutazione='';pNeedHydrate=true;}
+              if(!hp.obiettivoStrutturato){hp.obiettivoStrutturato={pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0};pNeedHydrate=true;}
+              if(hp.test&&(hp.test.rmEsercizio===undefined||hp.test.stepTestFc===undefined||hp.test.cmjAltezza===undefined||hp.test.cooperDistanza===undefined)){hp.test=Object.assign({rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',stepTestFc:'',stepTestSecondi:180,cmjAltezza:'',cmjTentativo:'',cooperDistanza:'',cooperVo2max:''},hp.test);pNeedHydrate=true;}
+              return hp;
+            }catch(errHyd){
+              console.warn('[PTB] hydration paziente fallita, uso originale:',errHyd);
+              return pat; // non perdere il paziente
+            }
           });
           setPatients(pHydrated);
           if(pNeedHydrate){var hData=Object.assign({},remote,{patients:pHydrated});save(hData);fbSave(user.uid,hData);}
@@ -6791,7 +6797,9 @@ function AppInner({user,profile,setProfile,trialLeft}){
         if(nuovi.length > 0 || repairedCount > 0){
           var merged = currentExercisesPatched.concat(nuovi);
           setExercises(merged);
-          var mergedData = {patients: remote.patients||[], bookings: remote.bookings||[], exercises: merged, isLight: remote.isLight, dataVersion:4};
+          var mergedData = {bookings: remote.bookings||[], exercises: merged, isLight: remote.isLight, dataVersion:4};
+          if(remote.patients&&remote.patients.length){mergedData.patients=remote.patients;}
+          // se patients è assente, con {merge:true} il campo esistente su Firebase NON viene toccato
           save(mergedData);
           fbSave(user.uid, mergedData);
           if(nuovi.length > 0){
@@ -6805,7 +6813,10 @@ function AppInner({user,profile,setProfile,trialLeft}){
           if(remote.exercises) setExercises(remote.exercises);
         }
       }
-    }).catch(()=>{}).finally(()=>setSyncing(false));
+    }).catch(function(e){console.warn('[PTB] errore caricamento Firebase:',e);}).finally(function(){
+      loadedFromFirebase.current=true; // sblocca i salvataggi SOLO ora
+      setSyncing(false);
+    });
     if(typeof Notification!=='undefined'&&Notification.permission==='default') Notification.requestPermission();
   },[]);
 
@@ -6818,6 +6829,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
   // Salva su localStorage + Firebase
   useEffect(()=>{
     if(firstLoad.current){firstLoad.current=false;return;}
+    if(!loadedFromFirebase.current)return; // non salvare prima che fbLoad abbia completato
     const data={patients,bookings,exercises,isLight,dataVersion:4};
     save(data);
     fbSave(user.uid,data);
@@ -6830,7 +6842,8 @@ function AppInner({user,profile,setProfile,trialLeft}){
   useEffect(()=>{
     const handleHide=()=>{
       const data={patients,bookings,exercises,isLight,dataVersion:4};
-      save(data);
+      save(data); // localStorage sempre ok
+      if(!loadedFromFirebase.current)return; // ma non scrivere su Firebase prima del load
       try{fbSave(user.uid,data);}catch{}
     };
     const onVis=()=>{if(document.hidden)handleHide();};

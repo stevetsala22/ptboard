@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0f172a">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>La tua scheda · PT Board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -201,7 +204,7 @@
     var st={ dataSeduta:new Date().toISOString().slice(0,10), giorni:{} };
     SCHEDA.giorni.forEach(function(g,gi){
       st.giorni[gi]={esercizi:{}};
-      g.esercizi.forEach(function(e,ei){
+      (g.esercizi||[]).forEach(function(e,ei){
         if(isTimed(e.reps)) st.giorni[gi].esercizi[ei]={done:false,timed:true,sets:Array.from({length:e.serie||1},function(){return{sec:'',fatto:false};})};
         else st.giorni[gi].esercizi[ei]={done:false,timed:false,sets:Array.from({length:e.serie||1},function(){return{reps:'',kg:'',rpe:''};})};
       });
@@ -223,11 +226,13 @@
     sel.innerHTML=SCHEDA.giorni.map(function(g,gi){
       return '<option value="'+gi+'" '+(gi===giornoAttivo?'selected':'')+'>'+esc(g.nome)+'</option>';
     }).join('');
-    wrap.style.display=SCHEDA.giorni.length>1?'block':'none';
+    // mostra il selettore solo se c'e piu di un giorno
+    wrap.style.display = SCHEDA.giorni.length>1 ? 'block' : 'none';
 
-    var g=SCHEDA.giorni[giornoAttivo];
-    document.getElementById('esercizi').innerHTML=g.esercizi.map(function(e,ei){
-      var st=stato.giorni[giornoAttivo].esercizi[ei];
+    var g=SCHEDA.giorni[giornoAttivo]||{nome:'',esercizi:[]};
+    var listaEx=g.esercizi||[];
+    document.getElementById('esercizi').innerHTML=listaEx.map(function(e,ei){
+      var st=(stato.giorni[giornoAttivo]&&stato.giorni[giornoAttivo].esercizi[ei])||{done:false,timed:false,sets:[]};
       var body;
       if(st.timed){
         body='<div class="timed-sets">'+st.sets.map(function(s,si){
@@ -326,27 +331,42 @@
   /* ── ADAPTER Firestore → SCHEDA ── */
   function adatta(data){
     var sa=data.schedaAttuale||{};
-    return { cliente:data.cliente||'', ptNome:data.ptNome||'', programma:sa.programma||'', giorni:(sa.giorni||[]).map(function(g){
-      return { nome:g.nome||'Allenamento', esercizi:(g.esercizi||[]).map(function(e){
+    var giorni=(sa.giorni||[]).map(function(g){
+      g=g||{};
+      return { nome:g.nome||'Allenamento', esercizi:(g.esercizi||[]).filter(function(e){return e;}).map(function(e){
         return { nome:e.nome||'Esercizio', muscoli:e.muscoli||'', serie:e.serie||1, reps:e.reps!=null?e.reps:'', carico:e.carico||'', rec:e.rec||'', nota:e.nota||'' };
       }) };
-    }) };
+    }).filter(function(g){ return g.esercizi.length>0; }); // scarta giorni vuoti (no crash)
+    return { cliente:data.cliente||'', ptNome:data.ptNome||'', programma:sa.programma||'', giorni:giorni };
   }
 
   async function init(){
     SHARE_ID=getShareId();
     if(!SHARE_ID){ mostraErrore('Link non valido.'); return; }
     try{
-      var doc=await fbDb.collection('sharedClients').doc(SHARE_ID).get();
+      // legge SEMPRE dal server (mai dalla cache di Firestore), cosi la PWA
+      // mostra sempre i dati aggiornati quando c'e connessione
+      var doc;
+      try{ doc=await fbDb.collection('sharedClients').doc(SHARE_ID).get({source:'server'}); }
+      catch(netErr){ doc=await fbDb.collection('sharedClients').doc(SHARE_ID).get(); } // fallback offline
       if(!doc.exists){ mostraErrore('Scheda non trovata. Controlla il link.'); return; }
       var data=doc.data();
       if(data.attivo===false){ mostraErrore('Questo link non è più attivo. Contatta il tuo personal trainer.'); return; }
       SCHEDA=adatta(data);
-      if(!SCHEDA.giorni.length){ mostraErrore('La scheda non contiene esercizi.'); return; }
+      if(!SCHEDA.giorni.length){ mostraErrore('La scheda non contiene esercizi. Contatta il tuo personal trainer.'); return; }
+      if(giornoAttivo>=SCHEDA.giorni.length) giornoAttivo=0;
       stato=initStato();
-      render();
+      try{ render(); }
+      catch(errRender){ mostraErrore('Si è verificato un problema nel mostrare la scheda. Contatta il tuo personal trainer.'); }
     }catch(e){ mostraErrore('Errore di connessione. Riprova.'); }
   }
+
+  // Se la pagina viene ripristinata dalla cache del browser/PWA (back-forward
+  // cache), forza un ricaricamento fresco cosi non resta su una versione vecchia.
+  window.addEventListener('pageshow', function(ev){
+    if(ev.persisted){ location.reload(); }
+  });
+
   init();
 </script>
 </body>
