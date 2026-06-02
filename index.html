@@ -5704,11 +5704,70 @@ footer .center b{color:#3b82f6;font-weight:700}
                             </div>
                             <button title={T.swapExercise} aria-label={T.swapExercise} style={{background:isSwapOpen?C.blue+'20':'transparent',border:'1px solid '+C.border2,borderRadius:8,width:28,height:28,cursor:'pointer',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,padding:0}} onClick={()=>setSwapTarget(isSwapOpen?null:{si:si,ei:ei})}>{'\u{1F504}'}</button>
                             <div style={{textAlign:'right',flexShrink:0}}>
-                              <div style={{display:'flex',alignItems:'center',gap:6,justifyContent:'flex-end'}}>
-                                <div style={{fontSize:13,fontWeight:800,color:C.strong}}>{ex.serie}×{ex.reps}</div>
-                                <button title={T.exTimerPrep} onClick={e=>{e.stopPropagation();setExTimer({mode:'prep',sec:3});}} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:13,padding:0,color:C.blue,lineHeight:1,display:'flex',alignItems:'center'}}>▶</button>
+                              <div style={{display:'flex',alignItems:'center',gap:4,justifyContent:'flex-end'}}>
+                                <select
+                                  value={ex.serie}
+                                  onClick={e=>e.stopPropagation()}
+                                  onChange={e=>{
+                                    var nv=+e.target.value;
+                                    var newSchede=(p.schede||[]).map(function(sch,sIdx){
+                                      if(sIdx!==si)return sch;
+                                      var newEserc=(sch.esercizi||[]).map(function(e2,eIdx){
+                                        if(eIdx!==ei)return e2;
+                                        return Object.assign({},e2,{serie:nv});
+                                      });
+                                      return Object.assign({},sch,{esercizi:newEserc});
+                                    });
+                                    upd(function(){return{schede:newSchede};});
+                                  }}
+                                  style={{fontSize:13,fontWeight:800,color:C.strong,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,padding:'2px 4px',cursor:'pointer',fontFamily:'inherit'}}
+                                  aria-label="Serie">
+                                  {Array.from({length:8},(_,i)=>i+1).map(n=><option key={n} value={n}>{n}</option>)}
+                                </select>
+                                <span style={{fontSize:13,fontWeight:800,color:C.strong}}>×</span>
+                                <select
+                                  value={ex.reps}
+                                  onClick={e=>e.stopPropagation()}
+                                  onChange={e=>{
+                                    var nv=+e.target.value;
+                                    var newSchede=(p.schede||[]).map(function(sch,sIdx){
+                                      if(sIdx!==si)return sch;
+                                      var newEserc=(sch.esercizi||[]).map(function(e2,eIdx){
+                                        if(eIdx!==ei)return e2;
+                                        return Object.assign({},e2,{reps:nv});
+                                      });
+                                      return Object.assign({},sch,{esercizi:newEserc});
+                                    });
+                                    upd(function(){return{schede:newSchede};});
+                                  }}
+                                  style={{fontSize:13,fontWeight:800,color:C.strong,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,padding:'2px 4px',cursor:'pointer',fontFamily:'inherit'}}
+                                  aria-label="Reps">
+                                  {Array.from({length:30},(_,i)=>i+1).map(n=><option key={n} value={n}>{n}</option>)}
+                                </select>
+                                <button title={T.exTimerPrep} onClick={e=>{e.stopPropagation();setExTimer({mode:'prep',sec:3});}} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:13,padding:0,color:C.blue,lineHeight:1,display:'flex',alignItems:'center',marginLeft:2}}>▶</button>
                               </div>
-                              {ex.rec>0&&<button onClick={e=>{e.stopPropagation();setExTimer({mode:'rest',sec:ex.rec});}} title={T.exTimerRecov} style={{fontSize:10,color:'#f59e0b',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:5,padding:'2px 7px',cursor:'pointer',fontFamily:'inherit',marginTop:2}}>{'⏱ '+ex.rec+'s'}</button>}
+                              <div style={{display:'flex',alignItems:'center',gap:4,justifyContent:'flex-end',marginTop:2}}>
+                                <select
+                                  value={ex.rec||0}
+                                  onClick={e=>e.stopPropagation()}
+                                  onChange={e=>{
+                                    var nv=+e.target.value;
+                                    var newSchede=(p.schede||[]).map(function(sch,sIdx){
+                                      if(sIdx!==si)return sch;
+                                      var newEserc=(sch.esercizi||[]).map(function(e2,eIdx){
+                                        if(eIdx!==ei)return e2;
+                                        return Object.assign({},e2,{rec:nv});
+                                      });
+                                      return Object.assign({},sch,{esercizi:newEserc});
+                                    });
+                                    upd(function(){return{schede:newSchede};});
+                                  }}
+                                  style={{fontSize:10,color:'#f59e0b',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:5,padding:'2px 6px',cursor:'pointer',fontFamily:'inherit',fontWeight:700}}
+                                  aria-label="Recupero">
+                                  {[0,15,30,45,60,75,90,120,150,180,240,300].map(n=><option key={n} value={n}>{n===0?'no rec':'⏱ '+n+'s'}</option>)}
+                                </select>
+                                {ex.rec>0&&<button onClick={e=>{e.stopPropagation();setExTimer({mode:'rest',sec:ex.rec});}} title={T.exTimerRecov} style={{fontSize:11,color:'#f59e0b',background:'transparent',border:'none',cursor:'pointer',fontFamily:'inherit',padding:'0 2px'}}>▶</button>}
+                              </div>
                             </div>
                           </div>
                           {isSwapOpen&&<div style={{position:'absolute',top:'100%',right:8,zIndex:10,background:C.card,border:'1px solid '+C.border2,borderRadius:10,boxShadow:'0 8px 24px rgba(0,0,0,0.35)',padding:8,minWidth:240,maxWidth:340}}>
