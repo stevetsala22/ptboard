@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PT Board Atleta — In arrivo</title>
+<meta name="description" content="L'app per portare la tua scheda di allenamento in palestra. In arrivo.">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa;color:#042C53;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;line-height:1.55}
+  .container{max-width:520px;width:100%;text-align:center}
+  .badge{display:inline-block;background:#E6F1FB;color:#185FA5;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:24px}
+  h1{font-size:clamp(28px,5vw,42px);font-weight:600;line-height:1.15;letter-spacing:-0.5px;margin-bottom:18px;color:#042C53}
+  .lead{font-size:17px;color:#5F5E5A;margin-bottom:32px}
+  .invited-by{background:#E6F1FB;border:1px solid #185FA540;border-radius:10px;padding:14px 18px;margin-bottom:28px;font-size:14px;color:#185FA5;display:none}
+  .invited-by.show{display:block}
+  form{display:flex;flex-direction:column;gap:10px;max-width:380px;margin:0 auto}
+  input[type=email]{padding:14px 16px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-family:inherit;background:#fff}
+  input[type=email]:focus{outline:none;border-color:#185FA5}
+  button{padding:14px 20px;background:#185FA5;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+  button:hover{background:#0f4a85}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .footer{margin-top:48px;font-size:13px;color:#999}
+  .footer a{color:#185FA5;text-decoration:none}
+  .success{display:none;background:#dcfce7;color:#166534;padding:14px;border-radius:10px;margin-top:16px;font-size:14px}
+  .success.show{display:block}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="badge">🚀 In arrivo</div>
+  <h1>La tua scheda, sempre con te.</h1>
+  <p class="lead">L'app per portare in palestra la scheda che il tuo PT ti ha dato su carta. Traccia carichi, ripetizioni, recupero. Gratis.</p>
+
+  <div class="invited-by" id="invitedBy">
+    💪 Sei stato invitato. Il PT che ti ha inviato il link ti potrà seguire qui.
+  </div>
+
+  <form id="waitlistForm">
+    <input type="email" id="email" placeholder="La tua email" required>
+    <button type="submit" id="submitBtn">Iscriviti alla lista d'attesa</button>
+  </form>
+
+  <div class="success" id="success">
+    ✓ Ti avviseremo appena pronta. Grazie!
+  </div>
+
+  <div class="footer">
+    Powered by <a href="/">PT Board</a> · <a href="mailto:ptboard.info@gmail.com">Contatti</a>
+  </div>
+</div>
+
+<script>
+// Mostra banner se l'utente arriva da un link PT
+var urlParams = new URLSearchParams(window.location.search);
+var invParam = urlParams.get('inv');
+if(invParam){
+  document.getElementById('invitedBy').classList.add('show');
+}
+
+// Salva l'email nella lista d'attesa via localStorage (per ora)
+// Quando avrai la Fase 2, sostituiremo con scrittura su Firestore.
+document.getElementById('waitlistForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var email = document.getElementById('email').value.trim();
+  var btn = document.getElementById('submitBtn');
+  if(!email) return;
+  btn.disabled = true;
+  btn.textContent = 'Iscrizione in corso...';
+
+  // Salva localmente. In Fase 2 si invierà a Firestore "waitlist" collection.
+  try{
+    var existing = JSON.parse(localStorage.getItem('ptboard_atleta_waitlist') || '[]');
+    existing.push({email: email, invitedBy: invParam || null, ts: Date.now()});
+    localStorage.setItem('ptboard_atleta_waitlist', JSON.stringify(existing));
+  }catch(err){}
+
+  setTimeout(function(){
+    document.getElementById('waitlistForm').style.display = 'none';
+    document.getElementById('success').classList.add('show');
+  }, 600);
+});
+</script>
+</body>
+</html>

@@ -6759,6 +6759,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
   const [deleteReason,setDeleteReason]=useState('');
   const [deleteDetail,setDeleteDetail]=useState('');
   const [sidebarOpen,setSidebarOpen]=useState(!isMobile);
+  const [showInviteModal,setShowInviteModal]=useState(false);
   const [isLight,setIsLight]=useState(stored?.isLight||false);
   const [dataReady,setDataReady]=useState(true);
   const [showValutazione,setShowValutazione]=useState(false);
@@ -6975,11 +6976,46 @@ function AppInner({user,profile,setProfile,trialLeft}){
     {id:'patients',icon:'👥',l:T.patients,tip:'Gestisci lista clienti'},
     {id:'calendar',icon:'📅',l:T.calendar,tip:'Prenota e gestisci appuntamenti'},
     {id:'exercises',icon:'🏋',l:T.exercises,tip:'Libreria esercizi'},
+    {id:'invite',icon:'🔗',l:'Invita atleta',tip:'Genera link per invitare atleti'},
   ];
 
   return(
     <div style={S.app}>
       <ToastContainer/>
+      {/* Modal Invita atleta */}
+      {showInviteModal&&(()=>{
+        var inviteLink='https://personaltrainerboard.com/atleta.html?inv='+user.uid;
+        var waText=encodeURIComponent('Ciao! Ti invito a usare PT Board come app per la tua scheda di allenamento. Iscriviti qui: '+inviteLink);
+        return(
+          <div onClick={()=>setShowInviteModal(false)} style={{position:'fixed',inset:0,background:'#0008',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+            <div onClick={e=>e.stopPropagation()} style={{background:C.card,borderRadius:14,padding:24,maxWidth:500,width:'100%',border:'1px solid '+C.border,boxShadow:'0 12px 40px #0006'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+                <div style={{fontSize:18,fontWeight:700,color:C.strong}}>🔗 Invita un atleta</div>
+                <button onClick={()=>setShowInviteModal(false)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:22,color:C.dim,padding:4}}>✕</button>
+              </div>
+              <div style={{fontSize:14,color:C.dim,lineHeight:1.55,marginBottom:18}}>
+                Condividi questo link con i tuoi clienti o sui tuoi canali (Instagram, sito, biglietto da visita).
+                Chi si registra dal tuo link potrà essere collegato a te come PT.
+              </div>
+              <div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:8,padding:'10px 12px',fontSize:13,color:C.strong,wordBreak:'break-all',marginBottom:14,fontFamily:'monospace'}}>
+                {inviteLink}
+              </div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                <button onClick={()=>{
+                  navigator.clipboard.writeText(inviteLink).then(()=>{
+                    if(typeof toast==='function')toast('Link copiato!');
+                  }).catch(()=>{alert('Link copiato manualmente non disponibile, copialo dal box sopra.');});
+                }} style={{padding:'10px 16px',background:C.blue,color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:600,flex:'1 1 auto'}}>📋 Copia link</button>
+                <a href={'https://wa.me/?text='+waText} target="_blank" rel="noopener" style={{padding:'10px 16px',background:'#25D366',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:600,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:4,flex:'1 1 auto',justifyContent:'center'}}>📱 WhatsApp</a>
+              </div>
+              <div style={{fontSize:12,color:C.dim,marginTop:16,padding:12,background:C.bg,borderRadius:8,lineHeight:1.5}}>
+                ℹ️ La funzione completa per gli atleti sarà disponibile a breve. Per ora chi clicca il link può iscriversi alla lista d'attesa.
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Overlay per chiudere sidebar su mobile */}
       {sidebarOpen&&isMobile&&<div onClick={()=>setSidebarOpen(false)} style={{position:'fixed',inset:0,background:'#00000070',zIndex:50}}/>}
 
@@ -7006,7 +7042,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           <div style={{...S.navlbl,color:isLight?'#475569':'#cbd5e1'}}>Menu</div>
           {navItems.map(n=>{const act=page===n.id||((page==='detail'||page==='form')&&n.id==='patients');const locked=isNavLocked(n.id);const justUnlocked=justUnlockedItems.indexOf(n.id)!==-1;return(
             <div key={n.id} className="tt">
-              <button disabled={locked} aria-disabled={locked} className={justUnlocked?'nav-just-unlocked':undefined} style={{...S.navi(act),color:locked?(isLight?'#94a3b8':'#64748b'):(act?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9')),background:act?(isLight?C.blue+'15':C.blue+'30'):'transparent',opacity:locked?0.4:1,cursor:locked?'not-allowed':'pointer'}} onClick={()=>{if(locked)return;setPage(n.id);setSelectedId(null);if(isMobile)setSidebarOpen(false);}}>
+              <button disabled={locked} aria-disabled={locked} className={justUnlocked?'nav-just-unlocked':undefined} style={{...S.navi(act),color:locked?(isLight?'#94a3b8':'#64748b'):(act?(isLight?'#1d4ed8':'#ffffff'):(isLight?'#0f172a':'#f1f5f9')),background:act?(isLight?C.blue+'15':C.blue+'30'):'transparent',opacity:locked?0.4:1,cursor:locked?'not-allowed':'pointer'}} onClick={()=>{if(locked)return;if(n.id==='invite'){setShowInviteModal(true);if(isMobile)setSidebarOpen(false);return;}setPage(n.id);setSelectedId(null);if(isMobile)setSidebarOpen(false);}}>
                 <span style={{fontSize:14}}>{n.icon}</span><span>{n.l}</span>
                 {locked&&<span style={{marginLeft:'auto',fontSize:12}}>🔒</span>}
               </button>
