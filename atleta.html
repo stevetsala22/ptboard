@@ -2,64 +2,110 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#185FA5">
 <title>PT Board Atleta — In arrivo</title>
-<meta name="description" content="L'app per portare la tua scheda di allenamento in palestra. In arrivo.">
+<meta name="description" content="L'app per portare la tua scheda di allenamento in palestra. Timer, carichi, progressioni. In arrivo, gratis.">
+<link rel="icon" href="favicon.png">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa;color:#042C53;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;line-height:1.55}
-  .container{max-width:520px;width:100%;text-align:center}
-  .badge{display:inline-block;background:#E6F1FB;color:#185FA5;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:24px}
-  h1{font-size:clamp(28px,5vw,42px);font-weight:600;line-height:1.15;letter-spacing:-0.5px;margin-bottom:18px;color:#042C53}
-  .lead{font-size:17px;color:#5F5E5A;margin-bottom:32px}
-  .invited-by{background:#E6F1FB;border:1px solid #185FA540;border-radius:10px;padding:14px 18px;margin-bottom:28px;font-size:14px;color:#185FA5;display:none}
-  .invited-by.show{display:block}
-  form{display:flex;flex-direction:column;gap:10px;max-width:380px;margin:0 auto}
-  input[type=email]{padding:14px 16px;border:1px solid #cbd5e1;border-radius:10px;font-size:16px;font-family:inherit;background:#fff}
-  input[type=email]:focus{outline:none;border-color:#185FA5}
-  button{padding:14px 20px;background:#185FA5;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+  html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa;color:#042C53;min-height:100vh;line-height:1.55;-webkit-font-smoothing:antialiased}
+  body{display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{max-width:420px;width:100%;background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(4,44,83,0.08);overflow:hidden}
+  .head{padding:20px 24px 0;display:flex;align-items:center;gap:8px}
+  .logo{width:30px;height:30px;background:#185FA5;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;letter-spacing:-0.3px}
+  .brand{font-size:14px;font-weight:500;color:#042C53}
+  .hero{padding:30px 24px 22px}
+  .badge{display:inline-block;background:#E6F1FB;color:#185FA5;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:16px;letter-spacing:0.5px;text-transform:uppercase}
+  h1{font-size:30px;font-weight:600;line-height:1.13;letter-spacing:-0.6px;margin-bottom:12px;color:#042C53}
+  .lead{font-size:15px;color:#5F5E5A;line-height:1.55}
+  .invited{margin:0 24px 22px;background:#E6F1FB;border:1px solid rgba(24,95,165,0.2);border-radius:10px;padding:13px 14px;display:none;align-items:flex-start;gap:10px}
+  .invited.show{display:flex}
+  .invited-icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#185FA5;font-size:18px;line-height:1;margin-top:1px}
+  .invited-text{font-size:13px}
+  .invited-name{font-weight:600;color:#0C447C}
+  .invited-sub{color:#185FA5;font-size:12px;margin-top:2px;line-height:1.4}
+  form{padding:0 24px 26px}
+  input[type=email]{width:100%;padding:13px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;font-family:inherit;background:#fff;margin-bottom:8px;color:#042C53;-webkit-appearance:none}
+  input[type=email]::placeholder{color:#94a3b8}
+  input[type=email]:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,0.12)}
+  button{width:100%;padding:14px;background:#185FA5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s}
   button:hover{background:#0f4a85}
+  button:active{transform:scale(0.99)}
   button:disabled{opacity:.6;cursor:not-allowed}
-  .footer{margin-top:48px;font-size:13px;color:#999}
-  .footer a{color:#185FA5;text-decoration:none}
-  .success{display:none;background:#dcfce7;color:#166534;padding:14px;border-radius:10px;margin-top:16px;font-size:14px}
+  .micro{font-size:12px;color:#94a3b8;text-align:center;margin-top:10px}
+  .features{border-top:1px solid #f0f0ec;padding:20px 24px}
+  .feat{display:flex;align-items:center;gap:12px;padding:7px 0}
+  .feat-icon{width:24px;height:24px;flex-shrink:0;color:#185FA5;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .feat-text{font-size:13.5px;color:#042C53;font-weight:500}
+  .footer{border-top:1px solid #f0f0ec;padding:14px 24px;text-align:center;background:#fafafa}
+  .footer-text{font-size:11px;color:#94a3b8}
+  .footer-text a{color:#185FA5;text-decoration:none}
+  .success{display:none;background:#dcfce7;color:#166534;padding:16px;border-radius:10px;margin:0 24px 22px;font-size:14px;text-align:center;font-weight:500}
   .success.show{display:block}
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="badge">🚀 In arrivo</div>
-  <h1>La tua scheda, sempre con te.</h1>
-  <p class="lead">L'app per portare in palestra la scheda che il tuo PT ti ha dato su carta. Traccia carichi, ripetizioni, recupero. Gratis.</p>
 
-  <div class="invited-by" id="invitedBy">
-    💪 Sei stato invitato. Il PT che ti ha inviato il link ti potrà seguire qui.
+<main class="card">
+
+  <header class="head">
+    <div class="logo">PT</div>
+    <div class="brand">PT Board</div>
+  </header>
+
+  <section class="hero">
+    <div class="badge">In arrivo</div>
+    <h1>La tua scheda.<br>Sempre con te.</h1>
+    <p class="lead">Porta in palestra la scheda che il tuo PT ti ha dato. Traccia carichi, ripetizioni, recupero.</p>
+  </section>
+
+  <div class="invited" id="invitedBanner">
+    <div class="invited-icon">✓</div>
+    <div class="invited-text">
+      <div class="invited-name">Un PT ti ha invitato</div>
+      <div class="invited-sub">Potrà seguirti quando l'app sarà pronta.</div>
+    </div>
   </div>
 
   <form id="waitlistForm">
-    <input type="email" id="email" placeholder="La tua email" required>
-    <button type="submit" id="submitBtn">Iscriviti alla lista d'attesa</button>
+    <input type="email" id="email" placeholder="La tua email" required autocomplete="email">
+    <button type="submit" id="submitBtn">Avvisami al lancio</button>
+    <div class="micro">Gratis. Senza carta di credito.</div>
   </form>
 
-  <div class="success" id="success">
-    ✓ Ti avviseremo appena pronta. Grazie!
-  </div>
+  <div class="success" id="success">✓ Ti avviseremo appena pronta. Grazie!</div>
 
-  <div class="footer">
-    Powered by <a href="/">PT Board</a> · <a href="mailto:ptboard.info@gmail.com">Contatti</a>
-  </div>
-</div>
+  <section class="features">
+    <div class="feat">
+      <div class="feat-icon">⏱</div>
+      <div class="feat-text">Timer di recupero integrato</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📈</div>
+      <div class="feat-text">Storico carichi e progressioni</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📱</div>
+      <div class="feat-text">Funziona offline in palestra</div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-text">
+      <a href="/">personaltrainerboard.com</a> · <a href="mailto:ptboard.info@gmail.com">Contatti</a>
+    </div>
+  </footer>
+
+</main>
 
 <script>
-// Mostra banner se l'utente arriva da un link PT
 var urlParams = new URLSearchParams(window.location.search);
 var invParam = urlParams.get('inv');
 if(invParam){
-  document.getElementById('invitedBy').classList.add('show');
+  document.getElementById('invitedBanner').classList.add('show');
 }
 
-// Salva l'email nella lista d'attesa via localStorage (per ora)
-// Quando avrai la Fase 2, sostituiremo con scrittura su Firestore.
 document.getElementById('waitlistForm').addEventListener('submit', function(e){
   e.preventDefault();
   var email = document.getElementById('email').value.trim();
@@ -68,7 +114,6 @@ document.getElementById('waitlistForm').addEventListener('submit', function(e){
   btn.disabled = true;
   btn.textContent = 'Iscrizione in corso...';
 
-  // Salva localmente. In Fase 2 si invierà a Firestore "waitlist" collection.
   try{
     var existing = JSON.parse(localStorage.getItem('ptboard_atleta_waitlist') || '[]');
     existing.push({email: email, invitedBy: invParam || null, ts: Date.now()});

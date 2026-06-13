@@ -7004,7 +7004,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
                 <button onClick={()=>{
                   navigator.clipboard.writeText(inviteLink).then(()=>{
                     if(typeof toast==='function')toast('Link copiato!');
-                  }).catch(()=>{alert('Link copiato manualmente non disponibile, copialo dal box sopra.');});
+                  }).catch(()=>{alert('Copia il link manualmente dal box sopra.');});
                 }} style={{padding:'10px 16px',background:C.blue,color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:600,flex:'1 1 auto'}}>📋 Copia link</button>
                 <a href={'https://wa.me/?text='+waText} target="_blank" rel="noopener" style={{padding:'10px 16px',background:'#25D366',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:14,fontWeight:600,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:4,flex:'1 1 auto',justifyContent:'center'}}>📱 WhatsApp</a>
               </div>
