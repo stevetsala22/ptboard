@@ -96,6 +96,18 @@ var fbDb=firebase.firestore();
   .add-exercise{width:100%;padding:12px;border:1.5px dashed #cbd5e1;background:transparent;color:#5F5E5A;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
   .add-exercise:hover{border-color:#185FA5;color:#185FA5}
 
+  /* Autocomplete dropdown */
+  .name-wrap{flex:1;position:relative}
+  .name-wrap input.name{width:100%}
+  .ac-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 20px rgba(4,44,83,0.12);max-height:220px;overflow-y:auto;z-index:50;display:none}
+  .ac-dropdown.show{display:block}
+  .ac-item{padding:9px 12px;font-size:13.5px;color:#042C53;cursor:pointer;border-bottom:1px solid #f0f0ec}
+  .ac-item:last-child{border-bottom:none}
+  .ac-item:hover,.ac-item.active{background:#E6F1FB;color:#185FA5}
+  .ac-item-alt{font-size:11px;color:#94a3b8;margin-top:2px}
+  .ac-item.active .ac-item-alt{color:#185FA5;opacity:0.7}
+  .ac-empty{padding:9px 12px;font-size:12px;color:#94a3b8;font-style:italic}
+
   /* Empty hint */
   .empty-hint{font-size:13px;color:#94a3b8;text-align:center;padding:20px 0}
 
@@ -317,6 +329,12 @@ var fbDb=firebase.firestore();
 
 <script>
 (function(){
+  // ── EXERCISE LIBRARY (248 esercizi PT Board, IT/EN/FR per ricerca multilingua) ──
+  var EXERCISE_LIBRARY=[{it:'Squat',en:'Squat',fr:'Squat'},{it:'Box Squat',en:'Box Squat',fr:'Squat sur box'},{it:'Goblet Squat',en:'Goblet Squat',fr:'Goblet Squat'},{it:'Leg Press',en:'Leg Press',fr:'Presse à cuisses'},{it:'Bulgarian Split Squat',en:'Bulgarian Split Squat',fr:'Fente bulgare'},{it:'Sissy Squat',en:'Sissy Squat',fr:'Sissy Squat'},{it:'Ponte Glutei',en:'Glute Bridge',fr:'Pont fessier'},{it:'Hip Thrust',en:'Hip Thrust',fr:'Hip Thrust'},{it:'Affondi',en:'Lunges',fr:'Fentes'},{it:'Stacco Rumeno',en:'Romanian Deadlift',fr:'Soulevé de terre roumain'},{it:'Stacco da Terra',en:'Deadlift',fr:'Soulevé de terre'},{it:'Leg Curl',en:'Leg Curl',fr:'Leg Curl'},{it:'Good Morning',en:'Good Morning',fr:'Good Morning'},{it:'Calf Raise',en:'Calf Raise',fr:'Mollets debout'},{it:'Seated Calf Raise',en:'Seated Calf Raise',fr:'Mollets assis'},{it:'Panca Piana',en:'Bench Press',fr:'Développé couché'},{it:'Panca Inclinata',en:'Incline Bench Press',fr:'Développé incliné'},{it:'Panca Declinata',en:'Decline Bench Press',fr:'Développé décliné'},{it:'Croci con Manubri',en:'Dumbbell Flyes',fr:'Écartés haltères'},{it:'Croci ai Cavi',en:'Cable Flyes',fr:'Écartés poulie'},{it:'Push-up',en:'Push-Up',fr:'Pompes'},{it:'Push-up Diamond',en:'Diamond Push-Up',fr:'Pompes diamant'},{it:'Dips',en:'Dips',fr:'Dips'},{it:'Pec Deck',en:'Pec Deck',fr:'Pec Deck'},{it:'Trazioni',en:'Pull-Up',fr:'Tractions'},{it:'Lat Machine',en:'Lat Pulldown',fr:'Tirage poitrine'},{it:'Rematore con Bilanciere',en:'Barbell Row',fr:'Rowing barre'},{it:'Rematore con Manubrio',en:'Dumbbell Row',fr:'Rowing haltère'},{it:'Pulley Basso',en:'Seated Cable Row',fr:'Tirage horizontal'},{it:'Trazioni Australiane',en:'Inverted Row',fr:'Tractions australiennes'},{it:'Iperestensioni',en:'Hyperextension',fr:'Hyperextensions'},{it:'Face Pull',en:'Face Pull',fr:'Face Pull'},{it:'Military Press',en:'Military Press',fr:'Développé militaire'},{it:'Shoulder Press Manubri',en:'Dumbbell Shoulder Press',fr:'Développé épaules haltères'},{it:'Arnold Press',en:'Arnold Press',fr:'Arnold Press'},{it:'Alzate Laterali',en:'Lateral Raises',fr:'Élévations latérales'},{it:'Alzate Frontali',en:'Front Raises',fr:'Élévations frontales'},{it:'Alzate Posteriori',en:'Rear Delt Raises',fr:'Élévations postérieures'},{it:'Upright Row',en:'Upright Row',fr:'Tirage menton'},{it:'Curl con Bilanciere',en:'Barbell Curl',fr:'Curl barre'},{it:'Curl con Manubri',en:'Dumbbell Curl',fr:'Curl haltères'},{it:'Curl a Martello',en:'Hammer Curl',fr:'Curl marteau'},{it:'Curl ai Cavi',en:'Cable Curl',fr:'Curl poulie'},{it:'Preacher Curl',en:'Preacher Curl',fr:'Curl pupitre'},{it:'Curl Concentrato',en:'Concentration Curl',fr:'Curl concentré'},{it:'Push Down ai Cavi',en:'Tricep Pushdown',fr:'Extension triceps poulie'},{it:'French Press',en:'Skull Crushers',fr:'Extensions triceps barre'},{it:'Estensioni Sopra la Testa',en:'Overhead Tricep Extension',fr:'Extensions triceps verticales'},{it:'Dip alle Parallele',en:'Parallel Bar Dips',fr:'Dips barres parallèles'},{it:'Plank',en:'Plank',fr:'Planche'},{it:'Side Plank',en:'Side Plank',fr:'Planche latérale'},{it:'Crunch',en:'Crunch',fr:'Crunch'},{it:'Crunch Inverso',en:'Reverse Crunch',fr:'Crunch inversé'},{it:'Russian Twist',en:'Russian Twist',fr:'Russian Twist'},{it:'Leg Raise',en:'Leg Raise',fr:'Relevés de jambes'},{it:'Mountain Climber',en:'Mountain Climber',fr:'Mountain Climber'},{it:'Sit-up',en:'Sit-Up',fr:'Abdos classiques'},{it:'Ab Wheel',en:'Ab Wheel Rollout',fr:'Roue abdominale'},{it:'Hollow Body',en:'Hollow Body Hold',fr:'Hollow Body'},{it:'Burpees',en:'Burpees',fr:'Burpees'},{it:'Jumping Jack',en:'Jumping Jacks',fr:'Jumping Jacks'},{it:'High Knees',en:'High Knees',fr:'Montées de genoux'},{it:'Skipping',en:'Skipping',fr:'Saut à la corde'},{it:'Box Jump',en:'Box Jump',fr:'Box Jump'},{it:'Battle Ropes',en:'Battle Ropes',fr:'Battle Ropes'},{it:'Corsa',en:'Running',fr:'Course'},{it:'Camminata',en:'Walking',fr:'Marche'},{it:'Cyclette',en:'Stationary Bike',fr:'Vélo statique'},{it:'Tapis Roulant',en:'Treadmill',fr:'Tapis roulant'},{it:'Vogatore',en:'Rowing Machine',fr:'Rameur'},{it:'Ellittica',en:'Elliptical',fr:'Elliptique'},{it:'Salita Scale',en:'Stair Climbing',fr:'Escaliers'},{it:'Nuoto',en:'Swimming',fr:'Natation'},{it:'Cyclette Reclinata',en:'Recumbent Bike',fr:'Vélo allongé'},{it:'Step',en:'Step-Up',fr:'Step-Up'},{it:'Kettlebell Swing',en:'Kettlebell Swing',fr:'Kettlebell Swing'},{it:'Turkish Get-Up',en:'Turkish Get-Up',fr:'Turkish Get-Up'},{it:'Snatch',en:'Snatch',fr:'Arraché'},{it:'Clean and Jerk',en:'Clean and Jerk',fr:'Épaulé-jeté'},{it:'Power Clean',en:'Power Clean',fr:'Power Clean'},{it:'Thruster',en:'Thruster',fr:'Thruster'},{it:'Wall Ball',en:'Wall Ball',fr:'Wall Ball'},{it:'Toes to Bar',en:'Toes to Bar',fr:'Pieds à la barre'},{it:'Pistol Squat',en:'Pistol Squat',fr:'Squat pistolet'},{it:'Single Leg Deadlift',en:'Single Leg Deadlift',fr:'Soulevé unilatéral'},{it:'Cable Crossover',en:'Cable Crossover',fr:'Cable Crossover'},{it:'Seal Row',en:'Seal Row',fr:'Seal Row'},{it:'T-Bar Row',en:'T-Bar Row',fr:'Rowing T-Bar'},{it:'Pendlay Row',en:'Pendlay Row',fr:'Pendlay Row'},{it:'Meadows Row',en:'Meadows Row',fr:'Meadows Row'},{it:'Chest Supported Row',en:'Chest Supported Row',fr:'Rowing buste appuyé'},{it:'Reverse Fly',en:'Reverse Fly',fr:'Écartés inversés'},{it:'Cable Pull Through',en:'Cable Pull Through',fr:'Pull Through poulie'},{it:'Nordic Curl',en:'Nordic Curl',fr:'Nordic Curl'},{it:'Glute Ham Raise',en:'Glute Ham Raise',fr:'Glute Ham Raise'},{it:'Walking Lunge',en:'Walking Lunge',fr:'Fentes marchées'},{it:'Reverse Lunge',en:'Reverse Lunge',fr:'Fentes arrière'},{it:'Lateral Lunge',en:'Lateral Lunge',fr:'Fentes latérales'},{it:'Curtsy Lunge',en:'Curtsy Lunge',fr:'Fentes croisées'},{it:'Step Down',en:'Step Down',fr:'Step Down'},{it:'Sumo Deadlift',en:'Sumo Deadlift',fr:'Soulevé Sumo'},{it:'Trap Bar Deadlift',en:'Trap Bar Deadlift',fr:'Soulevé Trap Bar'},{it:'Romanian Deadlift Manubri',en:'Dumbbell RDL',fr:'Soulevé Roumain Haltères'},{it:'Single Leg RDL',en:'Single Leg RDL',fr:'RDL unilatéral'},{it:'Cable Hip Abduction',en:'Cable Hip Abduction',fr:'Abduction hanche câble'},{it:'Hip Abduction Macchina',en:'Machine Hip Abduction',fr:'Abduction machine'},{it:'Hip Adduction Macchina',en:'Machine Hip Adduction',fr:'Adduction machine'},{it:'Banded Glute Bridge',en:'Banded Glute Bridge',fr:'Pont fessier élastique'},{it:'Frog Pump',en:'Frog Pump',fr:'Frog Pump'},{it:'Cable Kickback',en:'Cable Kickback',fr:'Kickback poulie'},{it:'Donkey Kick',en:'Donkey Kick',fr:'Donkey Kick'},{it:'Fire Hydrant',en:'Fire Hydrant',fr:'Fire Hydrant'},{it:'Standing Cable Press',en:'Standing Cable Press',fr:'Pressi debout poulie'},{it:'Smith Machine Press',en:'Smith Machine Press',fr:'Presse Smith'},{it:'Floor Press',en:'Floor Press',fr:'Floor Press'},{it:'Spoto Press',en:'Spoto Press',fr:'Spoto Press'},{it:'Larsen Press',en:'Larsen Press',fr:'Larsen Press'},{it:'Close Grip Bench',en:'Close Grip Bench',fr:'Développé prise serrée'},{it:'Pin Press',en:'Pin Press',fr:'Pin Press'},{it:'Board Press',en:'Board Press',fr:'Board Press'},{it:'Landmine Press',en:'Landmine Press',fr:'Landmine Press'},{it:'Single Arm Press',en:'Single Arm DB Press',fr:'Développé unilatéral'},{it:'Z Press',en:'Z Press',fr:'Z Press'},{it:'Push Press',en:'Push Press',fr:'Push Press'},{it:'Bradford Press',en:'Bradford Press',fr:'Bradford Press'},{it:'Handstand Push-up',en:'Handstand Push-Up',fr:'Pompes ATR'},{it:'Pike Push-up',en:'Pike Push-Up',fr:'Pompes piquées'},{it:'Cuban Press',en:'Cuban Press',fr:'Cuban Press'},{it:'Lateral Raise Cavo',en:'Cable Lateral Raise',fr:'Élévations latérales poulie'},{it:'Y Raise',en:'Y Raise',fr:'Y Raise'},{it:'T Raise',en:'T Raise',fr:'T Raise'},{it:'Bent Over Lateral Raise',en:'Bent Over Lateral',fr:'Élévations buste penché'},{it:'Chin-Up',en:'Chin-Up',fr:'Tractions supination'},{it:'Wide Grip Pull-up',en:'Wide Grip Pull-Up',fr:'Tractions large'},{it:'Neutral Grip Pull-up',en:'Neutral Grip Pull-Up',fr:'Tractions prise neutre'},{it:'Weighted Pull-up',en:'Weighted Pull-Up',fr:'Tractions lestées'},{it:'Lat Pulldown Wide',en:'Wide Grip Lat Pulldown',fr:'Tirage poitrine large'},{it:'Lat Pulldown Stretto',en:'Close Grip Lat Pulldown',fr:'Tirage prise serrée'},{it:'Straight Arm Pulldown',en:'Straight Arm Pulldown',fr:'Pull Over poulie'},{it:'Pullover',en:'Dumbbell Pullover',fr:'Pull Over haltère'},{it:'Single Arm Pulldown',en:'Single Arm Pulldown',fr:'Tirage unilatéral'},{it:'Inverted Row Manubri',en:'Inverted Row',fr:'Rowing inversé'},{it:'Bent Over Row Manubrio',en:'Bent Over DB Row',fr:'Rowing buste penché haltère'},{it:'Yates Row',en:'Yates Row',fr:'Yates Row'},{it:'Reverse Grip Row',en:'Reverse Grip Row',fr:'Rowing supination'},{it:'Helms Row',en:'Helms Row',fr:'Helms Row'},{it:'Kroc Row',en:'Kroc Row',fr:'Kroc Row'},{it:'Spider Curl',en:'Spider Curl',fr:'Spider Curl'},{it:'Incline Curl',en:'Incline DB Curl',fr:'Curl incliné'},{it:'Drag Curl',en:'Drag Curl',fr:'Drag Curl'},{it:'Zottman Curl',en:'Zottman Curl',fr:'Zottman Curl'},{it:'Reverse Curl',en:'Reverse Curl',fr:'Curl pronation'},{it:'Cross Body Hammer',en:'Cross Body Hammer',fr:'Curl marteau croisé'},{it:'Cable Hammer',en:'Cable Hammer Curl',fr:'Curl marteau poulie'},{it:'21s',en:'21s',fr:'21s'},{it:'EZ Bar Curl',en:'EZ Bar Curl',fr:'Curl EZ'},{it:'JM Press',en:'JM Press',fr:'JM Press'},{it:'Tate Press',en:'Tate Press',fr:'Tate Press'},{it:'Reverse Grip Pushdown',en:'Reverse Grip Pushdown',fr:'Pushdown supination'},{it:'Rope Pushdown',en:'Rope Pushdown',fr:'Pushdown corde'},{it:'V-Bar Pushdown',en:'V-Bar Pushdown',fr:'Pushdown V-Bar'},{it:'Single Arm Pushdown',en:'Single Arm Pushdown',fr:'Pushdown unilatéral'},{it:'Diamond Pushdown',en:'Diamond Pushdown',fr:'Pushdown diamant'},{it:'Lying DB Extension',en:'Lying DB Extension',fr:'Extensions allongé haltères'},{it:'Cable Overhead Extension',en:'Cable Overhead Extension',fr:'Extensions verticales poulie'},{it:'Single DB Overhead',en:'Single DB Overhead Extension',fr:'Extension verticale haltère'},{it:'Kickback',en:'Tricep Kickback',fr:'Kickback triceps'},{it:'Bench Dip',en:'Bench Dip',fr:'Dips banc'},{it:'Cable Crunch',en:'Cable Crunch',fr:'Crunch poulie'},{it:'Decline Crunch',en:'Decline Crunch',fr:'Crunch décliné'},{it:'Weighted Crunch',en:'Weighted Crunch',fr:'Crunch lesté'},{it:'V-Up',en:'V-Up',fr:'V-Up'},{it:'Toes to Sky',en:'Toes to Sky',fr:'Pieds au ciel'},{it:'Flutter Kick',en:'Flutter Kicks',fr:'Battements jambes'},{it:'Scissor Kick',en:'Scissor Kicks',fr:'Ciseaux'},{it:'Hanging Leg Raise',en:'Hanging Leg Raise',fr:'Relevés jambes suspendu'},{it:'Hanging Knee Raise',en:'Hanging Knee Raise',fr:'Relevés genoux suspendu'},{it:'Windshield Wipers',en:'Windshield Wipers',fr:'Essuie-glaces'},{it:'Pallof Press',en:'Pallof Press',fr:'Pallof Press'},{it:'Dead Bug',en:'Dead Bug',fr:'Dead Bug'},{it:'Bird Dog',en:'Bird Dog',fr:'Bird Dog'},{it:'Plank Up-Down',en:'Plank Up-Down',fr:'Planche dynamique'},{it:'Plank Jacks',en:'Plank Jacks',fr:'Planche jumping'},{it:'Bear Crawl',en:'Bear Crawl',fr:'Marche de l\'ours'},{it:'Spider Plank',en:'Spider Plank',fr:'Planche araignée'},{it:'L-Sit',en:'L-Sit',fr:'L-Sit'},{it:'Dragon Flag',en:'Dragon Flag',fr:'Dragon Flag'},{it:'Cable Woodchop',en:'Cable Woodchop',fr:'Cable Woodchop'},{it:'Standing Cable Crunch',en:'Standing Cable Crunch',fr:'Crunch debout poulie'},{it:'Side Bend',en:'Side Bend',fr:'Flexion latérale'},{it:'Farmer Walk',en:'Farmer Walk',fr:'Marche du fermier'},{it:'Suitcase Carry',en:'Suitcase Carry',fr:'Suitcase Carry'},{it:'Overhead Carry',en:'Overhead Carry',fr:'Marche bras tendus'},{it:'Yoke Walk',en:'Yoke Walk',fr:'Yoke Walk'},{it:'Sled Push',en:'Sled Push',fr:'Poussée traîneau'},{it:'Sled Pull',en:'Sled Pull',fr:'Traction traîneau'},{it:'Tire Flip',en:'Tire Flip',fr:'Retournement pneu'},{it:'Atlas Stone',en:'Atlas Stone',fr:'Pierre d\'Atlas'},{it:'Log Press',en:'Log Press',fr:'Log Press'},{it:'Axle Deadlift',en:'Axle Deadlift',fr:'Soulevé Axle'},{it:'Stone to Shoulder',en:'Stone to Shoulder',fr:'Pierre à épaule'},{it:'Strongman Carry',en:'Strongman Carry',fr:'Strongman Carry'},{it:'Sandbag Clean',en:'Sandbag Clean',fr:'Sandbag Clean'},{it:'Sandbag Squat',en:'Sandbag Squat',fr:'Sandbag Squat'},{it:'Medicine Ball Slam',en:'Med Ball Slam',fr:'Slam medicine ball'},{it:'Med Ball Toss',en:'Med Ball Toss',fr:'Lancer medicine ball'},{it:'Squat Jump',en:'Squat Jump',fr:'Squat sauté'},{it:'Tuck Jump',en:'Tuck Jump',fr:'Tuck Jump'},{it:'Broad Jump',en:'Broad Jump',fr:'Saut en longueur'},{it:'Lateral Bound',en:'Lateral Bound',fr:'Bond latéral'},{it:'Depth Jump',en:'Depth Jump',fr:'Saut en profondeur'},{it:'Single Leg Hop',en:'Single Leg Hop',fr:'Saut unilatéral'},{it:'Sprint',en:'Sprint',fr:'Sprint'},{it:'Hill Sprint',en:'Hill Sprint',fr:'Sprint en côte'},{it:'Sled Sprint',en:'Sled Sprint',fr:'Sprint traîneau'},{it:'Resisted Sprint',en:'Resisted Sprint',fr:'Sprint résisté'},{it:'Shuttle Run',en:'Shuttle Run',fr:'Course navette'},{it:'Suicide Run',en:'Suicide Run',fr:'Course suicide'},{it:'Cariocas',en:'Carioca',fr:'Cariocas'},{it:'Agility Ladder',en:'Agility Ladder Drills',fr:'Échelle agilité'},{it:'Cone Drill',en:'Cone Drill',fr:'Parcours coni'},{it:'Plyo Push-up Clap',en:'Clap Push-Up',fr:'Pompes claquées'}];
+
+  // Normalizza per ricerca: lowercase, rimuove accenti
+  function normalizeStr(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+
   // ── STATE ──
   var state={
     user:null,
@@ -702,15 +720,121 @@ var fbDb=firebase.firestore();
     var row=document.createElement('div');
     row.className='exercise-row';
 
+    // Wrap input + dropdown autocomplete
+    var wrap=document.createElement('div');
+    wrap.className='name-wrap';
     var nameInput=document.createElement('input');
     nameInput.className='name';
     nameInput.type='text';
     nameInput.placeholder='Nome esercizio (es. Panca piana)';
     nameInput.value=ex.name||'';
+    nameInput.autocomplete='off';
+    var dropdown=document.createElement('div');
+    dropdown.className='ac-dropdown';
+    wrap.appendChild(nameInput);
+    wrap.appendChild(dropdown);
+    row.appendChild(wrap);
+
+    var activeIndex=-1;
+    var lastMatches=[];
+
+    function filterLibrary(query){
+      var q=normalizeStr(query.trim());
+      if(!q)return [];
+      var matches=[];
+      for(var i=0;i<EXERCISE_LIBRARY.length&&matches.length<8;i++){
+        var e=EXERCISE_LIBRARY[i];
+        if(normalizeStr(e.it).indexOf(q)>=0||normalizeStr(e.en).indexOf(q)>=0||normalizeStr(e.fr).indexOf(q)>=0){
+          matches.push(e);
+        }
+      }
+      return matches;
+    }
+
+    function renderDropdown(matches){
+      dropdown.innerHTML='';
+      if(!matches.length){
+        // mostra solo se l'utente sta scrivendo qualcosa
+        if(nameInput.value.trim()){
+          var empty=document.createElement('div');
+          empty.className='ac-empty';
+          empty.textContent='Nessuna corrispondenza — premi Invio per usare "'+nameInput.value+'"';
+          dropdown.appendChild(empty);
+          dropdown.classList.add('show');
+        } else {
+          dropdown.classList.remove('show');
+        }
+        return;
+      }
+      for(var i=0;i<matches.length;i++){
+        (function(m,iLocal){
+          var item=document.createElement('div');
+          item.className='ac-item';
+          if(iLocal===activeIndex)item.classList.add('active');
+          var alt='';
+          // Mostra come "alt" la lingua diversa se la query matcha en/fr
+          var q=normalizeStr(nameInput.value);
+          if(normalizeStr(m.it).indexOf(q)<0){
+            if(normalizeStr(m.en).indexOf(q)>=0)alt=m.en;
+            else if(normalizeStr(m.fr).indexOf(q)>=0)alt=m.fr;
+          }
+          item.innerHTML=escapeHtml(m.it)+(alt?'<div class="ac-item-alt">'+escapeHtml(alt)+'</div>':'');
+          item.addEventListener('mousedown',function(e){
+            // mousedown invece di click così succede prima del blur
+            e.preventDefault();
+            pickExercise(m);
+          });
+          dropdown.appendChild(item);
+        })(matches[i],i);
+      }
+      dropdown.classList.add('show');
+    }
+
+    function pickExercise(m){
+      nameInput.value=m.it;
+      state.setupDraft.giorni[state.currentDayIndex].esercizi[idx].name=m.it;
+      dropdown.classList.remove('show');
+      activeIndex=-1;
+    }
+
     nameInput.addEventListener('input',function(){
       state.setupDraft.giorni[state.currentDayIndex].esercizi[idx].name=this.value;
+      activeIndex=-1;
+      lastMatches=filterLibrary(this.value);
+      renderDropdown(lastMatches);
     });
-    row.appendChild(nameInput);
+    nameInput.addEventListener('focus',function(){
+      if(this.value.trim()){
+        lastMatches=filterLibrary(this.value);
+        renderDropdown(lastMatches);
+      }
+    });
+    nameInput.addEventListener('blur',function(){
+      // delay per permettere il click sull'item
+      setTimeout(function(){dropdown.classList.remove('show');},150);
+    });
+    nameInput.addEventListener('keydown',function(e){
+      if(!dropdown.classList.contains('show'))return;
+      if(e.key==='ArrowDown'){
+        e.preventDefault();
+        activeIndex=Math.min(activeIndex+1,lastMatches.length-1);
+        renderDropdown(lastMatches);
+      } else if(e.key==='ArrowUp'){
+        e.preventDefault();
+        activeIndex=Math.max(activeIndex-1,-1);
+        renderDropdown(lastMatches);
+      } else if(e.key==='Enter'){
+        e.preventDefault();
+        if(activeIndex>=0&&lastMatches[activeIndex]){
+          pickExercise(lastMatches[activeIndex]);
+        } else {
+          // Invio senza scelta: tieni il testo libero, chiudi dropdown
+          dropdown.classList.remove('show');
+        }
+      } else if(e.key==='Escape'){
+        dropdown.classList.remove('show');
+      }
+    });
 
     var params=document.createElement('div');
     params.className='params';
