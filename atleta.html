@@ -121,6 +121,60 @@ var fbDb=firebase.firestore();
   /* Error message */
   .error{margin:0 24px 16px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
   .error.show{display:block}
+
+  /* Home: lista giorni */
+  .day-card{background:#fafafa;border:1px solid #f0f0ec;border-radius:12px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:space-between}
+  .day-card:hover{border-color:#185FA5;background:#E6F1FB}
+  .day-card-left{display:flex;align-items:center;gap:14px}
+  .day-card-letter{width:42px;height:42px;background:#185FA5;color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;flex-shrink:0}
+  .day-card-info{display:flex;flex-direction:column}
+  .day-card-title{font-size:15px;font-weight:600;color:#042C53}
+  .day-card-meta{font-size:12px;color:#94a3b8;margin-top:2px}
+  .day-card-arrow{color:#94a3b8;font-size:20px}
+
+  /* Back button */
+  .back-btn{background:transparent;border:none;color:#185FA5;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;padding:4px 0}
+  .back-btn:hover{text-decoration:underline}
+
+  /* Session: exercise block */
+  .ex-block{background:#fafafa;border:1px solid #f0f0ec;border-radius:12px;padding:14px;margin-bottom:12px}
+  .ex-block.done{background:#f0fdf4;border-color:#bbf7d0}
+  .ex-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
+  .ex-header-left{flex:1;min-width:0}
+  .ex-name{font-size:15px;font-weight:600;color:#042C53;line-height:1.3}
+  .ex-target{font-size:12px;color:#185FA5;font-weight:600;margin-top:2px}
+  .ex-last{font-size:11px;color:#94a3b8;margin-top:3px}
+  .ex-progress{font-size:11px;color:#185FA5;font-weight:600;background:#E6F1FB;padding:3px 8px;border-radius:12px;white-space:nowrap}
+  .ex-progress.done{color:#166534;background:#dcfce7}
+
+  /* Set rows */
+  .set-row{display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid #f0f0ec}
+  .set-row:first-of-type{border-top:none}
+  .set-num{font-size:11px;font-weight:600;color:#94a3b8;width:22px;flex-shrink:0;letter-spacing:0.5px}
+  .set-input{width:54px;padding:7px 4px;border:1px solid #cbd5e1;border-radius:7px;font-size:13.5px;font-family:inherit;text-align:center;color:#042C53;font-weight:600;background:#fff;-webkit-appearance:none;-moz-appearance:textfield}
+  .set-input::-webkit-outer-spin-button,.set-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .set-input:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,0.15)}
+  .set-input.done{background:#f0fdf4;border-color:#86efac;color:#166534}
+  .set-sep{font-size:12px;color:#cbd5e1;flex-shrink:0}
+  .set-rpe{padding:6px 4px;border:1px solid #cbd5e1;border-radius:7px;font-size:12px;background:#fff;font-family:inherit;font-weight:600;color:#185FA5;width:auto;max-width:74px}
+  .set-rpe.done{background:#f0fdf4;border-color:#86efac;color:#166534}
+  .set-check{margin-left:auto;width:32px;height:32px;background:#185FA5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-family:inherit;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .set-check:disabled{background:#cbd5e1;cursor:not-allowed}
+  .set-check.done{background:#16a34a}
+
+  /* Rest timer floating */
+  .rest-timer{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);background:#042C53;color:#fff;padding:14px 20px;border-radius:14px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:100;transition:transform 0.25s;min-width:240px}
+  .rest-timer.show{transform:translateX(-50%) translateY(0)}
+  .rest-timer-label{font-size:11px;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase}
+  .rest-timer-value{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+  .rest-timer-skip{background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-left:auto}
+  .rest-timer-skip:hover{background:rgba(255,255,255,0.25)}
+
+  /* Session done summary */
+  .done-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #f0f0ec}
+  .done-row:last-child{border-bottom:none}
+  .done-row-name{color:#042C53;font-weight:500}
+  .done-row-stats{color:#94a3b8;font-size:12px}
 </style>
 </head>
 <body>
@@ -214,17 +268,48 @@ var fbDb=firebase.firestore();
     </div>
   </div>
 
-  <!-- SCREEN: READY (Fase 2b la trasformerà nell'app vera) -->
-  <div class="screen" id="screenReady">
+  <!-- SCREEN: HOME (lista giorni) -->
+  <div class="screen" id="screenHome">
+    <div class="setup-body">
+      <div class="step-label">Le mie schede</div>
+      <h2>Cosa fai oggi?</h2>
+      <div id="daysList" style="margin-top:18px"></div>
+      <button class="cta cta-ghost" id="editSchedaBtn" type="button" style="margin-top:12px">Modifica scheda</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: SESSION (uso in palestra) -->
+  <div class="screen" id="screenSession">
+    <div class="setup-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <button class="back-btn" id="sessionBackBtn" type="button">← Indietro</button>
+        <button class="back-btn" id="sessionEndBtn" type="button" style="color:#dc2626">Termina</button>
+      </div>
+      <h2 id="sessionTitle" style="margin-top:8px">Giorno A</h2>
+      <p class="lead" style="font-size:13px" id="sessionSubtitle"></p>
+
+      <!-- Timer floating -->
+      <div class="rest-timer" id="restTimer">
+        <div class="rest-timer-label">Recupero</div>
+        <div class="rest-timer-value" id="restTimerValue">90s</div>
+        <button class="rest-timer-skip" id="restTimerSkip" type="button">Salta</button>
+      </div>
+
+      <div id="sessionExerciseList" style="margin-top:20px"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN: SESSION DONE -->
+  <div class="screen" id="screenSessionDone">
     <div class="setup-body">
       <div class="ready-icon">✓</div>
-      <h2 style="text-align:center">Scheda pronta!</h2>
-      <p class="ready-text">La tua scheda è salvata. La funzione "vai in palestra" arriva nei prossimi giorni — potrai segnare peso/reps con timer di recupero.</p>
+      <h2 style="text-align:center">Allenamento finito!</h2>
+      <p class="ready-text" id="sessionDoneText">Bel lavoro. Tutti i set sono stati salvati.</p>
       <div style="background:#fafafa;border:1px solid #f0f0ec;border-radius:10px;padding:16px;margin-bottom:18px">
-        <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px">La tua scheda</div>
-        <div id="schedaSummary"></div>
+        <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px">Riepilogo</div>
+        <div id="sessionDoneSummary"></div>
       </div>
-      <button class="cta cta-ghost" id="editSchedaBtn" type="button">Modifica scheda</button>
+      <button class="cta" id="backHomeBtn" type="button">Torna alla home</button>
     </div>
   </div>
 
@@ -308,11 +393,281 @@ var fbDb=firebase.firestore();
     show('screenSetupDays');
   }
   function startSetupFromExisting(){
-    // pre-popola il draft con la scheda attuale per modifica
     state.setupDraft={giorni:JSON.parse(JSON.stringify(state.scheda.giorni||[]))};
     state.currentDayIndex=0;
     show('screenSetupExercises');
     renderDayExercises();
+  }
+
+  // ── HOME (lista giorni) ──
+  function renderHome(){
+    var list=$('daysList');
+    list.innerHTML='';
+    if(!state.scheda||!state.scheda.giorni||!state.scheda.giorni.length){
+      var hint=document.createElement('div');
+      hint.className='empty-hint';
+      hint.textContent='Nessun giorno nella scheda. Aggiungili modificando la scheda.';
+      list.appendChild(hint);
+      return;
+    }
+    for(var i=0;i<state.scheda.giorni.length;i++){
+      list.appendChild(renderDayCard(state.scheda.giorni[i],i));
+    }
+  }
+  function renderDayCard(day,idx){
+    var card=document.createElement('div');
+    card.className='day-card';
+    var nEx=(day.esercizi||[]).length;
+    var lastSession=findLastSessionForDay(day.nome);
+    var lastTxt=lastSession?('Ultima volta: '+timeAgo(lastSession.ts)):'Mai eseguito';
+    card.innerHTML='<div class="day-card-left"><div class="day-card-letter">'+escapeHtml(day.nome)+'</div><div class="day-card-info"><div class="day-card-title">Giorno '+escapeHtml(day.nome)+'</div><div class="day-card-meta">'+nEx+' esercizi · '+lastTxt+'</div></div></div><div class="day-card-arrow">›</div>';
+    card.addEventListener('click',function(){
+      startSession(idx);
+    });
+    return card;
+  }
+  function findLastSessionForDay(dayName){
+    var storico=(state.scheda&&state.scheda.storico)||[];
+    for(var i=storico.length-1;i>=0;i--){
+      if(storico[i].giorno===dayName)return storico[i];
+    }
+    return null;
+  }
+  function findLastSetForExercise(exName){
+    var storico=(state.scheda&&state.scheda.storico)||[];
+    for(var i=storico.length-1;i>=0;i--){
+      var sess=storico[i];
+      if(!sess.esercizi)continue;
+      for(var j=0;j<sess.esercizi.length;j++){
+        if(sess.esercizi[j].name===exName){
+          var sets=sess.esercizi[j].sets||[];
+          if(sets.length){
+            // ritorna l'ultimo set valido
+            var last=sets[sets.length-1];
+            return {peso:last.peso,reps:last.reps,when:sess.ts};
+          }
+        }
+      }
+    }
+    return null;
+  }
+  function timeAgo(ts){
+    if(!ts)return 'mai';
+    var diff=Date.now()-ts;
+    var days=Math.floor(diff/86400000);
+    if(days===0)return 'oggi';
+    if(days===1)return 'ieri';
+    if(days<7)return days+' giorni fa';
+    if(days<30)return Math.floor(days/7)+' settimane fa';
+    return Math.floor(days/30)+' mesi fa';
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  // ── SESSION (uso in palestra) ──
+  var sessionState=null; // {dayIndex, sessionData:{giorno,ts,esercizi:[{name,target,sets:[{peso,reps,rpe,done}]}]}}
+  var restTimerInterval=null;
+  var restTimerEnd=0;
+
+  function startSession(dayIndex){
+    var day=state.scheda.giorni[dayIndex];
+    var sessionData={
+      giorno:day.nome,
+      ts:Date.now(),
+      esercizi:(day.esercizi||[]).map(function(ex){
+        var sets=[];
+        for(var i=0;i<(ex.serie||3);i++)sets.push({peso:'',reps:'',rpe:'',done:false,rec:ex.rec||90});
+        return {name:ex.name,target:{serie:ex.serie,reps:ex.reps,rec:ex.rec},sets:sets};
+      })
+    };
+    sessionState={dayIndex:dayIndex,sessionData:sessionData};
+    $('sessionTitle').textContent='Giorno '+day.nome;
+    $('sessionSubtitle').textContent=(day.esercizi||[]).length+' esercizi';
+    renderSession();
+    show('screenSession');
+  }
+
+  function renderSession(){
+    var list=$('sessionExerciseList');
+    list.innerHTML='';
+    var sess=sessionState.sessionData;
+    for(var i=0;i<sess.esercizi.length;i++){
+      list.appendChild(renderExerciseBlock(sess.esercizi[i],i));
+    }
+  }
+
+  function renderExerciseBlock(ex,exIdx){
+    var block=document.createElement('div');
+    block.className='ex-block';
+    var totalSets=ex.sets.length;
+    var doneSets=ex.sets.filter(function(s){return s.done;}).length;
+    var allDone=doneSets===totalSets;
+    if(allDone)block.classList.add('done');
+
+    var header=document.createElement('div');
+    header.className='ex-header';
+    var lastSet=findLastSetForExercise(ex.name);
+    var lastTxt=lastSet?('Ultima volta: '+lastSet.peso+'kg × '+lastSet.reps):'';
+    header.innerHTML='<div class="ex-header-left"><div class="ex-name">'+escapeHtml(ex.name)+'</div><div class="ex-target">'+ex.target.serie+' × '+ex.target.reps+(ex.target.rec?' · '+ex.target.rec+'s rec':'')+'</div>'+(lastTxt?'<div class="ex-last">'+escapeHtml(lastTxt)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
+    block.appendChild(header);
+
+    for(var i=0;i<ex.sets.length;i++){
+      block.appendChild(renderSetRow(ex,exIdx,i));
+    }
+    return block;
+  }
+
+  function renderSetRow(ex,exIdx,setIdx){
+    var set=ex.sets[setIdx];
+    var row=document.createElement('div');
+    row.className='set-row';
+
+    var num=document.createElement('div');
+    num.className='set-num';
+    num.textContent=(setIdx+1);
+    row.appendChild(num);
+
+    var pesoInput=document.createElement('input');
+    pesoInput.type='number';
+    pesoInput.inputMode='decimal';
+    pesoInput.className='set-input'+(set.done?' done':'');
+    pesoInput.placeholder='kg';
+    pesoInput.value=set.peso;
+    pesoInput.disabled=set.done;
+    pesoInput.addEventListener('input',function(){set.peso=this.value;});
+    row.appendChild(pesoInput);
+
+    var sep1=document.createElement('span');sep1.className='set-sep';sep1.textContent='×';row.appendChild(sep1);
+
+    var repsInput=document.createElement('input');
+    repsInput.type='number';
+    repsInput.inputMode='numeric';
+    repsInput.className='set-input'+(set.done?' done':'');
+    repsInput.placeholder='reps';
+    repsInput.value=set.reps;
+    repsInput.disabled=set.done;
+    repsInput.addEventListener('input',function(){set.reps=this.value;});
+    row.appendChild(repsInput);
+
+    var sep2=document.createElement('span');sep2.className='set-sep';sep2.textContent='·';row.appendChild(sep2);
+
+    var rpeSel=document.createElement('select');
+    rpeSel.className='set-rpe'+(set.done?' done':'');
+    rpeSel.disabled=set.done;
+    var opt0=document.createElement('option');opt0.value='';opt0.textContent='RPE';rpeSel.appendChild(opt0);
+    for(var r=5;r<=10;r++){
+      var halfR=r;
+      var oR=document.createElement('option');oR.value=String(halfR);oR.textContent='RPE '+halfR;
+      if(set.rpe&&Number(set.rpe)===halfR)oR.selected=true;
+      rpeSel.appendChild(oR);
+    }
+    rpeSel.addEventListener('change',function(){set.rpe=this.value;});
+    row.appendChild(rpeSel);
+
+    var check=document.createElement('button');
+    check.type='button';
+    check.className='set-check'+(set.done?' done':'');
+    check.textContent=set.done?'✓':'✓';
+    check.addEventListener('click',function(){
+      if(set.done){
+        // riapri
+        set.done=false;
+        renderSession();
+        return;
+      }
+      if(!set.peso&&!set.reps){
+        // niente da segnare, salta
+        return;
+      }
+      set.done=true;
+      startRestTimer(set.rec||90);
+      renderSession();
+      // Se è l'ultimo set di tutto: proponi termina
+      var allComplete=sessionState.sessionData.esercizi.every(function(e){return e.sets.every(function(s){return s.done;});});
+      if(allComplete){
+        setTimeout(function(){
+          if(confirm('Tutti i set completati! Vuoi terminare l\'allenamento?'))endSession(true);
+        },300);
+      }
+    });
+    row.appendChild(check);
+
+    return row;
+  }
+
+  // ── REST TIMER ──
+  function startRestTimer(seconds){
+    if(!seconds||seconds<=0)return;
+    stopRestTimer();
+    var el=$('restTimer');
+    var val=$('restTimerValue');
+    restTimerEnd=Date.now()+seconds*1000;
+    el.classList.add('show');
+    function tick(){
+      var remaining=Math.max(0,Math.round((restTimerEnd-Date.now())/1000));
+      val.textContent=remaining+'s';
+      if(remaining<=0){
+        stopRestTimer();
+        try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}
+      }
+    }
+    tick();
+    restTimerInterval=setInterval(tick,1000);
+  }
+  function stopRestTimer(){
+    if(restTimerInterval){clearInterval(restTimerInterval);restTimerInterval=null;}
+    var el=$('restTimer');
+    setTimeout(function(){el.classList.remove('show');},100);
+  }
+
+  // ── END SESSION ──
+  function endSession(skipConfirm){
+    if(!sessionState)return;
+    if(!skipConfirm){
+      if(!confirm('Sicuro di terminare l\'allenamento? I set completati verranno salvati.'))return;
+    }
+    stopRestTimer();
+    // pulisci sessione: rimuovi set non completati, salva
+    var completedExercises=[];
+    sessionState.sessionData.esercizi.forEach(function(ex){
+      var doneSets=ex.sets.filter(function(s){return s.done;});
+      if(doneSets.length){
+        completedExercises.push({name:ex.name,target:ex.target,sets:doneSets.map(function(s){return {peso:s.peso,reps:s.reps,rpe:s.rpe};})});
+      }
+    });
+    if(!completedExercises.length){
+      alert('Nessun set completato. Sessione annullata.');
+      sessionState=null;
+      show('screenHome');
+      renderHome();
+      return;
+    }
+    var sessionRecord={giorno:sessionState.sessionData.giorno,ts:sessionState.sessionData.ts,endedAt:Date.now(),esercizi:completedExercises};
+    var newStorico=(state.scheda.storico||[]).concat([sessionRecord]);
+    var updatedScheda=Object.assign({},state.scheda,{storico:newStorico});
+    state.scheda=updatedScheda;
+    // Salva
+    saveScheda(state.user.uid,updatedScheda).then(function(){
+      renderSessionDone(sessionRecord);
+      show('screenSessionDone');
+    }).catch(function(err){
+      console.warn('[atleta] save session error:',err);
+      alert('Errore salvataggio. Riprova.');
+    });
+    sessionState=null;
+  }
+  function renderSessionDone(rec){
+    var sum=$('sessionDoneSummary');
+    sum.innerHTML='';
+    var totalSets=0;
+    rec.esercizi.forEach(function(ex){
+      totalSets+=ex.sets.length;
+      var r=document.createElement('div');
+      r.className='done-row';
+      var totalVol=ex.sets.reduce(function(acc,s){return acc+(Number(s.peso)||0)*(Number(s.reps)||0);},0);
+      r.innerHTML='<div class="done-row-name">'+escapeHtml(ex.name)+'</div><div class="done-row-stats">'+ex.sets.length+' set'+(totalVol>0?' · vol '+totalVol+'kg':'')+'</div>';
+      sum.appendChild(r);
+    });
+    $('sessionDoneText').textContent='Hai completato '+totalSets+' set in totale. Tutto salvato.';
   }
   function pickDays(n){
     var giorni=[];
@@ -455,9 +810,11 @@ var fbDb=firebase.firestore();
     btn.disabled=true;
     btn.textContent='Salvataggio...';
     saveScheda(state.user.uid,scheda).then(function(){
+      // mantieni storico esistente se c'è
+      if(state.scheda&&state.scheda.storico)scheda.storico=state.scheda.storico;
       state.scheda=scheda;
-      renderReady();
-      show('screenReady');
+      renderHome();
+      show('screenHome');
     }).catch(function(err){
       console.warn('[atleta] save error:',err);
       alert('Errore salvataggio. Riprova.');
@@ -486,6 +843,21 @@ var fbDb=firebase.firestore();
   $('nextDayBtn').addEventListener('click',nextDay);
   $('backDayBtn').addEventListener('click',backDay);
   $('editSchedaBtn').addEventListener('click',startSetupFromExisting);
+  $('sessionBackBtn').addEventListener('click',function(){
+    if(sessionState){
+      if(!confirm('Tornare indietro? I set non completati andranno persi.'))return;
+    }
+    stopRestTimer();
+    sessionState=null;
+    renderHome();
+    show('screenHome');
+  });
+  $('sessionEndBtn').addEventListener('click',function(){endSession(false);});
+  $('restTimerSkip').addEventListener('click',stopRestTimer);
+  $('backHomeBtn').addEventListener('click',function(){
+    renderHome();
+    show('screenHome');
+  });
 
   var dayBtns=document.querySelectorAll('.day-btn');
   for(var i=0;i<dayBtns.length;i++){
@@ -509,14 +881,13 @@ var fbDb=firebase.firestore();
     $('logoutBtn').classList.add('show');
     loadScheda(user.uid).then(function(scheda){
       if(scheda&&scheda.giorni&&scheda.giorni.length){
-        renderReady();
-        show('screenReady');
+        renderHome();
+        show('screenHome');
       } else {
         startSetup();
       }
     }).catch(function(err){
       console.warn('[atleta] load error:',err);
-      // se non riesce a leggere (es. regole non aggiornate), mostra setup ma avvisa
       startSetup();
     });
   });
