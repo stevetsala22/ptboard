@@ -6976,7 +6976,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
     {id:'patients',icon:'👥',l:T.patients,tip:'Gestisci lista clienti'},
     {id:'calendar',icon:'📅',l:T.calendar,tip:'Prenota e gestisci appuntamenti'},
     {id:'exercises',icon:'🏋',l:T.exercises,tip:'Libreria esercizi'},
-    {id:'invite',icon:'🔗',l:'Invita atleta',tip:'Genera link per invitare atleti'},
+    {id:'invite',icon:'🔗',l:'App per il cliente',tip:'Crea un link per dare l\'app al cliente'},
   ];
 
   return(
@@ -6990,12 +6990,14 @@ function AppInner({user,profile,setProfile,trialLeft}){
           <div onClick={()=>setShowInviteModal(false)} style={{position:'fixed',inset:0,background:'#0008',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
             <div onClick={e=>e.stopPropagation()} style={{background:C.card,borderRadius:14,padding:24,maxWidth:500,width:'100%',border:'1px solid '+C.border,boxShadow:'0 12px 40px #0006'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                <div style={{fontSize:18,fontWeight:700,color:C.strong}}>🔗 Invita un atleta</div>
+                <div style={{fontSize:18,fontWeight:700,color:C.strong}}>🔗 App per il cliente</div>
                 <button onClick={()=>setShowInviteModal(false)} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:22,color:C.dim,padding:4}}>✕</button>
               </div>
-              <div style={{fontSize:14,color:C.dim,lineHeight:1.55,marginBottom:18}}>
-                Condividi questo link con i tuoi clienti o sui tuoi canali (Instagram, sito, biglietto da visita).
-                Chi si registra dal tuo link potrà essere collegato a te come PT.
+              <div style={{fontSize:14,color:C.dim,lineHeight:1.55,marginBottom:14}}>
+                Manda questo link a chi ha una scheda di allenamento (anche cartacea) e vuole un'app per usarla in palestra. Funziona per i tuoi clienti già esistenti e per chiunque arrivi dai tuoi canali (Instagram, sito, biglietto da visita).
+              </div>
+              <div style={{background:'#E6F1FB',border:'1px solid '+C.blue+'30',borderRadius:8,padding:'12px 14px',marginBottom:18,fontSize:13,color:C.strong,lineHeight:1.5}}>
+                💡 <strong>Acquisisci nuovi clienti.</strong> Chi si registra dal tuo link compare nella tua dashboard e potrà chiederti di seguirlo come PT. Da lì lo aggiungi alla lista clienti come fai oggi.
               </div>
               <div style={{background:C.bg,border:'1px dashed '+C.border2,borderRadius:8,padding:'10px 12px',fontSize:13,color:C.strong,wordBreak:'break-all',marginBottom:14,fontFamily:'monospace'}}>
                 {inviteLink}
