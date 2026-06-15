@@ -53,6 +53,15 @@ service cloud.firestore {
                     && resource.data.ownerUid == request.auth.uid;
     }
 
+    // ── ATHLETES COLLECTION ──
+    // Ogni atleta puo leggere/scrivere SOLO il proprio documento
+    match /athletes/{athleteId} {
+      allow read, write: if request.auth != null && request.auth.uid == athleteId;
+      match /appdata/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == athleteId;
+      }
+    }
+
     // ── BLOCCA TUTTO IL RESTO ──
     match /{document=**} {
       allow read, write: if false;

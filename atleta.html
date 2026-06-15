@@ -4,45 +4,123 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#185FA5">
-<title>PT Board Atleta — In arrivo</title>
-<meta name="description" content="L'app per portare la tua scheda di allenamento in palestra. Timer, carichi, progressioni. In arrivo, gratis.">
+<title>PT Board Atleta</title>
+<meta name="description" content="La tua scheda di allenamento, sempre con te.">
 <link rel="icon" href="favicon.png">
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
+  authDomain:"ptboard-1.firebaseapp.com",
+  projectId:"ptboard-1",
+  storageBucket:"ptboard-1.firebasestorage.app",
+  messagingSenderId:"223801010947",
+  appId:"1:223801010947:web:9c3f887243609bcdad9736"
+});
+var fbAuth=firebase.auth();
+var fbDb=firebase.firestore();
+</script>
+
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa;color:#042C53;min-height:100vh;line-height:1.55;-webkit-font-smoothing:antialiased}
-  body{display:flex;align-items:center;justify-content:center;padding:24px}
-  .card{max-width:420px;width:100%;background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(4,44,83,0.08);overflow:hidden}
+  body{display:flex;align-items:flex-start;justify-content:center;padding:24px}
+  .card{max-width:480px;width:100%;background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(4,44,83,0.08);overflow:hidden;margin-top:24px}
   .head{padding:20px 24px 0;display:flex;align-items:center;gap:8px}
   .logo{width:30px;height:30px;background:#185FA5;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;letter-spacing:-0.3px}
-  .brand{font-size:14px;font-weight:500;color:#042C53}
+  .brand{font-size:14px;font-weight:500;color:#042C53;flex:1}
+  .logout-btn{font-size:12px;color:#94a3b8;background:transparent;border:none;cursor:pointer;padding:4px 8px;display:none}
+  .logout-btn.show{display:inline}
+
+  /* HERO landing */
   .hero{padding:30px 24px 22px}
   .badge{display:inline-block;background:#E6F1FB;color:#185FA5;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:16px;letter-spacing:0.5px;text-transform:uppercase}
   h1{font-size:30px;font-weight:600;line-height:1.13;letter-spacing:-0.6px;margin-bottom:12px;color:#042C53}
+  h2{font-size:22px;font-weight:600;line-height:1.2;letter-spacing:-0.4px;margin-bottom:8px;color:#042C53}
+  h3{font-size:17px;font-weight:600;color:#042C53;margin-bottom:14px}
   .lead{font-size:15px;color:#5F5E5A;line-height:1.55}
+
   .invited{margin:0 24px 22px;background:#E6F1FB;border:1px solid rgba(24,95,165,0.2);border-radius:10px;padding:13px 14px;display:none;align-items:flex-start;gap:10px}
   .invited.show{display:flex}
   .invited-icon{width:22px;height:22px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#185FA5;font-size:18px;line-height:1;margin-top:1px}
   .invited-text{font-size:13px}
   .invited-name{font-weight:600;color:#0C447C}
   .invited-sub{color:#185FA5;font-size:12px;margin-top:2px;line-height:1.4}
-  form{padding:0 24px 26px}
-  input[type=email]{width:100%;padding:13px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:15px;font-family:inherit;background:#fff;margin-bottom:8px;color:#042C53;-webkit-appearance:none}
-  input[type=email]::placeholder{color:#94a3b8}
-  input[type=email]:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,0.12)}
-  button{width:100%;padding:14px;background:#185FA5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s}
-  button:hover{background:#0f4a85}
-  button:active{transform:scale(0.99)}
-  button:disabled{opacity:.6;cursor:not-allowed}
-  .micro{font-size:12px;color:#94a3b8;text-align:center;margin-top:10px}
-  .features{border-top:1px solid #f0f0ec;padding:20px 24px}
+
+  /* SCREEN CONTAINERS */
+  .screen{display:none}
+  .screen.active{display:block}
+
+  /* CTA buttons */
+  .cta{display:block;width:calc(100% - 48px);margin:0 24px;padding:14px;background:#185FA5;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;text-decoration:none;transition:background 0.15s}
+  .cta:hover{background:#0f4a85}
+  .cta:active{transform:scale(0.99)}
+  .cta:disabled{opacity:.6;cursor:not-allowed}
+  .cta-google{background:#fff;color:#042C53;border:1px solid #cbd5e1;display:flex;align-items:center;justify-content:center;gap:10px}
+  .cta-google:hover{background:#f8fafc}
+  .cta-google img{width:18px;height:18px}
+  .cta-ghost{background:transparent;color:#185FA5;border:1px solid #185FA5}
+  .cta-ghost:hover{background:#E6F1FB}
+  .cta-row{display:flex;gap:8px;margin:0 24px}
+  .cta-row .cta{margin:0;flex:1}
+
+  .micro{font-size:12px;color:#94a3b8;text-align:center;margin-top:10px;padding:0 24px}
+
+  /* Features list */
+  .features{border-top:1px solid #f0f0ec;padding:20px 24px;margin-top:22px}
   .feat{display:flex;align-items:center;gap:12px;padding:7px 0}
   .feat-icon{width:24px;height:24px;flex-shrink:0;color:#185FA5;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center}
   .feat-text{font-size:13.5px;color:#042C53;font-weight:500}
   .footer{border-top:1px solid #f0f0ec;padding:14px 24px;text-align:center;background:#fafafa}
   .footer-text{font-size:11px;color:#94a3b8}
   .footer-text a{color:#185FA5;text-decoration:none}
-  .success{display:none;background:#dcfce7;color:#166534;padding:16px;border-radius:10px;margin:0 24px 22px;font-size:14px;text-align:center;font-weight:500}
-  .success.show{display:block}
+
+  /* SETUP wizard */
+  .setup-body{padding:24px}
+  .step-label{font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px}
+  .days-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:20px 0 8px}
+  .day-btn{padding:14px 4px;border:1.5px solid #cbd5e1;background:#fff;color:#042C53;border-radius:10px;font-size:18px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s}
+  .day-btn:hover{border-color:#185FA5}
+  .day-btn.selected{background:#185FA5;color:#fff;border-color:#185FA5}
+
+  .exercise-row{background:#fafafa;border:1px solid #f0f0ec;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+  .exercise-row .name{flex:1;border:none;background:transparent;font-size:14px;font-weight:600;color:#042C53;font-family:inherit;padding:4px 0}
+  .exercise-row .name:focus{outline:none}
+  .exercise-row .params{display:flex;gap:4px;align-items:center;font-size:12px;color:#5F5E5A}
+  .exercise-row select{padding:4px 6px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;background:#fff;font-family:inherit;font-weight:600;color:#185FA5}
+  .exercise-row .del{background:transparent;border:none;color:#94a3b8;cursor:pointer;font-size:18px;padding:0 4px;line-height:1}
+  .exercise-row .del:hover{color:#dc2626}
+  .add-exercise{width:100%;padding:12px;border:1.5px dashed #cbd5e1;background:transparent;color:#5F5E5A;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px}
+  .add-exercise:hover{border-color:#185FA5;color:#185FA5}
+
+  /* Empty hint */
+  .empty-hint{font-size:13px;color:#94a3b8;text-align:center;padding:20px 0}
+
+  /* Wizard nav */
+  .wizard-nav{padding:0 24px 24px;display:flex;gap:8px;margin-top:16px}
+  .wizard-nav .cta{margin:0;flex:1}
+
+  /* Progress dots */
+  .progress{display:flex;justify-content:center;gap:6px;padding:16px 0 0}
+  .progress .dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0}
+  .progress .dot.active{background:#185FA5}
+  .progress .dot.done{background:#185FA5;opacity:0.4}
+
+  /* Ready screen */
+  .ready-icon{width:64px;height:64px;background:#dcfce7;color:#166534;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px}
+  .ready-text{text-align:center;color:#5F5E5A;font-size:14px;line-height:1.6;margin-bottom:20px;padding:0 12px}
+
+  /* Loading */
+  .loading{padding:60px 24px;text-align:center;color:#94a3b8}
+  .spinner{width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#185FA5;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Error message */
+  .error{margin:0 24px 16px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:10px 14px;border-radius:8px;font-size:13px;display:none}
+  .error.show{display:block}
 </style>
 </head>
 <body>
@@ -52,79 +130,397 @@
   <header class="head">
     <div class="logo">PT</div>
     <div class="brand">PT Board</div>
+    <button class="logout-btn" id="logoutBtn" type="button">Esci</button>
   </header>
 
-  <section class="hero">
-    <div class="badge">In arrivo</div>
-    <h1>La tua scheda.<br>Sempre con te.</h1>
-    <p class="lead">Porta in palestra la scheda che il tuo PT ti ha dato. Traccia carichi, ripetizioni, recupero.</p>
-  </section>
-
-  <div class="invited" id="invitedBanner">
-    <div class="invited-icon">✓</div>
-    <div class="invited-text">
-      <div class="invited-name">Un PT ti ha invitato</div>
-      <div class="invited-sub">Potrà seguirti quando l'app sarà pronta.</div>
+  <!-- SCREEN: LOADING (mentre si verifica auth) -->
+  <div class="screen" id="screenLoading">
+    <div class="loading">
+      <div class="spinner"></div>
+      Caricamento...
     </div>
   </div>
 
-  <form id="waitlistForm">
-    <input type="email" id="email" placeholder="La tua email" required autocomplete="email">
-    <button type="submit" id="submitBtn">Avvisami al lancio</button>
-    <div class="micro">Gratis. Senza carta di credito.</div>
-  </form>
+  <!-- SCREEN: LANDING (non loggato) -->
+  <div class="screen" id="screenLanding">
+    <section class="hero">
+      <div class="badge">Per l'atleta</div>
+      <h1>La tua scheda.<br>Sempre con te.</h1>
+      <p class="lead">Porta in palestra la scheda che il tuo PT ti ha dato. Traccia carichi, ripetizioni, recupero.</p>
+    </section>
 
-  <div class="success" id="success">✓ Ti avviseremo appena pronta. Grazie!</div>
+    <div class="invited" id="invitedBanner">
+      <div class="invited-icon">✓</div>
+      <div class="invited-text">
+        <div class="invited-name">Un PT ti ha invitato</div>
+        <div class="invited-sub">Potrai essere seguito da lui qui dentro.</div>
+      </div>
+    </div>
 
-  <section class="features">
-    <div class="feat">
-      <div class="feat-icon">⏱</div>
-      <div class="feat-text">Timer di recupero integrato</div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">📈</div>
-      <div class="feat-text">Storico carichi e progressioni</div>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">📱</div>
-      <div class="feat-text">Funziona offline in palestra</div>
-    </div>
-  </section>
+    <div class="error" id="loginError"></div>
 
-  <footer class="footer">
-    <div class="footer-text">
-      <a href="/">personaltrainerboard.com</a> · <a href="mailto:ptboard.info@gmail.com">Contatti</a>
+    <button class="cta cta-google" id="googleLoginBtn" type="button" style="margin-bottom:8px">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      Continua con Google
+    </button>
+    <div class="micro">Gratis. Niente carta di credito. I tuoi dati restano tuoi.</div>
+
+    <section class="features">
+      <div class="feat"><div class="feat-icon">⏱</div><div class="feat-text">Timer di recupero integrato</div></div>
+      <div class="feat"><div class="feat-icon">📈</div><div class="feat-text">Storico carichi e progressioni</div></div>
+      <div class="feat"><div class="feat-icon">📱</div><div class="feat-text">Funziona offline in palestra</div></div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-text">
+        <a href="/">personaltrainerboard.com</a> · <a href="mailto:ptboard.info@gmail.com">Contatti</a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- SCREEN: SETUP STEP 1 (numero giorni) -->
+  <div class="screen" id="screenSetupDays">
+    <div class="setup-body">
+      <div class="step-label">Step 1 di 2</div>
+      <h2>Quanti giorni a settimana ti alleni?</h2>
+      <p class="lead" style="font-size:14px">Scegli il numero di giorni che farai. Potrai modificarlo dopo.</p>
+      <div class="days-grid">
+        <button class="day-btn" data-days="1" type="button">1</button>
+        <button class="day-btn" data-days="2" type="button">2</button>
+        <button class="day-btn" data-days="3" type="button">3</button>
+        <button class="day-btn" data-days="4" type="button">4</button>
+        <button class="day-btn" data-days="5" type="button">5</button>
+        <button class="day-btn" data-days="6" type="button">6</button>
+      </div>
     </div>
-  </footer>
+    <div class="progress"><div class="dot active"></div><div class="dot"></div></div>
+    <div style="height:24px"></div>
+  </div>
+
+  <!-- SCREEN: SETUP STEP 2 (esercizi per giorno) -->
+  <div class="screen" id="screenSetupExercises">
+    <div class="setup-body">
+      <div class="step-label">Step 2 di 2 · <span id="dayCounter">Giorno A di 3</span></div>
+      <h2 id="dayTitle">Giorno A</h2>
+      <p class="lead" style="font-size:14px;margin-bottom:18px">Aggiungi gli esercizi che farai in questo giorno.</p>
+
+      <div id="exerciseList"></div>
+      <button class="add-exercise" id="addExerciseBtn" type="button">+ Aggiungi esercizio</button>
+    </div>
+    <div class="progress"><div class="dot done"></div><div class="dot active"></div></div>
+    <div class="wizard-nav">
+      <button class="cta cta-ghost" id="backDayBtn" type="button" style="flex:0 0 auto;width:auto;padding-left:20px;padding-right:20px">← Indietro</button>
+      <button class="cta" id="nextDayBtn" type="button">Avanti →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: READY (Fase 2b la trasformerà nell'app vera) -->
+  <div class="screen" id="screenReady">
+    <div class="setup-body">
+      <div class="ready-icon">✓</div>
+      <h2 style="text-align:center">Scheda pronta!</h2>
+      <p class="ready-text">La tua scheda è salvata. La funzione "vai in palestra" arriva nei prossimi giorni — potrai segnare peso/reps con timer di recupero.</p>
+      <div style="background:#fafafa;border:1px solid #f0f0ec;border-radius:10px;padding:16px;margin-bottom:18px">
+        <div style="font-size:11px;color:#94a3b8;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px">La tua scheda</div>
+        <div id="schedaSummary"></div>
+      </div>
+      <button class="cta cta-ghost" id="editSchedaBtn" type="button">Modifica scheda</button>
+    </div>
+  </div>
 
 </main>
 
 <script>
-var urlParams = new URLSearchParams(window.location.search);
-var invParam = urlParams.get('inv');
-if(invParam){
-  document.getElementById('invitedBanner').classList.add('show');
-}
+(function(){
+  // ── STATE ──
+  var state={
+    user:null,
+    scheda:null, // {giorni:[{nome:'A', esercizi:[{name,serie,reps,rec}]}], updatedAt}
+    setupDraft:null, // working copy durante il wizard
+    currentDayIndex:0
+  };
 
-document.getElementById('waitlistForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  var email = document.getElementById('email').value.trim();
-  var btn = document.getElementById('submitBtn');
-  if(!email) return;
-  btn.disabled = true;
-  btn.textContent = 'Iscrizione in corso...';
+  // ── DOM HELPERS ──
+  function $(id){return document.getElementById(id);}
+  function show(screenId){
+    var screens=document.querySelectorAll('.screen');
+    for(var i=0;i<screens.length;i++)screens[i].classList.remove('active');
+    var t=$(screenId);
+    if(t)t.classList.add('active');
+  }
+  function showError(msg){
+    var el=$('loginError');
+    el.textContent=msg;
+    el.classList.add('show');
+    setTimeout(function(){el.classList.remove('show');},5000);
+  }
+  function letterForIndex(i){return String.fromCharCode(65+i);}
 
-  try{
-    var existing = JSON.parse(localStorage.getItem('ptboard_atleta_waitlist') || '[]');
-    existing.push({email: email, invitedBy: invParam || null, ts: Date.now()});
-    localStorage.setItem('ptboard_atleta_waitlist', JSON.stringify(existing));
-  }catch(err){}
+  // ── INVITED BANNER ──
+  var urlParams=new URLSearchParams(window.location.search);
+  var invParam=urlParams.get('inv');
+  if(invParam){$('invitedBanner').classList.add('show');}
 
-  setTimeout(function(){
-    document.getElementById('waitlistForm').style.display = 'none';
-    document.getElementById('success').classList.add('show');
-  }, 600);
-});
+  // ── AUTH FLOW ──
+  function doGoogleLogin(){
+    var provider=new firebase.auth.GoogleAuthProvider();
+    fbAuth.signInWithPopup(provider).catch(function(err){
+      console.warn('[atleta] login error:',err);
+      if(err.code!=='auth/popup-closed-by-user'){
+        showError('Login fallito. Riprova.');
+      }
+    });
+  }
+  function doLogout(){
+    fbAuth.signOut();
+  }
+
+  // ── FIRESTORE ──
+  function atletaRef(uid){return fbDb.collection('athletes').doc(uid).collection('appdata').doc('main');}
+
+  function loadScheda(uid){
+    return atletaRef(uid).get({source:'server'}).then(function(snap){
+      if(snap.exists){
+        var data=snap.data();
+        if(data && data.scheda){
+          state.scheda=data.scheda;
+          return data.scheda;
+        }
+      }
+      return null;
+    });
+  }
+
+  function saveScheda(uid,scheda){
+    var payload={
+      scheda:scheda,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      invitedBy:invParam||null,
+      dataVersion:1
+    };
+    return atletaRef(uid).set(payload,{merge:true});
+  }
+
+  // ── SETUP WIZARD ──
+  function startSetup(){
+    state.setupDraft=null;
+    state.currentDayIndex=0;
+    show('screenSetupDays');
+  }
+  function startSetupFromExisting(){
+    // pre-popola il draft con la scheda attuale per modifica
+    state.setupDraft={giorni:JSON.parse(JSON.stringify(state.scheda.giorni||[]))};
+    state.currentDayIndex=0;
+    show('screenSetupExercises');
+    renderDayExercises();
+  }
+  function pickDays(n){
+    var giorni=[];
+    for(var i=0;i<n;i++)giorni.push({nome:letterForIndex(i),esercizi:[]});
+    state.setupDraft={giorni:giorni};
+    state.currentDayIndex=0;
+    show('screenSetupExercises');
+    renderDayExercises();
+  }
+
+  function renderDayExercises(){
+    var day=state.setupDraft.giorni[state.currentDayIndex];
+    $('dayCounter').textContent='Giorno '+day.nome+' di '+state.setupDraft.giorni.length;
+    $('dayTitle').textContent='Giorno '+day.nome;
+    var list=$('exerciseList');
+    list.innerHTML='';
+    if(!day.esercizi.length){
+      var hint=document.createElement('div');
+      hint.className='empty-hint';
+      hint.textContent='Nessun esercizio. Aggiungine almeno uno.';
+      list.appendChild(hint);
+    } else {
+      for(var i=0;i<day.esercizi.length;i++){
+        list.appendChild(renderExerciseRow(day.esercizi[i],i));
+      }
+    }
+    $('nextDayBtn').textContent=(state.currentDayIndex===state.setupDraft.giorni.length-1)?'Salva scheda ✓':'Avanti →';
+    $('backDayBtn').style.visibility=(state.currentDayIndex===0)?'hidden':'visible';
+  }
+
+  function renderExerciseRow(ex,idx){
+    var row=document.createElement('div');
+    row.className='exercise-row';
+
+    var nameInput=document.createElement('input');
+    nameInput.className='name';
+    nameInput.type='text';
+    nameInput.placeholder='Nome esercizio (es. Panca piana)';
+    nameInput.value=ex.name||'';
+    nameInput.addEventListener('input',function(){
+      state.setupDraft.giorni[state.currentDayIndex].esercizi[idx].name=this.value;
+    });
+    row.appendChild(nameInput);
+
+    var params=document.createElement('div');
+    params.className='params';
+
+    var sel1=buildSelect(1,8,ex.serie||3,function(v){
+      state.setupDraft.giorni[state.currentDayIndex].esercizi[idx].serie=v;
+    });
+    params.appendChild(sel1);
+    var x1=document.createElement('span');x1.textContent='×';params.appendChild(x1);
+    var sel2=buildSelect(1,30,ex.reps||10,function(v){
+      state.setupDraft.giorni[state.currentDayIndex].esercizi[idx].reps=v;
+    });
+    params.appendChild(sel2);
+    var slash=document.createElement('span');slash.textContent='/';slash.style.color='#cbd5e1';params.appendChild(slash);
+    var sel3=buildRecSelect(ex.rec===undefined?90:ex.rec,function(v){
+      state.setupDraft.giorni[state.currentDayIndex].esercizi[idx].rec=v;
+    });
+    params.appendChild(sel3);
+
+    row.appendChild(params);
+
+    var del=document.createElement('button');
+    del.className='del';
+    del.type='button';
+    del.textContent='×';
+    del.title='Rimuovi';
+    del.addEventListener('click',function(){
+      state.setupDraft.giorni[state.currentDayIndex].esercizi.splice(idx,1);
+      renderDayExercises();
+    });
+    row.appendChild(del);
+
+    return row;
+  }
+
+  function buildSelect(min,max,value,onChange){
+    var s=document.createElement('select');
+    for(var i=min;i<=max;i++){
+      var opt=document.createElement('option');
+      opt.value=i;opt.textContent=i;
+      if(i===value)opt.selected=true;
+      s.appendChild(opt);
+    }
+    s.addEventListener('change',function(){onChange(parseInt(this.value,10));});
+    return s;
+  }
+  function buildRecSelect(value,onChange){
+    var s=document.createElement('select');
+    var opts=[0,15,30,45,60,75,90,120,150,180,240,300];
+    for(var i=0;i<opts.length;i++){
+      var n=opts[i];
+      var opt=document.createElement('option');
+      opt.value=n;opt.textContent=(n===0)?'no rec':(n+'s');
+      if(n===value)opt.selected=true;
+      s.appendChild(opt);
+    }
+    s.addEventListener('change',function(){onChange(parseInt(this.value,10));});
+    return s;
+  }
+
+  function addExercise(){
+    state.setupDraft.giorni[state.currentDayIndex].esercizi.push({name:'',serie:3,reps:10,rec:90});
+    renderDayExercises();
+  }
+  function nextDay(){
+    var day=state.setupDraft.giorni[state.currentDayIndex];
+    // valida: almeno un esercizio con nome
+    var hasValid=day.esercizi.some(function(e){return e.name&&e.name.trim().length;});
+    if(!hasValid){
+      alert('Aggiungi almeno un esercizio con un nome a questo giorno.');
+      return;
+    }
+    if(state.currentDayIndex<state.setupDraft.giorni.length-1){
+      state.currentDayIndex++;
+      renderDayExercises();
+    } else {
+      // ultimo giorno: salva
+      finalizeSetup();
+    }
+  }
+  function backDay(){
+    if(state.currentDayIndex>0){
+      state.currentDayIndex--;
+      renderDayExercises();
+    } else {
+      show('screenSetupDays');
+    }
+  }
+  function finalizeSetup(){
+    if(!state.user)return;
+    // pulisci esercizi senza nome
+    var cleanGiorni=state.setupDraft.giorni.map(function(g){
+      return {nome:g.nome,esercizi:g.esercizi.filter(function(e){return e.name&&e.name.trim();})};
+    });
+    var scheda={giorni:cleanGiorni,updatedAt:Date.now()};
+    var btn=$('nextDayBtn');
+    btn.disabled=true;
+    btn.textContent='Salvataggio...';
+    saveScheda(state.user.uid,scheda).then(function(){
+      state.scheda=scheda;
+      renderReady();
+      show('screenReady');
+    }).catch(function(err){
+      console.warn('[atleta] save error:',err);
+      alert('Errore salvataggio. Riprova.');
+      btn.disabled=false;
+      btn.textContent='Salva scheda ✓';
+    });
+  }
+
+  function renderReady(){
+    var sum=$('schedaSummary');
+    sum.innerHTML='';
+    if(!state.scheda||!state.scheda.giorni){return;}
+    for(var i=0;i<state.scheda.giorni.length;i++){
+      var g=state.scheda.giorni[i];
+      var row=document.createElement('div');
+      row.style.cssText='font-size:13.5px;color:#042C53;padding:4px 0';
+      row.innerHTML='<strong>Giorno '+g.nome+'</strong> · '+g.esercizi.length+' esercizi';
+      sum.appendChild(row);
+    }
+  }
+
+  // ── EVENT BINDINGS ──
+  $('googleLoginBtn').addEventListener('click',doGoogleLogin);
+  $('logoutBtn').addEventListener('click',doLogout);
+  $('addExerciseBtn').addEventListener('click',addExercise);
+  $('nextDayBtn').addEventListener('click',nextDay);
+  $('backDayBtn').addEventListener('click',backDay);
+  $('editSchedaBtn').addEventListener('click',startSetupFromExisting);
+
+  var dayBtns=document.querySelectorAll('.day-btn');
+  for(var i=0;i<dayBtns.length;i++){
+    (function(btn){
+      btn.addEventListener('click',function(){
+        var n=parseInt(btn.getAttribute('data-days'),10);
+        pickDays(n);
+      });
+    })(dayBtns[i]);
+  }
+
+  // ── AUTH STATE ──
+  show('screenLoading');
+  fbAuth.onAuthStateChanged(function(user){
+    state.user=user;
+    if(!user){
+      $('logoutBtn').classList.remove('show');
+      show('screenLanding');
+      return;
+    }
+    $('logoutBtn').classList.add('show');
+    loadScheda(user.uid).then(function(scheda){
+      if(scheda&&scheda.giorni&&scheda.giorni.length){
+        renderReady();
+        show('screenReady');
+      } else {
+        startSetup();
+      }
+    }).catch(function(err){
+      console.warn('[atleta] load error:',err);
+      // se non riesce a leggere (es. regole non aggiornate), mostra setup ma avvisa
+      startSetup();
+    });
+  });
+})();
 </script>
 </body>
 </html>
