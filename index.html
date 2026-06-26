@@ -5680,6 +5680,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                       <div>
                         <div style={{fontSize:14,fontWeight:700,color:C.strong}}>{scheda.nome}</div>
                         <div style={{fontSize:11,color:C.muted}}>{scheda.split || ''} · {scheda.data} · {(scheda.esercizi||[]).length} {T.schedaEsercizi}</div>
+                        {scheda.config&&scheda.config.durataWarning&&<div style={{fontSize:11,color:'#b45309',background:'#fef3c7',border:'1px solid #fde68a',borderRadius:6,padding:'4px 8px',marginTop:6,display:'inline-block'}}>⏱️ Durata stretta: la scheda è dimensionata per ~{scheda.config.tempoStimato} min. Hai impostato {scheda.config.durataSeduta} min. Considera di aumentare la durata o ridurre il volume.</div>}
                       </div>
                     </div>
                     <div style={{fontSize:18,color:C.muted,transform:isExp?'rotate(180deg)':'rotate(0)',transition:'transform .2s'}}>▾</div>
@@ -8029,42 +8030,144 @@ var generaSchedaAuto = function(params, esercizi) {
   // Rimuove dalla coda prima isolamento piccolo (small), poi accessori grandi (big),
   // mai compound. Ferma al budget o a MIN_SLOTS_PER_DAY esercizi.
   // Ritorna {esercizi, tempoSec, trimmed}.
-  function trimPerTempo(schedaEsercizi, budgetSec, minNonCardio) {
+  function trimPerTempo(schedaEsercizi, budgetSec, minNonCardio, splitDayName) {
     function lookup(eId) {
       for (var i = 0; i < esercizi.length; i++) if (esercizi[i].id === eId) return esercizi[i];
       return null;
     }
     function isCardioEntry(e) { return e && (e.note || '').indexOf('Cardio') !== -1; }
-    var times = schedaEsercizi.map(function(e) {
+    function getMove(e) {
+      // Restituisce il "movimento principale" dell'esercizio per la protezione Full Body
+      if (isCardioEntry(e)) return 'cardio';
+      var ex = lookup(e.eId);
+      if (!ex) return null;
+      return ex.primarySplit || ex.move || null;
+    }
+    function recalcTime(e) {
       if (isCardioEntry(e)) return 0;
       return tempoEsercizioSec(lookup(e.eId), e.category || classifyExercise(lookup(e.eId)), +e.serie || 3, e.reps, +e.rec);
-    });
+    }
+    // Categoria "speciale": esercizi da test deboli (label inizia con keyword test)
+    function isTestExtra(e) {
+      var nt = (e.note || '').toLowerCase();
+      return nt.indexOf('extra (') !== -1 || nt.indexOf('grip basso') !== -1 || nt.indexOf('tug alto') !== -1;
+    }
+
+    // Helper: indici degli esercizi "protetti" (1 per movimento principale push/pull/legs/core).
+    // Per FullBody/Upper-Lower/PPL: mantieni almeno 1 esercizio per movimento essenziale.
+    function protectedIndices() {
+      if (splitDayName !== 'Full Body') {
+        // Per altri split (Upper, Lower, Push, Pull, Legs), la copertura è già garantita
+        // dal template stesso. Restituiamo solo il primo compound se presente.
+        var idx = -1;
+        for (var k = 0; k < schedaEsercizi.length; k++) {
+          if (isCardioEntry(schedaEsercizi[k])) continue;
+          if (schedaEsercizi[k].category === 'compound') { idx = k; break; }
+        }
+        return idx >= 0 ? [idx] : [];
+      }
+      // FULL BODY: proteggi 1 push, 1 pull, 1 legs (preferibilmente compound), 1 core
+      var protectedSet = {};
+      var wanted = ['legs','pull','push','core'];
+      wanted.forEach(function(moveTarget) {
+        // Cerca il "migliore" esercizio per quel movimento, preferendo compound
+        var bestIdx = -1;
+        var bestRank = 99;
+        for (var k = 0; k < schedaEsercizi.length; k++) {
+          if (isCardioEntry(schedaEsercizi[k])) continue;
+          if (isTestExtra(schedaEsercizi[k])) continue; // test extras non sono "essenziali" della Full Body
+          var mv = getMove(schedaEsercizi[k]);
+          if (mv !== moveTarget) continue;
+          var cat = schedaEsercizi[k].category;
+          var rank = cat === 'compound' ? 0 : cat === 'big' ? 1 : cat === 'small' ? 2 : 3;
+          if (rank < bestRank) { bestRank = rank; bestIdx = k; }
+        }
+        if (bestIdx >= 0) protectedSet[bestIdx] = true;
+      });
+      return Object.keys(protectedSet).map(function(s){return +s;});
+    }
+
+    var times = schedaEsercizi.map(recalcTime);
     var total = times.reduce(function(a, b) { return a + b; }, 0);
     var nonCardioLen = schedaEsercizi.filter(function(e) { return !isCardioEntry(e); }).length;
     var trimmed = false;
-    // Ordine di categorie da rimuovere (per priorità crescente): small, core, big, compound
-    // In realtà: small prima, poi big (non compound), poi core. Compound mai rimossi.
+    var scaled = false;
+
+    // ===== FASE 1: rimozione classica (small → big → core), MA proteggi gli "essenziali Full Body"
     var trimOrder = ['small','big','core'];
+    function rebuildProtected() {
+      var p = protectedIndices();
+      var set = {};
+      p.forEach(function(i){set[i]=true;});
+      return set;
+    }
+    var protectedSet = rebuildProtected();
+
     for (var phase = 0; phase < trimOrder.length; phase++) {
       var targetCat = trimOrder[phase];
       while (total > budgetSec && nonCardioLen > minNonCardio) {
         var removeIdx = -1;
+        // Cerca dalla coda, ma salta i protetti.
+        // PRIMA pass: rimuovi i test extras se ci sono
         for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
           var e = schedaEsercizi[i];
           if (isCardioEntry(e)) continue;
+          if (protectedSet[i]) continue;
           var cat = e.category || classifyExercise(lookup(e.eId));
-          if (cat === targetCat) { removeIdx = i; break; }
+          if (cat !== targetCat) continue;
+          // Priorità di rimozione: prima i test extras (sono "opzionali")
+          if (isTestExtra(e)) { removeIdx = i; break; }
         }
-        if (removeIdx === -1) break; // nessun esercizio di questa categoria da rimuovere
+        // SECONDA pass: se non c'erano test extras da rimuovere, rimuovi non-protetti normali
+        if (removeIdx === -1) {
+          for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
+            var e = schedaEsercizi[i];
+            if (isCardioEntry(e)) continue;
+            if (protectedSet[i]) continue;
+            var cat = e.category || classifyExercise(lookup(e.eId));
+            if (cat === targetCat) { removeIdx = i; break; }
+          }
+        }
+        if (removeIdx === -1) break;
         total -= times[removeIdx];
         schedaEsercizi.splice(removeIdx, 1);
         times.splice(removeIdx, 1);
         nonCardioLen--;
         trimmed = true;
+        // Ricostruisci gli indici protetti dopo ogni splice
+        protectedSet = rebuildProtected();
       }
       if (total <= budgetSec || nonCardioLen <= minNonCardio) break;
     }
-    return {esercizi: schedaEsercizi, tempoSec: total, trimmed: trimmed};
+
+    // ===== FASE 2: scaling progressivo - riduci di 1 serie su big/small (non compound, non test extras)
+    // Iterativo: a ogni passata toglie 1 serie a UN esercizio big/small, ricalcola.
+    // Max 8 iterazioni (sicurezza).
+    var scaleIter = 0;
+    while (total > budgetSec && scaleIter < 8) {
+      var scaleIdx = -1;
+      // Scegli l'esercizio big/small con più serie (dalla coda per stabilità)
+      var maxSerie = 2;
+      for (var i = schedaEsercizi.length - 1; i >= 0; i--) {
+        var e = schedaEsercizi[i];
+        if (isCardioEntry(e)) continue;
+        var cat = e.category || classifyExercise(lookup(e.eId));
+        if (cat === 'compound') continue; // mai ridurre i compound (specifica scientifica)
+        if (cat === 'core') continue; // i core hanno già poche serie
+        if ((+e.serie || 0) > maxSerie) { maxSerie = +e.serie; scaleIdx = i; }
+      }
+      if (scaleIdx === -1) break;
+      schedaEsercizi[scaleIdx].serie = Math.max(2, (+schedaEsercizi[scaleIdx].serie || 3) - 1);
+      times[scaleIdx] = recalcTime(schedaEsercizi[scaleIdx]);
+      total = times.reduce(function(a, b) { return a + b; }, 0);
+      scaled = true;
+      scaleIter++;
+    }
+
+    // ===== FASE 3: warning se ancora sopra il budget (>15%)
+    var overBudget = total > budgetSec * 1.15;
+
+    return {esercizi: schedaEsercizi, tempoSec: total, trimmed: trimmed, scaled: scaled, overBudget: overBudget};
   }
 
   // ── Ordina esercizi di una sezione: compound → big → small → core → cardio ──
@@ -8168,10 +8271,12 @@ var generaSchedaAuto = function(params, esercizi) {
     schedaEsercizi = ordinaEsercizi(schedaEsercizi);
     // Anti-volume: max 2 heavy compound per seduta
     schedaEsercizi = applyVolumeRules(schedaEsercizi);
-    // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound
-    var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
+    // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound.
+    // Per Full Body, protegge 1 push + 1 pull + 1 legs + 1 core (copertura minima).
+    var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY, day1.name);
     schedaEsercizi = trimFB.esercizi;
-    if (trimFB.trimmed) volumeWasTrimmed = true;
+    if (trimFB.trimmed || trimFB.scaled) volumeWasTrimmed = true;
+    var fbOverBudget = trimFB.overBudget;
     var tempoForzaSecFB = trimFB.tempoSec;
     if (day1.addCardio) {
       var cardioEx = pickCardio(usati);
@@ -8193,7 +8298,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: schedaEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB, sessoWarning:sessoWarning, profilo:profilo}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:schedaEsercizi.length, tipo:splitType, equip:equip, durataSeduta:durataSeduta, tempoStimato:tempoStimatoFB, sessoWarning:sessoWarning, profilo:profilo, durataWarning: !!fbOverBudget}
     });
   } else {
     // Multi-giorno: ogni giorno viene trimato per tempo separatamente,
@@ -8258,9 +8363,10 @@ var generaSchedaAuto = function(params, esercizi) {
       // Anti-volume: max 2 heavy compound per giorno
       dayEsercizi = applyVolumeRules(dayEsercizi);
       // Trim per tempo del singolo giorno
-      var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY);
+      var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY, day.name);
       dayEsercizi = trimDay.esercizi;
-      if (trimDay.trimmed) volumeWasTrimmed = true;
+      if (trimDay.trimmed || trimDay.scaled) volumeWasTrimmed = true;
+      if (trimDay.overBudget) volumeWasTrimmed = true;
       if (trimDay.tempoSec > maxTempoForzaSec) {
         maxTempoForzaSec = trimDay.tempoSec;
         maxDayHasCardio = day.addCardio;
@@ -8288,7 +8394,7 @@ var generaSchedaAuto = function(params, esercizi) {
       data: new Date().toLocaleDateString('it-IT'),
       esercizi: tuttiEsercizi,
       note: noteText,
-      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning, profilo:profilo}
+      config: {serie:serieBase, rip:ripBase, rec:recSec, numEx:tuttiEsercizi.length, tipo:splitType, equip:equip, sezioni:sezioniNomi, durataSeduta:durataSeduta, tempoStimato:tempoStimatoMulti, sessoWarning:sessoWarning, profilo:profilo, durataWarning: volumeWasTrimmed && (tempoStimatoMulti > durataSeduta * 1.15)}
     });
     // Post-generation split validation: log any wrong-section exercise
     tuttiEsercizi.forEach(function(entry) {
