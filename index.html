@@ -4610,22 +4610,56 @@ function buildSchedaAttuale(p,exercises,lang){
 // Ogni scheda del paziente diventa un giorno/tab nella share.html.
 function buildGiorniDaTutteLeSchede(p,exercises,lang){
   var giorni=[];
+  // Helper: mappa un esercizio raw nel formato vista cliente
+  function mapEsercizio(ex){
+    var libEx=(exercises||[]).find(function(e){return e.id===ex.eId;});
+    var rawNome=libEx?(libEx.nome&&libEx.nome[lang]?libEx.nome[lang]:(typeof libEx.nome==='string'?libEx.nome:ex.eId)):(ex.eId||'Esercizio');
+    return{
+      nome:typeof rawNome==='string'?rawNome:ex.eId,
+      muscoli:libEx?(libEx.muscoli||''):'',
+      serie:ex.serie||'',
+      reps:String(ex.reps!=null?ex.reps:''),
+      carico:ex.peso?(ex.peso+' kg'):'',
+      rec:ex.rec?(ex.rec+'s'):'',
+      nota:ex.note||''
+    };
+  }
   (p.schede||[]).forEach(function(scheda,idx){
-    var nomeGiorno=scheda.nome||('Giorno '+(idx+1));
-    var esercizi=(scheda.esercizi||[]).map(function(ex){
-      var libEx=(exercises||[]).find(function(e){return e.id===ex.eId;});
-      var rawNome=libEx?(libEx.nome&&libEx.nome[lang]?libEx.nome[lang]:(typeof libEx.nome==='string'?libEx.nome:ex.eId)):(ex.eId||'Esercizio');
-      return{
-        nome:typeof rawNome==='string'?rawNome:ex.eId,
-        muscoli:libEx?(libEx.muscoli||''):'',
-        serie:ex.serie||'',
-        reps:String(ex.reps!=null?ex.reps:''),
-        carico:ex.peso?(ex.peso+' kg'):'',
-        rec:ex.rec?(ex.rec+'s'):'',
-        nota:ex.note||''
-      };
+    var nomeBase=scheda.nome||('Giorno '+(idx+1));
+    var esercizi=scheda.esercizi||[];
+    // ── Detect multi-day: la scheda ha esercizi taggati con campo `sezione`
+    // (es. Upper/Lower, PPL). In quel caso, dividi in giorni per sezione.
+    var sezioniMap={};
+    var ordineSezioni=[];
+    var hasSezioni=false;
+    esercizi.forEach(function(ex){
+      if(ex.sezione){
+        hasSezioni=true;
+        if(!sezioniMap[ex.sezione]){
+          sezioniMap[ex.sezione]=[];
+          ordineSezioni.push(ex.sezione);
+        }
+        sezioniMap[ex.sezione].push(ex);
+      }
     });
-    giorni.push({nome:nomeGiorno,esercizi:esercizi});
+    if(hasSezioni&&ordineSezioni.length>1){
+      // Scheda multi-day: un giorno per sezione
+      ordineSezioni.forEach(function(sez){
+        giorni.push({
+          nome:sez, // es. "Upper A", "Lower B", "Push", "Pull", "Legs"
+          esercizi:sezioniMap[sez].map(mapEsercizio)
+        });
+      });
+      // Esercizi senza sezione (es. cardio aggiunto dopo): aggiungili al primo giorno
+      var senzaSezione=esercizi.filter(function(ex){return !ex.sezione;});
+      if(senzaSezione.length){
+        giorni[giorni.length-ordineSezioni.length].esercizi=giorni[giorni.length-ordineSezioni.length].esercizi.concat(senzaSezione.map(mapEsercizio));
+      }
+    } else {
+      // Scheda single-day (Full Body, Push standalone, Pull standalone, Legs standalone) o
+      // scheda vecchia senza campo `sezione`: comportamento originale, 1 giorno con tutto
+      giorni.push({nome:nomeBase,esercizi:esercizi.map(mapEsercizio)});
+    }
   });
   return giorni;
 }
