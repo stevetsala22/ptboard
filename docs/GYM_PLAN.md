@@ -268,8 +268,49 @@ Sotto-schermata di D.1 (step 2) e anche voce separata "Palestra → Branding" pe
 - **Flow**:
   1. Carica `gyms/{gymId}` → applica tema + logo.
   2. 8 domande (vedi §A).
-  3. Submit → `calcScoreAnamnestico(d, eta)` (serve import inline dall'estratto, oppure chiama endpoint che riusa `generaSchedaAuto` — più pulito: duplicare le costanti o esporre un endpoint da index.html via query? No. **Soluzione raccomandata**: `/valutazione.html` **include direttamente** le funzioni `calcScoreAnamnestico`, `generaSchedaAuto` e dipendenze (`exParamsFor`, `trimPerTempo`, `applyVolumeRules`, `classifyExercise`, `chooseSplit`, `INIT_EXERCISES`) via `<script>` separati, oppure il PT compila la valutazione dentro `index.html` (vedi variante alternativa).
+  3. Submit → riuso diretto delle funzioni esistenti, con fallback espliciti e try/catch (vedi snippet sotto).
   4. Mostra scheda proposta read-only con bottone "Modifica" (apre il modal scheda esistente) e "Invia al cliente" (genera `sharedClients/{sid}` come già fa il flusso PT).
+
+#### Snippet di submit (riuso diretto)
+```js
+function submitValutazioneRapida(d, exercises, T){
+  // d è l'oggetto raccolto dal form rapido (chiavi coerenti con PatientForm).
+  // exercises è passato dal chiamante (in index.html è lo state 'exercises';
+  // in /valutazione.html è INIT_EXERCISES importato come variabile globale).
+  // T è la translation table (LANGS[lang].t).
+  try {
+    var annoNascita = d.ddn ? Number(String(d.ddn).slice(0,4)) : null;
+    var eta = annoNascita ? (new Date().getFullYear() - annoNascita) : 50;
+    var pr = calcScoreAnamnestico(d, eta);              // 3292, ritorna {code,...} o null
+    var profilo = (pr && pr.code) || 'B';               // ★ fallback 'B'
+    var schede = generaSchedaAuto({
+      profilo: profilo,
+      obiettivo: d.obiettivo,                           // obbligatorio, mai default (§Default intelligenti)
+      sesso: d.sesso || 'M',
+      eta: eta,
+      patologie: d.patologie || 'Nessuna',              // 'Nessuna' SOLO se PAR-Q+ tutto NO (§Sicurezza)
+      infortuni: d.infortuni || '',
+      programma: { sedute: +d.seduteSettimana || 3 },   // ★ fallback 3
+      equip: 'gym',                                     // fisso in Palestra
+      durataSeduta: +d.durataSeduta || 60,              // ★ fallback 60
+      T: T,
+      attivita: d.attivita || ''
+    }, exercises);
+    return schede;
+  } catch (e) {
+    console.warn('[valutazione] gen error:', e);
+    if (typeof showToast === 'function') showToast('Errore nella generazione. Riprova.', 'err');
+    return null;
+  }
+}
+```
+Note:
+- `annoNascita` deriva da `d.ddn` (`YYYY-MM-DD`) e NON è passato a `generaSchedaAuto` (che vuole `eta` numerica). È qui solo per calcolare l'età in modo esplicito.
+- `exercises` è SEMPRE passato dal chiamante (secondo argomento di `generaSchedaAuto`): in `index.html` è lo state locale `exercises` (idratato da `appdata/main.exercises`); in `/valutazione.html` è `INIT_EXERCISES` incluso via `<script>`.
+- `T` è la translation table corrente (`LANGS[getLang()].t`), passata nel modal; `generaSchedaAuto` la usa per etichette interne (es. "Cardio").
+- Tutti i default pericolosi sono assenti: `obiettivo` NON ha fallback (campo obbligatorio nel form); `sesso` ha fallback `'M'` ma il form NON lascia passare un submit senza selezione (il fallback copre solo caso di input corrotto).
+- Il `try/catch` protegge sia errori di `calcScoreAnamnestico` (dati esotici) sia di `generaSchedaAuto` (es. libreria esercizi vuota).
+
 - **Reuse verbatim**: `generaSchedaAuto` 7418, `calcScoreAnamnestico` 3292, `INIT_EXERCISES` 3763-4062, `calcolaObiettivoMetrics` 8669.
 - **Variante alternativa**: valutazione rapida come **nuovo modal in `index.html`** per il PT loggato (`showAssessment` state vicino a 6818). Più semplice da implementare (già tutto in scope), ma non è pubblico/anonimo. **Decisione raccomandata per MVP**: modal in `index.html` (è il PT a compilare, standing accanto al cliente in sala; non serve passarlo al cliente).
 
@@ -294,19 +335,25 @@ Il PT può accettare i default con un singolo "Continua" per campo. Default pens
 | `equip` | `'gym'` | **Fissato**, mai chiesto. Palestra = sala attrezzata. −1 domanda vs flow PT standard. |
 | `seduteSettimana` | `3` | Preset con slider 2/3/4/5. Media del gym. |
 | `durataSeduta` | `60` | Preset 45/60/90. Default 60. |
-| `attivita` | derivato da `esperienzaLiv` | `Principiante`→`'Sedentaria'`, `Intermedio`→`'Attiva'`, `Avanzato`→`'Molto attiva'`. Mostra chip "modifica" per override. |
-| `patologie` | `'Nessuna'` | Prefill. Lo si edita solo se un PAR-Q+ è SI o se il PT clicca "aggiungi". |
-| `infortuni` | `''` | Prefill vuoto. Idem a `patologie`. |
-| `obiettivo` | dedotto da età+sesso+durata | età<35 M → `'Aumentare massa'`; età<35 F → `'Perdere peso'`; età≥55 → `'Salute'`; altrimenti `'Forma generale'`. Default modificabile al volo. |
+| `attivita` | derivato da `esperienzaLiv` | `Principiante`→`'Sedentaria'`, `Intermedio`→`'Attiva'`, `Avanzato`→`'Molto attiva'`. **Il campo è sempre visibile e modificabile** (non collassato): il PT vede subito il valore proposto e può correggerlo con un tap. |
+| `patologie` | `'Nessuna'` **solo se PAR-Q+ tutto NO** | Vedi §Short-circuits + §Sicurezza. Con ≥1 PAR-Q+ SI il campo è obbligatorio e vuoto. |
+| `infortuni` | `''` **solo se PAR-Q+ tutto NO** | Idem a `patologie`. |
+| `obiettivo` | **nessun default — selezione obbligatoria** | **Non preselezionato.** 7-8 opzioni mostrate come card grandi tap-able (Forza, Massa, Perdere peso, Resistenza, Performance, Riabilitazione, Salute, Forma generale). Un singolo tap conclude lo step. L'obiettivo è troppo determinante sulla struttura della scheda (`chooseSplit`, `exParamsFor`) per lasciarlo a un default. |
 | `obiettivoStrutturato` | `{}` vuoto | Skippare completamente nella valutazione rapida (non alimenta `generaSchedaAuto` direttamente, solo `calcolaObiettivoMetrics` che qui non serve). |
 | `sesso` | nessun default | Non inferibile da nome in modo affidabile. Resta obbligatorio (1 click). |
 | `eta` | nessun default | Da `ddn` (necessario per filtri ACSM anziani). |
 | `altezza`, `peso` | nessun default | Antropometria sempre esplicita (3 valori che toccano serie/peso iniziali). |
 
+#### Sicurezza — regole non negoziabili
+- **PAR-Q+ è SEMPRE obbligatorio.** 7 radio sì/no, nessuna preselezione, nessun bypass. Il form di submit resta disabilitato finché le 7 risposte non sono date esplicitamente.
+- **PAR-Q+ NON rientra mai in "accetta tutti i default"** (vedi short-circuits). Il power-user può accettare i default per esperienza/attivita/durata/sedute, ma deve compilare PAR-Q+ a mano.
+- Con **≥1 PAR-Q+ SI**, la sezione clinica (`patologie`, `infortuni`) è obbligatoria, i campi partono VUOTI (nessun prefill), e il bottone "Genera scheda" è disabilitato finché `patologie` non contiene testo non-vuoto (lo stesso vale per `infortuni` se il PT lo rileva: la UI chiede esplicitamente "Infortuni in corso?" con sì/no e, se sì, textarea obbligatoria).
+- Con **PAR-Q+ tutto NO**, `patologie='Nessuna'` e `infortuni=''` sono prefillati e lo step clinica è skippabile con un singolo tap "Procedi".
+
 #### Short-circuits
-- **PAR-Q+ tutti NO + nessun infortunio dichiarato** ⇒ skippa lo step clinica (campi prefillati `'Nessuna'`/`''`). Risparmio: 60-120s. Totale compilazione **~2-3 min**.
-- **PAR-Q+ ≥1 SI** ⇒ gate "Serve certificato medico, parla col titolare prima di generare la scheda". STOP. Nessuna scheda generata. Il PT può comunque salvare il paziente nel sistema per follow-up.
-- Un singolo "Accetta tutti i default e genera" (power user) salta direttamente a: anagrafica + antropometria + PAR-Q+. **~90 secondi** total.
+- **PAR-Q+ tutti NO** ⇒ step clinica collassato con prefill (`'Nessuna'`/`''`), skippabile con un tap. Risparmio: 60-120s. Totale compilazione **~2-3 min**.
+- **PAR-Q+ ≥1 SI** ⇒ gate di sicurezza. Lo screen clinico si espande, campi vuoti, submit disabled. Il PT compila patologie/infortuni **a mano** prima di poter generare la scheda. **Nessuno skip, nessun default.** Se la condizione richiede cert medico (es. patologia cardiovascolare, gravidanza), la UI mostra avviso "Serve certificato medico — raccogli il documento prima di procedere con l'allenamento".
+- **"Accetta tutti i default e genera"** (power user): salta solo gli step con default sicuri (`esperienza`→`attivita`, `seduteSettimana=3`, `durataSeduta=60`). **Resta obbligatorio compilare**: anagrafica, antropometria, obiettivo (nessuna preselezione), PAR-Q+. Totale minimo: **~90 secondi** se PAR-Q+ tutto NO; **~2.5 min** se PAR-Q+ ha SI (clinica obbligatoria).
 
 #### UX: una schermata, non uno step-by-step
 Form singolo scrollabile (non wizard multi-pagina) con sezioni collassate di default per i campi con default intelligente. Ogni sezione collassata mostra `"Esperienza: Intermedio (default) ✎"` → click per espandere e modificare. Riduce friction cognitivo e numero di click.
@@ -364,14 +411,46 @@ Obiettivo: titolare carica logo → palette estratta → tema applicato ovunque.
 - Rischio: basso (tutto client-side; retrocompat garantita da `gymId:null` ⇒ nessun hook).
 
 **FASE 4 — Dashboard titolare read-only**
-Obiettivo: il titolare vede attività aggregata dei suoi PT.
-- STEP 4.1 — Nuovo screen `gymDashboard` in `index.html` (visibile solo se `profile.gymRole==='owner'`). Query `gyms/{gymId}.members` → per ogni PT: counts di `patients[]`, `bookings[]`, `schede` generate ultimi 30g.
-- STEP 4.2 — Accesso ai dati PT: 2 opzioni, scegliere in sede:
-  - (a) Denormalizzare metrics aggregate dentro `gyms/{gymId}.metrics` (scritte lato PT ad ogni save). **Semplice ma eventually-consistent**.
-  - (b) Rules nuove: `users/{ptUid}/appdata/main` read solo se `request.auth.uid == gyms/{gymId}.ownerUid AND ptUid in gyms/{gymId}.members`. **Fragile, rischio data leak**.
-  - **Raccomandato (a)**: metrics denormalizzate, PT scrive lato client all'autosave (sotto il guard `loadedFromFirebase.current`).
-- Test: owner apre dashboard, vede PT A (12 clienti, 3 schede ultimo mese) e PT B (5 clienti, 1 scheda). Nessun dato cliente sensibile esposto (solo counts).
-- Rischio: medio. Attenzione privacy: metrics ma mai dati identificativi dei clienti.
+Obiettivo: il titolare vede attività aggregata dei suoi PT **e** può aprire in sola lettura ogni cliente di ogni suo PT (anamnesi, screening, schede, progressi) per supervisione / qualità.
+
+- STEP 4.1 — **Panoramica aggregata** (gymDashboard). Nuovo screen in `index.html` visibile solo se `profile.gymRole==='owner'`. Mostra: per ogni PT in `gyms/{gymId}.members` → counts di `patients[]`, `bookings[]`, `schede` generate ultimi 30g, ultima attività.
+  - **Fonte**: metrics denormalizzate in `gyms/{gymId}.metrics[ptUid] = {nClienti, nSchede30d, lastActivity, …}`, scritte lato PT dentro l'autosave effect (6938-6967) SOTTO il guard `loadedFromFirebase.current`.
+  - **Nessun dato identificativo di cliente** in `metrics`: solo counts e timestamp. Pensata per il "pannello di controllo".
+
+- STEP 4.2 — **Vista cliente read-only** (gymPatientRO). Nuovo screen in `index.html`, raggiungibile dalla panoramica (click su un PT → lista dei suoi clienti → click cliente). Riusa `PatientDetail` (4667-6569) in **modalità sola lettura**:
+  - Nuovo prop `readOnly:true` passato a `PatientDetail`. Disabilita i bottoni edit/delete/generate/salva, nasconde il form; mostra anagrafica + schede + log + progressi in sola visualizzazione.
+  - **Nessun montaggio di `AppInner`**: `gymPatientRO` è un sotto-screen di `AppInner` dell'owner, che però lavora su `patients` **del PT selezionato**, NON sui propri. Chiave: lo state `patients` del gym-owner (`AppInner` 6796-6835) NON viene mai modificato con i dati del PT. I dati del PT vengono letti in uno state **separato** (`viewingPatients, setViewingPatients=useState(null)`) usato solo per il render read-only. L'autosave effect (6938-6967) continua a leggere/scrivere SOLO lo state `patients` dell'owner → **mai scrive sui dati del PT**.
+  - **Nessun pulsante di save**: la UI non ha controlli che modifichino lo state; non esiste un path di scrittura verso `users/{ptUid}/appdata/main` dalla vista read-only.
+  - **Nessun passaggio da appdata/main dell'owner**: `fbSave`/`fbLoad` (153-162) opera solo su `users/{currentUid}/appdata/main`. La lettura di `users/{ptUid}/appdata/main` passa da un helper NUOVO `fbLoadForOwner(ptUid)` che: (a) chiama `fbDb.collection('users').doc(ptUid).collection('appdata').doc('main').get()`; (b) idrata un oggetto locale; (c) NON scrive mai.
+
+- STEP 4.3 — **Rules per read-only cross-user**. Serve una regola nuova:
+  ```
+  match /users/{ptUid}/appdata/{docId} {
+    // ... blocchi esistenti owner + admin ...
+    // NUOVO: owner di un gym può leggere i dati dei suoi membri (solo READ, no write).
+    allow read: if request.auth != null
+                && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymRole == 'owner'
+                && exists(/databases/$(database)/documents/gyms/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymId))
+                && get(/databases/$(database)/documents/gyms/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymId)).data.members.hasAny([ptUid]);
+  }
+  ```
+  - **Costo**: 2 `get()` + 2 `exists()` per read ⇒ ~2-4 ms extra, trascurabile. Firestore conta ogni `get()` come 1 read fatturato ⇒ ~3 reads per aprire la vista cliente.
+  - **Simmetria**: lo STESSO blocco si applica a `match /users/{ptUid}` (profilo del PT) per leggere nome/email, necessari per il header della vista read-only.
+  - **Rischio data leak**: minimo, perché il `read` è gated da (owner-role AND stessa gym AND ptUid in members). Un'operazione di `remove PT` (§D.3) rimuove `ptUid` da `gyms/{gymId}.members` ⇒ l'owner **perde immediatamente** il permesso di leggere i dati di quel PT. Nessun cache lato client va spurgato: la UI non espone più i clienti del PT rimosso al refresh successivo.
+
+- STEP 4.4 — **Export PDF e condivisione dalla vista read-only**: disabilitati. L'owner può solo visualizzare; non può generare link `/s/xxx` né PDF né nuove schede sotto l'identità del PT. Se l'owner vuole intervenire deve chiedere al PT di farlo (o diventare lui stesso PT con un proprio account, altra storia).
+
+- Test:
+  - Owner apre dashboard, clicca su PT A, vede 12 clienti; clicca cliente, vede anamnesi+schede+log in sola lettura. Nessun bottone di edit visibile. Console network: solo `GET` request a `users/{ptAUid}/appdata/main`, nessuna `PATCH`/`PUT`/`POST`.
+  - Owner tenta di triggerare autosave: cambia tab e torna → nessuna write a `users/{ownerUid}/appdata/main` relativa ai patients del PT (verifica con Firestore audit log o breakpoint sull'effect 6938).
+  - Owner rimuove PT A → prossimo tentativo di aprire la vista cliente di A → rules deniegano con permission-denied. UI mostra "Accesso scaduto".
+
+- Rischio: alto se non gestito bene. Mitigazione obbligatoria:
+  1. State dei patients del PT in uno store SEPARATO dall'`AppInner` dell'owner.
+  2. Prop `readOnly:true` effettivamente onorato da `PatientDetail` (verifica di tutti i bottoni che oggi ha).
+  3. Nessun handler di `PatientDetail` deve chiamare `setPatients(...)` dell'owner (grep su chi passa `onUpdate`/`onDelete` nel path read-only).
+  4. Audit periodico (test E2E) che simuli la combinazione owner+read-only e verifichi che `appdata/main` dell'owner non venga mai scritto con dati del PT.
 
 **FASE 5 — Piano 'gym' + Stripe (fase separata)**
 Obiettivo: monetizzare il piano Palestra.
