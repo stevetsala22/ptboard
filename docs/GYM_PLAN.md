@@ -42,7 +42,7 @@ Definizione a `index.html:7418`, unico call site a `6114` (modal "Genera scheda"
 Nessun crash per campi mancanti; scheda meno sicura se mancano `patologie`/`infortuni`. `calcScoreAnamnestico(d,eta)` a `3292` calcola `profilo.code` SENZA test fisici → **minimo set Palestra = anagrafica + PAR-Q+ + patologie/infortuni testuali + preferenze allenamento**.
 
 **Minimo per scheda valida+sicura (8 campi logici; molti auto-completabili):**
-1. Anagrafica: `nome, cognome, sesso, ddn` (→ `eta`) — sempre esplicita.
+1. Anagrafica: `nome, cognome, sesso, annoNascita` (→ `eta`) — sempre esplicita. `annoNascita` è un intero YYYY (4 cifre), non `ddn`.
 2. Antropometria: `altezza, peso` — sempre esplicita.
 3. Esperienza: `esperienzaLiv` — da chip (3 valori). `attivita` **auto-derivata** da `esperienzaLiv`.
 4. Giorni/settimana: `seduteSettimana` (2–5, default `3`).
@@ -279,14 +279,17 @@ function submitValutazioneRapida(d, exercises, T){
   // in /valutazione.html è INIT_EXERCISES importato come variabile globale).
   // T è la translation table (LANGS[lang].t).
   try {
-    var annoNascita = d.ddn ? Number(String(d.ddn).slice(0,4)) : null;
+    // 'annoNascita' è un intero YYYY (es. 1988), raccolto dal form come input number
+    // 4 cifre con validazione 1920 ≤ anno ≤ anno corrente. Non si usa 'ddn'.
+    // Stesso nome del campo nei clienti esistenti → nessuna conversione a save.
+    var annoNascita = +d.annoNascita;
     var eta = annoNascita ? (new Date().getFullYear() - annoNascita) : 50;
     var pr = calcScoreAnamnestico(d, eta);              // 3292, ritorna {code,...} o null
     var profilo = (pr && pr.code) || 'B';               // ★ fallback 'B'
     var schede = generaSchedaAuto({
       profilo: profilo,
       obiettivo: d.obiettivo,                           // obbligatorio, mai default (§Default intelligenti)
-      sesso: d.sesso || 'M',
+      sesso: d.sesso,                                   // ★ obbligatorio, NESSUN default (vedi Fix #2: sesso mancante → norme sbagliate)
       eta: eta,
       patologie: d.patologie || 'Nessuna',              // 'Nessuna' SOLO se PAR-Q+ tutto NO (§Sicurezza)
       infortuni: d.infortuni || '',
@@ -299,13 +302,15 @@ function submitValutazioneRapida(d, exercises, T){
     return schede;
   } catch (e) {
     console.warn('[valutazione] gen error:', e);
-    if (typeof showToast === 'function') showToast('Errore nella generazione. Riprova.', 'err');
+    if (typeof showToast === 'function')
+      showToast(T.schedaGenError || 'Errore generazione scheda', 'error');  // allineato a index.html:6114
     return null;
   }
 }
 ```
 Note:
-- `annoNascita` deriva da `d.ddn` (`YYYY-MM-DD`) e NON è passato a `generaSchedaAuto` (che vuole `eta` numerica). È qui solo per calcolare l'età in modo esplicito.
+- **`annoNascita`** è un **campo del form** (input `type="number"` 4 cifre, `min=1920`, `max=new Date().getFullYear()`, `required`). NON si usa `ddn` (data completa) nella valutazione rapida: raccogliere solo l'anno elimina 2 input (giorno+mese) e `annoNascita` è quello che serve per calcolare `eta`. Il paziente creato dal flusso salva `annoNascita` (stesso campo dei clienti esistenti in `patients[]`), **non** `ddn`.
+- **`sesso` è obbligatorio senza default**: lo snippet NON ha più `|| 'M'`. Il form deve bloccare il submit finché `d.sesso ∈ {'M','F'}` non è selezionato. Default silenziosi su `sesso` producono norme di riferimento sbagliate (es. STS, 6MWT, hip-thrust preference 7694) → scheda potenzialmente mal calibrata per il cliente.
 - `exercises` è SEMPRE passato dal chiamante (secondo argomento di `generaSchedaAuto`): in `index.html` è lo state locale `exercises` (idratato da `appdata/main.exercises`); in `/valutazione.html` è `INIT_EXERCISES` incluso via `<script>`.
 - `T` è la translation table corrente (`LANGS[getLang()].t`), passata nel modal; `generaSchedaAuto` la usa per etichette interne (es. "Cardio").
 - Tutti i default pericolosi sono assenti: `obiettivo` NON ha fallback (campo obbligatorio nel form); `sesso` ha fallback `'M'` ma il form NON lascia passare un submit senza selezione (il fallback copre solo caso di input corrotto).
@@ -340,8 +345,8 @@ Il PT può accettare i default con un singolo "Continua" per campo. Default pens
 | `infortuni` | `''` **solo se PAR-Q+ tutto NO** | Idem a `patologie`. |
 | `obiettivo` | **nessun default — selezione obbligatoria** | **Non preselezionato.** 7-8 opzioni mostrate come card grandi tap-able (Forza, Massa, Perdere peso, Resistenza, Performance, Riabilitazione, Salute, Forma generale). Un singolo tap conclude lo step. L'obiettivo è troppo determinante sulla struttura della scheda (`chooseSplit`, `exParamsFor`) per lasciarlo a un default. |
 | `obiettivoStrutturato` | `{}` vuoto | Skippare completamente nella valutazione rapida (non alimenta `generaSchedaAuto` direttamente, solo `calcolaObiettivoMetrics` che qui non serve). |
-| `sesso` | nessun default | Non inferibile da nome in modo affidabile. Resta obbligatorio (1 click). |
-| `eta` | nessun default | Da `ddn` (necessario per filtri ACSM anziani). |
+| `sesso` | **nessun default — obbligatorio** | Non inferibile da nome in modo affidabile. 2 chip grandi "M"/"F" tap-able; submit disabled finché non selezionato. **Vedi Fix #2: `sesso` mancante → norme sbagliate** (STS, 6MWT, hip-thrust preference 7694). |
+| `annoNascita` | nessun default — obbligatorio | Input numerico 4 cifre, `min=1920`, `max=anno corrente`, required. Si raccoglie SOLO l'anno (no giorno/mese), stesso campo salvato nel paziente creato (coerente con `patients[]` esistenti). Da `annoNascita` deriva `eta` per filtri ACSM anziani. |
 | `altezza`, `peso` | nessun default | Antropometria sempre esplicita (3 valori che toccano serie/peso iniziali). |
 
 #### Sicurezza — regole non negoziabili
@@ -418,7 +423,11 @@ Obiettivo: il titolare vede attività aggregata dei suoi PT **e** può aprire in
   - **Nessun dato identificativo di cliente** in `metrics`: solo counts e timestamp. Pensata per il "pannello di controllo".
 
 - STEP 4.2 — **Vista cliente read-only** (gymPatientRO). Nuovo screen in `index.html`, raggiungibile dalla panoramica (click su un PT → lista dei suoi clienti → click cliente). Riusa `PatientDetail` (4667-6569) in **modalità sola lettura**:
-  - Nuovo prop `readOnly:true` passato a `PatientDetail`. Disabilita i bottoni edit/delete/generate/salva, nasconde il form; mostra anagrafica + schede + log + progressi in sola visualizzazione.
+  - Nuovo prop `readOnly:true` passato a `PatientDetail`.
+  - **Prop `upd` sostituita da no-op**: nel path read-only, le props `onUpdate`/`onDelete`/`onEdit`/`onValuta` (passate come prop a `PatientDetail` dall'`AppInner`, cfr. 7327) sono rimpiazzate da una funzione no-op che fa `console.warn('[gymPatientRO] blocked write attempt:', fn.name, args)` e **ritorna senza modificare nulla**. Questo è una difesa in profondità contro refactor futuri che potrebbero dimenticare di nascondere un bottone: anche se un handler residuo chiama `upd(…)`, l'azione viene intercettata e loggata invece di propagarsi.
+  - Bottoni edit/delete/generate/salva/share/export nascosti via `readOnly`. Il form di edit non è montato affatto.
+  - **Nessun pulsante di save**: la UI non ha controlli che modifichino lo state; non esiste un path di scrittura verso `users/{ptUid}/appdata/main` dalla vista read-only. Comunque, anche se un bottone residuo tentasse una scrittura, la rule Firestore su `/users/{ptUid}/appdata` consente SOLO `read` all'owner (vedi STEP 4.3) → `permission-denied` lato server.
+  - **Nessun passaggio da appdata/main dell'owner**: `fbSave`/`fbLoad` (153-162) opera solo su `users/{currentUid}/appdata/main`. La lettura di `users/{ptUid}/appdata/main` passa da un helper NUOVO `fbLoadForOwner(ptUid)` che: (a) chiama `fbDb.collection('users').doc(ptUid).collection('appdata').doc('main').get()`; (b) idrata un oggetto locale; (c) NON scrive mai.
   - **Nessun montaggio di `AppInner`**: `gymPatientRO` è un sotto-screen di `AppInner` dell'owner, che però lavora su `patients` **del PT selezionato**, NON sui propri. Chiave: lo state `patients` del gym-owner (`AppInner` 6796-6835) NON viene mai modificato con i dati del PT. I dati del PT vengono letti in uno state **separato** (`viewingPatients, setViewingPatients=useState(null)`) usato solo per il render read-only. L'autosave effect (6938-6967) continua a leggere/scrivere SOLO lo state `patients` dell'owner → **mai scrive sui dati del PT**.
   - **Nessun pulsante di save**: la UI non ha controlli che modifichino lo state; non esiste un path di scrittura verso `users/{ptUid}/appdata/main` dalla vista read-only.
   - **Nessun passaggio da appdata/main dell'owner**: `fbSave`/`fbLoad` (153-162) opera solo su `users/{currentUid}/appdata/main`. La lettura di `users/{ptUid}/appdata/main` passa da un helper NUOVO `fbLoadForOwner(ptUid)` che: (a) chiama `fbDb.collection('users').doc(ptUid).collection('appdata').doc('main').get()`; (b) idrata un oggetto locale; (c) NON scrive mai.
@@ -444,13 +453,15 @@ Obiettivo: il titolare vede attività aggregata dei suoi PT **e** può aprire in
 - Test:
   - Owner apre dashboard, clicca su PT A, vede 12 clienti; clicca cliente, vede anamnesi+schede+log in sola lettura. Nessun bottone di edit visibile. Console network: solo `GET` request a `users/{ptAUid}/appdata/main`, nessuna `PATCH`/`PUT`/`POST`.
   - Owner tenta di triggerare autosave: cambia tab e torna → nessuna write a `users/{ownerUid}/appdata/main` relativa ai patients del PT (verifica con Firestore audit log o breakpoint sull'effect 6938).
+  - **Il titolare prova a modificare**: forziamo da devtools una chiamata del tipo `fbDb.collection('users').doc('<ptUid>').collection('appdata').doc('main').update({patients:[...]})` autenticato come owner → **Firestore rifiuta con `permission-denied`** (rule STEP 4.3 consente solo `read`). Il tentativo deve essere loggato dalle console/Sentry ma non modificare nulla. Idem per qualsiasi handler UI che chiami `upd(...)`: la no-op intercetta client-side, le rules proteggono server-side.
   - Owner rimuove PT A → prossimo tentativo di aprire la vista cliente di A → rules deniegano con permission-denied. UI mostra "Accesso scaduto".
 
 - Rischio: alto se non gestito bene. Mitigazione obbligatoria:
   1. State dei patients del PT in uno store SEPARATO dall'`AppInner` dell'owner.
   2. Prop `readOnly:true` effettivamente onorato da `PatientDetail` (verifica di tutti i bottoni che oggi ha).
-  3. Nessun handler di `PatientDetail` deve chiamare `setPatients(...)` dell'owner (grep su chi passa `onUpdate`/`onDelete` nel path read-only).
-  4. Audit periodico (test E2E) che simuli la combinazione owner+read-only e verifichi che `appdata/main` dell'owner non venga mai scritto con dati del PT.
+  3. Prop `upd`/`onUpdate`/`onDelete`/`onEdit`/`onValuta` = funzione no-op con `console.warn` nel path read-only (grep su chi passa questi handler nel ramo gymPatientRO).
+  4. Rules Firestore su `/users/{ptUid}/appdata` **solo `read`** per l'owner (vedi STEP 4.3): doppia difesa client+server.
+  5. Audit periodico (test E2E) che simuli (a) owner+read-only + autosave trigger → `appdata/main` dell'owner intatto; (b) owner che forza una write via SDK → `permission-denied`.
 
 **FASE 5 — Piano 'gym' + Stripe (fase separata)**
 Obiettivo: monetizzare il piano Palestra.
