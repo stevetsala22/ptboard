@@ -11,6 +11,13 @@
 5. Valutazione rapida (~8 domande, PAR-Q+ incluso, equip=`gym`) → riusa `generaSchedaAuto` → scheda modificabile → inviabile al cliente (link `/s/`).
 6. `profile.plan='gym'` (Stripe fase successiva: prevedere solo i campi).
 
+## Obiettivo primario
+**Minimizzare il tempo che il PT impiega da "cliente nuovo in sala" a "scheda pronta e inviata".**
+
+Baseline oggi: `PatientForm` + wizard valutazione completo + modal "Genera scheda" → **8–15 minuti** per cliente nuovo di PT esperto, oltre 20 per PT nuovo.
+Target Palestra: **sotto 5 minuti** dall'apertura della valutazione rapida all'invio del link `/s/xxx` al cliente.
+**Conseguenza**: la valutazione rapida è la **prima feature** da costruire — e deve funzionare anche per i PT senza palestra (è il moltiplicatore di valore anche fuori dal piano gym).
+
 ---
 
 ## A. Stato attuale
@@ -34,15 +41,17 @@ Definizione a `index.html:7418`, unico call site a `6114` (modal "Genera scheda"
 
 Nessun crash per campi mancanti; scheda meno sicura se mancano `patologie`/`infortuni`. `calcScoreAnamnestico(d,eta)` a `3292` calcola `profilo.code` SENZA test fisici → **minimo set Palestra = anagrafica + PAR-Q+ + patologie/infortuni testuali + preferenze allenamento**.
 
-**Minimo per scheda valida+sicura (8 domande):**
-1. Anagrafica: `nome, cognome, sesso, ddn` (→ `eta`)
-2. Antropometria: `altezza, peso`
-3. Esperienza: `esperienzaLiv` + `attivita`
-4. Giorni/settimana: `seduteSettimana` (2–5)
-5. Durata seduta: `durataSeduta` (45/60/90)
-6. Obiettivo: `obiettivo`
-7. PAR-Q+: `parqQ1..parqQ7` (≥1 SI ⇒ gate, richiedi cert medico)
-8. Clinica: `patologie, infortuni` (prefill "Nessuna")
+**Minimo per scheda valida+sicura (8 campi logici; molti auto-completabili):**
+1. Anagrafica: `nome, cognome, sesso, ddn` (→ `eta`) — sempre esplicita.
+2. Antropometria: `altezza, peso` — sempre esplicita.
+3. Esperienza: `esperienzaLiv` — da chip (3 valori). `attivita` **auto-derivata** da `esperienzaLiv`.
+4. Giorni/settimana: `seduteSettimana` (2–5, default `3`).
+5. Durata seduta: `durataSeduta` (45/60/90, default `60`).
+6. Obiettivo: `obiettivo` — con default intelligente derivato da età+sesso (vedi §D.4).
+7. PAR-Q+: `parqQ1..parqQ7` — tutti NO ⇒ safe senza cert; ≥1 SI ⇒ gate.
+8. Clinica: `patologie, infortuni` — prefill `'Nessuna'`/`''` e **skippabile** se PAR-Q+ tutti NO.
+
+**Attrezzatura (`equip`): fissa a `'gym'` nel contesto Palestra, mai chiesta.** Elimina 1 domanda vs flow PT standard. Dettaglio tempi e default in §D.4.
 
 ### Branding hardcoded (grep su `main`)
 
@@ -248,10 +257,13 @@ Sotto-schermata di D.1 (step 2) e anche voce separata "Palestra → Branding" pe
 - **Azioni**:
   - "Invita PT" → form email → `gymInvites.add({...})` + mandare email (via Cloudflare Worker esistente `WORKER_URL+'/send-email'`, 198-230, nuovo templateId Brevo).
   - "Revoca invito" → `gymInvites.update({status:'revoked'})`.
-  - "Rimuovi PT" → `users/{uid}.update({gymId:null, gymRole:null})` + `gyms/{gymId}.members = arrayRemove(uid)`.
-    - **Attenzione rules**: owner può toccare `users/{uid}` solo se la rule attuale lo permette. Oggi `match /users/{userId}` è solo owner read/write. Serve **nuova rule**: owner di un gym può aggiornare `gymId`/`gymRole` dei suoi membri. Più semplice: fare l'update via **Cloud Function** / Worker (service account), NON client-side.
+  - **"Rimuovi PT" — i clienti RESTANO al PT**. Nessun trasferimento di dati, nessuna migrazione di schede. L'owner perde solo la visibilità aggregata di quel PT nella dashboard gym. Operativamente:
+    - `users/{uid}.update({gymId:null, gymRole:null})` → via Worker service-account (le rules non consentono a un utente di scrivere il profilo di un altro).
+    - `gyms/{gymId}.members = arrayRemove(uid)` → direttamente dall'owner (rule gyms update by ownerUid).
+    - Il PT rimosso continua a lavorare come PT indipendente: `users/{uid}/appdata/main` è intatto, `patients[]` suo rimane suo. Al prossimo login il tema gym non si applica più (hook `applyGymTheme` salta per `gymId:null`).
+    - **Nessuna opzione di "trasferimento clienti al gym"**: i clienti sono proprietà del PT, il gym è solo brand + dashboard aggregata.
 
-### D.4 Valutazione rapida (~8 domande)
+### D.4 Valutazione rapida (~8 domande, target <5 minuti)
 - **Dove**: pagina dedicata `atleta.html?mode=assessment&gym=<gymId>` oppure `/valutazione.html` nuovo file (vanilla, ~400 righe).
 - **Flow**:
   1. Carica `gyms/{gymId}` → applica tema + logo.
@@ -259,7 +271,51 @@ Sotto-schermata di D.1 (step 2) e anche voce separata "Palestra → Branding" pe
   3. Submit → `calcScoreAnamnestico(d, eta)` (serve import inline dall'estratto, oppure chiama endpoint che riusa `generaSchedaAuto` — più pulito: duplicare le costanti o esporre un endpoint da index.html via query? No. **Soluzione raccomandata**: `/valutazione.html` **include direttamente** le funzioni `calcScoreAnamnestico`, `generaSchedaAuto` e dipendenze (`exParamsFor`, `trimPerTempo`, `applyVolumeRules`, `classifyExercise`, `chooseSplit`, `INIT_EXERCISES`) via `<script>` separati, oppure il PT compila la valutazione dentro `index.html` (vedi variante alternativa).
   4. Mostra scheda proposta read-only con bottone "Modifica" (apre il modal scheda esistente) e "Invia al cliente" (genera `sharedClients/{sid}` come già fa il flusso PT).
 - **Reuse verbatim**: `generaSchedaAuto` 7418, `calcScoreAnamnestico` 3292, `INIT_EXERCISES` 3763-4062, `calcolaObiettivoMetrics` 8669.
-- **Variante alternativa**: valutazione rapida come **nuovo modal in `index.html`** per il PT loggato (`showAssessment` state vicino a 6818). Più semplice da implementare (già tutto in scope), ma non è pubblico/anonimo. Decisione in sede di implementazione.
+- **Variante alternativa**: valutazione rapida come **nuovo modal in `index.html`** per il PT loggato (`showAssessment` state vicino a 6818). Più semplice da implementare (già tutto in scope), ma non è pubblico/anonimo. **Decisione raccomandata per MVP**: modal in `index.html` (è il PT a compilare, standing accanto al cliente in sala; non serve passarlo al cliente).
+
+#### Budget tempo (target <5 min, obiettivo stretch <3 min)
+Baseline misurata (compilazione a mano, tutti i campi espliciti):
+| Step | Campi | Tempo tipico |
+|---|---|---|
+| 1. Anagrafica | nome, cognome, sesso, ddn | 30s |
+| 2. Antropometria | altezza, peso | 15s |
+| 3. Esperienza | esperienzaLiv, attivita | 25s |
+| 4. Allenamento | seduteSettimana, durataSeduta | 20s |
+| 5. Obiettivo | obiettivo (dropdown 7-8 valori) | 15s |
+| 6. PAR-Q+ | parqQ1..parqQ7 (7 radio sì/no) | 60-90s |
+| 7. Clinica | patologie, infortuni (textarea) | 60-120s |
+| **Totale** | | **~4-6 min** |
+
+#### Default intelligenti (riducono il tempo a ~2-3 min)
+Il PT può accettare i default con un singolo "Continua" per campo. Default pensati per il profilo-mediano Palestra (adulto 25-55, in salute, sa alzare pesi):
+
+| Campo | Default | Come applicarlo |
+|---|---|---|
+| `equip` | `'gym'` | **Fissato**, mai chiesto. Palestra = sala attrezzata. −1 domanda vs flow PT standard. |
+| `seduteSettimana` | `3` | Preset con slider 2/3/4/5. Media del gym. |
+| `durataSeduta` | `60` | Preset 45/60/90. Default 60. |
+| `attivita` | derivato da `esperienzaLiv` | `Principiante`→`'Sedentaria'`, `Intermedio`→`'Attiva'`, `Avanzato`→`'Molto attiva'`. Mostra chip "modifica" per override. |
+| `patologie` | `'Nessuna'` | Prefill. Lo si edita solo se un PAR-Q+ è SI o se il PT clicca "aggiungi". |
+| `infortuni` | `''` | Prefill vuoto. Idem a `patologie`. |
+| `obiettivo` | dedotto da età+sesso+durata | età<35 M → `'Aumentare massa'`; età<35 F → `'Perdere peso'`; età≥55 → `'Salute'`; altrimenti `'Forma generale'`. Default modificabile al volo. |
+| `obiettivoStrutturato` | `{}` vuoto | Skippare completamente nella valutazione rapida (non alimenta `generaSchedaAuto` direttamente, solo `calcolaObiettivoMetrics` che qui non serve). |
+| `sesso` | nessun default | Non inferibile da nome in modo affidabile. Resta obbligatorio (1 click). |
+| `eta` | nessun default | Da `ddn` (necessario per filtri ACSM anziani). |
+| `altezza`, `peso` | nessun default | Antropometria sempre esplicita (3 valori che toccano serie/peso iniziali). |
+
+#### Short-circuits
+- **PAR-Q+ tutti NO + nessun infortunio dichiarato** ⇒ skippa lo step clinica (campi prefillati `'Nessuna'`/`''`). Risparmio: 60-120s. Totale compilazione **~2-3 min**.
+- **PAR-Q+ ≥1 SI** ⇒ gate "Serve certificato medico, parla col titolare prima di generare la scheda". STOP. Nessuna scheda generata. Il PT può comunque salvare il paziente nel sistema per follow-up.
+- Un singolo "Accetta tutti i default e genera" (power user) salta direttamente a: anagrafica + antropometria + PAR-Q+. **~90 secondi** total.
+
+#### UX: una schermata, non uno step-by-step
+Form singolo scrollabile (non wizard multi-pagina) con sezioni collassate di default per i campi con default intelligente. Ogni sezione collassata mostra `"Esperienza: Intermedio (default) ✎"` → click per espandere e modificare. Riduce friction cognitivo e numero di click.
+
+#### Post-submit
+Scheda proposta → bottoni:
+- `"Modifica"` → apre il modal "Genera scheda" esistente (`PatientDetail` 6114) con tutti i valori pre-popolati. Il PT ritocca il split, cambia esercizi, salva.
+- `"Invia al cliente"` → crea `sharedClients/{sid}` (riusa `buildSchedaAttuale` 4587 + `generaShareId` 4580), mostra link `/s/xxx` copiabile + QR. Il PT può anche mandarlo direttamente via WhatsApp.
+- `"Salva come paziente"` → crea `patients[]` entry in `users/{uid}/appdata/main` con la scheda allegata.
 
 ### D.5 Hook theme loader (per tutti i surface)
 - `index.html`: dentro `App.loadProfile` (6703-6716), DOPO `setProfile(p)`, aggiungere:
@@ -278,63 +334,52 @@ Sotto-schermata di D.1 (step 2) e anche voce separata "Palestra → Branding" pe
 
 ---
 
-## E. Piano implementazione (step piccoli e testabili)
+## E. Piano implementazione (ordinato per impatto, non per architettura)
 
-**STEP 0 — Prep (nessuna feature utente)**
-- File: `docs/GYM_PLAN.md` (questo file). Branch separato, no merge.
-- Rischio: nullo.
+L'ordine riflette l'obiettivo primario (minimizzare "cliente nuovo → scheda inviata") e il principio: **la valutazione rapida deve essere live PRIMA del piano Palestra**, utilizzabile da ogni PT senza palestra. L'account gym arriva dopo.
 
-**STEP 1 — Refactor branding: estrarre `--accent`**
-- File: `index.html` (sostituire `C.blue` → `var(--accent)` dove usato come colore brand, mantenere `blue:'#3b82f6'` come fallback nel `:root`), `atleta.html` (sostituire `#185FA5` inline → `var(--accent)` con default `#185FA5` nel `:root`), `share.html` (idem), `sw.js` (bump cache a `ptboard-v56`).
-- Test: deploy, verificare che aspetto sia IDENTICO a oggi (nessun cambio visivo).
-- Rischio: medio (tanti punti da toccare). Mitigazione: sostituzioni ESATTE una alla volta, screenshot before/after.
+**FASE 1 — Valutazione rapida (indipendente dal piano Palestra)**
+Obiettivo: cliente nuovo → scheda proposta in ~3 minuti.
+- STEP 1.1 — Modal "Valutazione rapida" in `index.html` (vedi §D.4), un form singolo scrollabile con default intelligenti e short-circuit PAR-Q+/clinica. Reuse `generaSchedaAuto` 7418, `calcScoreAnamnestico` 3292, `INIT_EXERCISES` 3763-4062. Entry point: nuovo bottone "⚡ Valutazione rapida" in `PatientList` 4519-4579 e in `Dashboard` 4319-4518.
+- STEP 1.2 — Post-submit: 3 bottoni "Modifica/Invia/Salva" (vedi §D.4). Reuse `buildSchedaAttuale` 4587, `generaShareId` 4580.
+- Test: PT senza gym, cliente nuovo, cronometro: deve arrivare al link `/s/xxx` sotto 5 minuti.
+- Rischio: basso. Nessuna modifica a `users/{uid}/appdata/main` fuori dal flusso `PatientForm` esistente ⇒ autosave guard non toccato.
+- **Risultato parziale a fine FASE 1**: tutti i PT (anche senza palestra) hanno la valutazione rapida. Valore immediato, zero dipendenze da gym.
 
-**STEP 2 — Modello dati gym (passivo, solo campi)**
-- File: `firestore.rules` (nuovi blocchi `gyms`, `gymInvites`), `CLAUDE.md` (aggiornare appendice).
-- Opzionale: add `plan='gym'` nei gate esistenti (416, 6710, 7133, 10815, 10968, 10996) trattandolo = `pro\|team`.
-- Test: con utente admin, creare manualmente `gyms/test1` da console → leggibile da anonimo via SDK.
-- Rischio: basso. **Attenzione Regola Critica #3**: pubblicare file INTERO su Firebase Console; verifica 9 blocchi (7 esistenti + 2 nuovi) prima e dopo il deploy.
+**FASE 2 — Account palestra + inviti PT**
+Obiettivo: titolare può creare il suo gym e invitare i suoi PT.
+- STEP 2.1 — Refactor branding: estrarre `--accent` CSS var in `index.html`, `atleta.html`, `share.html`. Bump `sw.js` cache. Test visuale pixel-perfect pre/post (nessun cambio visivo). Rischio: medio (molte sostituzioni). Prerequisito tecnico per FASE 3.
+- STEP 2.2 — Modello dati gym passivo: `firestore.rules` (nuovi blocchi `gyms`, `gymInvites`), `plan='gym'` trattato come `pro\|team` nei gate (416, 6710, 7133, 10815, 10968, 10996). CLAUDE.md aggiornato. **Attenzione Regola Critica #3**: pubblicare file INTERO, verifica 9 blocchi.
+- STEP 2.3 — Screen `gymOnboarding` in `index.html`: form "Crea la tua palestra" (nome, poi logo+branding è FASE 3; qui solo nome e creazione record). Hook `applyGymTheme` in `App.loadProfile` 6716 (anche se tema vuoto, no-op).
+- STEP 2.4 — Screen `gymMembers` in `index.html`: lista inviti pending + lista membri + "Invita PT" (form email) + "Rimuovi PT" (opzione (a): no transfer, vedi §D.3). Nuovo endpoint Cloudflare Worker `/gym-send-invite` + `/gym-remove-pt` (service-account), nuovo template Brevo.
+- STEP 2.5 — Accettazione invito: lato PT invitato, deep link `?inviteGym=<id>` processato in `App.loadProfile`. Validazione match-email + transizione `gymInvites.status='accepted'`.
+- Test: owner crea gym, invita PT A (email), A fa signup → vede banner "Invito a FitLab Roma", accetta, `users/A.gymId` popolato. Owner rimuove A → `A.gymId=null`, i clienti di A restano in `users/A/appdata/main` intatti.
+- Rischio: medio. Email+rimozione via Worker (nessuna chiave API frontend, no rules fragili su `users`).
 
-**STEP 3 — Onboarding palestra + hook theme loader**
-- File: `index.html`. Add state `showGymOnboarding` 6818, componente `GymOnboarding`, voce `navItems` 7022, hook `applyGymTheme` in `App.loadProfile` 6716.
-- Test: PT loggato crea un gym vuoto, logout+login → tema caricato (anche se tema vuoto = default).
-- Rischio: basso. Nessun impatto sui PT senza `gymId` (campo `null` ⇒ hook salta).
+**FASE 3 — Branding dal logo**
+Obiettivo: titolare carica logo → palette estratta → tema applicato ovunque.
+- STEP 3.1 — Screen `gymBranding` in `index.html`: upload file, canvas resize 256px → WebP 0.85/0.75/0.6 fallback PNG, estrazione colori via istogramma 12-bit (scartare neutri/alpha<128), color picker + WCAG AA check (`luminance`+`contrast` helpers inline). Salva in `gyms/{gymId}.theme` + `.logo` (dataURI inline <60KB).
+- STEP 3.2 — Theming surfaces: `atleta.html` legge `?gym=<id>` da URL, carica tema. `share.html` legge `sharedClients/{sid}.gymId` (denormalizzato in `buildSchedaAttuale` 4587) e applica tema. PDF export (3006-3033, 4705-5070, 9526-9668): sostituire `#3b82f6` → `theme.accent`, footer "Generata con PT Board" → `nomeStudio`.
+- Test: owner carica 3 loghi diversi, verifica estrazione, applicazione live, salvataggio. Cliente apre link `/s/xxx` → vede tema del gym. PDF export brandizzato.
+- Rischio: basso (tutto client-side; retrocompat garantita da `gymId:null` ⇒ nessun hook).
 
-**STEP 4 — Editor branding (upload logo + palette)**
-- File: `index.html`. Nuovo screen `page='gymBranding'`, funzione `extractDominantColors(img)`, color picker, WCAG check.
-- Test: upload di 3 loghi diversi, verifica estrazione, verifica che il tema si applichi live in preview, salvataggio in `gyms/{gymId}.theme`, applicazione dopo reload.
-- Rischio: basso. Logica tutta client-side; nessun impatto sugli altri PT.
+**FASE 4 — Dashboard titolare read-only**
+Obiettivo: il titolare vede attività aggregata dei suoi PT.
+- STEP 4.1 — Nuovo screen `gymDashboard` in `index.html` (visibile solo se `profile.gymRole==='owner'`). Query `gyms/{gymId}.members` → per ogni PT: counts di `patients[]`, `bookings[]`, `schede` generate ultimi 30g.
+- STEP 4.2 — Accesso ai dati PT: 2 opzioni, scegliere in sede:
+  - (a) Denormalizzare metrics aggregate dentro `gyms/{gymId}.metrics` (scritte lato PT ad ogni save). **Semplice ma eventually-consistent**.
+  - (b) Rules nuove: `users/{ptUid}/appdata/main` read solo se `request.auth.uid == gyms/{gymId}.ownerUid AND ptUid in gyms/{gymId}.members`. **Fragile, rischio data leak**.
+  - **Raccomandato (a)**: metrics denormalizzate, PT scrive lato client all'autosave (sotto il guard `loadedFromFirebase.current`).
+- Test: owner apre dashboard, vede PT A (12 clienti, 3 schede ultimo mese) e PT B (5 clienti, 1 scheda). Nessun dato cliente sensibile esposto (solo counts).
+- Rischio: medio. Attenzione privacy: metrics ma mai dati identificativi dei clienti.
 
-**STEP 5 — Gestione PT (invita + revoca + rimuovi)**
-- File: `index.html` (screen `page='gymMembers'`), **Cloudflare Worker** (nuovo endpoint `/gym-send-invite` + `/gym-remove-pt` service-account mediated), `firestore.rules` (rule `gymInvites` già in STEP 2), Brevo template nuovo (template id da assegnare).
-- Test: owner invita un email A; A fa signup con quella email, vede banner "Invito a FitLab Roma", accetta, `users/A.gymId` popolato. Owner rimuove A → `A.gymId=null`, `A` perde accesso al tema gym.
-- Rischio: medio. **Email via Worker** (Brevo), non client. **Rimozione via Worker** (service account) per evitare di aprire rules fragili.
-
-**STEP 6 — Valutazione rapida**
-- Scelta: modal in `index.html` (semplice, solo PT loggato) VS pagina pubblica (`/valutazione.html` o `atleta.html?mode=assessment`).
-- Raccomandato MVP: **modal in `index.html`**. Entry da `PatientDetail` (nuovo cliente) + da onboarding palestra ("Valuta subito un cliente").
-- File: `index.html` solo. Reuse `generaSchedaAuto`, `calcScoreAnamnestico`.
-- Test: 8 domande → scheda proposta → "Modifica" apre modal esistente → "Salva" crea paziente + scheda.
-- Rischio: basso (riuso puro di funzioni esistenti). Attenzione a NON by-passare autosave guard (vedi §F).
-
-**STEP 7 — PDF theming**
-- File: `index.html` 3006-3033 (`exportPDFLista`), 4705-5070 (scheda cliente), 9526-9668 (wizard).
-- Sostituire `#3b82f6` → `theme.accent`, footer "Generata con PT Board" → `nomeStudio`, aggiungere `logo` del gym nel header se presente.
-- Test: PDF export con e senza `gymId`.
-- Rischio: basso.
-
-**STEP 8 — Share theming**
-- File: `index.html` call site di `generaShareId`/`buildSchedaAttuale` (4580, 4587) → denormalizzare `gymId, gymTheme, gymLogo, gymNome` dentro `sharedClients/{sid}` al momento della condivisione. `share.html` legge e applica tema.
-- Test: PT di un gym condivide; cliente apre `/s/xxx` → vede tema del gym.
-- Rischio: basso.
-
-**STEP 9 — Atleta theming**
-- File: `atleta.html`. Al load, se c'è `?gym=<gymId>` o se l'atleta loggato ha un PT con `gymId` (richiede lookup atleta→invitedBy→users/{inviter}.gymId), applica tema.
-- Rischio: basso.
-
-**STEP 10 — Stripe `gym` plan (fase separata)**
-- File: `index.html:136-141` (aggiungi `gymMonthly`, `gymYearly` in `PLANS`), Cloudflare Worker (webhook Stripe aggiornato), Brevo (template upgrade).
-- Rischio: medio (soldi). Fuori scope di questo doc per ora, solo prevedere i campi.
+**FASE 5 — Piano 'gym' + Stripe (fase separata)**
+Obiettivo: monetizzare il piano Palestra.
+- STEP 5.1 — Payment Link Stripe nuovi (`gymMonthly`, `gymYearly`) in `PLANS` 136-141. Nuove copy paywall per gym.
+- STEP 5.2 — Webhook Stripe (Cloudflare Worker esistente) aggiornato per attivare `plan='gym'` + `planExpiresAt` dopo pagamento su `gyms/{gymId}` (NON più su `users/{uid}` singolo).
+- STEP 5.3 — Enforcement: hook `isTrialExpired` 416 e `loadProfile` 6710 verificano `plan==='gym'` tramite `gyms/{gymId}.planExpiresAt` (non `users/{uid}.planExpiresAt`). Durante il trial del gym, tutti i membri hanno accesso senza paywall.
+- STEP 5.4 — Email di onboarding palestra (template Brevo nuovo).
+- Rischio: medio (soldi + flussi webhook). Prerequisito: FASE 2 completata e testata con utenti reali in modalità gratuita.
 
 ---
 
