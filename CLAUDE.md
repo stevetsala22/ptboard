@@ -29,7 +29,9 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 6. **i18n**: ogni nuovo testo UI va aggiunto in **tutte e 3 le lingue** (IT @ `index.html:457`, EN @ 1306, FR @ 2155). Stessa chiave in tutti e tre i blocchi.
 7. **Auto-save**: non introdurre logiche che possano sovrascrivere dati remoti con stato locale vuoto. Il guard `loadedFromFirebase` (useRef) blocca il save fin quando `fbLoad` non è completato (vedi §Trappole note).
 8. **ADMIN_EMAIL** = `stevetsala22@gmail.com` (hardcoded in `index.html:133`). Attenzione ai typo (NON `tsalasteve22`). Usato sia nel codice che nelle regole Firestore.
-9. **Prima di modificare codice**, leggere la versione live da `https://raw.githubusercontent.com/stevetsala22/ptboard/main/<file>` oppure il file nel repo locale appena pullato: i numeri di riga si spostano a ogni commit.
+9. **`buildSchedaAttuale` (`index.html:4587`) e `buildGiorniDaTutteLeSchede` (`index.html:4611`) devono restare allineate**: se modifichi una, verifica anche l'altra e `share.html`. Entrambe raggruppano gli esercizi per `sezione` ma scrivono/consumano formati diversi (la prima scrive `sharedClients/{sid}.schedaAttuale`, la seconda formatta per la vista share) — un cambio di regola di splitting in una sola delle due produce schede divise male lato cliente.
+10. **File asset non eliminare né rinominare**: `dashboard.jpg` e `mobile.jpg` sono usati come `og:image` da `landing.html`; `PTBoard_Guida_Rapida_PT.pdf` è linkato da `index.html`. Nonostante il nome storico, NON sono legacy.
+11. **Prima di modificare codice**, leggere la versione live da `https://raw.githubusercontent.com/stevetsala22/ptboard/main/<file>` oppure il file nel repo locale appena pullato: i numeri di riga si spostano a ogni commit.
 
 ## Mappa dei file
 - `index.html` — app PT single-file (~11.500 righe). Vedi §Mappa index.html.
@@ -43,7 +45,9 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `sw.js` — service worker PWA (cache `ptboard-v55`).
 - `manifest.json`, `icon192.png`, `icon512.png`, `favicon.*` — PWA assets.
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
-- `PTBoard_v8…v13.html`, `PTBoard_v8 (5-7).html`, `PTBoard_Tutorial.html`, `PTBoard_Guida_Rapida_PT.pdf`, `files.zip`, `dashboard.jpg`, `mobile.jpg` — snapshot legacy, NON referenziati dall'app in esecuzione. Clutter nel repo (vedi §Da verificare).
+- `dashboard.jpg`, `mobile.jpg` — immagini `og:image` referenziate da `landing.html`.
+- `PTBoard_Guida_Rapida_PT.pdf` — guida scaricabile, linkata da `index.html`.
+- `PTBoard_v8…v13.html`, `PTBoard_v8 (5-7).html`, `PTBoard_Tutorial.html`, `files.zip` — snapshot legacy, NON referenziati dall'app in esecuzione. Clutter nel repo (vedi §Da verificare).
 
 ### Mappa `index.html` (range di righe approssimativi)
 - 1–120: license, Sentry, cookie banner, GA4, Meta Pixel, SW registration, splash redirect, CDN loader (React/Babel/Chart.js/Firebase compat 10.7.0/EmailJS).
@@ -152,14 +156,15 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - Admin: `stevetsala22@gmail.com`
 - Supporto cliente: `ptboard.info@gmail.com`
 
+## Librerie esercizi (due, separate)
+- **`index.html`** — `INIT_EXERCISES` (`index.html:3763-4062`): **254 esercizi** `E01..E254`, oggetti `{id, nome:{it,en,fr}, cat, muscoli, desc, livello, equip, primary, move, primarySplit}`. Fonte di verità per PT, auto-generatore, condivisione.
+- **`atleta.html`** — `EXERCISE_LIBRARY` (`atleta.html:333`): **222 nomi** `{it,en,fr}`. Lista separata, usata solo per l'autocomplete del wizard setup scheda atleta. **I nomi NON sono allineati** alla libreria principale di `index.html` (sono stati inseriti a mano, molti coincidono ma la copertura è parziale).
+
 ## Da verificare (incongruenze trovate nel repo)
-- **`applicaPerAutogen`**: la vecchia CLAUDE.md e il briefing lo citano, ma `grep` nel repo non lo trova. Probabile rename o funzione mai esistita con quel nome; non rimuovere riferimenti senza chiedere a Steve.
-- **EXERCISE_LIBRARY count**: il commento in `atleta.html:332` dice "248 esercizi PT Board", il count effettivo è **222**. Chiedere se mancano 26 esercizi o se il commento va corretto.
-- **Snapshot legacy nella root**: `PTBoard_v8…v13.html`, `PTBoard_v8 (5-7).html`, `PTBoard_Tutorial.html`, `PTBoard_Guida_Rapida_PT.pdf`, `files.zip`, `dashboard.jpg`, `mobile.jpg` — nessuno è referenziato dall'app in esecuzione, ma GitHub Pages li serve tutti. Candidati alla rimozione se Steve conferma.
-- **Working notes stale**: `i18n_audit.md` cita "10316 righe" (oggi `index.html` ne ha 11525); `exercises_translation_preview.md` è labelled "Batch H". Entrambi probabilmente obsoleti.
-- **Rules duplicate match**: `firestore.rules` ha due blocchi `match /users/{userId}` (owner + admin, righe 6–11 e 14–17). Funziona (Firestore fa union delle match) ma è poco leggibile — se si tocca il file, considerare consolidazione in un singolo blocco con OR.
-- **`buildSchedaAttuale` (4587) vs `buildGiorniDaTutteLeSchede` (4611)**: entrambe raggruppano per `sezione` ma con regole di precedenza leggermente diverse. `share.html` consuma la prima via `data.schedaAttuale`. Tenere allineate quando si tocca la logica sezione.
-- **Brevo 4↔5 swap**: confermato dal frontend (`ONBOARDING_EMAILS`), ma le configurazioni Brevo lato Worker/Dashboard non sono in questo repo. Prima di toccare, chiedere a Steve di controllare in Brevo che il template 4 sia davvero quello day25 e viceversa.
+- **TODO: generare `EXERCISE_LIBRARY` di `atleta.html` dai 254 di `index.html`** — serve uno script/one-shot che estragga `INIT_EXERCISES[].nome` e lo rigetti dentro `atleta.html:333` così le due liste restano sincronizzate (oggi divergono: 254 vs 222, con nomi non 1:1).
+- **Working notes stale**: `i18n_audit.md` cita "10316 righe" (oggi `index.html` ne ha 11525); `exercises_translation_preview.md` è labelled "Batch H". Entrambi probabilmente obsoleti (candidati alla rimozione).
+- **Rules duplicate match**: `firestore.rules` ha due blocchi `match /users/{userId}` (owner + admin, righe 6–11 e 14–17). Funziona (Firestore fa union delle match). **Deciso: lasciare invariato**.
+- **Brevo 4↔5 swap**: `templateId:4 → day25`, `templateId:5 → day14` nel frontend. **Deciso: lasciare invariato** (vedi Regola Critica #5).
 
 ---
 
