@@ -62,9 +62,12 @@ gyms/{gymId} = {
   nome,
   logo: 'data:image/webp;base64,…',   // ≤60KB inline
   theme: {bg, sidebar, card, border, border2, text, muted, dim, strong, accent, accentContrast},
-  ownerUid,
+  ownerUid,                            // IMMUTABILE dopo la create
   members: [uid1, uid2, …],            // include ownerUid
   memberRoles: {uid1:'owner', uid2:'trainer', …},
+  activeInvites: ['A4K9PX', 'Q7PNHJ'], // codici invito attivi (array di document id di gymInvites),
+                                       // per enumerazione lato owner SENZA list query su gymInvites.
+  joinCode: '',                        // scratch field usato dalla rule self-join (vedi §C).
   createdAt, updatedAt, active:true,
   plan: 'gym',                         // futuro Stripe
   stripeCustomerId: null, stripeSubscriptionId: null, planExpiresAt: null
@@ -92,18 +95,14 @@ gyms/{gymId}/clients/{clientId}/schede/{schedaId} = {
   createdByUid, createdAt
 }
 
-gymInvites/{inviteId} = {
-  // Il campo code e' una stringa normalizzata (uppercase, no I/O/0/1):
-  // charset: ABCDEFGHJKLMNPQRSTUVWXYZ23456789 → 32 caratteri, 6 char = ~1 miliardo di combinazioni
-  // Letture: via link (document id = inviteId) oppure via query where code==X.
-  inviteId,
-  code: 'A4K9PX',                       // 6 char, unique per gym
-  gymId, gymNome,
-  invitedByUid,
-  createdAt, expiresAt: createdAt + 7g,
-  maxUses: 10, used: 0,
-  status: 'active'|'expired'|'revoked',
-  acceptedBy: [{uid, acceptedAt}]
+gymInvites/{code} = {
+  // Document id = code 6 char (es. "A4K9PX"). Nessun campo 'code' separato.
+  // Letture: SOLO via get(doc id). Nessuna list sulla collezione (vedi §C).
+  gymId, gymNome,                       // IMMUTABILI dopo la create
+  invitedByUid,                         // IMMUTABILE
+  createdAt,
+  expiresAt,                            // timestamp (default createdAt + 7g, max 30g)
+  status: 'active' | 'revoked' | 'expired'
 }
 ```
 
@@ -275,20 +274,51 @@ Firestore `.update()` è atomico sui campi passati; non tocca il resto. Zero con
 
 Da aggiungere PRIMA del deny finale, mantenendo i 7 blocchi esistenti (Regola Critica #3).
 
+**Principi di sicurezza v2 (aggiornati):**
+- L'**id del documento invito è il codice stesso** (6 char uppercase). Niente campo `code` separato, niente query `where code==X`: la validazione passa da `get()` diretto sull'id.
+- Nessuna `list` sulla collezione `gymInvites`: solo `get` del singolo documento. L'owner conosce i codici dei propri inviti perché sono salvati su `gyms/{gymId}.activeInvites[]` (vedi sotto).
+- L'accettazione dell'invito è **client-side con validazione nelle rules**: il PT fa un `.update()` sul doc gym che aggiunge solo il proprio uid a `members` + `memberRoles[uid]='trainer'` + registra `joinCode`. La rule confronta i diff e verifica l'invito via `get()`.
+- `ownerUid` è immutabile dopo la create. `members` alla create = `[request.auth.uid]` esatto (nessuno può piazzare altri uid al momento della fondazione).
+
 ```
 // ── GYMS ──
 match /gyms/{gymId} {
   // Lettura: tutti i membri possono leggere il doc gym (nome, logo, theme, members).
-  // Scrittura: solo owner (o admin).
   allow read: if request.auth != null
               && resource.data.members.hasAny([request.auth.uid]);
+
+  // Create: il fondatore e' owner e UNICO membro iniziale.
   allow create: if request.auth != null
                 && request.resource.data.ownerUid == request.auth.uid
-                && request.resource.data.members.hasAny([request.auth.uid]);
+                && request.resource.data.members == [request.auth.uid]
+                && request.resource.data.memberRoles[request.auth.uid] == 'owner';
+
+  // (A) Update completo dell'owner: puo' cambiare tutto EXCETTO ownerUid.
   allow update: if request.auth != null
-                && resource.data.ownerUid == request.auth.uid;
+                && resource.data.ownerUid == request.auth.uid
+                && request.resource.data.ownerUid == resource.data.ownerUid;
+
+  // (B) Update dell'admin: stessa clausola di invarianza su ownerUid.
   allow update: if request.auth != null
-                && request.auth.token.email == 'stevetsala22@gmail.com';
+                && request.auth.token.email == 'stevetsala22@gmail.com'
+                && request.resource.data.ownerUid == resource.data.ownerUid;
+
+  // (C) Self-join di un PT invitato: diff SOLO su members + memberRoles + joinCode.
+  // La rule valida: (1) il PT aggiunge SOLO il proprio uid a members; (2) il suo ruolo
+  // e' 'trainer'; (3) il codice usato esiste come doc gymInvites/{joinCode}, e' active,
+  // non scaduto, e punta a questo gymId. ownerUid immutabile, members esistenti preservati.
+  allow update: if request.auth != null
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['members','memberRoles','joinCode'])
+                && request.resource.data.ownerUid == resource.data.ownerUid
+                && !(request.auth.uid in resource.data.members)
+                && request.resource.data.members == resource.data.members.concat([request.auth.uid])
+                && request.resource.data.memberRoles[request.auth.uid] == 'trainer'
+                && exists(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode))
+                && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.gymId == gymId
+                && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.status == 'active'
+                && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.expiresAt > request.time;
+
   allow delete: if request.auth != null
                 && resource.data.ownerUid == request.auth.uid;
 
@@ -306,66 +336,120 @@ match /gyms/{gymId} {
   }
 }
 
-// ── INVITI PT (link + codice) ──
+// ── INVITI PT (codice 6 char = document id) ──
 match /gymInvites/{inviteId} {
-  // Owner (invitedByUid) ha pieno controllo del suo invito.
-  // Chiunque loggato puo' leggere un invito per validarlo (sia via inviteId che via code);
-  // la lettura espone solo gymId, gymNome, expiresAt, status, maxUses, used (sensibili zero).
+  // (1) Owner crea l'invito. inviteId e' il codice stesso (uppercase, charset no-ambigui).
+  //     Alla create, status='active' e expiresAt entro 30 giorni.
   allow create: if request.auth != null
                 && request.resource.data.invitedByUid == request.auth.uid
-                && request.resource.data.status == 'active';
-  allow read: if request.auth != null;
-  // Owner puo' revocare o aggiornare maxUses/expiresAt
+                && request.resource.data.status == 'active'
+                && request.resource.data.expiresAt is timestamp
+                && request.resource.data.expiresAt > request.time
+                && request.resource.data.expiresAt < request.time + duration.value(30, 'd');
+
+  // (2) GET consentito a chiunque loggato (serve per validare il codice all'accept).
+  //     NESSUN allow list: nessuno puo' enumerare la collezione.
+  //     L'owner elenca i propri inviti via gyms/{gymId}.activeInvites[] (array di codici).
+  allow get: if request.auth != null;
+
+  // (3) Update: solo l'owner originale puo' revocare / cambiare la scadenza.
+  //     invitedByUid immutabile; gymId immutabile.
   allow update: if request.auth != null
-                && resource.data.invitedByUid == request.auth.uid;
-  // Il destinatario puo' solo transire da 'active' a usarlo: usa un helper Cloudflare Worker
-  // (service account) che valida codice + scadenza + maxUses, aggiunge l'uid a gyms.members,
-  // incrementa used, setta gymId/gymRole su users/{uid}. Vedi §Inviti PT.
-  // Niente write anonima lato client sull'invito.
+                && resource.data.invitedByUid == request.auth.uid
+                && request.resource.data.invitedByUid == resource.data.invitedByUid
+                && request.resource.data.gymId == resource.data.gymId;
+
+  // (4) Delete solo dall'owner.
   allow delete: if request.auth != null
                 && resource.data.invitedByUid == request.auth.uid;
 }
 ```
 
+**Nota su `used`/`maxUses`**: rimossi dallo schema. Un contatore atomico lato client non è verificabile dalle rules (le rules vedono solo lo stato prima della write; incrementare `used` e verificare `used<maxUses` nella stessa transazione del self-join richiederebbe un server). **Difesa compensativa**: scadenza breve (default 7g, max 30g) + revoca istantanea via `status='revoked'`. Se serve limitare i join a 1-N PT specifici, l'owner può creare N inviti distinti (uno per PT) e revocarli dopo l'uso.
+
+
 **Verifica post-pubblicazione** (Regola Critica #3): 7 blocchi esistenti (owner users ×2, admin users, admin appdata, deleteFeedback, sharedClients, athletes) + 2 nuovi blocchi (gyms + gymInvites) + deny finale = **10 match** da controllare.
 
 **Scelta esplicita**: lettura di `gyms/{gymId}` ora è gated ai soli membri (contrariamente alla v1 che lasciava read:true per lo spazio pubblico). Motivo: `members[]` contiene gli uid dei PT, dato leggermente sensibile. Il branding (nome/logo/theme) per clienti anonimi (atleta.html/share.html) viene **denormalizzato nei doc che gli servono** (es. in `sharedClients/{sid}.gymBranding`).
 
-## Inviti PT (link + codice 6 caratteri)
+## Inviti PT (codice 6 caratteri = document id)
+
+**Flusso 100% client-side. Nessun Cloudflare Worker, nessun service account, nessun endpoint custom.**
 
 ### Generazione (owner)
 Schermata "Palestra → Membri" → bottone "Invita PT". Form:
-- Opzionale: email (per promemoria via Brevo).
 - Scadenza: 7 giorni (default), slider 1–30.
-- `maxUses`: 10 (default), 1-100.
+- Opzionale: email (per promemoria via Brevo, tramite Worker esistente `/send-email`).
 
-Click "Genera" → Cloudflare Worker endpoint `POST /gym-invite-create`:
-- Genera `code` di 6 char ASCII pulito (charset `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, no I/O/0/1 per evitare ambiguità visive).
-- Verifica unicità del code dentro il gym (collisione ~1 in 10^9, retry on collision).
-- Crea `gymInvites/{inviteId} = {code, gymId, invitedByUid, createdAt, expiresAt, maxUses, used:0, status:'active'}`.
-- Opzionale: invia email al destinatario via Brevo (nuovo template).
+Click "Genera" (client-side, nessun Worker custom):
+1. Il client genera un `code` di 6 char dal charset `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (32 char, no I/O/0/1 per evitare ambiguità) — ~10^9 combinazioni. 32⁶ ≈ 1.07 × 10⁹.
+2. `fbDb.collection('gymInvites').doc(code).set({invitedByUid: uid, gymId, gymNome, createdAt: serverTimestamp, expiresAt: now + 7g, status:'active'})` **con `{merge:false}` + check preliminare `.get()` per evitare collisione (retry ≤5 volte generando un nuovo code)**.
+3. Lo stesso client aggiorna `gyms/{gymId}.activeInvites = arrayUnion(code)` → l'owner avrà la lista enumerabile dei suoi codici *senza* bisogno di una `list` query sulla collezione `gymInvites`.
+4. (Opzionale) Il client chiama il Worker Brevo esistente (`WORKER_URL+'/send-email'`) con nuovo template id per mandare il codice via email.
 
-Owner vede link `https://personaltrainerboard.com/?joinGym=<inviteId>` + codice `A4K9PX`. Entrambi funzionano.
+Owner vede link `https://personaltrainerboard.com/?joinGym=A4K9PX` + codice `A4K9PX`. Entrambi funzionano (il link preformatta il codice).
 
-### Uso (PT invitato)
-Due path:
-1. **Link**: apre il sito con `?joinGym=<inviteId>`. Dopo login, `App.loadProfile` processa il query param → chiama Worker `POST /gym-invite-accept {inviteId}`.
-2. **Codice**: pannello "Entra in una palestra" nel menu account → textbox 6 char → chiama Worker `POST /gym-invite-accept {code}`.
+### Uso (PT invitato) — self-join client-side
+Due entry point:
+1. **Link**: `?joinGym=A4K9PX` catturato in `App.loadProfile` dopo l'auth.
+2. **Codice manuale**: pannello "Entra in una palestra" nel menu account → textbox 6 char.
 
-Worker service-account valida (`status==='active'`, `expiresAt > now`, `used < maxUses`) e in transazione:
-- Aggiunge `uid` a `gyms/{gymId}.members`, imposta `memberRoles[uid]='trainer'`.
-- Setta `users/{uid}.gymId`, `users/{uid}.gymRole='trainer'`, `users/{uid}.spaces=[...existing,'gym']`, `users/{uid}.lastSpace='gym'`.
-- Incrementa `gymInvites/{inviteId}.used`. Se `used>=maxUses`, setta `status='exhausted'`.
+Entrambi chiamano lo stesso handler client-side `acceptGymInvite(code)`:
+```js
+async function acceptGymInvite(code){
+  const codeUp = code.toUpperCase().trim();
+  // 1. Legge l'invito via GET diretto (allowed by rule allow get). Se non esiste o scaduto, errore.
+  const inv = await fbDb.collection('gymInvites').doc(codeUp).get();
+  if(!inv.exists) throw new Error('invite-not-found');
+  const d = inv.data();
+  if(d.status !== 'active') throw new Error('invite-not-active');
+  if(d.expiresAt.toMillis() < Date.now()) throw new Error('invite-expired');
+
+  // 2. Self-join sul gym: solo i tre campi diff ammessi dalla rule (members, memberRoles, joinCode).
+  const gymRef = fbDb.collection('gyms').doc(d.gymId);
+  const gym = await gymRef.get();
+  const gymData = gym.data();
+  if(gymData.members.includes(uid)) throw new Error('already-member');
+  const newMembers = [...gymData.members, uid];
+  const newRoles = {...gymData.memberRoles, [uid]: 'trainer'};
+  await gymRef.update({
+    members: newMembers,
+    memberRoles: newRoles,
+    joinCode: codeUp   // la rule confronta joinCode con get(gymInvites/joinCode)
+  });
+
+  // 3. Il PT scrive il proprio profilo (allowed by owner rule su /users/{uid}).
+  await fbDb.collection('users').doc(uid).set({
+    gymId: d.gymId,
+    gymRole: 'trainer',
+    spaces: arrayUnion('gym'),
+    lastSpace: 'gym'
+  }, {merge:true});
+
+  showToast(T.gymJoinSuccess.replace('{nome}', d.gymNome), 'success');
+}
+```
+
+**Perché è sicuro senza Worker:**
+- La rule (C) `self-join` controlla che la diff tocchi solo `members/memberRoles/joinCode`, che l'uid aggiunto sia esattamente `request.auth.uid`, che `memberRoles[uid]='trainer'`, e che `gymInvites/{joinCode}` esista con `gymId==gymId`, `status='active'`, `expiresAt > now`.
+- Un attaccante che tenta di aggiungere un altro uid: fallisce perché `members[new] == request.auth.uid` è obbligatorio.
+- Un attaccante che tenta di modificare `ownerUid`, `nome`, `theme`, ecc. nella stessa write: fallisce perché `affectedKeys().hasOnly(['members','memberRoles','joinCode'])`.
+- Un codice scaduto o revocato: fallisce perché la rule interroga lo stato attuale di `gymInvites/{code}`.
+- Un codice indovinato per brute force: 32⁶ combinazioni ≈ 1.07 × 10⁹, Firestore throttles le read anonime, scadenza 7g, `allow get` ma **nessun `list`** → l'attaccante deve indovinare un codice specifico attivo in questo momento.
 
 ### Revoca (owner)
-Bottone "Revoca" sulla riga dell'invito nella UI → `gymInvites/{inviteId}.status='revoked'`. Chi tenta `/gym-invite-accept` dopo la revoca riceve 410.
+Bottone "Revoca" nella lista → `gymInvites/{code}.update({status:'revoked'})`, + `gyms/{gymId}.activeInvites = arrayRemove(code)`. Rule (C) di self-join rifiuta subito dopo (`status != 'active'`).
+
+### Elenco inviti attivi (owner)
+L'owner **non interroga** `gymInvites` con una `where`. Legge `gyms/{gymId}.activeInvites[]` (array di codici) e per ogni codice fa un `get` singolo su `gymInvites/{code}` per sapere `createdAt`/`expiresAt`/`status`. Se un codice è scaduto o revocato, il bottone "Pulisci inviti" lo rimuove dall'array (`arrayRemove`).
 
 ### Rimozione PT dalla palestra
-Owner nel pannello Membri → bottone "Rimuovi" per riga. Chiede conferma, poi chiama Worker `POST /gym-member-remove {uid}`:
-- Rimuove `uid` da `gyms/{gymId}.members`, da `memberRoles`.
-- Setta `users/{uid}.gymId=null`, `users/{uid}.gymRole=null`, `users/{uid}.spaces` rimuove `'gym'`. Se l'utente era in `lastSpace='gym'`, forza `lastSpace='pt'` (se ha ancora lo spazio PT) o lascia la UI con un placeholder "Non appartieni più a nessuna palestra".
-- **I clienti e le schede del gym restano INVARIATI nei subcollection.** Nessuna migrazione.
-- Il PT rimosso al prossimo refresh perde il permesso di leggere `gyms/{gymId}/clients/**` (rule denies). Al suo prossimo login il tema gym non si applica più.
+Owner nel pannello Membri → bottone "Rimuovi" per riga. Operazione **100% client-side**, nessun Worker:
+1. `gyms/{gymId}.update({members: newMembers, memberRoles: newRoles})` dove `newMembers = oldMembers.filter(u => u !== targetUid)` e `newRoles` rimuove la chiave `targetUid`. Permesso dalla rule (A) owner-update (owner può toccare qualsiasi campo tranne `ownerUid`).
+2. **NON scrive `users/{targetUid}` dall'account owner** (le rules non lo permettono). Il profilo del PT rimosso viene "ripulito" al suo prossimo login: `App.loadProfile` del PT rilegge `gyms/{gymId}` → read-denied (non più in `members`) → setta `users/{targetUid}.gymId=null, gymRole=null, spaces=arrayRemove('gym')` sul proprio profilo (allowed dalla owner-rule su `/users/{uid}`).
+3. Nel frattempo, se il PT rimosso è ancora loggato, al prossimo refresh/listener il suo accesso ai clienti del gym fallisce: le rules deny al nuovo stato `members` lo bloccano. UI mostra "Accesso scaduto".
+4. **I clienti e le schede del gym restano INVARIATI nei subcollection.** Nessuna migrazione.
+
 
 ## Branding (invariato da v1)
 
@@ -450,13 +534,16 @@ Questa non è consulenza legale: Steve verifichi con il DPO della palestra reale
 - Test: nel gym appena creato, "⚡ Valutazione rapida" crea un cliente nella subcollection (verifica da Firestore Console). Due browser dello stesso owner vedono il nuovo cliente in real-time.
 - Rischio: alto. Mitigazione: feature flag `enableGymMode` client-side (default false fino al go-live). Deploy incrementale.
 
-**FASE 4 — Inviti PT (link + codice 6 char)**
-- STEP 4.1 — Screen `gymMembers` (lista membri + inviti pending + bottoni Invita/Revoca/Rimuovi). Visibile solo a owner.
-- STEP 4.2 — Cloudflare Worker: 3 nuovi endpoint (`/gym-invite-create`, `/gym-invite-accept`, `/gym-member-remove`). Service-account per le scritture cross-user su `users/{uid}`.
-- STEP 4.3 — Processing di `?joinGym=<id>` in `App.loadProfile`. Validazione, chiamata Worker, update profilo locale, redirect a `gymDashboard`.
-- STEP 4.4 — Pannello "Entra in una palestra con codice" in menu account del PT.
-- Test: owner invita email A → link; A fa signup PT normale, poi apre link → vede dialog "Entra nella palestra X? [sì]"; conferma → ricompare nella sidebar "Spazio Palestra X"; vede tutti i clienti del gym.
-- Rischio: medio (nuovi endpoint Worker, cross-user writes).
+**FASE 4 — Inviti PT (codice 6 char, 100% client-side)**
+- STEP 4.1 — Screen `gymMembers` visibile solo a owner. Mostra: lista membri (da `gyms/{gymId}.members`), lista inviti attivi (da `gyms/{gymId}.activeInvites[]` + un `get` per ciascun codice), bottoni Invita / Revoca / Rimuovi.
+- STEP 4.2 — Generazione invito: click "Invita PT" → genera `code` 6 char client-side, `set` su `gymInvites/{code}` con `status='active', expiresAt=now+7g` + `gyms/{gymId}.activeInvites = arrayUnion(code)`. Retry fino a 5 volte su collisione (lookup preliminare via `.get()`).
+- STEP 4.3 — Accettazione: `App.loadProfile` processa `?joinGym=<code>` chiamando `acceptGymInvite(code)` (vedi snippet in §Inviti PT). Validazione client-side (get invito, check status/expiresAt), poi `.update()` su `gyms/{gymId}` (self-join autorizzato dalla rule C) + `.set({merge:true})` su `users/{uid}` (owner rule esistente). Nessun Cloudflare Worker custom.
+- STEP 4.4 — Pannello "Entra in una palestra con codice" nel menu account: textbox 6 char → stesso handler `acceptGymInvite`.
+- STEP 4.5 — Revoca: `gymInvites/{code}.update({status:'revoked'})` + `gyms/{gymId}.activeInvites = arrayRemove(code)`.
+- STEP 4.6 — Rimozione PT: owner fa `.update()` su `gyms/{gymId}` rimuovendo l'uid da `members` e `memberRoles` (autorizzato dalla rule A owner-update). Il PT rimosso ripulisce il proprio `users/{uid}` al prossimo login (owner-rule su `/users/{uid}` è già permissive per il proprio profilo).
+- STEP 4.7 — (Opzionale) Email promemoria via Worker Brevo esistente `WORKER_URL+'/send-email'` con un nuovo `templateId`. Nessun endpoint custom.
+- Test: owner invita A → copia link `?joinGym=A4K9PX`; A fa signup PT normale, poi apre link → vede dialog "Entra nella palestra X? [sì]"; conferma → `gyms/X.members` include A; nella sidebar compare "Spazio Palestra X"; vede tutti i clienti. Audit Firestore: la rule self-join blocca tentativi fuori diff (es. modifica `theme` o `ownerUid`), tentativo con codice scaduto, aggiunta di uid diverso dal proprio.
+- Rischio: medio (regole di sicurezza complesse — testare esplicitamente ogni scenario di tentato bypass).
 
 **FASE 5 — Branding dal logo**
 - STEP 5.1 — Screen `gymBranding`: upload file, estrazione palette, WCAG badge, color picker, save.
@@ -485,13 +572,16 @@ Questa non è consulenza legale: Steve verifichi con il DPO della palestra reale
 | **Delete cliente** lascia schede orfane in subcollection. | Delete batch client-side: prima `clients/{id}/schede/*`, poi `clients/{id}`. Fallback: Cloud Function trigger che pulisce al delete del parent. |
 | **Snapshot listener costoso** su molti clienti. | Paginazione: in gym con >100 clienti usare `where+limit+orderBy` + "mostra altri" invece che caricare tutto. Memoria client limitata. |
 | **Membri che tentano di scrivere `gyms/{gymId}` (non ownership)**. | Rules proteggono: solo ownerUid può `.update()` sul doc gym (non sui subcollection). Members possono scrivere solo in `clients/**`. |
-| **Codice invito collisione**. | Charset 32 char + 6 posti = ~10^9 combinazioni. Retry on uniqueness violation. Namespace per-gym. |
-| **Codice invito riusato da estraneo**. | Scadenza 7g default + `maxUses` limitato. Revoca immediata via UI owner. |
-| **PT appartiene a 2 palestre**. | Non previsto: `profile.gymId` è singolo. Se tenta un secondo accept, Worker rifiuta con 409. In futuro si può estendere a `gymIds[]`. |
-| **Email invito via Brevo**. | Nuovo template (chiedere id a Steve). Chiave API SOLO su Worker. |
+| **Codice invito collisione**. | Charset 32 char × 6 posti = 32⁶ ≈ 1.07 × 10⁹. Client fa `.get(doc)` preliminare prima di `.set()`: se esiste, rigenera (retry ≤5). In pratica mai capita; con 10k inviti attivi, probabilità di collisione <0.001%. |
+| **Codice invito riusato da estraneo (brute force)**. | 10⁹ codici possibili, `allow get` ma **nessun `list`** (rule §C), scadenza 7g default/max 30g, revoca istantanea via owner. Nessun contatore `used` ⇒ se l'owner vuole limitare l'uso a 1 PT crea un codice usa-e-revoca (un invito per PT). |
+| **PT appartiene a 2 palestre**. | Non previsto: `profile.gymId` è singolo. La rule self-join vieta implicitamente di joinare un secondo gym perché `members[new]==uid` e il gym nuovo non ha `uid` in `members`; però `users/{uid}.gymId` viene sovrascritto. **Mitigazione client-side**: `acceptGymInvite` controlla `profile.gymId` prima di procedere e, se non null, chiede conferma "Vuoi lasciare la palestra X per entrare in Y?". |
+| **Email invito via Brevo**. | Worker Brevo ESISTENTE (`WORKER_URL+'/send-email'`) con un nuovo `templateId`. Nessun endpoint custom. Chiave API resta solo sul Worker. |
 | **PWA cache** (`sw.js` `ptboard-v55`). | Bump `CACHE='ptboard-v##'` ad ogni release gym. |
 | **atleta.html / share.html pre-auth** devono comunque applicare il tema. | `atleta.html`: `?gym=<id>` esplicito. `share.html`: denormalizzare `gymBranding` dentro `sharedClients/{sid}`. |
-| **Rimozione PT ha side-effect su `users/{uid}`**. | Scrittura solo via Worker service-account (le rules `/users/{uid}` sono owner-only). |
+| **Rimozione PT: side-effect su `users/{targetUid}`**. | L'owner **non scrive** sul profilo del PT rimosso (rules `/users/{uid}` sono owner-only). L'owner rimuove solo l'uid da `gyms/{gymId}.members`/`memberRoles` (autorizzato). Il profilo `users/{targetUid}.gymId/gymRole/spaces` viene ripulito dal PT stesso al suo prossimo login (l'`App.loadProfile` nota che `gyms/{old}` è read-denied e azzera). Nessuna scrittura cross-user, nessun service account. |
+| **Enumerazione inviti**. | Rule `gymInvites`: `allow get`, nessun `allow list`. L'owner enumera via `gyms/{gymId}.activeInvites[]` (array di codici) + `get(gymInvites/{code})` individuale per i dettagli. Nessuno può scansionare la collezione. |
+| **Rule self-join: tentativo di escalation privilege**. | La rule C ferma: (a) `affectedKeys().hasOnly(['members','memberRoles','joinCode'])` → impossibile cambiare `theme`/`ownerUid`/`nome` nella stessa write; (b) `members == old + request.auth.uid` → impossibile aggiungere altri uid; (c) `memberRoles[uid]=='trainer'` → impossibile autopromuoversi `owner`; (d) `get(gymInvites/joinCode)` deve esistere, essere `active`, `expiresAt > request.time` e `gymId == gymId`. **Test E2E obbligatorio** su ciascuna di queste 4 difese. |
+| **Rule self-join: costo in reads**. | Ogni accept esegue 1 `get(gyms)` + 3 `get(gymInvites)` dentro la rule (una per `exists`, una per `.gymId`, una per `.status`, una per `.expiresAt`). Firestore conta come ~4 reads fatturate. Trascurabile. Opzionale: unificare in 1 sola `get` + binding a variabile se Firestore rules supporta `let` (dipende dalla versione). |
 | **Privacy / GDPR**. | Consenso esplicito in-form, denormalizzato nel doc cliente. Dpr/dpo scritti dall'owner. Export dati e cancellazione: GET/DELETE via Worker a richiesta cliente. |
 | **"Spazio Palestra" sembra app a sé** — richiede che sidebar, breadcrumb, logo e colori siano del gym. | STEP 5 (branding) + STEP 6 (switcher) devono essere completati prima di aprire al pubblico. Fino ad allora, visibile solo come alpha interno. |
 | **generaSchedaAuto cambia il comportamento** inaspettatamente in gym mode. | **Non cambia.** La funzione prende `params` e `exercises`, non legge mai `patients`/`users/{uid}`. Il riuso è verbatim. Test: stessi input ⇒ stessi output in PT mode e gym mode. |
