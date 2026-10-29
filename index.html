@@ -7227,6 +7227,144 @@ function AppInner({user,profile,setProfile,trialLeft}){
   const [syncing,setSyncing]=useState(true);
   const [,forceUpdate]=useState(0);
 
+  // ── SPAZIO PALESTRA (FASE 3): isGym + stato clienti condivisi + schede subcoll + exercise library ──
+  // In spazio PT: `patients` state locale + autosave (comportamento storico).
+  // In spazio gym: onSnapshot su gyms/{gymId}/clients; write field-level per update,
+  // .add() per nuovi; schede in sotto-collezione gyms/{gymId}/clients/{cid}/schede.
+  // Autosave di users/{uid}/appdata/main NON gira se isGym.
+  const isGym=(trainerProfile&&trainerProfile.gymId&&userLastSpace(trainerProfile)==='gym')||false;
+  const gymId=trainerProfile&&trainerProfile.gymId||null;
+  const [gymClientsRaw,setGymClientsRaw]=useState([]);
+  // Schede per cliente, caricate on-demand quando apro il detail: {clientId: [schede]}
+  const [gymSchedePerClient,setGymSchedePerClient]=useState({});
+  const [gymExercises,setGymExercises]=useState([]);
+  // Sottoscrizione real-time ai clienti del gym (solo in isGym)
+  useEffect(()=>{
+    if(!isGym||!gymId) return;
+    const unsub=fbDb.collection('gyms').doc(gymId).collection('clients').onSnapshot(function(snap){
+      setGymClientsRaw(snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});}));
+    },function(err){console.warn('[gym] clients snapshot err:',err);});
+    return function(){unsub&&unsub();};
+  },[isGym,gymId]);
+  // Sottoscrizione real-time agli esercizi custom del gym (FASE 3 library commit)
+  useEffect(()=>{
+    if(!isGym||!gymId) return;
+    const unsub=fbDb.collection('gyms').doc(gymId).collection('exercises').onSnapshot(function(snap){
+      setGymExercises(snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});}));
+    },function(err){console.warn('[gym] exercises snapshot err:',err);});
+    return function(){unsub&&unsub();};
+  },[isGym,gymId]);
+  // Helper: carica una volta le schede di un cliente del gym (al select nel detail).
+  const loadGymSchede=React.useCallback(async function(clientId){
+    if(!isGym||!gymId||!clientId) return;
+    try{
+      const snap=await fbDb.collection('gyms').doc(gymId).collection('clients').doc(clientId).collection('schede').get();
+      const list=snap.docs.map(function(d){return Object.assign({_sid:d.id},d.data());});
+      setGymSchedePerClient(function(prev){return Object.assign({},prev,{[clientId]:list});});
+    }catch(e){console.warn('[gym] load schede err:',e);}
+  },[isGym,gymId]);
+  // Merge: in gym mode i clienti letti dal snapshot + schede eventualmente caricate;
+  // in PT mode il `patients` state come oggi.
+  const effectiveClients=isGym
+    ? gymClientsRaw.map(function(c){return Object.assign({},c,{schede:gymSchedePerClient[c.id]||[]});})
+    : patients;
+  // Libreria esercizi effettiva: INIT_EXERCISES + overrides della palestra (stesso id = override).
+  // In spazio PT: solo `exercises` state come oggi.
+  const effectiveExercises=React.useMemo(function(){
+    if(!isGym) return exercises;
+    const overrideById={};
+    (gymExercises||[]).forEach(function(ge){overrideById[ge.id]=ge;});
+    const merged=INIT_EXERCISES.map(function(e){return overrideById[e.id]?Object.assign({},e,overrideById[e.id]):e;});
+    // Esercizi custom non in INIT_EXERCISES vengono appesi
+    (gymExercises||[]).forEach(function(ge){if(!INIT_EXERCISES.find(function(e){return e.id===ge.id;})) merged.push(ge);});
+    return merged;
+  },[isGym,exercises,gymExercises]);
+
+  // Adapter unificato: addClient / updateClient / removeClient / addScheda / addGymExercise / updateGymExercise.
+  // In spazio PT: usa setPatients come oggi.
+  // In spazio gym: scrive su Firestore. Nessuna duplicazione di logica.
+  async function addClient(c){
+    if(!isGym){
+      const id=nextPid(patients);
+      const p=Object.assign({},c,{id:id});
+      setPatients(function(ps){return [].concat(ps,[p]);});
+      return p;
+    }
+    // Gym: client doc senza il campo schede (le schede vivono in sotto-collezione).
+    const schedeIniziali=(c&&c.schede)||[];
+    const docData=Object.assign({},c,{createdByUid:user.uid,createdAt:Date.now(),updatedAt:Date.now()});
+    delete docData.id; delete docData.schede;
+    const docRef=await fbDb.collection('gyms').doc(gymId).collection('clients').add(docData);
+    for(let i=0;i<schedeIniziali.length;i++){
+      try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(docRef.id).collection('schede').add(Object.assign({},schedeIniziali[i],{createdByUid:user.uid,createdAt:Date.now()}));}
+      catch(e){console.warn('[gym] addScheda iniziale err:',e);}
+    }
+    return Object.assign({},c,{id:docRef.id,schede:schedeIniziali});
+  }
+  async function updateClient(id,patch){
+    if(!isGym){
+      setPatients(function(ps){return ps.map(function(p){return p.id===id?Object.assign({},p,patch):p;});});
+      return;
+    }
+    // Diff: se patch include `schede`, confronto con quelle gia' in subcoll per isolare le nuove.
+    const schedePatch=patch&&patch.schede;
+    const otherPatch=Object.assign({},patch);
+    delete otherPatch.schede;
+    delete otherPatch.id;
+    if(schedePatch&&Array.isArray(schedePatch)){
+      const current=(gymSchedePerClient[id]||[]);
+      const existingCodes=new Set(current.map(function(s){return s.codice;}).filter(Boolean));
+      for(let i=0;i<schedePatch.length;i++){
+        const s=schedePatch[i];
+        if(s&&s.codice&&!existingCodes.has(s.codice)){
+          try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).collection('schede').add(Object.assign({},s,{createdByUid:user.uid,createdAt:Date.now()}));}
+          catch(e){console.warn('[gym] addScheda via update err:',e);}
+        }
+      }
+      // ricarica la lista schede locale per questo cliente
+      loadGymSchede(id);
+    }
+    if(Object.keys(otherPatch).length>0){
+      try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).update(Object.assign({},otherPatch,{updatedByUid:user.uid,updatedAt:Date.now()}));}
+      catch(e){console.warn('[gym] updateClient err:',e);}
+    }
+  }
+  async function removeClient(id){
+    if(!isGym){
+      setPatients(function(ps){return ps.filter(function(p){return p.id!==id;});});
+      return;
+    }
+    try{
+      // Elimino le schede della subcoll, poi il doc cliente
+      const schedeSnap=await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).collection('schede').get();
+      for(let i=0;i<schedeSnap.docs.length;i++){
+        try{await schedeSnap.docs[i].ref.delete();}catch(e){console.warn('[gym] del scheda err:',e);}
+      }
+      await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).delete();
+    }catch(e){console.warn('[gym] removeClient err:',e);}
+  }
+  async function addGymExercise(ex){
+    if(!isGym) throw new Error('addGymExercise outside gym mode');
+    const data=Object.assign({},ex,{createdByUid:user.uid,createdAt:Date.now(),updatedAt:Date.now()});
+    const exId=ex.id;
+    if(exId){
+      // Override con id specifico (es. 'E05' per sovrascrivere INIT_EXERCISES)
+      await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).set(data);
+      return Object.assign({},ex,{id:exId});
+    }
+    const docRef=await fbDb.collection('gyms').doc(gymId).collection('exercises').add(data);
+    return Object.assign({},ex,{id:docRef.id});
+  }
+  async function updateGymExercise(exId,patch){
+    if(!isGym) throw new Error('updateGymExercise outside gym mode');
+    await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).set(Object.assign({},patch,{id:exId,updatedByUid:user.uid,updatedAt:Date.now()}),{merge:true});
+  }
+  async function removeGymExercise(exId){
+    if(!isGym) throw new Error('removeGymExercise outside gym mode');
+    try{await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).delete();}
+    catch(e){console.warn('[gym] removeGymExercise err:',e);}
+  }
+
   // Responsive isMobile
   useEffect(()=>{
     const onResize=()=>{
@@ -7344,6 +7482,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
   // Salva su localStorage + Firebase
   useEffect(()=>{
     if(firstLoad.current){firstLoad.current=false;return;}
+    if(isGym)return; // Spazio palestra: le scritture passano dall'adapter su gyms/{gymId}/clients, mai qui.
     if(!loadedFromFirebase.current)return; // non salvare prima che fbLoad abbia completato
     const data={patients,bookings,exercises,isLight,dataVersion:4};
     save(data);
@@ -7351,11 +7490,12 @@ function AppInner({user,profile,setProfile,trialLeft}){
     setSaveMsg(T.saved||'✓ Salvato');
     const t=setTimeout(()=>setSaveMsg(''),1500);
     return()=>clearTimeout(t);
-  },[patients,bookings,exercises,isLight]);
+  },[patients,bookings,exercises,isLight,isGym]);
 
   // Salva IMMEDIATAMENTE quando l'app viene chiusa/minimizzata
   useEffect(()=>{
     const handleHide=()=>{
+      if(isGym)return; // Spazio palestra: niente autosave su appdata/main (vedi sopra).
       const data={patients,bookings,exercises,isLight,dataVersion:4};
       save(data); // localStorage sempre ok
       if(!loadedFromFirebase.current)return; // ma non scrivere su Firebase prima del load
@@ -7372,7 +7512,12 @@ function AppInner({user,profile,setProfile,trialLeft}){
     };
   },[patients,bookings,exercises,isLight]);
 
-  const selected=patients.find(p=>p.id===selectedId);
+  const selected=effectiveClients.find(p=>p.id===selectedId);
+  // Spazio palestra: carica le schede dalla subcoll al select del cliente.
+  useEffect(()=>{
+    if(!isGym||!selectedId) return;
+    if(!gymSchedePerClient[selectedId]) loadGymSchede(selectedId);
+  },[isGym,selectedId]);
 
   const emptyP=()=>({id:'',cognome:'',nome:'',ddn:'',altezza:'',peso:'',vita:'',fianchi:'',pa:'',fc:'',sesso:'F',annoNascita:'',patologie:'',farmaci:'',sintomiSforzo:'NO',allergie:'',attivita:'Sedentaria',obiettivo:'',preferenze:'',stressPercepito:'Medio',sonno:'',dataValutazione:fmtDate(),foto:'',email:'',telefono:'',test:{mwtDist:'',mwtRpe:'',mwtSintomi:'',stsRip:'',stsNote:'',noteVal:'',rmEsercizio:'',rmEsercizioAltro:'',rmCarico:'',rmRip:'',rmModalita:'stimato',rmDiretto:'',stepTestFc:'',stepTestSecondi:180,cmjAltezza:'',cmjTentativo:'',cooperDistanza:'',cooperVo2max:''},programma:{dataInizio:'',sedute:'',minCardio:'',minForza:'',cardio:'',forza:'',note:''},nutrizione:{kcal:'',proteine:'',carboidrati:'',grassi:'',note:'',pianoPasti:''},progressi:[],schede:[],log:[],screeningMedico:{tipo:'',dataRilascio:'',dataScadenza:'',medicoRilasciante:'',noteCertificato:''},parqPlus:{q1:'NO',q2:'NO',q3:'NO',q4:'NO',q5:'NO',q6:'NO',q7:'NO'},modalitaValutazione:'',obiettivoStrutturato:{pesoTarget:'',tempoMesi:'',esercizioTarget:'',rmAttuale:'',rmTarget:'',eventoTarget:'',dataEvento:'',obiettivoFunzionale:'',noteObiettivo:'',warningLivello:'',warningAccettato:false,tassoAttesoSettimana:0,kcalTargetCalcolato:0,durataProgrammaMesi:0},createdAt:fmtDate()});
 
@@ -7387,12 +7532,18 @@ function AppInner({user,profile,setProfile,trialLeft}){
     if(errs.length){showToast(T.requiredFields+': '+errs.join(', '),'error');return;}
     if(isNew){
       if(typeof gtag!=='undefined')gtag('event','patient_created');
-      const id=nextPid(patients);
-      const p={...form,id,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
-      if(p.peso)p.progressi=[{data:p.dataValutazione||fmtDate(),peso:+p.peso,nota:'Primo accesso'}];
-      setPatients(ps=>[...ps,p]);setPage('patients');
+      // In spazio gym l'id viene autogenerato da Firestore; in PT lo generiamo noi.
+      const basePatient={...form,progressi:form.progressi||[],schede:form.schede||[],log:form.log||[]};
+      if(!isGym){
+        basePatient.id=nextPid(patients);
+        if(basePatient.peso)basePatient.progressi=[{data:basePatient.dataValutazione||fmtDate(),peso:+basePatient.peso,nota:'Primo accesso'}];
+      } else {
+        delete basePatient.id;
+        if(basePatient.peso)basePatient.progressi=[{data:basePatient.dataValutazione||fmtDate(),peso:+basePatient.peso,nota:'Primo accesso'}];
+      }
+      Promise.resolve(addClient(basePatient)).then(function(){setPage('patients');}).catch(function(e){console.warn('[addClient] err:',e);});
     }else{
-      setPatients(ps=>ps.map(p=>p.id===form.id?form:p));setSelectedId(form.id);setPage('detail');
+      Promise.resolve(updateClient(form.id,form)).then(function(){setSelectedId(form.id);setPage('detail');}).catch(function(e){console.warn('[updateClient] err:',e);});
     }
   },[isNew,patients,T]);
 
@@ -7734,7 +7885,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           )}
           {page==='dash'&&<Dashboard patients={patients} bookings={bookings} T={T} onNavigate={setPage} trainerProfile={trainerProfile} onboardingStep={onboardingStep} onCreateClient={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form');}} onStartWizard={()=>{setShowValutazione(true);}} onOpenPatient={(id)=>{setSelectedId(id);setPage('detail');}} onValuta={(p)=>{setReevalPatient(p);setShowValutazione(true);}}/>}
           {page==='patients'&&<PatientList patients={patients} onSelect={id=>{setSelectedId(id);setPage('detail')}} onAdd={()=>{setEditingPatient(emptyP());setIsNew(true);setPage('form')}} onNewVal={()=>setShowValutazione(true)} onQuickAssess={()=>setShowQuickAssess(true)} quickAssessDisabled={!dbHydrated} search={search} T={T}/>}
-          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={exercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(T.confirmDeletePatient.replace('{nome}',selected.nome+' '+selected.cognome),()=>{setPatients(ps=>ps.filter(p=>p.id!==selectedId));setPage('patients');});}} onUpdate={p=>setPatients(ps=>ps.map(x=>x.id===p.id?p:x))} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
+          {page==='detail'&&selected&&<PatientDetail patient={selected} exercises={effectiveExercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(T.confirmDeletePatient.replace('{nome}',selected.nome+' '+selected.cognome),()=>{removeClient(selectedId);setPage('patients');});}} onUpdate={p=>updateClient(p.id,p)} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew} lang={lang}/>}
           {page==='calendar'&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={exercises} setExercises={setExercises} T={T}/>}
@@ -7751,37 +7902,44 @@ function AppInner({user,profile,setProfile,trialLeft}){
           const sc2=calcScore(p.test,p.sesso,{biaFM:p.bia?.FM},_eta);
           const vEntry={id:Date.now().toString(),data:new Date().toLocaleDateString('it-IT'),dataISO:new Date().toISOString(),peso:p.peso||'',altezza:p.altezza||'',bmi:b2?String(b2):'',mwtDist:p.test?.mwtDist||'',stsRip:p.test?.stsRip||'',rpe:p.test?.mwtRpe||'',pushup:p.test?.pushupRip||'',plank:p.test?.plankSec||'',tug:p.test?.tugSec||'',handgrip:p.test?.handgrip||'',sitReach:p.sitReach||'',fm:p.bia?.FM||'',phaseAngle:p.bia?.PhA||'',ecwTbw:p.bia?.ECW||'',spo2:p.spo2||'',fcRiposo:p.fc||'',profilo:pr2?.code||'',score:sc2?String(sc2.score):'',note:p.test?.noteVal||''};
           if(reevalPatient){
-            setPatients(ps=>ps.map(x=>x.id===reevalPatient.id?{...x,test:p.test,bia:p.bia,peso:p.peso,altezza:p.altezza,dataValutazione:fmtDate(),valutazioni:(x.valutazioni||[]).concat([vEntry])}:x));
+            const vPatch={test:p.test,bia:p.bia,peso:p.peso,altezza:p.altezza,dataValutazione:fmtDate(),valutazioni:(reevalPatient.valutazioni||[]).concat([vEntry])};
+            Promise.resolve(updateClient(reevalPatient.id,vPatch)).catch(function(err){console.warn('[reeval] err:',err);});
             setReevalPatient(null);
             setShowValutazione(false);
           } else {
-            const id=nextPid(patients);
-            const np={...p,id,valutazioni:[vEntry],progressi:p.peso?[{data:fmtDate(),peso:+p.peso,nota:'Primo accesso — Valutazione 20 min'}]:[],log:[],schede:[]};
-            setPatients(ps=>[...ps,np]);
-            setShowValutazione(false);
-            setSelectedId(id);setPage('detail');
+            const np={...p,valutazioni:[vEntry],progressi:p.peso?[{data:fmtDate(),peso:+p.peso,nota:'Primo accesso — Valutazione 20 min'}]:[],log:[],schede:[]};
+            if(!isGym) np.id=nextPid(patients);
+            else delete np.id;
+            Promise.resolve(addClient(np)).then(function(created){
+              setShowValutazione(false);
+              if(created&&created.id){setSelectedId(created.id);setPage('detail');}
+            }).catch(function(err){console.warn('[addClient wizard] err:',err);});
           }
           askSendEmail({pat:p,subject:T.emailEvalSubj,message:T.emailEvalBody1+'\n\n'+T.emailEvalFit+(pr2?.code==='A'?T.profileLowShort:pr2?.code==='B'?T.profileMedShort:pr2?.code==='C'?T.profileGoodShort:'-')+'\n'+T.emailEvalScore+(sc2?.score||'-')+'/100\n\n'+T.emailEvalNext+'\n\n[nomeMittente]',trainerProfile});
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
-      {showQuickAssess&&<QuickAssessmentModal T={T} exercises={exercises} onClose={()=>setShowQuickAssess(false)} onCreate={(patientData,nuoveSchede)=>{
-        if(!loadedFromFirebase.current){ // doppia difesa oltre al bottone disabilitato
+      {showQuickAssess&&<QuickAssessmentModal T={T} exercises={effectiveExercises} onClose={()=>setShowQuickAssess(false)} onCreate={(patientData,nuoveSchede)=>{
+        if(!loadedFromFirebase.current&&!isGym){ // doppia difesa oltre al bottone disabilitato (gym mode ha un proprio load path)
           showToast(T.qaLoading||'Caricamento dati...','error');
           return;
         }
         if(typeof gtag!=='undefined')gtag('event','quick_assessment_created');
-        const id=nextPid(patients);
         const base=emptyP();
-        const p={...base,...patientData,id,progressi:patientData.peso?[{data:patientData.dataValutazione||fmtDate(),peso:+patientData.peso,nota:'Valutazione rapida'}]:[],schede:nuoveSchede||[],log:[],createdAt:fmtDate()};
-        setPatients(ps=>[...ps,p]);
-        setShowQuickAssess(false);
-        setSelectedId(id);
-        setPage('detail');
-        if(nuoveSchede&&nuoveSchede.length){
-          showToast((nuoveSchede.length>1?nuoveSchede.length+' '+(T.schedeGenerated||'schede generate'):(T.schedaGenerated||'Scheda generata')+' '+nuoveSchede[0].nome),'success');
-          if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast(T.toastNoSesso,'warning');}
-        }
+        const p=Object.assign({},base,patientData,{progressi:patientData.peso?[{data:patientData.dataValutazione||fmtDate(),peso:+patientData.peso,nota:'Valutazione rapida'}]:[],schede:nuoveSchede||[],log:[],createdAt:fmtDate()});
+        if(!isGym) p.id=nextPid(patients);
+        else delete p.id;
+        Promise.resolve(addClient(p)).then(function(created){
+          setShowQuickAssess(false);
+          if(created&&created.id){setSelectedId(created.id);setPage('detail');}
+          if(nuoveSchede&&nuoveSchede.length){
+            showToast((nuoveSchede.length>1?nuoveSchede.length+' '+(T.schedeGenerated||'schede generate'):(T.schedaGenerated||'Scheda generata')+' '+nuoveSchede[0].nome),'success');
+            if(nuoveSchede[0]&&nuoveSchede[0].config&&nuoveSchede[0].config.sessoWarning){showToast(T.toastNoSesso,'warning');}
+          }
+        }).catch(function(err){
+          console.warn('[addClient quickAssess] err:',err);
+          showToast(T.schedaGenError||'Errore salvataggio','error');
+        });
       }}/>}
       {showTutorial&&<TutorialModal onClose={()=>setShowTutorial(false)} isLight={isLight} lang={lang}/>}
       {/* Gym onboarding: owner appena creato con nome palestra ancora vuoto */}
