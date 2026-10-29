@@ -31,7 +31,9 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 8. **ADMIN_EMAIL** = `stevetsala22@gmail.com` (hardcoded in `index.html:133`). Attenzione ai typo (NON `tsalasteve22`). Usato sia nel codice che nelle regole Firestore.
 9. **`buildSchedaAttuale` (`index.html:4587`) e `buildGiorniDaTutteLeSchede` (`index.html:4611`) devono restare allineate**: se modifichi una, verifica anche l'altra e `share.html`. Entrambe raggruppano gli esercizi per `sezione` ma scrivono/consumano formati diversi (la prima scrive `sharedClients/{sid}.schedaAttuale`, la seconda formatta per la vista share) — un cambio di regola di splitting in una sola delle due produce schede divise male lato cliente.
 10. **File asset non eliminare né rinominare**: `dashboard.jpg` e `mobile.jpg` sono usati come `og:image` da `landing.html`; `PTBoard_Guida_Rapida_PT.pdf` è linkato da `index.html`. Nonostante il nome storico, NON sono legacy.
-11. **Prima di modificare codice**, leggere la versione live da `https://raw.githubusercontent.com/stevetsala22/ptboard/main/<file>` oppure il file nel repo locale appena pullato: i numeri di riga si spostano a ogni commit.
+11. **MAI fare merge su `main` senza OK esplicito di Steve.** Steve dice "merge" (o equivalente) e solo allora si procede. "Hai fatto bene a chiedere" non è un via libera.
+12. **`fbLoad` nasconde gli errori** (ritorna `null` sia per utente nuovo sia per errore di rete): per decidere se **sbloccare i salvataggi** (`loadedFromFirebase.current=true`, `setDbHydrated(true)`) usa **SEMPRE `fbLoadStrict`** (riga ~165), che lascia propagare l'errore al `.catch()`. L'unlock DEVE stare dentro `.then()`, MAI nel `.finally()`: altrimenti un fault di rete sblocca l'autosave e lo stato locale vuoto sovrascrive i dati remoti.
+13. **Prima di modificare codice**, leggere la versione live da `https://raw.githubusercontent.com/stevetsala22/ptboard/main/<file>` oppure il file nel repo locale appena pullato: i numeri di riga si spostano a ogni commit.
 
 ## Mappa dei file
 - `index.html` — app PT single-file (~11.500 righe). Vedi §Mappa index.html.
