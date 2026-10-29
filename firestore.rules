@@ -56,6 +56,86 @@ service cloud.firestore {
       }
     }
 
+    // ── GYMS (Spazio Palestra) ──
+    // Vedi docs/GYM_PLAN.md §C per il razionale di sicurezza.
+    match /gyms/{gymId} {
+      // Lettura: solo membri del gym.
+      allow read: if request.auth != null
+                  && resource.data.members.hasAny([request.auth.uid]);
+
+      // Create: il fondatore e' owner e UNICO membro iniziale.
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.members == [request.auth.uid]
+                    && request.resource.data.memberRoles[request.auth.uid] == 'owner';
+
+      // (A) Update dell'owner: puo' cambiare tutto EXCETTO ownerUid.
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      // (B) Update dell'admin: stessa clausola di invarianza su ownerUid.
+      allow update: if request.auth != null
+                    && request.auth.token.email == 'stevetsala22@gmail.com'
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      // (C) Self-join di un PT invitato: diff SOLO su members + memberRoles + joinCode.
+      // Verifica che il PT aggiunga SOLO il proprio uid, con ruolo 'trainer',
+      // e che il codice usato (joinCode) esista come doc gymInvites/{joinCode}
+      // attivo, non scaduto, e punti a questo gymId. ownerUid immutabile.
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['members','memberRoles','joinCode'])
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && !(request.auth.uid in resource.data.members)
+                    && request.resource.data.members == resource.data.members.concat([request.auth.uid])
+                    && request.resource.data.memberRoles[request.auth.uid] == 'trainer'
+                    && exists(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode))
+                    && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.gymId == gymId
+                    && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.status == 'active'
+                    && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.expiresAt > request.time;
+
+      allow delete: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+
+      // Clienti del gym: tutti i membri possono CRUD.
+      match /clients/{clientId} {
+        allow read, create, update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+
+        // Schede del cliente.
+        match /schede/{schedaId} {
+          allow read, create, update, delete: if request.auth != null
+            && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+        }
+      }
+    }
+
+    // ── INVITI PT (codice 6 char = document id) ──
+    match /gymInvites/{inviteId} {
+      // Owner crea l'invito. status='active', expiresAt entro 30 giorni.
+      allow create: if request.auth != null
+                    && request.resource.data.invitedByUid == request.auth.uid
+                    && request.resource.data.status == 'active'
+                    && request.resource.data.expiresAt is timestamp
+                    && request.resource.data.expiresAt > request.time
+                    && request.resource.data.expiresAt < request.time + duration.value(30, 'd');
+
+      // GET consentito a chiunque loggato (serve all'accept per validare).
+      // NESSUN list: enumerazione collezione proibita.
+      allow get: if request.auth != null;
+
+      // Update: solo owner originale puo' revocare/cambiare la scadenza.
+      // invitedByUid e gymId immutabili.
+      allow update: if request.auth != null
+                    && resource.data.invitedByUid == request.auth.uid
+                    && request.resource.data.invitedByUid == resource.data.invitedByUid
+                    && request.resource.data.gymId == resource.data.gymId;
+
+      allow delete: if request.auth != null
+                    && resource.data.invitedByUid == request.auth.uid;
+    }
+
     // ── BLOCCA TUTTO IL RESTO ──
     match /{document=**} {
       allow read, write: if false;

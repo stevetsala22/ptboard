@@ -171,6 +171,22 @@ const fbLoadStrict=async(uid)=>{
   const d=await fbDb.collection('users').doc(uid).collection('appdata').doc('main').get();
   return d.exists?d.data():null;
 };
+// ── SPAZI (Spazio Palestra, FASE 1 passivo) ──
+// Retrocompat: profilo senza il campo `spaces` ⇒ PT indipendente (comportamento storico).
+// Vedi docs/GYM_PLAN.md v2.
+const userSpaces=(p)=>(p&&Array.isArray(p.spaces)&&p.spaces.length)?p.spaces:['pt'];
+const userLastSpace=(p)=>(p&&p.lastSpace)||'pt';
+const isGymOwner=(p)=>p&&p.gymRole==='owner'&&!!p.gymId;
+// Feature flag: l'opzione "Palestra" nel signup compare solo se l'URL ha ?gym=1.
+// Il flag viene memorizzato in sessionStorage per sopravvivere al redirect OAuth
+// (il popup Google puo' rimuovere i query params al ritorno).
+function readGymSignupFlag(){
+  try{
+    const q=new URLSearchParams(window.location.search);
+    if(q.get('gym')==='1'){try{sessionStorage.setItem('ptb_gym_signup','1');}catch(e){}return true;}
+    return (typeof sessionStorage!=='undefined')&&sessionStorage.getItem('ptb_gym_signup')==='1';
+  }catch(e){return false;}
+}
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
 // 1. Vai su emailjs.com → crea account gratuito
 // 2. Aggiungi Gmail "ptboard@gmail.com" come servizio
