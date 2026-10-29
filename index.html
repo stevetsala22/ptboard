@@ -197,24 +197,59 @@ function readGymSignupFlag(){
     return (typeof sessionStorage!=='undefined')&&sessionStorage.getItem('ptb_gym_signup')==='1';
   }catch(e){return false;}
 }
+// gymClean(obj): rimuove ricorsivamente i campi undefined da oggetti/array prima
+// di scrivere su Firestore (che rifiuta undefined). Lascia intatti null, numeri,
+// stringhe, booleani, Date e sentinel Firebase (serverTimestamp/FieldValue).
+function gymClean(v){
+  if(v===undefined) return undefined;
+  if(v===null) return null;
+  if(Array.isArray(v)){
+    const out=[];
+    for(let i=0;i<v.length;i++){
+      const cleaned=gymClean(v[i]);
+      if(cleaned!==undefined) out.push(cleaned);
+    }
+    return out;
+  }
+  if(typeof v==='object'){
+    if(v&&typeof v.toDate==='function') return v;
+    if(v&&v.constructor&&v.constructor!==Object&&v.constructor!==Array) return v;
+    const out={};
+    const keys=Object.keys(v);
+    for(let i=0;i<keys.length;i++){
+      const k=keys[i];
+      const cleaned=gymClean(v[k]);
+      if(cleaned!==undefined) out[k]=cleaned;
+    }
+    return out;
+  }
+  return v;
+}
 // Firestore helper: crea gyms/{gymId} e aggiorna users/{uid} con i campi dello spazio palestra.
 // Rispetta la rule (create) di §C: ownerUid = uid, members = [uid], memberRoles[uid] = 'owner'.
 async function fbCreateGymForOwner(uid, baseProfile){
   const gymRef = fbDb.collection('gyms').doc();
   const gymId = gymRef.id;
   const now = firebase.firestore.FieldValue.serverTimestamp();
-  await gymRef.set({
+  // memberInfo (uid -> {nome,email}): le rules non permettono di leggere users/{uid}
+  // altrui, quindi denormalizziamo qui per mostrare nome+email nell'elenco Team.
+  const ownerInfo = {
+    nome: (baseProfile&&(baseProfile.nome||baseProfile.displayName))||'',
+    email: (baseProfile&&baseProfile.email)||''
+  };
+  await gymRef.set(gymClean({
     gymId: gymId,
     nome: '',
     ownerUid: uid,
     members: [uid],
     memberRoles: {[uid]: 'owner'},
+    memberInfo: {[uid]: ownerInfo},
     activeInvites: [],
     createdAt: now,
     updatedAt: now,
     active: true,
     plan: 'gym'
-  });
+  }));
   const profile = Object.assign({}, baseProfile, {
     spaces: ['gym'],
     gymId: gymId,
@@ -7176,10 +7211,10 @@ function GymOnboardingModal({T,gymId,onDone}){
     if(!canSave) return;
     setSaving(true); setErr('');
     try{
-      await fbDb.collection('gyms').doc(gymId).update({
+      await fbDb.collection('gyms').doc(gymId).update(gymClean({
         nome: nome.trim(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      }));
       if(onDone) onDone(nome.trim());
     }catch(e){
       console.warn('[gym] onboarding save error:',e);
@@ -7325,6 +7360,8 @@ function AppInner({user,profile,setProfile,trialLeft}){
   // In spazio gym: scrive su Firestore. Nessuna duplicazione di logica.
   // Helper: toast + console per errori di scrittura in spazio palestra.
   // Il caller riceve l'errore come rejected promise così può decidere se continuare.
+  // gymClean: definito a module-scope (riga ~200). Rimuove undefined ricorsivamente
+  // da ogni payload prima di scrivere su gyms/** (Firestore rifiuta undefined).
   function gymWriteFail(where,err){
     console.warn('[gym] '+where+' err:',err);
     if(typeof showToast==='function') showToast(T.gymSaveError||'Salvataggio non riuscito: controlla la connessione e riprova.','error');
@@ -7341,12 +7378,12 @@ function AppInner({user,profile,setProfile,trialLeft}){
     const docData=Object.assign({},c,{createdByUid:user.uid,createdAt:Date.now(),updatedAt:Date.now()});
     delete docData.id; delete docData.schede;
     let docRef;
-    try{docRef=await fbDb.collection('gyms').doc(gymId).collection('clients').add(docData);}
+    try{docRef=await fbDb.collection('gyms').doc(gymId).collection('clients').add(gymClean(docData));}
     catch(e){gymWriteFail('addClient',e);throw e;}
     const insertedWithSid=[];
     for(let i=0;i<schedeIniziali.length;i++){
       try{
-        const sRef=await fbDb.collection('gyms').doc(gymId).collection('clients').doc(docRef.id).collection('schede').add(Object.assign({},schedeIniziali[i],{createdByUid:user.uid,createdAt:Date.now()}));
+        const sRef=await fbDb.collection('gyms').doc(gymId).collection('clients').doc(docRef.id).collection('schede').add(gymClean(Object.assign({},schedeIniziali[i],{createdByUid:user.uid,createdAt:Date.now()})));
         insertedWithSid.push(Object.assign({_sid:sRef.id},schedeIniziali[i]));
       }catch(e){gymWriteFail('addScheda iniziale',e); /* non throw: client gia' creato */ }
     }
@@ -7390,7 +7427,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
             delete payload._sid;
             payload.updatedByUid=user.uid;
             payload.updatedAt=Date.now();
-            try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).collection('schede').doc(s._sid).set(payload);}
+            try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).collection('schede').doc(s._sid).set(gymClean(payload));}
             catch(e){gymWriteFail('scheda update',e);hadError=true;}
           }
         } else {
@@ -7398,7 +7435,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           const payload=Object.assign({},s,{createdByUid:user.uid,createdAt:Date.now()});
           delete payload._sid;
           try{
-            const sRef=await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).collection('schede').add(payload);
+            const sRef=await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).collection('schede').add(gymClean(payload));
             // Annoto il nuovo _sid per l'aggiornamento ottimistico.
             nextList[i]=Object.assign({_sid:sRef.id},s);
             presentSids[sRef.id]=true;
@@ -7438,7 +7475,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
       if(Object.keys(changed).length>0){
         changed.updatedByUid=user.uid;
         changed.updatedAt=Date.now();
-        try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).update(changed);}
+        try{await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).update(gymClean(changed));}
         catch(e){gymWriteFail('updateClient fields',e);hadError=true;}
       }
     }
@@ -7467,17 +7504,17 @@ function AppInner({user,profile,setProfile,trialLeft}){
     const exId=ex.id;
     try{
       if(exId){
-        await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).set(data);
+        await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).set(gymClean(data));
         return Object.assign({},ex,{id:exId});
       }
-      const docRef=await fbDb.collection('gyms').doc(gymId).collection('exercises').add(data);
+      const docRef=await fbDb.collection('gyms').doc(gymId).collection('exercises').add(gymClean(data));
       return Object.assign({},ex,{id:docRef.id});
     }catch(e){gymWriteFail('addGymExercise',e);throw e;}
   }
   async function updateGymExercise(exId,patch){
     if(!isGym) throw new Error('updateGymExercise outside gym mode');
     try{
-      await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).set(Object.assign({},patch,{id:exId,updatedByUid:user.uid,updatedAt:Date.now()}),{merge:true});
+      await fbDb.collection('gyms').doc(gymId).collection('exercises').doc(exId).set(gymClean(Object.assign({},patch,{id:exId,updatedByUid:user.uid,updatedAt:Date.now()})),{merge:true});
     }catch(e){gymWriteFail('updateGymExercise',e);throw e;}
   }
   async function removeGymExercise(exId){
