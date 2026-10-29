@@ -6583,7 +6583,7 @@ function CalendarView({patients,bookings,setBookings,T,trainerProfile}){
 }
 
 // ── ESERCIZI ──────────────────────────────────────────────────────────────────
-function ExercisesPage({exercises,setExercises,T}){
+function ExercisesPage({exercises,setExercises,T,isGym,onAddGymEx,onUpdateGymEx,onRemoveGymEx,gymExercises}){
   const [showModal,setShowModal]=useState(false);
   const [editing,setEditing]=useState(null);
   const [form,setForm]=useState({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio',equip:'any',primary:'fullbody',move:'push'});
@@ -6591,12 +6591,41 @@ function ExercisesPage({exercises,setExercises,T}){
   const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
   const cats=['Tutti'].concat(Array.from(new Set(exercises.map(e=>e.cat))));
   const filtered=filter==='Tutti'?exercises:exercises.filter(e=>e.cat===filter);
+  // Spazio Palestra: map exId -> true se e' un esercizio modificato/aggiunto dalla palestra
+  const gymExIds=React.useMemo(function(){const s={};(gymExercises||[]).forEach(function(e){s[e.id]=true;});return s;},[gymExercises]);
   const openAdd=()=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio',equip:'any',primary:'fullbody',move:'push'});setEditing(null);setShowModal(true)};
   const openEdit=(ex)=>{setForm({nome:'',cat:'Forza',muscoli:'',desc:'',livello:'intermedio',equip:'any',primary:'fullbody',move:'push',...ex});setEditing(ex.id);setShowModal(true)};
   const save=()=>{
+    if(isGym){
+      // Normalizza il campo nome in oggetto {it,en,fr} se e' una stringa.
+      const normalized=Object.assign({},form);
+      if(typeof normalized.nome==='string') normalized.nome={it:normalized.nome,en:normalized.nome,fr:normalized.nome};
+      if(editing){
+        Promise.resolve(onUpdateGymEx(editing,Object.assign({},normalized,{id:editing}))).catch(function(e){console.warn('[gym ex update]',e);});
+      } else {
+        // Palestra: id autogenerato Firestore (nessuna collisione con E01..E254 di INIT).
+        const payload=Object.assign({},normalized);delete payload.id;
+        Promise.resolve(onAddGymEx(payload)).catch(function(e){console.warn('[gym ex add]',e);});
+      }
+      setShowModal(false);
+      return;
+    }
     if(editing)setExercises(es=>es.map(e=>e.id===editing?{...form,id:editing}:e));
     else setExercises(es=>[...es,{...form,id:'E'+Date.now()}]);
     setShowModal(false);
+  };
+  const removeOne=(exId)=>{
+    if(isGym){
+      // In gym mode, delete solo se esiste nel gyms/{gymId}/exercises (override o custom).
+      // INIT_EXERCISES non e' cancellabile da UI: puo' solo essere override.
+      if(gymExIds[exId]){
+        Promise.resolve(onRemoveGymEx(exId)).catch(function(e){console.warn('[gym ex remove]',e);});
+      } else {
+        if(typeof showToast==='function') showToast(T.gymExDeleteInitHint||'Esercizio della libreria base: puoi modificarlo (crea un override) ma non eliminarlo.','warning');
+      }
+      return;
+    }
+    setExercises(es=>es.filter(e=>e.id!==exId));
   };
   const catColors={Forza:C.blue,Cardio:C.green,Core:C.orange,Mobilità:C.teal,Mobilita:C.teal,Funzionale:C.purple};
   return(
@@ -6612,10 +6641,10 @@ function ExercisesPage({exercises,setExercises,T}){
         {filtered.map(ex=>(
           <div key={ex.id} style={{...S.card,border:`1px solid ${catColors[ex.cat]||C.border2}30`}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
-              <div><div style={{fontSize:13,fontWeight:700,color:C.strong,marginBottom:4}}>{exName(ex,getLang())}</div><span style={S.tag(catColors[ex.cat]||C.muted)}>{ex.cat}</span>{ex.livello&&<span style={{marginLeft:6,display:'inline-block',padding:'3px 8px',borderRadius:6,fontSize:10,fontWeight:700,background:ex.livello==='base'?'#10b98115':ex.livello==='intermedio'?'#f59e0b15':'#ef444415',color:ex.livello==='base'?C.green:ex.livello==='intermedio'?C.yellow:C.red}}>{ex.livello}</span>}</div>
+              <div><div style={{fontSize:13,fontWeight:700,color:C.strong,marginBottom:4}}>{exName(ex,getLang())}{isGym&&gymExIds[ex.id]&&<span style={{marginLeft:6,display:'inline-block',padding:'2px 7px',borderRadius:5,fontSize:9,fontWeight:700,background:'var(--accent)15',color:'var(--accent)',letterSpacing:0.5}}>{(ex.id&&ex.id.indexOf('E')===0&&ex.id.length<=4)?(T.gymExOverrideBadge||'Modificato'):(T.gymExCustomBadge||'Palestra')}</span>}</div><span style={S.tag(catColors[ex.cat]||C.muted)}>{ex.cat}</span>{ex.livello&&<span style={{marginLeft:6,display:'inline-block',padding:'3px 8px',borderRadius:6,fontSize:10,fontWeight:700,background:ex.livello==='base'?'#10b98115':ex.livello==='intermedio'?'#f59e0b15':'#ef444415',color:ex.livello==='base'?C.green:ex.livello==='intermedio'?C.yellow:C.red}}>{ex.livello}</span>}</div>
               <div style={{display:'flex',gap:4}}>
                 <button style={{...S.btn('ghost',true),padding:'3px 7px'}} onClick={()=>openEdit(ex)}>✏</button>
-                <button style={{...S.btn('danger',true),padding:'3px 7px'}} onClick={()=>setExercises(es=>es.filter(e=>e.id!==ex.id))}>✕</button>
+                <button style={{...S.btn('danger',true),padding:'3px 7px'}} onClick={()=>removeOne(ex.id)}>✕</button>
               </div>
             </div>
             <div style={{fontSize:11,color:C.muted,marginBottom:4}}><b style={{color:C.cyan}}>Muscoli:</b> {ex.muscoli}</div>

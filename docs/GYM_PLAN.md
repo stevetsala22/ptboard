@@ -1,493 +1,673 @@
-# GYM_PLAN.md — Piano "Palestra" (self-service)
+# GYM_PLAN.md — Spazio Palestra (v2, workspace condiviso)
 
 > Design doc, non codice. Nessun file modificato oltre questo.
-> Branch: `feature/gym-plan`. Target: variante self-service di PT Board per palestre, con tema, inviti PT e valutazione rapida.
+> **v2 (riscrittura):** cambia il modello di proprietà dei dati. In v1 i clienti restavano al PT; **ora i clienti appartengono alla palestra** e sono condivisi fra i PT membri.
 
-## Requisiti (sintesi)
-1. Palestra si iscrive da sola: crea `gyms/{gymId}` con `ownerUid`, `nome`, `logo`, `theme`.
-2. Titolare invita PT per email → link invito → PT accetta (login o signup, poi link); può anche rimuoverli.
-3. Logo upload → estrazione colori client-side (canvas) → palette proposta → ritocco con color picker + check WCAG AA → salvataggio in `gyms/{gymId}.theme`. Logo ridimensionato ≤256px, WebP/PNG, <60KB, inline nel documento. **Nessun Firebase Storage.**
-4. Tema CSS variables applicato a: `index.html` (PT e titolare), `atleta.html`, `share.html`, export PDF.
-5. Valutazione rapida (~8 domande, PAR-Q+ incluso, equip=`gym`) → riusa `generaSchedaAuto` → scheda modificabile → inviabile al cliente (link `/s/`).
-6. `profile.plan='gym'` (Stripe fase successiva: prevedere solo i campi).
+## Panoramica
+Alla registrazione l'utente sceglie **"Personal trainer"** (app attuale, invariata) oppure **"Palestra"**. Con "Palestra" si crea `gyms/{gymId}` con `ownerUid`, `nome`, `logo`, `theme`, `members[]`. L'utente entra in uno **Spazio Palestra**: stesso sito, stesso `index.html`, workspace separato con branding della palestra, deve sembrare un'app a sé.
 
-## Obiettivo primario
-**Minimizzare il tempo che il PT impiega da "cliente nuovo in sala" a "scheda pronta e inviata".**
+- I **clienti** vivono in `gyms/{gymId}/clients/{clientId}` — un documento per cliente.
+- Le **schede** di un cliente sono una sotto-collezione: `gyms/{gymId}/clients/{clientId}/schede/{schedaId}`.
+- **Tutti i PT membri** leggono e modificano **tutti** i clienti e **tutte** le schede della palestra.
+- **Ruoli**: `owner` (titolare — PT principale: gestisce PT, branding, abbonamento, lavora anche sui clienti) e `trainer` (PT membro).
 
-Baseline oggi: `PatientForm` + wizard valutazione completo + modal "Genera scheda" → **8–15 minuti** per cliente nuovo di PT esperto, oltre 20 per PT nuovo.
-Target Palestra: **sotto 5 minuti** dall'apertura della valutazione rapida all'invio del link `/s/xxx` al cliente.
-**Conseguenza**: la valutazione rapida è la **prima feature** da costruire — e deve funzionare anche per i PT senza palestra (è il moltiplicatore di valore anche fuori dal piano gym).
+## Obiettivo primario (invariato da v1)
+**Minimizzare il tempo che il PT impiega da "cliente nuovo in sala" a "scheda pronta e inviata".** Baseline oggi: 8–15 min. Target Palestra: <5 min. La **valutazione rapida** (FASE 1 / STEP 1.1) è già live su `main` (commit `aa0ec61`/`134d078`) e funziona per i PT indipendenti → riusabile verbatim in Spazio Palestra cambiando solo il data-layer.
 
----
+## Dual-identity: uno può essere PT indipendente E membro di una palestra?
+Due opzioni analizzate:
 
-## A. Stato attuale
-
-### Inputs di `generaSchedaAuto`
-Definizione a `index.html:7418`, unico call site a `6114` (modal "Genera scheda" di `PatientDetail`). Firma: `generaSchedaAuto(params, esercizi)`. Campi letti 7419-7430:
-
-| Campo | Required | Default | Effetto |
-|---|---|---|---|
-| `profilo` | di fatto sì | fallback 'B' nei lookup | pilota serie/rec |
-| `obiettivo` | consigliato | undefined ⇒ no modifiers | pilota split + exParams |
-| `sesso` | ★ | `'M'` + `sessoWarning=true` | filtro gravidanza |
-| `eta` | ★ | `50` | modificatori ACSM anziani |
-| `patologie` | ★★★ sicurezza | `''` | 11 filtri esclusione (7447-7503) |
-| `infortuni` | ★★★ sicurezza | `''` | flag `noLowerPlyo`/`noOverheadPress`/`noDeadlift` |
-| `programma.sedute` | ★ | 3 (via `chooseSplit` 8551) | FB vs Upper-Lower vs PPL |
-| `equip` | ★ (per Palestra sempre `'gym'`) | `'gym'` | filtra libreria 7439-7442 |
-| `durataSeduta` | ★ | `60` | scala serie/rec 7625-7632 |
-| `attivita` | opz. | `''` | modifier conservativo profilo B |
-| `T` | opz. | `null` | solo etichette |
-
-Nessun crash per campi mancanti; scheda meno sicura se mancano `patologie`/`infortuni`. `calcScoreAnamnestico(d,eta)` a `3292` calcola `profilo.code` SENZA test fisici → **minimo set Palestra = anagrafica + PAR-Q+ + patologie/infortuni testuali + preferenze allenamento**.
-
-**Minimo per scheda valida+sicura (8 campi logici; molti auto-completabili):**
-1. Anagrafica: `nome, cognome, sesso, annoNascita` (→ `eta`) — sempre esplicita. `annoNascita` è un intero YYYY (4 cifre), non `ddn`.
-2. Antropometria: `altezza, peso` — sempre esplicita.
-3. Esperienza: `esperienzaLiv` — da chip (3 valori). `attivita` **auto-derivata** da `esperienzaLiv`.
-4. Giorni/settimana: `seduteSettimana` (2–5, default `3`).
-5. Durata seduta: `durataSeduta` (45/60/90, default `60`).
-6. Obiettivo: `obiettivo` — con default intelligente derivato da età+sesso (vedi §D.4).
-7. PAR-Q+: `parqQ1..parqQ7` — tutti NO ⇒ safe senza cert; ≥1 SI ⇒ gate.
-8. Clinica: `patologie, infortuni` — prefill `'Nessuna'`/`''` e **skippabile** se PAR-Q+ tutti NO.
-
-**Attrezzatura (`equip`): fissa a `'gym'` nel contesto Palestra, mai chiesta.** Elimina 1 domanda vs flow PT standard. Dettaglio tempi e default in §D.4.
-
-### Branding hardcoded (grep su `main`)
-
-**"PT Board" literal per file:**
-`index.html` 68 (molte già bypassabili da `trainerProfile.nomeStudio`: 180, 188, 3010-3011, 4705, 4709, 4874, 4899-4902, 5069-5070, 6457, 7216, 9530-9533, 9667-9668). Hardcoded veri: meta/title 105-111; splash 390, 6759, 7171, 7214, 10796, 11319; ErrorBoundary 10759.
-`atleta.html` 3; `share.html` 3; `landing.html` 17; `landing-i18n.js` 21; `manifest.json` 2; `blog/*` 11; privacy/terms 16; `sw.js` 0.
-
-**Hex brand per file:**
-- `index.html`: `#3b82f6` ×116, `#07090f` ×9, `#E6F1FB` ×5
-- `atleta.html`: `#185FA5` ×29, `#042C53` ×16, `#E6F1FB` ×6, `#f0f0ec` ×9
-- `share.html`: `#185FA5` ×13, `#042C53` ×10, `#E6F1FB` ×1, `#f0f0ec` ×7
-
-**⚠️ Inconsistenza di palette**: `index.html` usa `#3b82f6`, `atleta/share` usano `#185FA5`. Da uniformare *prima* del gym theming.
-
-**Theme object `C` + CSS vars** — `index.html:3100-3112`.
-Semantici (`bg, sidebar, card, border, border2, text, muted, dim, strong`) sono getter → `var(--…)`. Dichiarati in `:root{…}` (dark, 266-269) e `:root.light{…}` (light, 270-273).
-Accent (`blue, green, red, yellow, purple, cyan, orange, pink, teal`) sono **hex hardcoded** → NON swap-abili senza estrarre `--accent`.
-
-**PDF export:**
-- `exportPDFLista` (3006, 3011): `trainerProfile.logo` o fallback "PT Board".
-- Scheda cliente (4705-5070): brandHtml 4700, 4899-4902; footer "Generata con PT Board" 4874, 5070 ★ hardcoded.
-- Wizard valutazione (9526-9668): stesso pattern; footer 9668 ★ hardcoded.
-- Stampa via `window.print()` (3033, 4851, 4975, 9599). Colore header `#3b82f6` 4851, 4975, 9599.
-
-### Logica piani
-| Linea | Funzione | Oggi |
+| Opzione | Pro | Contro |
 |---|---|---|
-| 416 | `isTrialExpired` | `pro\|team\|admin` ⇒ mai scaduto |
-| 6710 | `App.loadProfile` | `pro\|team` scaduto ⇒ auto `plan='blocked'` |
-| 6770-71 | render App | `blocked` o trial scaduto ⇒ `PaywallScreen` |
-| 7133-41 | sidebar "Il mio piano" | label pro/team/trial |
-| 7255/7281 | banner header | trial-left / expiring warning |
-| 10815/10968 | paywall copy | nota "Fino a 3 PT" per `team*` |
-| 10996 | `setPlan` (admin) | scrive `plan, planType, planExpiresAt`; annuale=370d, mensile=33d |
-| 11019 | admin dashboard | pill color |
-| 11073-104 | admin dashboard | editor piano |
+| **A. Space switcher** (stesso account, due workspace isolati) | Un solo login, un solo profilo. Toggle in sidebar "Spazio PT / Spazio Palestra ‹nome›". Email, lingua, piano d'abbonamento condivisi. | Due store distinti (clienti PT in `users/{uid}/appdata/main.patients`, clienti palestra in subcollection). Serve persistere `lastSpace` su `users/{uid}`. |
+| **B. Account separati** | Isolamento totale. Nessuna confusione. | Doppio login, doppia email, doppio abbonamento Stripe se entrambi a pagamento. Attrito operativo alto. |
 
-**Cosa sblocca `team` oggi**: UI pubblicizza "Fino a 3 PT" (10815, 10968). In-app ZERO (`plan==='pro'\|\|plan==='team'` ovunque = stesse feature). Grep: nessun `orgId`/`gymId`/`members`. **"Team" oggi è solo un prezzo diverso su Stripe**; zero collisione con `gymId` ortogonale.
+**Raccomandato: A — space switcher.** Un utente ha `users/{uid}.spaces: ['pt','gym']` + `lastSpace`. Al login carica l'ultimo workspace usato; toggle nella sidebar per cambiare. I dati PT restano nell'`appdata/main` esistente (zero migrazione), i dati palestra nei subcollection nuovi.
 
----
+## Requisiti
+1. **Signup**: scelta "Personal trainer" vs "Palestra". Con "Palestra" l'utente diventa `owner` del nuovo gym.
+2. **Clienti condivisi**: ogni cliente è un documento in `gyms/{gymId}/clients/{clientId}`; le sue schede sono in sotto-collezione.
+3. **Inviti PT**: owner genera un **link** (`?joinGym=<inviteId>`) o un **codice 6 caratteri** (es. `A4K9PX`), scadenza 7 giorni, revocabile.
+4. **Rimozione PT**: perde subito l'accesso. Clienti e schede restano alla palestra.
+5. **Concorrenza**: niente autosave dell'intero array di clienti. Ogni modifica è un `.update()` sui soli campi cambiati del documento cliente. Ogni scheda è un nuovo documento (`.add()` o `.set()` su id generato client-side).
+6. **Branding**: logo caricato dall'owner → palette estratta client-side → ritocco con contrasto WCAG AA.
+7. **Riuso codice**: `generaSchedaAuto` + `calcScoreAnamnestico` + modal Quick Assessment invariati; cambia solo il data-layer.
+8. **Niente calendario** nello spazio palestra (decisione esplicita). Il calendario del PT indipendente resta identico a oggi.
+9. **Libreria esercizi unica per la palestra**: i 254 `INIT_EXERCISES` restano embedded nel codice sorgente. Gli esercizi aggiunti o modificati da un PT della palestra si salvano in `gyms/{gymId}/exercises/{exId}` (un documento per esercizio) e sono visibili subito a tutti i membri via `onSnapshot`. **Libreria effettiva** = `INIT_EXERCISES` + override del gym per id combaciante (es. `E05` nella subcoll sovrascrive `E05` di INIT); nuovi id custom vengono appesi. In spazio PT indipendente, invece, la libreria resta nello `appdata/main.exercises` come oggi (nessuna condivisione).
+8. **Privacy**: consenso cliente informa che "i dati sono gestiti dalla palestra X e accessibili al suo staff".
 
-## B. Modello dati
+## ⚠️ REGOLE CRITICHE — non violare mai
+1. **MAI** `fbDb.enableIndexedDbPersistence()` / `fbDb.enablePersistence()`. Fanno crashare Firebase compat 10.7.0.
+2. **Deploy SOLO via GitHub Pages**. Mai Netlify.
+3. **Regole Firestore**: modifica SEMPRE prima `firestore.rules` nel repo, poi copia il file INTERO in Firebase Console → Firestore → Regole. L'editor Console sovrascrive l'intero ruleset.
+4. **Nessuna chiave API/segreto nel frontend**.
+5. **Brevo**: in `ONBOARDING_EMAILS` i template id 4 e 5 sono invertiti rispetto al giorno (`templateId:5 → day14`, `templateId:4 → day25`). Voluto.
+6. **i18n**: ogni testo UI nuovo va in **tutte e 3 le lingue** (IT @ `index.html:457`, EN @ 1306, FR @ 2155).
+7. **Autosave PT indipendente**: NON toccare il guard `loadedFromFirebase.current` né l'autosave esistente (7206-7222). I PT senza palestra devono funzionare IDENTICI.
+8. **Lo Spazio Palestra NON usa l'autosave esistente**. Scrive solo tramite `.update()`/`.add()` field-level sui doc individuali (vedi §B e §Rischi).
+9. **`buildSchedaAttuale` ↔ `buildGiorniDaTutteLeSchede` ↔ `share.html`**: tenere allineati.
+10. **Asset non eliminare**: `dashboard.jpg`, `mobile.jpg`, `PTBoard_Guida_Rapida_PT.pdf` sono referenziati.
 
-### `gyms/{gymId}` (nuova collezione)
+## Modello dati Firestore (v2)
+
+### Collezioni esistenti (invariate)
+- `users/{uid}` — profilo utente.
+- `users/{uid}/appdata/main` — stato del PT **indipendente** (`patients, bookings, exercises, isLight, dataVersion:4`). **Non toccato dallo spazio palestra**.
+- `athletes/{uid}/appdata/main` — mini-app atleta.
+- `sharedClients/{sid}` — vista cliente anonima `/s/`.
+- `deleteFeedback/{uid}` — feedback cancellazione.
+
+### Nuove collezioni
 ```js
-{
-  gymId: 'palestra-fit-roma',       // slug stabile (anche usato in URL ?gym=)
-  nome: 'FitLab Roma',
-  ownerUid: '<uid del titolare>',   // chi può modificare / invitare / rimuovere
-  logo: 'data:image/webp;base64,…', // ≤60KB, max 256px, WebP/PNG inline
-  theme: {
-    bg, sidebar, card, border, border2,
-    text, muted, dim, strong,
-    accent, accentContrast,         // sostituisce C.blue (richiede estrazione a --accent)
-    _wcagChecks: { accentOnBg:4.8, strongOnBg:12.1 }  // debug, opz.
-  },
-  members: ['<uid1>','<uid2>',…],   // include ownerUid + trainer collegati
-  createdAt: serverTimestamp,
-  updatedAt: serverTimestamp,
-  active: true,
-  plan: 'gym',                      // sempre; piano operativo del gym
-  // Stripe (fase successiva): prevedi i campi, non popolarli ancora
-  stripeCustomerId: null,
-  stripeSubscriptionId: null,
-  planExpiresAt: null
+gyms/{gymId} = {
+  gymId,
+  nome,
+  logo: 'data:image/webp;base64,…',   // ≤60KB inline
+  theme: {bg, sidebar, card, border, border2, text, muted, dim, strong, accent, accentContrast},
+  ownerUid,                            // IMMUTABILE dopo la create
+  members: [uid1, uid2, …],            // include ownerUid
+  memberRoles: {uid1:'owner', uid2:'trainer', …},
+  activeInvites: ['A4K9PX', 'Q7PNHJ'], // codici invito attivi (array di document id di gymInvites),
+                                       // per enumerazione lato owner SENZA list query su gymInvites.
+  joinCode: '',                        // scratch field usato dalla rule self-join (vedi §C).
+  createdAt, updatedAt, active:true,
+  plan: 'gym',                         // futuro Stripe
+  stripeCustomerId: null, stripeSubscriptionId: null, planExpiresAt: null
+}
+
+gyms/{gymId}/clients/{clientId} = {
+  // Stesso schema di emptyP() della v1 PT, con nomi di campo identici
+  // in modo che il modal Quick Assessment + PatientDetail/Form li
+  // trattino allo stesso modo.
+  nome, cognome, sesso, annoNascita, altezza, peso,
+  obiettivo, attivita, patologie, infortuni,
+  programma: {sedute, …}, parqPlus: {q1..q7},
+  test: {…}, bia: {…}, progressi: [], log: [],
+  modalitaValutazione: 'rapida'|'completa'|'',
+  dataValutazione, createdAt,
+  createdByUid: '<uid del PT che l'ha creato>',
+  updatedByUid: '<ultimo che l'ha toccato>', updatedAt,
+  consentAcceptedAt: null|timestamp     // consenso privacy (vedi §Privacy)
+}
+
+gyms/{gymId}/clients/{clientId}/schede/{schedaId} = {
+  // Schema compatibile con una entry di patients[].schede[] della v1.
+  nome, codice, split, splitDay, tipo, data,
+  esercizi: [...], note, config: {…},
+  createdByUid, createdAt
+}
+
+gyms/{gymId}/exercises/{exId} = {
+  // Document id = exId. Se exId combacia con un esercizio di INIT_EXERCISES
+  // (es. 'E05'), questo documento OVERRIDE quello embedded nel codice sorgente
+  // per tutta la palestra. Un id non in INIT_EXERCISES = esercizio custom della palestra.
+  // Libreria effettiva (gym mode) = INIT_EXERCISES merge-con override + custom appesi.
+  id,                                   // ridondante ma utile client-side
+  nome: {it,en,fr},                     // oggetto multi-lingua (compat con INIT_EXERCISES)
+  cat, muscoli, desc, livello, equip,
+  primary, move, primarySplit,
+  createdByUid, updatedByUid, createdAt, updatedAt
+}
+
+gymInvites/{code} = {
+  // Document id = code 6 char (es. "A4K9PX"). Nessun campo 'code' separato.
+  // Letture: SOLO via get(doc id). Nessuna list sulla collezione (vedi §C).
+  gymId, gymNome,                       // IMMUTABILI dopo la create
+  invitedByUid,                         // IMMUTABILE
+  createdAt,
+  expiresAt,                            // timestamp (default createdAt + 7g, max 30g)
+  status: 'active' | 'revoked' | 'expired'
 }
 ```
 
-### `gymInvites/{inviteId}` (nuova collezione)
-```js
-{
-  inviteId: '<rand token>',
-  gymId: '…',
-  gymNome: '…',                     // denorm per il link di accettazione
-  invitedByUid: '<ownerUid>',
-  email: 'pt@mail.it',              // email invitata (lowercase, normalizzata)
-  status: 'pending' | 'accepted' | 'revoked',
-  createdAt: serverTimestamp,
-  acceptedAt: null,
-  acceptedByUid: null
-}
-```
-
-Link di accettazione: `https://personaltrainerboard.com/?inviteGym=<inviteId>` (o `atleta.html` equivalente — vedi §D). Al login/signup, se `inviteGym` è presente in URL, chiama Cloud Function/Worker o scrittura client-side che: valida pending + match email → aggiorna `users/{uid}.gymId`, `users/{uid}.gymRole='trainer'`, aggiunge `uid` a `gyms/{gymId}.members`, segna `gymInvites/{id}.status='accepted'`.
+### Perché subcollection e non doc singolo con array
+- **Concorrenza**: due PT che aggiungono clienti simultaneamente ⇒ due `.add()` separate, nessun conflitto. Con un array sul doc gym, due scritture concorrenti si sovrascriverebbero.
+- **Dimensione**: un gym a regime può avere centinaia di clienti; il doc Firestore ha limite 1 MB.
+- **Rules granulari**: più semplice gated-per-collezione.
+- **Listener puntuali**: `onSnapshot` su `clients` restituisce solo i delta, non l'intero array.
 
 ### Campi nuovi su `users/{uid}`
 ```js
 {
-  // esistenti: email, plan, planType, planExpiresAt, planExpiredAt, trialStart, nomeStudio, logo, nome, cognome…
-  gymId: '<gymId>' | null,           // null per PT indipendente (comportamento identico a oggi)
-  gymRole: 'owner' | 'trainer' | null
+  // esistenti: email, plan, planType, planExpiresAt, trialStart, nomeStudio, logo, nome, cognome...
+  spaces: ['pt'] | ['gym'] | ['pt','gym'],   // workspace a cui l'utente puo' accedere
+  gymId: '<gymId>' | null,
+  gymRole: 'owner' | 'trainer' | null,
+  lastSpace: 'pt' | 'gym'                     // default aperto al login
 }
 ```
 
-### Nuovo `plan='gym'`
-- Trattato come `pro\|team` in TUTTI i gate (`isTrialExpired` 416, `loadProfile` 6710, label 7133, paywall 10815/10968, `setPlan` 10996).
-- Payment Link Stripe placeholder: aggiungere `gymMonthly`/`gymYearly` in `PLANS` (136-141) con URL `''` (vuoto) finché non c'è Stripe → UI mostra "Attiva piano Palestra" senza bottone funzionante.
+Un PT indipendente storico ha `spaces: undefined` ⇒ trattato come `['pt']` (retrocompat).
 
-### `dataVersion` — impatto
-Il documento `users/{uid}/appdata/main` resta `dataVersion:4` **invariato**. I nuovi campi (`gymId`, `gymRole`) vivono su `users/{uid}` (profilo), NON dentro `appdata/main`.
-Le nuove collezioni (`gyms`, `gymInvites`) hanno propri documenti, nessun `dataVersion` necessario inizialmente.
-**Autosave non toccato**: il guard `loadedFromFirebase.current` (6832, 6926, 6941, 6955) continua a proteggere solo la scrittura su `users/{uid}/appdata/main`. Le scritture su `gyms/{gymId}` e `gymInvites/{id}` passano da nuovi helper (`gymSave`/`gymInviteCreate`) chiamati esclusivamente da handler UI, **mai** da effect automatici.
+## A. Isolamento Spazio Palestra in `index.html`
 
----
+**Principio base:** aggiungere il minimo di punti di diramazione. Lo stato `isGym` viene calcolato una volta sola da `profile.lastSpace === 'gym' && profile.gymId`, e tutta la logica specifica è contenuta in nuovi componenti/hook. Il flusso PT indipendente (clienti in `appdata/main`) resta identico. Pixel-perfect pre/post deploy per i PT storici.
 
-## C. Bozza `firestore.rules` (SOLO documento, non toccare il file)
+### Punti di innesto (riga su `main`)
+| Dove | Cosa fare |
+|---|---|
+| `App.loadProfile` (`index.html:6974-6983` circa) | Dopo `fbGetUserProfile`, se `profile.spaces` contiene `'gym'` ⇒ caricare `gyms/{profile.gymId}` e applicare il tema (CSS variables su `:root`). |
+| `AppInner` state (7058-7110) | Aggiungere `const [currentSpace, setCurrentSpace] = useState(profile.lastSpace||'pt')`. Aggiungere `const isGym = currentSpace==='gym' && profile.gymId`. |
+| `AppInner` state patients (7058) | Lasciare `const [patients, setPatients] = useState(...)` INVARIATO. In gym mode viene usato uno `useClientData` adapter che restituisce `clients` dalla subcollection, non da questo state. |
+| Firebase load effect (7118-7194) | Il load `fbLoad(uid)` per `appdata/main` continua a eseguirsi SOLO se `isGym` è false al momento del load (evitare lo spreco di `patients` quando l'utente lavora in gym mode). Il guard `loadedFromFirebase.current` resta come oggi: PT indipendente invariato. |
+| Autosave effect (7206-7222) | Guard aggiuntivo in cima: `if (isGym) return;`. L'autosave esistente scrive SOLO il workspace PT indipendente. In gym mode non deve mai triggerare. |
+| `navItems` (7362-7375 circa) | Rimangono invariate. In più: nuovo item "Palestra" visibile se `isGym`, nasconde "App per il cliente" (che era specifica del PT indipendente). |
+| Sidebar workspace switcher | Nuovo blocco in cima alla sidebar: se `profile.spaces` ha 2 elementi, dropdown "Spazio PT ↕ Spazio Palestra". Click → `setCurrentSpace(v); fbSaveUserProfile(uid, {lastSpace:v})`. Il resto della sidebar re-renderizza con `isGym` nuovo. |
+| `PatientList` call site (7585-7595) | Due versioni:<br>- PT independente: `<PatientList patients={patients} … />` come oggi.<br>- Gym: `<PatientList patients={gymClients} onSelect={…} onQuickAssess={…} …/>` con dati dal nuovo hook `useGymClients(gymId)`. Il componente stesso NON cambia. |
+| `PatientDetail` (4674-5000 circa) | Prop `onUpdate` continua a venire da fuori. In gym mode `onUpdate(patch)` chiama l'adapter che fa `.update()` sui soli campi del patch, non `setPatients(...)`. Vedi §B. |
+| Modal Quick Assessment `onCreate` (7620-7640 circa) | In gym mode chiama `adapterCreateClient(patientData, nuoveSchede)` → `.add()` su `gyms/{gymId}/clients` + `.add()` su subcollection schede, poi `setSelectedId(docId); setPage('detail')`. |
+| Branding | Theme già ricevuto da `App.loadProfile`. Fatto una volta sola. |
+
+### Diramazioni minime
+- Lato render: le pagine `dash`, `patients`, `detail`, `form`, `calendar`, `exercises` continuano a usare gli stessi componenti. Solo la **fonte dei dati** cambia (`patients` state vs `gymClients` state). Nessun componente nuovo nel 95% dei casi.
+- Il `pr?.code` logic di `generaSchedaAuto` non cambia.
+- Export PDF, condivisione `/s/`, atleta.html: usano il doc del cliente così com'è, invariato.
+
+### Cosa NON si tocca
+- `patients, bookings, exercises, isLight, dataVersion:4` su `users/{uid}/appdata/main`.
+- Autosave esistente (7206-7222).
+- `PatientForm` validation.
+- `generaSchedaAuto` (`index.html:7418`), `calcScoreAnamnestico` (3292).
+
+## B. Data layer: adapter `useClientData`
+
+### Call-sites attuali che leggono/scrivono `patients`
+| Linea | Operazione |
+|---|---|
+| 7058 | `const [patients, setPatients] = useState(...)` |
+| 7132 | `setPatients(pHydrated)` — hydration da `fbLoad` |
+| 7207, 7218 | autosave write di tutto `patients[]` |
+| 7252 | `setPatients(ps=>[...ps,p])` — create da PatientForm (isNew) |
+| 7254 | `setPatients(ps=>ps.map(...))` — update da PatientForm (edit) |
+| 7592 | `onDelete`: `setPatients(ps=>ps.filter(...))`, `onUpdate`: `setPatients(ps=>ps.map(...))` |
+| 7609, 7615 | Wizard valutazione save (reeval + new) |
+| 7632 | Quick Assessment onCreate |
+| 4707 | `upd=(fn)=>onUpdate({...p,...fn(p)})` in `PatientDetail` → risale a `setPatients` tramite onUpdate |
+
+### Adapter `useClientData({isGym, gymId, patients, setPatients})`
+Un hook unico che ritorna la stessa interfaccia per entrambi i mondi. Scopo: cambiare la riga più piccola possibile ai call-site.
+
+```js
+function useClientData({isGym, gymId, patients, setPatients, uid}){
+  const [gymClients, setGymClients] = useState([]);
+  const [gymReady, setGymReady] = useState(false);
+
+  // Listener real-time sulla subcollection (solo in gym mode)
+  useEffect(()=>{
+    if(!isGym || !gymId) return;
+    const q = fbDb.collection('gyms').doc(gymId).collection('clients');
+    const unsub = q.onSnapshot(snap=>{
+      setGymClients(snap.docs.map(d=>({...d.data(), id:d.id})));
+      setGymReady(true);
+    }, err=>console.warn('[gym clients] snapshot err:', err));
+    return ()=>unsub();
+  }, [isGym, gymId]);
+
+  const clients = isGym ? gymClients : patients;
+
+  async function addClient(c){
+    if(!isGym){
+      const id = nextPid(patients);
+      const p = {...c, id};
+      setPatients(ps=>[...ps,p]);
+      return p;
+    }
+    // Gym: .add() → id autogenerato Firestore. Il cliente appare poi via onSnapshot.
+    const docRef = await fbDb.collection('gyms').doc(gymId).collection('clients')
+      .add({...c, createdByUid: uid, createdAt: Date.now(), updatedAt: Date.now()});
+    return {...c, id: docRef.id};
+  }
+
+  async function updateClient(id, patch){
+    if(!isGym){
+      setPatients(ps=>ps.map(p=>p.id===id?{...p,...patch}:p));
+      return;
+    }
+    // Gym: update field-level dei soli campi in patch (NON di tutto il doc)
+    await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id)
+      .update({...patch, updatedByUid: uid, updatedAt: Date.now()});
+  }
+
+  async function removeClient(id){
+    if(!isGym){
+      setPatients(ps=>ps.filter(p=>p.id!==id));
+      return;
+    }
+    // Gym: delete del doc + delete di tutte le schede della subcollection
+    await fbDb.collection('gyms').doc(gymId).collection('clients').doc(id).delete();
+    // schede subcollection: cleanup via Cloud Function o batch client-side
+  }
+
+  async function addScheda(clientId, scheda){
+    if(!isGym){
+      setPatients(ps=>ps.map(p=>p.id===clientId
+        ? {...p, schede:[...(p.schede||[]), scheda]}
+        : p));
+      return;
+    }
+    await fbDb.collection('gyms').doc(gymId).collection('clients').doc(clientId)
+      .collection('schede').add({...scheda, createdByUid: uid, createdAt: Date.now()});
+  }
+
+  return {clients, gymReady, addClient, updateClient, removeClient, addScheda};
+}
+```
+
+### Punti di modifica ai call-sites
+| Linea | Oggi | Nuovo |
+|---|---|---|
+| 7132 | `setPatients(pHydrated)` | invariato (PT indipendente only; in gym mode il load `fbLoad` è skippato) |
+| 7252 (PatientForm new) | `setPatients(ps=>[...ps,p])` | `addClient(p)` |
+| 7254 (PatientForm edit) | `setPatients(ps=>ps.map(...))` | `updateClient(form.id, form)` |
+| 7592 onDelete | `setPatients(ps=>ps.filter(...))` | `removeClient(selectedId)` |
+| 7592 onUpdate | `setPatients(ps=>ps.map(x=>x.id===p.id?p:x))` | `updateClient(p.id, p)` |
+| 7609 (reeval wizard) | `setPatients(ps=>ps.map(...))` | `updateClient(reevalPatient.id, {test:p.test, bia:p.bia, …})` |
+| 7615 (new wizard) | `setPatients(ps=>[...ps,np])` | `addClient(np).then(c=>setSelectedId(c.id))` |
+| 7632 (QA onCreate) | `setPatients(ps=>[...ps,p])` | `addClient(p).then(c=>{if(nuoveSchede) nuoveSchede.forEach(s=>addScheda(c.id, s))}); setSelectedId(c.id)` |
+
+Il `patients` state resta e viene letto come oggi: in gym mode `clients` arriva dallo snapshot e il resto del render è identico (stesso schema per-cliente). **Nessun refactor profondo di `PatientDetail`/`PatientForm`.**
+
+### `upd` in PatientDetail (4707)
+Oggi: `const upd=(fn)=>onUpdate({...p,...fn(p)})` dove `onUpdate` ⇒ `setPatients(...)`.
+Nuovo in gym mode: `onUpdate` passata come prop è `(patient)=>updateClient(patient.id, diff)` dove `diff` sono solo i campi cambiati. Per calcolare il diff si confrontano `patient` e `p`: `const diff = diffPatch(p, patient)`. L'adapter manda `.update(diff)` → due PT che toccano campi diversi non si sovrascrivono.
+
+In PT indipendente il comportamento resta identico (riga 4707 invariata).
+
+### Field-level update: come
+```js
+// Esempio: PT A tocca il peso, PT B tocca il consenso. Entrambi aperti sullo stesso cliente.
+// Senza field-level: ognuno fa .set({...cliente, peso: X}) o .set({...cliente, consentAcceptedAt: Y}),
+// e chi scrive ultimo cancella l'altra modifica.
+// Con field-level: ognuno fa .update({peso: X}) o .update({consentAcceptedAt: Y}),
+// i due merge convivono.
+```
+
+Firestore `.update()` è atomico sui campi passati; non tocca il resto. Zero conflitti su campi disgiunti. Conflitto solo se entrambi scrivono lo stesso campo (last-write-wins — accettabile per i casi d'uso tipici).
+
+## C. Bozza `firestore.rules` (solo nel doc, NON toccare il file)
 
 Da aggiungere PRIMA del deny finale, mantenendo i 7 blocchi esistenti (Regola Critica #3).
 
+**Principi di sicurezza v2 (aggiornati):**
+- L'**id del documento invito è il codice stesso** (6 char uppercase). Niente campo `code` separato, niente query `where code==X`: la validazione passa da `get()` diretto sull'id.
+- Nessuna `list` sulla collezione `gymInvites`: solo `get` del singolo documento. L'owner conosce i codici dei propri inviti perché sono salvati su `gyms/{gymId}.activeInvites[]` (vedi sotto).
+- L'accettazione dell'invito è **client-side con validazione nelle rules**: il PT fa un `.update()` sul doc gym che aggiunge solo il proprio uid a `members` + `memberRoles[uid]='trainer'` + registra `joinCode`. La rule confronta i diff e verifica l'invito via `get()`.
+- `ownerUid` è immutabile dopo la create. `members` alla create = `[request.auth.uid]` esatto (nessuno può piazzare altri uid al momento della fondazione).
+
 ```
-// ── GYMS COLLECTION ──
+// ── GYMS ──
 match /gyms/{gymId} {
-  // Lettura pubblica di nome/logo/theme (serve a share.html e atleta.html pre-auth)
-  // Scrittura solo owner o admin
-  allow read: if true;
+  // Lettura: tutti i membri possono leggere il doc gym (nome, logo, theme, members).
+  allow read: if request.auth != null
+              && resource.data.members.hasAny([request.auth.uid]);
+
+  // Create: il fondatore e' owner e UNICO membro iniziale.
   allow create: if request.auth != null
                 && request.resource.data.ownerUid == request.auth.uid
-                && request.resource.data.members.hasAny([request.auth.uid]);
+                && request.resource.data.members == [request.auth.uid]
+                && request.resource.data.memberRoles[request.auth.uid] == 'owner';
+
+  // (A) Update completo dell'owner: puo' cambiare tutto EXCETTO ownerUid.
   allow update: if request.auth != null
-                && resource.data.ownerUid == request.auth.uid;
+                && resource.data.ownerUid == request.auth.uid
+                && request.resource.data.ownerUid == resource.data.ownerUid;
+
+  // (B) Update dell'admin: stessa clausola di invarianza su ownerUid.
   allow update: if request.auth != null
-                && request.auth.token.email == 'stevetsala22@gmail.com';
+                && request.auth.token.email == 'stevetsala22@gmail.com'
+                && request.resource.data.ownerUid == resource.data.ownerUid;
+
+  // (C) Self-join di un PT invitato: diff SOLO su members + memberRoles + joinCode.
+  // La rule valida: (1) il PT aggiunge SOLO il proprio uid a members; (2) il suo ruolo
+  // e' 'trainer'; (3) il codice usato esiste come doc gymInvites/{joinCode}, e' active,
+  // non scaduto, e punta a questo gymId. ownerUid immutabile, members esistenti preservati.
+  allow update: if request.auth != null
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['members','memberRoles','joinCode'])
+                && request.resource.data.ownerUid == resource.data.ownerUid
+                && !(request.auth.uid in resource.data.members)
+                && request.resource.data.members == resource.data.members.concat([request.auth.uid])
+                && request.resource.data.memberRoles[request.auth.uid] == 'trainer'
+                && exists(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode))
+                && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.gymId == gymId
+                && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.status == 'active'
+                && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.expiresAt > request.time;
+
   allow delete: if request.auth != null
                 && resource.data.ownerUid == request.auth.uid;
+
+  // ── CLIENTI DEL GYM ──
+  // Tutti i membri possono creare, leggere, aggiornare, cancellare clienti del gym.
+  match /clients/{clientId} {
+    allow read, create, update, delete: if request.auth != null
+      && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+
+    // ── SCHEDE DEL CLIENTE ──
+    match /schede/{schedaId} {
+      allow read, create, update, delete: if request.auth != null
+        && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+    }
+  }
 }
 
-// ── GYM INVITES ──
+// ── INVITI PT (codice 6 char = document id) ──
 match /gymInvites/{inviteId} {
-  // Owner può creare/leggere/revocare inviti per il suo gym
-  // Il destinatario può leggere il proprio invito via email match (post-login) e aggiornare status→accepted
+  // (1) Owner crea l'invito. inviteId e' il codice stesso (uppercase, charset no-ambigui).
+  //     Alla create, status='active' e expiresAt entro 30 giorni.
   allow create: if request.auth != null
                 && request.resource.data.invitedByUid == request.auth.uid
-                && request.resource.data.status == 'pending';
-  allow read: if request.auth != null
-              && (
-                resource.data.invitedByUid == request.auth.uid
-                || resource.data.email == request.auth.token.email
-              );
-  // Owner può revocare
+                && request.resource.data.status == 'active'
+                && request.resource.data.expiresAt is timestamp
+                && request.resource.data.expiresAt > request.time
+                && request.resource.data.expiresAt < request.time + duration.value(30, 'd');
+
+  // (2) GET consentito a chiunque loggato (serve per validare il codice all'accept).
+  //     NESSUN allow list: nessuno puo' enumerare la collezione.
+  //     L'owner elenca i propri inviti via gyms/{gymId}.activeInvites[] (array di codici).
+  allow get: if request.auth != null;
+
+  // (3) Update: solo l'owner originale puo' revocare / cambiare la scadenza.
+  //     invitedByUid immutabile; gymId immutabile.
   allow update: if request.auth != null
                 && resource.data.invitedByUid == request.auth.uid
-                && request.resource.data.status in ['pending','revoked'];
-  // Destinatario può accettare (solo transizione pending→accepted con il suo uid)
-  allow update: if request.auth != null
-                && resource.data.email == request.auth.token.email
-                && resource.data.status == 'pending'
-                && request.resource.data.status == 'accepted'
-                && request.resource.data.acceptedByUid == request.auth.uid;
+                && request.resource.data.invitedByUid == resource.data.invitedByUid
+                && request.resource.data.gymId == resource.data.gymId;
+
+  // (4) Delete solo dall'owner.
   allow delete: if request.auth != null
                 && resource.data.invitedByUid == request.auth.uid;
 }
 ```
 
-**Letture dei clienti anonimi** (`atleta.html` pre-login, `share.html`): basta `allow read: if true` sulla collezione `gyms`. Le info sensibili (ownerUid, members, stripe*) sono comunque "metadata" non critiche; se preoccupa, si può splittare in `gyms/{gymId}/public/branding` con `read: true` e tenere il resto solo per membri auth. **MVP**: tenerlo semplice, read pubblico sul documento intero.
+**Nota su `used`/`maxUses`**: rimossi dallo schema. Un contatore atomico lato client non è verificabile dalle rules (le rules vedono solo lo stato prima della write; incrementare `used` e verificare `used<maxUses` nella stessa transazione del self-join richiederebbe un server). **Difesa compensativa**: scadenza breve (default 7g, max 30g) + revoca istantanea via `status='revoked'`. Se serve limitare i join a 1-N PT specifici, l'owner può creare N inviti distinti (uno per PT) e revocarli dopo l'uso.
 
-**Verifica post-pubblicazione (Regola Critica #3)**: owner-users ×2, admin-users, admin-appdata, deleteFeedback, sharedClients, athletes, **gyms, gymInvites**, deny finale.
 
----
+**Verifica post-pubblicazione** (Regola Critica #3): 7 blocchi esistenti (owner users ×2, admin users, admin appdata, deleteFeedback, sharedClients, athletes) + 2 nuovi blocchi (gyms + gymInvites) + deny finale = **10 match** da controllare.
 
-## D. UI nuove schermate
+**Scelta esplicita**: lettura di `gyms/{gymId}` ora è gated ai soli membri (contrariamente alla v1 che lasciava read:true per lo spazio pubblico). Motivo: `members[]` contiene gli uid dei PT, dato leggermente sensibile. Il branding (nome/logo/theme) per clienti anonimi (atleta.html/share.html) viene **denormalizzato nei doc che gli servono** (es. in `sharedClients/{sid}.gymBranding`).
 
-### D.1 Onboarding palestra (`page='gymOnboarding'`)
-Flusso 3-step: nome → upload logo + palette → crea.
-- **Dove**: nuovo valore `page` gestito in `AppInner` (`index.html:6785`). Add state `const [showGymOnboarding,setShowGymOnboarding]=useState(false)` vicino a 6818 (`setShowPiani`).
-- **Trigger**: nuova voce menu "Palestra" in `navItems` (7022-7034) visibile solo se `profile.plan==='gym'` o se il piano è `pro\|team` + è il primo setup. Modal o full-page.
-- **Reuse**: `Modal` component (CLAUDE.md map), `showToast`.
-- **Scrittura**: `fbDb.collection('gyms').doc(gymId).set({...})` + aggiorna profilo con `gymId, gymRole:'owner'` (via `fbSaveUserProfile` 143).
+## Inviti PT (codice 6 caratteri = document id)
 
-### D.2 Editor branding (upload logo + palette)
-Sotto-schermata di D.1 (step 2) e anche voce separata "Palestra → Branding" per editing successivo.
+**Flusso 100% client-side. Nessun Cloudflare Worker, nessun service account, nessun endpoint custom.**
 
-**Pipeline client-side (nessuna lib esterna)**:
-1. `<input type="file" accept="image/*">` → `URL.createObjectURL`.
-2. Carica in `<img>`, aspetta `onload`.
-3. Resize su `<canvas>` 256×auto preservando aspect ratio.
-4. Riconverti via `canvas.toBlob('image/webp', 0.85)` → se >60KB, ritenta con quality 0.75 → 0.60. Fallback `image/png` se WebP non supportato.
-5. Estrazione colori:
-   - Leggi `ctx.getImageData(0,0,w,h).data`.
-   - Istogramma su buckets `rgb >> 4` (12-bit quantize) ignorando pixel con alpha<128, saturation<0.15, luminance<0.08 o >0.95 (scarta neutri estremi).
-   - Ordina buckets per count, prendi top 3-5.
-   - Riconverti i bucket centers in hex.
-6. Proponi 2-3 colori; mappa su `accent`, `strong`, `bg` di default.
-7. Color picker (`<input type="color">`) per ritocco. Per ogni token colore critico calcolare contrasto WCAG:
-   ```
-   function luminance(hex){ /* standard sRGB → linear → 0.2126 R + 0.7152 G + 0.0722 B */ }
-   function contrast(a,b){ var l1=lum(a)+0.05, l2=lum(b)+0.05; return (Math.max(l1,l2)/Math.min(l1,l2)); }
-   // AA grande testo: >=3; AA testo normale: >=4.5
-   ```
-   Mostra badge "AA ✓/✗" sotto ogni coppia (accent su bg, text su bg, strong su bg).
-8. Salva: `gyms/{gymId}.logo = dataURI`, `.theme = {bg,sidebar,card,border,border2,text,muted,dim,strong,accent,accentContrast}`.
+### Generazione (owner)
+Schermata "Palestra → Membri" → bottone "Invita PT". Form:
+- Scadenza: 7 giorni (default), slider 1–30.
+- Opzionale: email (per promemoria via Brevo, tramite Worker esistente `/send-email`).
 
-**Note**:
-- WebP è supportato da tutti i browser moderni (Safari 14+). Fallback PNG previsto.
-- Target peso <60KB: WebP 256px qualità 0.85 di loghi tipici (grafica piatta) sta tra 5–25KB; qualità 0.6 copre il caso peggiore.
-- Nessuna lib esterna (no Vibrant.js, no Color Thief). Implementazione <200 righe.
+Click "Genera" (client-side, nessun Worker custom):
+1. Il client genera un `code` di 6 char dal charset `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (32 char, no I/O/0/1 per evitare ambiguità) — ~10^9 combinazioni. 32⁶ ≈ 1.07 × 10⁹.
+2. `fbDb.collection('gymInvites').doc(code).set({invitedByUid: uid, gymId, gymNome, createdAt: serverTimestamp, expiresAt: now + 7g, status:'active'})` **con `{merge:false}` + check preliminare `.get()` per evitare collisione (retry ≤5 volte generando un nuovo code)**.
+3. Lo stesso client aggiorna `gyms/{gymId}.activeInvites = arrayUnion(code)` → l'owner avrà la lista enumerabile dei suoi codici *senza* bisogno di una `list` query sulla collezione `gymInvites`.
+4. (Opzionale) Il client chiama il Worker Brevo esistente (`WORKER_URL+'/send-email'`) con nuovo template id per mandare il codice via email.
 
-**Dove**: nuovo screen in `AppInner`, montato quando `page==='gymBranding'`. Reuse `Modal`.
+Owner vede link `https://personaltrainerboard.com/?joinGym=A4K9PX` + codice `A4K9PX`. Entrambi funzionano (il link preformatta il codice).
 
-### D.3 Gestione PT (lista invitati + membri + rimuovi)
-- **Dove**: `page='gymMembers'`. Lista:
-  - `members` risolti via query `users` where `gymId==gymId` (admin-only read oggi, ma dato che l'owner ha scritto `members` nel doc gym, basta leggere `members[]` + opzionalmente `fbGetUserProfile(uid)` per ogni membro — richiede admin o nuova rule "member can read other member's profile within same gym" — valutare: più semplice tenere denorm `members: [{uid, email, nome}, …]` nel doc gym).
-  - Inviti pending: query `gymInvites` where `gymId==gymId && status=='pending'`.
-- **Azioni**:
-  - "Invita PT" → form email → `gymInvites.add({...})` + mandare email (via Cloudflare Worker esistente `WORKER_URL+'/send-email'`, 198-230, nuovo templateId Brevo).
-  - "Revoca invito" → `gymInvites.update({status:'revoked'})`.
-  - **"Rimuovi PT" — i clienti RESTANO al PT**. Nessun trasferimento di dati, nessuna migrazione di schede. L'owner perde solo la visibilità aggregata di quel PT nella dashboard gym. Operativamente:
-    - `users/{uid}.update({gymId:null, gymRole:null})` → via Worker service-account (le rules non consentono a un utente di scrivere il profilo di un altro).
-    - `gyms/{gymId}.members = arrayRemove(uid)` → direttamente dall'owner (rule gyms update by ownerUid).
-    - Il PT rimosso continua a lavorare come PT indipendente: `users/{uid}/appdata/main` è intatto, `patients[]` suo rimane suo. Al prossimo login il tema gym non si applica più (hook `applyGymTheme` salta per `gymId:null`).
-    - **Nessuna opzione di "trasferimento clienti al gym"**: i clienti sono proprietà del PT, il gym è solo brand + dashboard aggregata.
+### Uso (PT invitato) — self-join client-side
+Due entry point:
+1. **Link**: `?joinGym=A4K9PX` catturato in `App.loadProfile` dopo l'auth.
+2. **Codice manuale**: pannello "Entra in una palestra" nel menu account → textbox 6 char.
 
-### D.4 Valutazione rapida (~8 domande, target <5 minuti)
-- **Dove**: pagina dedicata `atleta.html?mode=assessment&gym=<gymId>` oppure `/valutazione.html` nuovo file (vanilla, ~400 righe).
-- **Flow**:
-  1. Carica `gyms/{gymId}` → applica tema + logo.
-  2. 8 domande (vedi §A).
-  3. Submit → riuso diretto delle funzioni esistenti, con fallback espliciti e try/catch (vedi snippet sotto).
-  4. Mostra scheda proposta read-only con bottone "Modifica" (apre il modal scheda esistente) e "Invia al cliente" (genera `sharedClients/{sid}` come già fa il flusso PT).
-
-#### Snippet di submit (riuso diretto)
+Entrambi chiamano lo stesso handler client-side `acceptGymInvite(code)`:
 ```js
-function submitValutazioneRapida(d, exercises, T){
-  // d è l'oggetto raccolto dal form rapido (chiavi coerenti con PatientForm).
-  // exercises è passato dal chiamante (in index.html è lo state 'exercises';
-  // in /valutazione.html è INIT_EXERCISES importato come variabile globale).
-  // T è la translation table (LANGS[lang].t).
-  try {
-    // 'annoNascita' è un intero YYYY (es. 1988), raccolto dal form come input number
-    // 4 cifre con validazione 1920 ≤ anno ≤ anno corrente. Non si usa 'ddn'.
-    // Stesso nome del campo nei clienti esistenti → nessuna conversione a save.
-    var annoNascita = +d.annoNascita;
-    var eta = annoNascita ? (new Date().getFullYear() - annoNascita) : 50;
-    var pr = calcScoreAnamnestico(d, eta);              // 3292, ritorna {code,...} o null
-    var profilo = (pr && pr.code) || 'B';               // ★ fallback 'B'
-    var schede = generaSchedaAuto({
-      profilo: profilo,
-      obiettivo: d.obiettivo,                           // obbligatorio, mai default (§Default intelligenti)
-      sesso: d.sesso,                                   // ★ obbligatorio, NESSUN default (vedi Fix #2: sesso mancante → norme sbagliate)
-      eta: eta,
-      patologie: d.patologie || 'Nessuna',              // 'Nessuna' SOLO se PAR-Q+ tutto NO (§Sicurezza)
-      infortuni: d.infortuni || '',
-      programma: { sedute: +d.seduteSettimana || 3 },   // ★ fallback 3
-      equip: 'gym',                                     // fisso in Palestra
-      durataSeduta: +d.durataSeduta || 60,              // ★ fallback 60
-      T: T,
-      attivita: d.attivita || ''
-    }, exercises);
-    return schede;
-  } catch (e) {
-    console.warn('[valutazione] gen error:', e);
-    if (typeof showToast === 'function')
-      showToast(T.schedaGenError || 'Errore generazione scheda', 'error');  // allineato a index.html:6114
-    return null;
-  }
+async function acceptGymInvite(code){
+  const codeUp = code.toUpperCase().trim();
+  // 1. Legge l'invito via GET diretto (allowed by rule allow get). Se non esiste o scaduto, errore.
+  const inv = await fbDb.collection('gymInvites').doc(codeUp).get();
+  if(!inv.exists) throw new Error('invite-not-found');
+  const d = inv.data();
+  if(d.status !== 'active') throw new Error('invite-not-active');
+  if(d.expiresAt.toMillis() < Date.now()) throw new Error('invite-expired');
+
+  // 2. Self-join sul gym: solo i tre campi diff ammessi dalla rule (members, memberRoles, joinCode).
+  const gymRef = fbDb.collection('gyms').doc(d.gymId);
+  const gym = await gymRef.get();
+  const gymData = gym.data();
+  if(gymData.members.includes(uid)) throw new Error('already-member');
+  const newMembers = [...gymData.members, uid];
+  const newRoles = {...gymData.memberRoles, [uid]: 'trainer'};
+  await gymRef.update({
+    members: newMembers,
+    memberRoles: newRoles,
+    joinCode: codeUp   // la rule confronta joinCode con get(gymInvites/joinCode)
+  });
+
+  // 3. Il PT scrive il proprio profilo (allowed by owner rule su /users/{uid}).
+  await fbDb.collection('users').doc(uid).set({
+    gymId: d.gymId,
+    gymRole: 'trainer',
+    spaces: arrayUnion('gym'),
+    lastSpace: 'gym'
+  }, {merge:true});
+
+  showToast(T.gymJoinSuccess.replace('{nome}', d.gymNome), 'success');
 }
 ```
-Note:
-- **`annoNascita`** è un **campo del form** (input `type="number"` 4 cifre, `min=1920`, `max=new Date().getFullYear()`, `required`). NON si usa `ddn` (data completa) nella valutazione rapida: raccogliere solo l'anno elimina 2 input (giorno+mese) e `annoNascita` è quello che serve per calcolare `eta`. Il paziente creato dal flusso salva `annoNascita` (stesso campo dei clienti esistenti in `patients[]`), **non** `ddn`.
-- **`sesso` è obbligatorio senza default**: lo snippet NON ha più `|| 'M'`. Il form deve bloccare il submit finché `d.sesso ∈ {'M','F'}` non è selezionato. Default silenziosi su `sesso` producono norme di riferimento sbagliate (es. STS, 6MWT, hip-thrust preference 7694) → scheda potenzialmente mal calibrata per il cliente.
-- `exercises` è SEMPRE passato dal chiamante (secondo argomento di `generaSchedaAuto`): in `index.html` è lo state locale `exercises` (idratato da `appdata/main.exercises`); in `/valutazione.html` è `INIT_EXERCISES` incluso via `<script>`.
-- `T` è la translation table corrente (`LANGS[getLang()].t`), passata nel modal; `generaSchedaAuto` la usa per etichette interne (es. "Cardio").
-- Tutti i default pericolosi sono assenti: `obiettivo` NON ha fallback (campo obbligatorio nel form); `sesso` ha fallback `'M'` ma il form NON lascia passare un submit senza selezione (il fallback copre solo caso di input corrotto).
-- Il `try/catch` protegge sia errori di `calcScoreAnamnestico` (dati esotici) sia di `generaSchedaAuto` (es. libreria esercizi vuota).
 
-- **Reuse verbatim**: `generaSchedaAuto` 7418, `calcScoreAnamnestico` 3292, `INIT_EXERCISES` 3763-4062, `calcolaObiettivoMetrics` 8669.
-- **Variante alternativa**: valutazione rapida come **nuovo modal in `index.html`** per il PT loggato (`showAssessment` state vicino a 6818). Più semplice da implementare (già tutto in scope), ma non è pubblico/anonimo. **Decisione raccomandata per MVP**: modal in `index.html` (è il PT a compilare, standing accanto al cliente in sala; non serve passarlo al cliente).
+**Perché è sicuro senza Worker:**
+- La rule (C) `self-join` controlla che la diff tocchi solo `members/memberRoles/joinCode`, che l'uid aggiunto sia esattamente `request.auth.uid`, che `memberRoles[uid]='trainer'`, e che `gymInvites/{joinCode}` esista con `gymId==gymId`, `status='active'`, `expiresAt > now`.
+- Un attaccante che tenta di aggiungere un altro uid: fallisce perché `members[new] == request.auth.uid` è obbligatorio.
+- Un attaccante che tenta di modificare `ownerUid`, `nome`, `theme`, ecc. nella stessa write: fallisce perché `affectedKeys().hasOnly(['members','memberRoles','joinCode'])`.
+- Un codice scaduto o revocato: fallisce perché la rule interroga lo stato attuale di `gymInvites/{code}`.
+- Un codice indovinato per brute force: 32⁶ combinazioni ≈ 1.07 × 10⁹, Firestore throttles le read anonime, scadenza 7g, `allow get` ma **nessun `list`** → l'attaccante deve indovinare un codice specifico attivo in questo momento.
 
-#### Budget tempo (target <5 min, obiettivo stretch <3 min)
-Baseline misurata (compilazione a mano, tutti i campi espliciti):
-| Step | Campi | Tempo tipico |
-|---|---|---|
-| 1. Anagrafica | nome, cognome, sesso, ddn | 30s |
-| 2. Antropometria | altezza, peso | 15s |
-| 3. Esperienza | esperienzaLiv, attivita | 25s |
-| 4. Allenamento | seduteSettimana, durataSeduta | 20s |
-| 5. Obiettivo | obiettivo (dropdown 7-8 valori) | 15s |
-| 6. PAR-Q+ | parqQ1..parqQ7 (7 radio sì/no) | 60-90s |
-| 7. Clinica | patologie, infortuni (textarea) | 60-120s |
-| **Totale** | | **~4-6 min** |
+### Revoca (owner)
+Bottone "Revoca" nella lista → `gymInvites/{code}.update({status:'revoked'})`, + `gyms/{gymId}.activeInvites = arrayRemove(code)`. Rule (C) di self-join rifiuta subito dopo (`status != 'active'`).
 
-#### Default intelligenti (riducono il tempo a ~2-3 min)
-Il PT può accettare i default con un singolo "Continua" per campo. Default pensati per il profilo-mediano Palestra (adulto 25-55, in salute, sa alzare pesi):
+### Elenco inviti attivi (owner)
+L'owner **non interroga** `gymInvites` con una `where`. Legge `gyms/{gymId}.activeInvites[]` (array di codici) e per ogni codice fa un `get` singolo su `gymInvites/{code}` per sapere `createdAt`/`expiresAt`/`status`. Se un codice è scaduto o revocato, il bottone "Pulisci inviti" lo rimuove dall'array (`arrayRemove`).
 
-| Campo | Default | Come applicarlo |
-|---|---|---|
-| `equip` | `'gym'` | **Fissato**, mai chiesto. Palestra = sala attrezzata. −1 domanda vs flow PT standard. |
-| `seduteSettimana` | `3` | Preset con slider 2/3/4/5. Media del gym. |
-| `durataSeduta` | `60` | Preset 45/60/90. Default 60. |
-| `attivita` | derivato da `esperienzaLiv` | `Principiante`→`'Sedentaria'`, `Intermedio`→`'Attiva'`, `Avanzato`→`'Molto attiva'`. **Il campo è sempre visibile e modificabile** (non collassato): il PT vede subito il valore proposto e può correggerlo con un tap. |
-| `patologie` | `'Nessuna'` **solo se PAR-Q+ tutto NO** | Vedi §Short-circuits + §Sicurezza. Con ≥1 PAR-Q+ SI il campo è obbligatorio e vuoto. |
-| `infortuni` | `''` **solo se PAR-Q+ tutto NO** | Idem a `patologie`. |
-| `obiettivo` | **nessun default — selezione obbligatoria** | **Non preselezionato.** 7-8 opzioni mostrate come card grandi tap-able (Forza, Massa, Perdere peso, Resistenza, Performance, Riabilitazione, Salute, Forma generale). Un singolo tap conclude lo step. L'obiettivo è troppo determinante sulla struttura della scheda (`chooseSplit`, `exParamsFor`) per lasciarlo a un default. |
-| `obiettivoStrutturato` | `{}` vuoto | Skippare completamente nella valutazione rapida (non alimenta `generaSchedaAuto` direttamente, solo `calcolaObiettivoMetrics` che qui non serve). |
-| `sesso` | **nessun default — obbligatorio** | Non inferibile da nome in modo affidabile. 2 chip grandi "M"/"F" tap-able; submit disabled finché non selezionato. **Vedi Fix #2: `sesso` mancante → norme sbagliate** (STS, 6MWT, hip-thrust preference 7694). |
-| `annoNascita` | nessun default — obbligatorio | Input numerico 4 cifre, `min=1920`, `max=anno corrente`, required. Si raccoglie SOLO l'anno (no giorno/mese), stesso campo salvato nel paziente creato (coerente con `patients[]` esistenti). Da `annoNascita` deriva `eta` per filtri ACSM anziani. |
-| `altezza`, `peso` | nessun default | Antropometria sempre esplicita (3 valori che toccano serie/peso iniziali). |
+### Rimozione PT dalla palestra
+Owner nel pannello Membri → bottone "Rimuovi" per riga. Operazione **100% client-side**, nessun Worker:
+1. `gyms/{gymId}.update({members: newMembers, memberRoles: newRoles})` dove `newMembers = oldMembers.filter(u => u !== targetUid)` e `newRoles` rimuove la chiave `targetUid`. Permesso dalla rule (A) owner-update (owner può toccare qualsiasi campo tranne `ownerUid`).
+2. **NON scrive `users/{targetUid}` dall'account owner** (le rules non lo permettono). Il profilo del PT rimosso viene "ripulito" al suo prossimo login: `App.loadProfile` del PT rilegge `gyms/{gymId}` → read-denied (non più in `members`) → setta `users/{targetUid}.gymId=null, gymRole=null, spaces=arrayRemove('gym')` sul proprio profilo (allowed dalla owner-rule su `/users/{uid}`).
+3. Nel frattempo, se il PT rimosso è ancora loggato, al prossimo refresh/listener il suo accesso ai clienti del gym fallisce: le rules deny al nuovo stato `members` lo bloccano. UI mostra "Accesso scaduto".
+4. **I clienti e le schede del gym restano INVARIATI nei subcollection.** Nessuna migrazione.
 
-#### Sicurezza — regole non negoziabili
-- **PAR-Q+ è SEMPRE obbligatorio.** 7 radio sì/no, nessuna preselezione, nessun bypass. Il form di submit resta disabilitato finché le 7 risposte non sono date esplicitamente.
-- **PAR-Q+ NON rientra mai in "accetta tutti i default"** (vedi short-circuits). Il power-user può accettare i default per esperienza/attivita/durata/sedute, ma deve compilare PAR-Q+ a mano.
-- Con **≥1 PAR-Q+ SI**, la sezione clinica (`patologie`, `infortuni`) è obbligatoria, i campi partono VUOTI (nessun prefill), e il bottone "Genera scheda" è disabilitato finché `patologie` non contiene testo non-vuoto (lo stesso vale per `infortuni` se il PT lo rileva: la UI chiede esplicitamente "Infortuni in corso?" con sì/no e, se sì, textarea obbligatoria).
-- Con **PAR-Q+ tutto NO**, `patologie='Nessuna'` e `infortuni=''` sono prefillati e lo step clinica è skippabile con un singolo tap "Procedi".
 
-#### Short-circuits
-- **PAR-Q+ tutti NO** ⇒ step clinica collassato con prefill (`'Nessuna'`/`''`), skippabile con un tap. Risparmio: 60-120s. Totale compilazione **~2-3 min**.
-- **PAR-Q+ ≥1 SI** ⇒ gate di sicurezza. Lo screen clinico si espande, campi vuoti, submit disabled. Il PT compila patologie/infortuni **a mano** prima di poter generare la scheda. **Nessuno skip, nessun default.** Se la condizione richiede cert medico (es. patologia cardiovascolare, gravidanza), la UI mostra avviso "Serve certificato medico — raccogli il documento prima di procedere con l'allenamento".
-- **"Accetta tutti i default e genera"** (power user): salta solo gli step con default sicuri (`esperienza`→`attivita`, `seduteSettimana=3`, `durataSeduta=60`). **Resta obbligatorio compilare**: anagrafica, antropometria, obiettivo (nessuna preselezione), PAR-Q+. Totale minimo: **~90 secondi** se PAR-Q+ tutto NO; **~2.5 min** se PAR-Q+ ha SI (clinica obbligatoria).
+## Branding (invariato da v1)
 
-#### UX: una schermata, non uno step-by-step
-Form singolo scrollabile (non wizard multi-pagina) con sezioni collassate di default per i campi con default intelligente. Ogni sezione collassata mostra `"Esperienza: Intermedio (default) ✎"` → click per espandere e modificare. Riduce friction cognitivo e numero di click.
+### Pipeline logo
+1. `<input type="file" accept="image/*">`.
+2. Resize client-side via `<canvas>` a 256×auto, aspect ratio preservato.
+3. `canvas.toBlob('image/webp', q)` con `q∈{0.85,0.75,0.60}` finché <60KB; fallback `image/png`.
+4. Istogramma colori (quantizzazione 12-bit, scarto neutri estremi + alpha<128); top 3 bucket come proposta palette.
+5. 3 color picker (`<input type="color">`) per `accent`, `bg`, `strong`.
+6. Calcolo contrasto WCAG: luminance sRGB → ratio `(L1+0.05)/(L2+0.05)`. Target: `accentOnBg ≥ 4.5` (AA testo normale), `strongOnBg ≥ 7` (AAA). Badge "AA ✓/✗".
+7. Save: `gyms/{gymId}.logo` (dataURI) + `.theme` (10 token).
 
-#### Post-submit
-Scheda proposta → bottoni:
-- `"Modifica"` → apre il modal "Genera scheda" esistente (`PatientDetail` 6114) con tutti i valori pre-popolati. Il PT ritocca il split, cambia esercizi, salva.
-- `"Invia al cliente"` → crea `sharedClients/{sid}` (riusa `buildSchedaAttuale` 4587 + `generaShareId` 4580), mostra link `/s/xxx` copiabile + QR. Il PT può anche mandarlo direttamente via WhatsApp.
-- `"Salva come paziente"` → crea `patients[]` entry in `users/{uid}/appdata/main` con la scheda allegata.
+### Applicazione tema
+In `App.loadProfile`, se `profile.gymId` e `profile.lastSpace==='gym'` ⇒ fetch `gyms/{gymId}` ⇒ rewrite CSS variables su `:root`. I getter dell'oggetto `C` (`index.html:3100-3112`) continuano a leggere `var(--bg)`/`var(--card)` ecc. ⇒ zero refactor sui componenti.
 
-### D.5 Hook theme loader (per tutti i surface)
-- `index.html`: dentro `App.loadProfile` (6703-6716), DOPO `setProfile(p)`, aggiungere:
-  ```js
-  if (p?.gymId) {
-    try {
-      const g = await fbDb.collection('gyms').doc(p.gymId).get();
-      if (g.exists) applyGymTheme(g.data());
-    } catch (e) { /* no-op */ }
+Resta hardcoded `C.blue/green/red` (hex): per il MVP accettabile, il tema modifica tutto tranne gli accent semantici. STEP successivo: estrarre `--accent` CSS var (vedi §D).
+
+## Valutazione rapida — status
+
+✅ **LIVE su main** (`aa0ec61`, `134d078`). Modal `QuickAssessmentModal` in `index.html` (~6795-7027), 8 campi, <5 min, PAR-Q+ gate, default intelligenti. Oggi crea il paziente via `setPatients` (PT indipendente).
+
+**Modifica per Spazio Palestra**: cambia solo il callback `onCreate` (riga ~7620). In gym mode:
+```js
+onCreate={(patientData, nuoveSchede)=>{
+  if(!loadedFromFirebase.current){showToast(T.qaLoading,'error'); return;}
+  if(isGym){
+    addClient(patientData).then(created=>{
+      if(nuoveSchede && nuoveSchede.length){
+        return Promise.all(nuoveSchede.map(s=>addScheda(created.id, s)))
+          .then(()=>created);
+      }
+      return created;
+    }).then(created=>{
+      setSelectedId(created.id); setPage('detail'); setShowQuickAssess(false);
+    }).catch(err=>{
+      console.error('[QA gym] create err:', err); showToast(T.schedaGenError,'error');
+    });
+    return;
   }
-  ```
-  dove `applyGymTheme({theme,logo,nome})` rewrites `document.documentElement.style.setProperty('--'+k,v)` + sovrascrive `trainerProfile.nomeStudio` e `trainerProfile.logo` solo se vuoti.
-- `atleta.html` (1021 righe): init vicino alla sezione STATE, legge `?gym=` da URL se presente, poi carica `gyms/{gymId}`. Oggi usa `#185FA5`/`#042C53` inline — da refactoring (vedi §F).
-- `share.html` (543 righe): `share.html` legge `sharedClients/{sid}.ownerUid` → read `users/{ownerUid}.gymId` (nuova rule necessaria, o denormalizzare `gymId` dentro `sharedClients/{sid}` al momento della condivisione). Più semplice: denormalizzare.
-- PDF export: `exportPDFLista` 3006, scheda cliente 4705-5070, wizard 9526-9668 → passare `trainerProfile.gymTheme` nei template; sostituire footer "Generata con PT Board" hardcoded (4874, 5070, 9668) con `nomeStudio` del gym; sostituire `#3b82f6` nei pulsanti (4851, 4975, 9599) con `theme.accent`.
+  // path PT indipendente invariato (già live)
+  ...
+}}
+```
 
----
+## Privacy / consenso cliente
 
-## E. Piano implementazione (ordinato per impatto, non per architettura)
+Il paziente/cliente deve sapere che i suoi dati vengono gestiti da una palestra con più PT che possono accedervi.
 
-L'ordine riflette l'obiettivo primario (minimizzare "cliente nuovo → scheda inviata") e il principio: **la valutazione rapida deve essere live PRIMA del piano Palestra**, utilizzabile da ogni PT senza palestra. L'account gym arriva dopo.
+**Flusso minimo**:
+1. Alla prima apertura di `PatientForm` in gym mode, mostrare un banner: *"I dati di questo cliente sono gestiti dalla palestra ‹Nome Palestra› e accessibili allo staff tecnico (PT) di quella palestra."*
+2. Il PT dichiara di aver raccolto il consenso informato dal cliente (checkbox obbligatorio prima di salvare).
+3. Al save: `consentAcceptedAt: serverTimestamp, consentAcceptedByUid: <ptUid>`.
 
-**FASE 1 — Valutazione rapida (indipendente dal piano Palestra)**
-Obiettivo: cliente nuovo → scheda proposta in ~3 minuti.
-- STEP 1.1 — Modal "Valutazione rapida" in `index.html` (vedi §D.4), un form singolo scrollabile con default intelligenti e short-circuit PAR-Q+/clinica. Reuse `generaSchedaAuto` 7418, `calcScoreAnamnestico` 3292, `INIT_EXERCISES` 3763-4062. Entry point: nuovo bottone "⚡ Valutazione rapida" in `PatientList` 4519-4579 e in `Dashboard` 4319-4518.
-- STEP 1.2 — Post-submit: 3 bottoni "Modifica/Invia/Salva" (vedi §D.4). Reuse `buildSchedaAttuale` 4587, `generaShareId` 4580.
-- Test: PT senza gym, cliente nuovo, cronometro: deve arrivare al link `/s/xxx` sotto 5 minuti.
-- Rischio: basso. Nessuna modifica a `users/{uid}/appdata/main` fuori dal flusso `PatientForm` esistente ⇒ autosave guard non toccato.
-- **Risultato parziale a fine FASE 1**: tutti i PT (anche senza palestra) hanno la valutazione rapida. Valore immediato, zero dipendenze da gym.
+**Testo consenso** (3 lingue, nel documento Palestra o inline), configurabile dall'owner nella sezione Impostazioni Palestra. Suggerito testo-base italiano:
+> "Autorizzo la palestra ‹Nome› e il suo staff tecnico (personal trainer) al trattamento dei dati personali raccolti durante l'anamnesi, i test e la pianificazione dell'allenamento. I dati non vengono condivisi con terzi fuori dallo staff della palestra. Posso richiedere accesso, modifica o cancellazione in qualsiasi momento scrivendo a ‹email owner›."
 
-**FASE 2 — Account palestra + inviti PT**
-Obiettivo: titolare può creare il suo gym e invitare i suoi PT.
-- STEP 2.1 — Refactor branding: estrarre `--accent` CSS var in `index.html`, `atleta.html`, `share.html`. Bump `sw.js` cache. Test visuale pixel-perfect pre/post (nessun cambio visivo). Rischio: medio (molte sostituzioni). Prerequisito tecnico per FASE 3.
-- STEP 2.2 — Modello dati gym passivo: `firestore.rules` (nuovi blocchi `gyms`, `gymInvites`), `plan='gym'` trattato come `pro\|team` nei gate (416, 6710, 7133, 10815, 10968, 10996). CLAUDE.md aggiornato. **Attenzione Regola Critica #3**: pubblicare file INTERO, verifica 9 blocchi.
-- STEP 2.3 — Screen `gymOnboarding` in `index.html`: form "Crea la tua palestra" (nome, poi logo+branding è FASE 3; qui solo nome e creazione record). Hook `applyGymTheme` in `App.loadProfile` 6716 (anche se tema vuoto, no-op).
-- STEP 2.4 — Screen `gymMembers` in `index.html`: lista inviti pending + lista membri + "Invita PT" (form email) + "Rimuovi PT" (opzione (a): no transfer, vedi §D.3). Nuovo endpoint Cloudflare Worker `/gym-send-invite` + `/gym-remove-pt` (service-account), nuovo template Brevo.
-- STEP 2.5 — Accettazione invito: lato PT invitato, deep link `?inviteGym=<id>` processato in `App.loadProfile`. Validazione match-email + transizione `gymInvites.status='accepted'`.
-- Test: owner crea gym, invita PT A (email), A fa signup → vede banner "Invito a FitLab Roma", accetta, `users/A.gymId` popolato. Owner rimuove A → `A.gymId=null`, i clienti di A restano in `users/A/appdata/main` intatti.
-- Rischio: medio. Email+rimozione via Worker (nessuna chiave API frontend, no rules fragili su `users`).
+Questa non è consulenza legale: Steve verifichi con il DPO della palestra reale alla prima implementazione.
 
-**FASE 3 — Branding dal logo**
-Obiettivo: titolare carica logo → palette estratta → tema applicato ovunque.
-- STEP 3.1 — Screen `gymBranding` in `index.html`: upload file, canvas resize 256px → WebP 0.85/0.75/0.6 fallback PNG, estrazione colori via istogramma 12-bit (scartare neutri/alpha<128), color picker + WCAG AA check (`luminance`+`contrast` helpers inline). Salva in `gyms/{gymId}.theme` + `.logo` (dataURI inline <60KB).
-- STEP 3.2 — Theming surfaces: `atleta.html` legge `?gym=<id>` da URL, carica tema. `share.html` legge `sharedClients/{sid}.gymId` (denormalizzato in `buildSchedaAttuale` 4587) e applica tema. PDF export (3006-3033, 4705-5070, 9526-9668): sostituire `#3b82f6` → `theme.accent`, footer "Generata con PT Board" → `nomeStudio`.
-- Test: owner carica 3 loghi diversi, verifica estrazione, applicazione live, salvataggio. Cliente apre link `/s/xxx` → vede tema del gym. PDF export brandizzato.
+## D. Piano implementazione (ordinato per impatto)
+
+**FASE 0 — Prep (nessuna feature utente)**
+- STEP 0.1 — Design doc (questo file).
+- STEP 0.2 — Refactor `--accent` CSS variable (prerequisito tecnico per theming reale). File: `index.html`, `atleta.html`, `share.html`. Sostituzioni esatte, test visuale pixel-perfect pre/post. Rischio: medio (molte sostituzioni).
+
+**FASE 1 — Dati Palestra passivi (zero UX)**
+- STEP 1.1 — `firestore.rules`: aggiungere i 2 blocchi `gyms` + `gymInvites` (vedi §C). Pubblicare file INTERO su Console. Verifica dei 10 match post-pubblicazione.
+- STEP 1.2 — Nuovi campi `users/{uid}`: `spaces`, `gymId`, `gymRole`, `lastSpace`. Retrocompat: assenti ⇒ `spaces=['pt']`. Nessuna modifica UI.
+- STEP 1.3 — Admin crea manualmente da Console un gym di test con un solo membro (Steve stesso). Verifica che le rules permettono read/write del member sul subcollection.
+- Rischio: basso. Nessun impatto UI per i PT storici.
+
+**FASE 2 — Signup "Palestra" + onboarding minimo**
+- STEP 2.1 — Nella pagina di signup/landing, aggiungere lo switch "Personal trainer / Palestra" (default: PT). Con "Palestra" il signup crea `gyms/{gymId}` con `ownerUid=uid` e `members=[uid]`, poi scrive `users/{uid}.spaces=['gym']`, `gymId`, `gymRole='owner'`, `lastSpace='gym'`.
+- STEP 2.2 — Screen `gymOnboarding` in `index.html`: form "Nome palestra" (branding → FASE 4). Hook `applyGymTheme` in `App.loadProfile` (anche con tema vuoto = no-op).
+- Test: nuovo utente sceglie "Palestra", entra con brand di default, vede sidebar "Spazio Palestra ‹Nome›".
+- Rischio: basso.
+
+**FASE 3 — Data layer condiviso (useClientData)**
+- STEP 3.1 — Introdurre `useClientData` hook (§B). PT indipendente usa i `patients`+`setPatients` esistenti; gym mode usa `onSnapshot` sulla subcollection.
+- STEP 3.2 — Modificare i 7 call-sites (§B tabella) per usare `addClient/updateClient/removeClient/addScheda` dall'adapter.
+- STEP 3.3 — `useEffect` autosave (7206-7222): aggiungere guard `if(isGym) return;` in cima.
+- STEP 3.4 — Modal Quick Assessment `onCreate` branching su `isGym`.
+- Test: nel gym appena creato, "⚡ Valutazione rapida" crea un cliente nella subcollection (verifica da Firestore Console). Due browser dello stesso owner vedono il nuovo cliente in real-time.
+- Rischio: alto. Mitigazione: feature flag `enableGymMode` client-side (default false fino al go-live). Deploy incrementale.
+
+**FASE 4 — Inviti PT (codice 6 char, 100% client-side)**
+- STEP 4.1 — Screen `gymMembers` visibile solo a owner. Mostra: lista membri (da `gyms/{gymId}.members`), lista inviti attivi (da `gyms/{gymId}.activeInvites[]` + un `get` per ciascun codice), bottoni Invita / Revoca / Rimuovi.
+- STEP 4.2 — Generazione invito: click "Invita PT" → genera `code` 6 char client-side, `set` su `gymInvites/{code}` con `status='active', expiresAt=now+7g` + `gyms/{gymId}.activeInvites = arrayUnion(code)`. Retry fino a 5 volte su collisione (lookup preliminare via `.get()`).
+- STEP 4.3 — Accettazione: `App.loadProfile` processa `?joinGym=<code>` chiamando `acceptGymInvite(code)` (vedi snippet in §Inviti PT). Validazione client-side (get invito, check status/expiresAt), poi `.update()` su `gyms/{gymId}` (self-join autorizzato dalla rule C) + `.set({merge:true})` su `users/{uid}` (owner rule esistente). Nessun Cloudflare Worker custom.
+- STEP 4.4 — Pannello "Entra in una palestra con codice" nel menu account: textbox 6 char → stesso handler `acceptGymInvite`.
+- STEP 4.5 — Revoca: `gymInvites/{code}.update({status:'revoked'})` + `gyms/{gymId}.activeInvites = arrayRemove(code)`.
+- STEP 4.6 — Rimozione PT: owner fa `.update()` su `gyms/{gymId}` rimuovendo l'uid da `members` e `memberRoles` (autorizzato dalla rule A owner-update). Il PT rimosso ripulisce il proprio `users/{uid}` al prossimo login (owner-rule su `/users/{uid}` è già permissive per il proprio profilo).
+- STEP 4.7 — (Opzionale) Email promemoria via Worker Brevo esistente `WORKER_URL+'/send-email'` con un nuovo `templateId`. Nessun endpoint custom.
+- Test: owner invita A → copia link `?joinGym=A4K9PX`; A fa signup PT normale, poi apre link → vede dialog "Entra nella palestra X? [sì]"; conferma → `gyms/X.members` include A; nella sidebar compare "Spazio Palestra X"; vede tutti i clienti. Audit Firestore: la rule self-join blocca tentativi fuori diff (es. modifica `theme` o `ownerUid`), tentativo con codice scaduto, aggiunta di uid diverso dal proprio.
+- Rischio: medio (regole di sicurezza complesse — testare esplicitamente ogni scenario di tentato bypass).
+
+**FASE 5 — Branding dal logo**
+- STEP 5.1 — Screen `gymBranding`: upload file, estrazione palette, WCAG badge, color picker, save.
+- STEP 5.2 — Theming surfaces: `atleta.html` carica `gyms/{gymId}` via `?gym=xxx`; `share.html` legge `sharedClients/{sid}.gymBranding` denormalizzato in `buildSchedaAttuale`; PDF export applica `theme.accent` e `nomeStudio`.
 - Rischio: basso (tutto client-side; retrocompat garantita da `gymId:null` ⇒ nessun hook).
 
-**FASE 4 — Dashboard titolare read-only**
-Obiettivo: il titolare vede attività aggregata dei suoi PT **e** può aprire in sola lettura ogni cliente di ogni suo PT (anamnesi, screening, schede, progressi) per supervisione / qualità.
+**FASE 6 — Switcher spazi (dual-identity)**
+- STEP 6.1 — Sidebar workspace switcher visibile solo se `profile.spaces.length>1`. Toggle PT↔Palestra; persiste `lastSpace` su `users/{uid}`.
+- STEP 6.2 — Scelta "crea anche uno spazio PT per me" nell'onboarding palestra se vuoi un dual-identity nativo.
+- Rischio: basso.
 
-- STEP 4.1 — **Panoramica aggregata** (gymDashboard). Nuovo screen in `index.html` visibile solo se `profile.gymRole==='owner'`. Mostra: per ogni PT in `gyms/{gymId}.members` → counts di `patients[]`, `bookings[]`, `schede` generate ultimi 30g, ultima attività.
-  - **Fonte**: metrics denormalizzate in `gyms/{gymId}.metrics[ptUid] = {nClienti, nSchede30d, lastActivity, …}`, scritte lato PT dentro l'autosave effect (6938-6967) SOTTO il guard `loadedFromFirebase.current`.
-  - **Nessun dato identificativo di cliente** in `metrics`: solo counts e timestamp. Pensata per il "pannello di controllo".
+**FASE 7 — Piano `gym` + Stripe**
+- STEP 7.1 — Payment Link Stripe (`gymMonthly`, `gymYearly`) in `PLANS` 136-141.
+- STEP 7.2 — Webhook: attiva `plan='gym'` su `gyms/{gymId}` (NON più su `users/{uid}`). Durante il trial, tutti i membri hanno accesso.
+- STEP 7.3 — Enforcement: `isTrialExpired` (`index.html:416`) e `App.loadProfile` (6974+) leggono `gyms/{gymId}.planExpiresAt` quando `isGym`.
+- Rischio: medio (soldi).
 
-- STEP 4.2 — **Vista cliente read-only** (gymPatientRO). Nuovo screen in `index.html`, raggiungibile dalla panoramica (click su un PT → lista dei suoi clienti → click cliente). Riusa `PatientDetail` (4667-6569) in **modalità sola lettura**:
-  - Nuovo prop `readOnly:true` passato a `PatientDetail`.
-  - **Prop `upd` sostituita da no-op**: nel path read-only, le props `onUpdate`/`onDelete`/`onEdit`/`onValuta` (passate come prop a `PatientDetail` dall'`AppInner`, cfr. 7327) sono rimpiazzate da una funzione no-op che fa `console.warn('[gymPatientRO] blocked write attempt:', fn.name, args)` e **ritorna senza modificare nulla**. Questo è una difesa in profondità contro refactor futuri che potrebbero dimenticare di nascondere un bottone: anche se un handler residuo chiama `upd(…)`, l'azione viene intercettata e loggata invece di propagarsi.
-  - Bottoni edit/delete/generate/salva/share/export nascosti via `readOnly`. Il form di edit non è montato affatto.
-  - **Nessun pulsante di save**: la UI non ha controlli che modifichino lo state; non esiste un path di scrittura verso `users/{ptUid}/appdata/main` dalla vista read-only. Comunque, anche se un bottone residuo tentasse una scrittura, la rule Firestore su `/users/{ptUid}/appdata` consente SOLO `read` all'owner (vedi STEP 4.3) → `permission-denied` lato server.
-  - **Nessun passaggio da appdata/main dell'owner**: `fbSave`/`fbLoad` (153-162) opera solo su `users/{currentUid}/appdata/main`. La lettura di `users/{ptUid}/appdata/main` passa da un helper NUOVO `fbLoadForOwner(ptUid)` che: (a) chiama `fbDb.collection('users').doc(ptUid).collection('appdata').doc('main').get()`; (b) idrata un oggetto locale; (c) NON scrive mai.
-  - **Nessun montaggio di `AppInner`**: `gymPatientRO` è un sotto-screen di `AppInner` dell'owner, che però lavora su `patients` **del PT selezionato**, NON sui propri. Chiave: lo state `patients` del gym-owner (`AppInner` 6796-6835) NON viene mai modificato con i dati del PT. I dati del PT vengono letti in uno state **separato** (`viewingPatients, setViewingPatients=useState(null)`) usato solo per il render read-only. L'autosave effect (6938-6967) continua a leggere/scrivere SOLO lo state `patients` dell'owner → **mai scrive sui dati del PT**.
-  - **Nessun pulsante di save**: la UI non ha controlli che modifichino lo state; non esiste un path di scrittura verso `users/{ptUid}/appdata/main` dalla vista read-only.
-  - **Nessun passaggio da appdata/main dell'owner**: `fbSave`/`fbLoad` (153-162) opera solo su `users/{currentUid}/appdata/main`. La lettura di `users/{ptUid}/appdata/main` passa da un helper NUOVO `fbLoadForOwner(ptUid)` che: (a) chiama `fbDb.collection('users').doc(ptUid).collection('appdata').doc('main').get()`; (b) idrata un oggetto locale; (c) NON scrive mai.
-
-- STEP 4.3 — **Rules per read-only cross-user**. Serve una regola nuova:
-  ```
-  match /users/{ptUid}/appdata/{docId} {
-    // ... blocchi esistenti owner + admin ...
-    // NUOVO: owner di un gym può leggere i dati dei suoi membri (solo READ, no write).
-    allow read: if request.auth != null
-                && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-                && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymRole == 'owner'
-                && exists(/databases/$(database)/documents/gyms/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymId))
-                && get(/databases/$(database)/documents/gyms/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.gymId)).data.members.hasAny([ptUid]);
-  }
-  ```
-  - **Costo**: 2 `get()` + 2 `exists()` per read ⇒ ~2-4 ms extra, trascurabile. Firestore conta ogni `get()` come 1 read fatturato ⇒ ~3 reads per aprire la vista cliente.
-  - **Simmetria**: lo STESSO blocco si applica a `match /users/{ptUid}` (profilo del PT) per leggere nome/email, necessari per il header della vista read-only.
-  - **Rischio data leak**: minimo, perché il `read` è gated da (owner-role AND stessa gym AND ptUid in members). Un'operazione di `remove PT` (§D.3) rimuove `ptUid` da `gyms/{gymId}.members` ⇒ l'owner **perde immediatamente** il permesso di leggere i dati di quel PT. Nessun cache lato client va spurgato: la UI non espone più i clienti del PT rimosso al refresh successivo.
-
-- STEP 4.4 — **Export PDF e condivisione dalla vista read-only**: disabilitati. L'owner può solo visualizzare; non può generare link `/s/xxx` né PDF né nuove schede sotto l'identità del PT. Se l'owner vuole intervenire deve chiedere al PT di farlo (o diventare lui stesso PT con un proprio account, altra storia).
-
-- Test:
-  - Owner apre dashboard, clicca su PT A, vede 12 clienti; clicca cliente, vede anamnesi+schede+log in sola lettura. Nessun bottone di edit visibile. Console network: solo `GET` request a `users/{ptAUid}/appdata/main`, nessuna `PATCH`/`PUT`/`POST`.
-  - Owner tenta di triggerare autosave: cambia tab e torna → nessuna write a `users/{ownerUid}/appdata/main` relativa ai patients del PT (verifica con Firestore audit log o breakpoint sull'effect 6938).
-  - **Il titolare prova a modificare**: forziamo da devtools una chiamata del tipo `fbDb.collection('users').doc('<ptUid>').collection('appdata').doc('main').update({patients:[...]})` autenticato come owner → **Firestore rifiuta con `permission-denied`** (rule STEP 4.3 consente solo `read`). Il tentativo deve essere loggato dalle console/Sentry ma non modificare nulla. Idem per qualsiasi handler UI che chiami `upd(...)`: la no-op intercetta client-side, le rules proteggono server-side.
-  - Owner rimuove PT A → prossimo tentativo di aprire la vista cliente di A → rules deniegano con permission-denied. UI mostra "Accesso scaduto".
-
-- Rischio: alto se non gestito bene. Mitigazione obbligatoria:
-  1. State dei patients del PT in uno store SEPARATO dall'`AppInner` dell'owner.
-  2. Prop `readOnly:true` effettivamente onorato da `PatientDetail` (verifica di tutti i bottoni che oggi ha).
-  3. Prop `upd`/`onUpdate`/`onDelete`/`onEdit`/`onValuta` = funzione no-op con `console.warn` nel path read-only (grep su chi passa questi handler nel ramo gymPatientRO).
-  4. Rules Firestore su `/users/{ptUid}/appdata` **solo `read`** per l'owner (vedi STEP 4.3): doppia difesa client+server.
-  5. Audit periodico (test E2E) che simuli (a) owner+read-only + autosave trigger → `appdata/main` dell'owner intatto; (b) owner che forza una write via SDK → `permission-denied`.
-
-**FASE 5 — Piano 'gym' + Stripe (fase separata)**
-Obiettivo: monetizzare il piano Palestra.
-- STEP 5.1 — Payment Link Stripe nuovi (`gymMonthly`, `gymYearly`) in `PLANS` 136-141. Nuove copy paywall per gym.
-- STEP 5.2 — Webhook Stripe (Cloudflare Worker esistente) aggiornato per attivare `plan='gym'` + `planExpiresAt` dopo pagamento su `gyms/{gymId}` (NON più su `users/{uid}` singolo).
-- STEP 5.3 — Enforcement: hook `isTrialExpired` 416 e `loadProfile` 6710 verificano `plan==='gym'` tramite `gyms/{gymId}.planExpiresAt` (non `users/{uid}.planExpiresAt`). Durante il trial del gym, tutti i membri hanno accesso senza paywall.
-- STEP 5.4 — Email di onboarding palestra (template Brevo nuovo).
-- Rischio: medio (soldi + flussi webhook). Prerequisito: FASE 2 completata e testata con utenti reali in modalità gratuita.
-
----
-
-## F. Rischi
+## E. Rischi
 
 | Rischio | Mitigazione |
 |---|---|
-| **Autosave guard** (`loadedFromFirebase.current` 6832, 6926, 6941, 6955) sovrascrive `users/{uid}/appdata/main` con stato locale vuoto. | Scrivere su `gyms/*` e `gymInvites/*` SOLO da handler UI espliciti (`gymSave`, `gymInviteCreate`). NON agganciare mai questi scritti a `useEffect` automatici. Valutazione rapida: se è modal in `index.html`, usa lo stesso path di `PatientDetail` → autosave protegge già. Se è pagina separata (`atleta.html?mode=assessment`), NON montare `AppInner`: non c'è autosave da gestire. |
-| **Retrocompatibilità PT senza palestra** (il 100% degli utenti attuali). | `gymId: null` ⇒ hook `applyGymTheme` salta, UI identica a oggi. **Testare prima del deploy**: utente non-gym logga, verifica che non appaia nessun elemento nuovo, nessun errore console, aspetto IDENTICO al pixel. |
-| **Firestore rules trap** (Regola Critica #3): pubblicare un file nuovo cancella i 7 blocchi esistenti. | Modificare SOLO `firestore.rules` nel repo, poi copiare file INTERO su Console. Verificare post-pubblicazione i 9 blocchi (7+2 nuovi) nell'ordine corretto (gyms e gymInvites PRIMA del deny finale). |
-| **Cache PWA** (`sw.js` `ptboard-v55`): nuovi file o modifiche a `landing.html` servono stale. | Bump `const CACHE='ptboard-v##'` ad ogni release gym. Aggiungere `/valutazione.html` (se creata) all'`ASSETS` solo se è entry pre-auth. |
-| **`atleta.html` pre-login + palette hardcoded**: Firebase init non ha ancora auth, non può leggere `users/{uid}`. | Usare `?gym=<gymId>` da URL. La lettura di `gyms/{gymId}` è `allow read: if true` ⇒ funziona anonimo. |
-| **`share.html` anonimo**: non può leggere `users/{ownerUid}.gymId`. | Denormalizzare `gymId, gymTheme, gymLogo, gymNome` dentro `sharedClients/{sid}` al momento del `buildSchedaAttuale` (4587). Nessuna rule da aprire. |
-| **Rimozione PT**: owner che aggiorna `users/{uid}` di un altro utente richiederebbe rule custom fragile. | Fare la rimozione via **Cloudflare Worker** con service account Firebase Admin. Nessun aggiornamento rules per `users`. |
-| **Email invito**: client non può chiamare Brevo direttamente (`#4 Nessuna chiave API/segreto nel frontend`). | Nuovo endpoint sul Worker esistente (`WORKER_URL+'/send-gym-invite'`). Nuovo template Brevo. |
-| **PT in due gym**: edge case non supportato dal design (1 `gymId` per `users/{uid}`). | Se un PT accetta un invito mentre ha già `gymId`, rifiutare lato Worker con messaggio esplicito; owner può solo "preparare" l'invito. |
-| **"PT Board" literal non-trainerProfile** (meta 105-111, splash 390/6759/7171/7214/10796/11319, ErrorBoundary 10759, footer PDF 4874/5070/9668). | Fix mirato: `document.title=profile.nomeStudio||'PT Board'` dopo loadProfile; componente `BrandSplash` che legge `trainerProfile?.nomeStudio`; template PDF con token sostituibile; ErrorBoundary prop `brand`. |
-| **Palette inconsistente `#3b82f6` (index) vs `#185FA5` (atleta/share)**: STEP 1 è pre-requisito di tutto il tema. | Fare STEP 1 PRIMA degli altri; test visuale pixel-perfect prima e dopo. |
-| **Logo 60KB inline + documento Firestore (max 1MB)**: ~900KB per theme + membri + stripe + extras ⇒ margine stretto. | Enforce <60KB client-side con retry quality progressivo. Monitorare `estimatedDocumentSize` prima del save. Alternativa futura: splittare `gyms/{gymId}/public/branding` doc separato. |
-| **Nuova collezione `gyms` leggibile pubblicamente**: espone `ownerUid, members, stripeCustomerId` a chiunque. | Per MVP accettabile (sono metadata). Se preoccupa: splittare in `gyms/{gymId}/public/branding` (read:true) + `gyms/{gymId}` (read: solo auth + member). Decisione in STEP 2. |
-| **Google OAuth consent screen** branded "PT Board" (Firebase Console, non repo). | Fuori ambito frontend. Per Palestra, i PT accettano l'invito via email + magic link / email+password; il gym owner può signup con Google o email. OAuth consent resta "PT Board" nei casi Google-signup — accettabile per MVP. |
+| **Autosave PT indipendente** scrive `patients` durante gym mode. | Guard `if(isGym) return;` in testa all'effect (7206, 7218). Zero autosave quando `isGym`. |
+| **Retrocompat PT storici** — il 100% degli utenti ora. | `profile.spaces` assente ⇒ fallback `['pt']`. `isGym=false` di default. Zero cambi UI. Test pixel-perfect pre-deploy OBBLIGATORIO. |
+| **Firestore rules trap** (Regola Critica #3). | Pubblica file INTERO con tutti i 10 blocchi; verifica post-pubblicazione; rollback plan documentato. |
+| **Concorrenza PT su stesso cliente**. | Field-level `.update()`: due PT che toccano campi diversi convivono. Stesso campo = last-write-wins (accettabile). `updatedAt` sempre scritto per audit. |
+| **Delete cliente** lascia schede orfane in subcollection. | Delete batch client-side: prima `clients/{id}/schede/*`, poi `clients/{id}`. Fallback: Cloud Function trigger che pulisce al delete del parent. |
+| **Snapshot listener costoso** su molti clienti. | Paginazione: in gym con >100 clienti usare `where+limit+orderBy` + "mostra altri" invece che caricare tutto. Memoria client limitata. |
+| **Membri che tentano di scrivere `gyms/{gymId}` (non ownership)**. | Rules proteggono: solo ownerUid può `.update()` sul doc gym (non sui subcollection). Members possono scrivere solo in `clients/**`. |
+| **Codice invito collisione**. | Charset 32 char × 6 posti = 32⁶ ≈ 1.07 × 10⁹. Client fa `.get(doc)` preliminare prima di `.set()`: se esiste, rigenera (retry ≤5). In pratica mai capita; con 10k inviti attivi, probabilità di collisione <0.001%. |
+| **Codice invito riusato da estraneo (brute force)**. | 10⁹ codici possibili, `allow get` ma **nessun `list`** (rule §C), scadenza 7g default/max 30g, revoca istantanea via owner. Nessun contatore `used` ⇒ se l'owner vuole limitare l'uso a 1 PT crea un codice usa-e-revoca (un invito per PT). |
+| **PT appartiene a 2 palestre**. | Non previsto: `profile.gymId` è singolo. La rule self-join vieta implicitamente di joinare un secondo gym perché `members[new]==uid` e il gym nuovo non ha `uid` in `members`; però `users/{uid}.gymId` viene sovrascritto. **Mitigazione client-side**: `acceptGymInvite` controlla `profile.gymId` prima di procedere e, se non null, chiede conferma "Vuoi lasciare la palestra X per entrare in Y?". |
+| **Email invito via Brevo**. | Worker Brevo ESISTENTE (`WORKER_URL+'/send-email'`) con un nuovo `templateId`. Nessun endpoint custom. Chiave API resta solo sul Worker. |
+| **PWA cache** (`sw.js` `ptboard-v55`). | Bump `CACHE='ptboard-v##'` ad ogni release gym. |
+| **atleta.html / share.html pre-auth** devono comunque applicare il tema. | `atleta.html`: `?gym=<id>` esplicito. `share.html`: denormalizzare `gymBranding` dentro `sharedClients/{sid}`. |
+| **Rimozione PT: side-effect su `users/{targetUid}`**. | L'owner **non scrive** sul profilo del PT rimosso (rules `/users/{uid}` sono owner-only). L'owner rimuove solo l'uid da `gyms/{gymId}.members`/`memberRoles` (autorizzato). Il profilo `users/{targetUid}.gymId/gymRole/spaces` viene ripulito dal PT stesso al suo prossimo login (l'`App.loadProfile` nota che `gyms/{old}` è read-denied e azzera). Nessuna scrittura cross-user, nessun service account. |
+| **Enumerazione inviti**. | Rule `gymInvites`: `allow get`, nessun `allow list`. L'owner enumera via `gyms/{gymId}.activeInvites[]` (array di codici) + `get(gymInvites/{code})` individuale per i dettagli. Nessuno può scansionare la collezione. |
+| **Rule self-join: tentativo di escalation privilege**. | La rule C ferma: (a) `affectedKeys().hasOnly(['members','memberRoles','joinCode'])` → impossibile cambiare `theme`/`ownerUid`/`nome` nella stessa write; (b) `members == old + request.auth.uid` → impossibile aggiungere altri uid; (c) `memberRoles[uid]=='trainer'` → impossibile autopromuoversi `owner`; (d) `get(gymInvites/joinCode)` deve esistere, essere `active`, `expiresAt > request.time` e `gymId == gymId`. **Test E2E obbligatorio** su ciascuna di queste 4 difese. |
+| **Rule self-join: costo in reads**. | Ogni accept esegue 1 `get(gyms)` + 3 `get(gymInvites)` dentro la rule (una per `exists`, una per `.gymId`, una per `.status`, una per `.expiresAt`). Firestore conta come ~4 reads fatturate. Trascurabile. Opzionale: unificare in 1 sola `get` + binding a variabile se Firestore rules supporta `let` (dipende dalla versione). |
+| **Privacy / GDPR**. | Consenso esplicito in-form, denormalizzato nel doc cliente. Dpr/dpo scritti dall'owner. Export dati e cancellazione: GET/DELETE via Worker a richiesta cliente. |
+| **"Spazio Palestra" sembra app a sé** — richiede che sidebar, breadcrumb, logo e colori siano del gym. | STEP 5 (branding) + STEP 6 (switcher) devono essere completati prima di aprire al pubblico. Fino ad allora, visibile solo come alpha interno. |
+| **generaSchedaAuto cambia il comportamento** inaspettatamente in gym mode. | **Non cambia.** La funzione prende `params` e `exercises`, non legge mai `patients`/`users/{uid}`. Il riuso è verbatim. Test: stessi input ⇒ stessi output in PT mode e gym mode. |
+
+---
+
+## APPENDICE — Regole Firestore correnti (fonte di verità)
+> Copia tutto il blocco qui sotto (da `rules_version` a `}` finale) in Firebase Console → Firestore → Regole quando pubblichi modifiche. Aggiorna questa appendice ogni volta che `firestore.rules` cambia.
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── USERS COLLECTION ──
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /appdata/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ── ADMIN: lettura e scrittura tutti gli utenti ──
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+                && request.auth.token.email == 'stevetsala22@gmail.com';
+    }
+
+    // ── ADMIN: anche le sub-collection ──
+    match /users/{userId}/appdata/{docId} {
+      allow read, write: if request.auth != null
+                && request.auth.token.email == 'stevetsala22@gmail.com';
+    }
+
+    // ── DELETE FEEDBACK ──
+    match /deleteFeedback/{docId} {
+      allow write: if request.auth != null && request.auth.uid == docId;
+      allow read: if request.auth != null
+                && request.auth.token.email == 'stevetsala22@gmail.com';
+    }
+
+    // ── SHARED CLIENTS ──
+    match /sharedClients/{shareId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+      allow update: if request.auth == null
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && request.resource.data.cliente == resource.data.cliente
+                    && request.resource.data.ptNome == resource.data.ptNome
+                    && request.resource.data.attivo == resource.data.attivo
+                    && request.resource.data.schedaAttuale == resource.data.schedaAttuale
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && resource.data.attivo == true;
+      allow delete: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // ── ATHLETES COLLECTION ──
+    match /athletes/{athleteId} {
+      allow read, write: if request.auth != null && request.auth.uid == athleteId;
+      match /appdata/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == athleteId;
+      }
+    }
+
+    // ── BLOCCA TUTTO IL RESTO ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+```

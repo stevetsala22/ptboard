@@ -113,6 +113,13 @@ service cloud.firestore {
             && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
         }
       }
+
+      // Libreria esercizi condivisa della palestra: override di INIT_EXERCISES
+      // o nuovi esercizi custom. Stesso accesso dei clienti (tutti i membri).
+      match /exercises/{exId} {
+        allow read, create, update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+      }
     }
 
     // ── INVITI PT (codice 6 char = document id) ──
