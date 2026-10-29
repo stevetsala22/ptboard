@@ -79,21 +79,22 @@ service cloud.firestore {
                     && request.auth.token.email == 'stevetsala22@gmail.com'
                     && request.resource.data.ownerUid == resource.data.ownerUid;
 
-      // (C) Self-join di un PT invitato: diff SOLO su members + memberRoles + joinCode.
+      // (C) Self-join di un PT invitato: diff SOLO su members + memberRoles + memberInfo + joinCode.
       // Verifica che il PT aggiunga SOLO il proprio uid, con ruolo 'trainer',
       // e che il codice usato (joinCode) esista come doc gymInvites/{joinCode}
       // attivo, non scaduto, e punti a questo gymId. ownerUid immutabile.
-      // SECURITY: la diff di memberRoles deve toccare SOLO la chiave del
-      // chiamante — un attaccante non puo' promuoversi owner, degradare un
-      // altro membro o modificare ruoli altrui.
+      // SECURITY: le diff di memberRoles e memberInfo devono toccare SOLO la
+      // chiave del chiamante — un attaccante non puo' promuoversi owner,
+      // degradare un altro membro o alterare nome/email di qualcun altro.
       allow update: if request.auth != null
                     && request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['members','memberRoles','joinCode'])
+                         .hasOnly(['members','memberRoles','memberInfo','joinCode'])
                     && request.resource.data.ownerUid == resource.data.ownerUid
                     && !(request.auth.uid in resource.data.members)
                     && request.resource.data.members == resource.data.members.concat([request.auth.uid])
                     && request.resource.data.memberRoles[request.auth.uid] == 'trainer'
                     && request.resource.data.memberRoles.diff(resource.data.memberRoles).affectedKeys().hasOnly([request.auth.uid])
+                    && request.resource.data.memberInfo.diff(resource.data.memberInfo).affectedKeys().hasOnly([request.auth.uid])
                     && exists(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode))
                     && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.gymId == gymId
                     && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.status == 'active'
