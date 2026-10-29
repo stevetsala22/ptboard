@@ -87,13 +87,23 @@ if('serviceWorker' in navigator){
 }
 </script>
 <script>
-if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
-  var came=localStorage.getItem('ptb_entered');
-  if(!came&&!document.referrer.includes('personaltrainerboard.com')){
-    localStorage.setItem('ptb_entered','1');
-    window.location.replace('/landing.html');
+try{
+  // SPAZIO PALESTRA (feature flag): se l'URL contiene ?gym=1, memorizza il flag
+  // PRIMA del redirect alla landing (altrimenti il flag si perde a quel giro
+  // e `readGymSignupFlag` non lo vede piu'). Marca anche l'utente come "entrato"
+  // cosi' non viene redirectato e resta su index.html?gym=1.
+  var _q=new URLSearchParams(window.location.search);
+  if(_q.get('gym')==='1'){
+    try{sessionStorage.setItem('ptb_gym_signup','1');}catch(e){}
+    try{localStorage.setItem('ptb_entered','1');}catch(e){}
+  } else if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
+    var came=localStorage.getItem('ptb_entered');
+    if(!came&&!document.referrer.includes('personaltrainerboard.com')){
+      localStorage.setItem('ptb_entered','1');
+      window.location.replace('/landing.html');
+    }
   }
-}
+}catch(e){/* non bloccare il boot per un errore di storage */}
 </script>
 <meta charset="UTF-8"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
