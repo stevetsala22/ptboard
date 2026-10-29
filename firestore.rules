@@ -83,6 +83,9 @@ service cloud.firestore {
       // Verifica che il PT aggiunga SOLO il proprio uid, con ruolo 'trainer',
       // e che il codice usato (joinCode) esista come doc gymInvites/{joinCode}
       // attivo, non scaduto, e punti a questo gymId. ownerUid immutabile.
+      // SECURITY: la diff di memberRoles deve toccare SOLO la chiave del
+      // chiamante — un attaccante non puo' promuoversi owner, degradare un
+      // altro membro o modificare ruoli altrui.
       allow update: if request.auth != null
                     && request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly(['members','memberRoles','joinCode'])
@@ -90,6 +93,7 @@ service cloud.firestore {
                     && !(request.auth.uid in resource.data.members)
                     && request.resource.data.members == resource.data.members.concat([request.auth.uid])
                     && request.resource.data.memberRoles[request.auth.uid] == 'trainer'
+                    && request.resource.data.memberRoles.diff(resource.data.memberRoles).affectedKeys().hasOnly([request.auth.uid])
                     && exists(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode))
                     && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.gymId == gymId
                     && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.status == 'active'
@@ -114,12 +118,15 @@ service cloud.firestore {
     // ── INVITI PT (codice 6 char = document id) ──
     match /gymInvites/{inviteId} {
       // Owner crea l'invito. status='active', expiresAt entro 30 giorni.
+      // SECURITY: solo l'owner della palestra bersaglio puo' crearne inviti
+      // (un trainer o un estraneo loggato non puo' emettere inviti per gyms altrui).
       allow create: if request.auth != null
                     && request.resource.data.invitedByUid == request.auth.uid
                     && request.resource.data.status == 'active'
                     && request.resource.data.expiresAt is timestamp
                     && request.resource.data.expiresAt > request.time
-                    && request.resource.data.expiresAt < request.time + duration.value(30, 'd');
+                    && request.resource.data.expiresAt < request.time + duration.value(30, 'd')
+                    && get(/databases/$(database)/documents/gyms/$(request.resource.data.gymId)).data.ownerUid == request.auth.uid;
 
       // GET consentito a chiunque loggato (serve all'accept per validare).
       // NESSUN list: enumerazione collezione proibita.
