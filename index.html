@@ -6399,14 +6399,29 @@ footer .center b{color:#3b82f6;font-weight:700}
         <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
           <button style={S.btn('ghost')} onClick={()=>setShowGenEquipModal(false)}>{T.cancel}</button>
           <button style={S.btn()} onClick={()=>{
-            var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
             var eta2=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
+            // Profilo: prova prima lo score da test funzionali (6MWT/STS/HG/TUG).
+            // Se mancano (tipico in gym mode senza test), cade sullo score
+            // anamnestico (attivita + esperienza + fumo + eta) - stesso
+            // pattern usato dalla Quick Assessment. Default 'B' se tutto manca.
+            var pr2=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM});
+            if(!pr2){try{pr2=calcScoreAnamnestico(p,eta2);}catch(e){console.warn('[gen] anamnestic score err:',e);}}
+            var profiloCode=(pr2&&pr2.code)||'B';
+            // Patologie di default se non specificate (coerente con QA): 'Nessuna'
+            // evita che il filtro esclusioni veda stringa vuota come criterio dubbio.
+            var effPatologie=(p.patologie||'').trim()||'Nessuna';
+            var effInfortuni=(p.infortuni||'').trim()||'';
+            // Sedute default 3 se il paziente non ha programma impostato
+            // (succede in gym mode: il programma dettagliato e' nascosto).
+            var effProgramma=p.programma||{sedute:3};
+            if(!effProgramma.sedute) effProgramma=Object.assign({},effProgramma,{sedute:3});
             var nuoveSchede;
             try {
-              nuoveSchede=generaSchedaAuto({profilo:pr2?.code||'B',obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:p.patologie,infortuni:p.infortuni,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:p.programma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+              nuoveSchede=generaSchedaAuto({profilo:profiloCode,obiettivo:p.obiettivo,sesso:p.sesso,eta:eta2,patologie:effPatologie,infortuni:effInfortuni,test:p.test,schedeEsistenti:(p.schede||[]).length,programma:effProgramma,equip:genEquip,durataSeduta:+genDuration,T:T,attivita:p.attivita},exercises);
+              if(!nuoveSchede || !nuoveSchede.length) throw new Error('generator returned empty');
             } catch(err) {
               console.error('generaSchedaAuto error:',err);
-              showToast(T.schedaGenError||'Errore generazione scheda','error');
+              showToast((T.schedaGenError||'Errore generazione scheda')+' ('+(err&&err.message||'unknown')+')','error',4500);
               return;
             }
             upd(function(x){return{schede:(x.schede||[]).concat(nuoveSchede)};});
