@@ -9928,6 +9928,8 @@ var generaSchedaAuto = function(params, esercizi) {
   // pill in cima alla scheda. Il PT puo' comunque scrivere note a mano
   // dal form di modifica scheda. L'avviso di volume adattato resta nella
   // pill 'Durata stretta' (scheda.config.durataWarning).
+  // nomeObiettivo serve ancora per comporre 'scheda.nome' (es. "Full Body — Perdere peso").
+  var nomeObiettivo = obiettivo || (TParam && TParam.gpDefSalute || 'Generale');
   var noteText = '';
 
   // ── GENERA SCHEDE ──
