@@ -138,8 +138,8 @@ var fbDb=firebase.firestore();
   <!-- Contenuto principale (nascosto fino a load completo) -->
   <div id="mainContent" style="display:none">
     <header class="head">
-      <div class="logo">PT</div>
-      <div class="brand">PT Board</div>
+      <div class="logo" id="brandLogo">PT</div>
+      <div class="brand" id="brandName">PT Board</div>
     </header>
 
     <section class="head-info">
@@ -486,7 +486,40 @@ var fbDb=firebase.firestore();
         return {nome:e.nome||'Esercizio',muscoli:e.muscoli||'',serie:e.serie||1,reps:e.reps!=null?e.reps:'',carico:e.carico||'',rec:e.rec||'',nota:e.nota||''};
       })};
     }).filter(function(g){return g.esercizi.length>0;});
-    return {cliente:data.cliente||'',ptNome:data.ptNome||'',programma:sa.programma||'',giorni:giorni};
+    return {cliente:data.cliente||'',ptNome:data.ptNome||'',programma:sa.programma||'',giorni:giorni,gymBranding:data.gymBranding||null};
+  }
+
+  // Applica il branding palestra denormalizzato nel doc sharedClients (FASE 5):
+  // CSS vars + logo + nome brand nell'header. Fallback silenzioso: se mancante,
+  // resta "PT Board" come oggi.
+  function applyGymBrandingSnapshot(gb){
+    if(!gb) return;
+    try{
+      var root=document.documentElement.style;
+      if(gb.theme){
+        if(gb.theme.accent) root.setProperty('--accent',gb.theme.accent);
+        if(gb.theme.accentSecondary) root.setProperty('--accentSecondary',gb.theme.accentSecondary);
+        if(gb.theme.onAccent) root.setProperty('--onAccent',gb.theme.onAccent);
+      }
+      var brandLogo=$('brandLogo');
+      var brandName=$('brandName');
+      if(brandLogo){
+        if(gb.logo){
+          brandLogo.innerHTML='';
+          var img=document.createElement('img');
+          img.src=gb.logo;img.alt='logo';
+          img.style.cssText='width:100%;height:100%;object-fit:contain';
+          brandLogo.appendChild(img);
+          brandLogo.style.background='var(--accent)';
+          brandLogo.style.padding='3px';
+        } else {
+          brandLogo.textContent=(gb.gymNome||'').trim().slice(0,2).toUpperCase()||'PT';
+        }
+      }
+      if(brandName) brandName.textContent=gb.gymNome||'PT Board';
+      // theme-color meta per il browser (barra iOS/Android).
+      try{var m=document.querySelector('meta[name="theme-color"]');if(m&&gb.theme&&gb.theme.accent) m.setAttribute('content',gb.theme.accent);}catch(e){}
+    }catch(e){console.warn('[share] applyGymBrandingSnapshot',e);}
   }
 
   // ── EVENTS ──
@@ -519,6 +552,7 @@ var fbDb=firebase.firestore();
       var data=doc.data();
       if(data.attivo===false){mostraErrore('Questo link non è più attivo. Contatta il tuo personal trainer.');return;}
       SCHEDA=adatta(data);
+      applyGymBrandingSnapshot(SCHEDA.gymBranding);
       if(!SCHEDA.giorni.length){mostraErrore('La scheda non contiene esercizi. Contatta il tuo personal trainer.');return;}
       if(giornoAttivo>=SCHEDA.giorni.length)giornoAttivo=0;
       stato=initStato();

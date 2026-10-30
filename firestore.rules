@@ -123,6 +123,18 @@ service cloud.firestore {
       }
     }
 
+    // ── GYMS PUBLIC MIRROR (branding visibile ai clienti anonimi) ──
+    // Snapshot di gyms/{gymId} ridotto a {gymId, nome, logo, theme}, usato
+    // da atleta.html (anonimo pre-login) per applicare il tema della palestra.
+    // Public read; write solo dall'owner del corrispondente gyms/{gymId}.
+    match /gymsPublic/{gymId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && get(/databases/$(database)/documents/gyms/$(gymId)).data.ownerUid == request.auth.uid;
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/gyms/$(gymId)).data.ownerUid == request.auth.uid;
+    }
+
     // ── INVITI PT (codice 6 char = document id) ──
     match /gymInvites/{inviteId} {
       // Owner crea l'invito. status='active', expiresAt entro 30 giorni.
