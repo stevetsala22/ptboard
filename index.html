@@ -5931,15 +5931,18 @@ footer .center b{color:#3b82f6;font-weight:700}
                                 {exName(eInfo,getLang()) || ex.nomeCustom || ex.eId}
                                 {!eInfo.id && ex.nomeCustom && <span style={{marginLeft:6,padding:'1px 6px',borderRadius:4,fontSize:9,fontWeight:700,background:C.purple+'15',color:C.purple}}>{T.exCustomBadge||'custom'}</span>}
                               </div>
-                              <div style={{fontSize:11,color:C.muted}}>
-                                {ex.note || ''}
-                                {eInfo.livello &&
-                                  <span style={{marginLeft:6,padding:'1px 6px',borderRadius:4,fontSize:9,fontWeight:700,
+                              {/* La ex.note generata dal motore (es. 'Panca piana petto') NON si
+                                  aggiorna allo swap: resta la vecchia e confonde. Rimossa. La pill
+                                  del livello invece deriva da eInfo e segue sempre l'esercizio
+                                  corrente, quindi resta. */}
+                              {eInfo.livello &&
+                                <div style={{fontSize:11,color:C.muted}}>
+                                  <span style={{padding:'1px 6px',borderRadius:4,fontSize:9,fontWeight:700,
                                     background: eInfo.livello==='base'?'#10b98115':eInfo.livello==='intermedio'?'#f59e0b15':'#ef444415',
                                     color: eInfo.livello==='base'?C.green:eInfo.livello==='intermedio'?'#f59e0b':'#ef4444'
                                   }}>{eInfo.livello}</span>
-                                }
-                              </div>
+                                </div>
+                              }
                             </div>
                             <button title={T.swapExercise} aria-label={T.swapExercise} style={{background:isSwapOpen?C.blue+'20':'transparent',border:'1px solid '+C.border2,borderRadius:8,width:28,height:28,cursor:'pointer',fontSize:13,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,padding:0}} onClick={()=>{setSwapQuery('');setSwapTarget(isSwapOpen?null:{si:si,ei:ei});}}>{'\u{1F504}'}</button>
                             <div style={{textAlign:'right',flexShrink:0}}>
