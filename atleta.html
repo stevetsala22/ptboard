@@ -195,8 +195,8 @@ var fbDb=firebase.firestore();
 <main class="card">
 
   <header class="head">
-    <div class="logo">PT</div>
-    <div class="brand">PT Board</div>
+    <div class="logo" id="brandLogo">PT</div>
+    <div class="brand" id="brandName">PT Board</div>
     <button class="logout-btn" id="logoutBtn" type="button">Esci</button>
   </header>
 
@@ -363,7 +363,42 @@ var fbDb=firebase.firestore();
   // ── INVITED BANNER ──
   var urlParams=new URLSearchParams(window.location.search);
   var invParam=urlParams.get('inv');
+  var gymParam=urlParams.get('gym');
   if(invParam){$('invitedBanner').classList.add('show');}
+
+  // ── GYM BRANDING (FASE 5) ──
+  // Se l'URL contiene ?gym=<gymId>, atleta.html prova a leggere gymsPublic/{gymId}
+  // (public read) per applicare logo, nome e colori della palestra. Fallback: PT Board.
+  function applyGymBrandingAtleta(gb){
+    if(!gb) return;
+    try{
+      var root=document.documentElement.style;
+      if(gb.theme){
+        if(gb.theme.accent) root.setProperty('--accent',gb.theme.accent);
+        if(gb.theme.accentSecondary) root.setProperty('--accentSecondary',gb.theme.accentSecondary);
+        if(gb.theme.onAccent) root.setProperty('--onAccent',gb.theme.onAccent);
+      }
+      var bl=$('brandLogo'),bn=$('brandName');
+      if(bl){
+        if(gb.logo){
+          bl.innerHTML='';
+          var img=document.createElement('img');img.src=gb.logo;img.alt='logo';img.style.cssText='width:100%;height:100%;object-fit:contain';bl.appendChild(img);
+          bl.style.background='var(--accent)';bl.style.padding='3px';
+        } else {
+          bl.textContent=((gb.nome||'').trim().slice(0,2).toUpperCase())||'PT';
+        }
+      }
+      if(bn) bn.textContent=gb.nome||'PT Board';
+      try{var m=document.querySelector('meta[name="theme-color"]');if(m&&gb.theme&&gb.theme.accent) m.setAttribute('content',gb.theme.accent);}catch(e){}
+    }catch(e){console.warn('[atleta] applyGymBranding',e);}
+  }
+  if(gymParam){
+    try{
+      fbDb.collection('gymsPublic').doc(gymParam).get().then(function(s){
+        if(s.exists) applyGymBrandingAtleta(s.data());
+      }).catch(function(e){console.warn('[atleta] gymsPublic get',e);});
+    }catch(e){console.warn('[atleta] gymsPublic',e);}
+  }
 
   // ── AUTH FLOW ──
   function doGoogleLogin(){

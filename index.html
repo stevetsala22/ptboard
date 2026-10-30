@@ -267,17 +267,30 @@ async function fbCreateGymForOwner(uid, baseProfile){
   await fbSaveUserProfile(uid, profile);
   return {gymId: gymId, profile: profile};
 }
-// Applica un tema gym rimappando le CSS variables su :root. No-op se theme vuoto.
+// Applica un tema gym rimappando le CSS variables su :root. Se theme vuoto o
+// mancante, rimuove gli override noti (reset ai default di :root).
 // Vedi docs/GYM_PLAN.md v2 §Branding.
+const GYM_THEME_VARS=['accent','accentSecondary','onAccent'];
 function applyGymTheme(gymDoc){
-  if(!gymDoc || !gymDoc.theme) return;
   try{
-    const root = document.documentElement.style;
-    Object.keys(gymDoc.theme).forEach(function(k){
-      const v = gymDoc.theme[k];
-      if(typeof v === 'string' && v) root.setProperty('--'+k, v);
+    const root=document.documentElement.style;
+    const theme=gymDoc&&gymDoc.theme;
+    if(!theme||!Object.keys(theme).length){
+      // Reset: rimuovi le CSS vars personalizzate così il :root default torna attivo.
+      GYM_THEME_VARS.forEach(function(v){root.removeProperty('--'+v);});
+      return;
+    }
+    GYM_THEME_VARS.forEach(function(v){
+      if(typeof theme[v]==='string'&&theme[v]) root.setProperty('--'+v,theme[v]);
+      else root.removeProperty('--'+v);
     });
-  }catch(e){ console.warn('[gym] applyGymTheme error:', e); }
+    // Compat: altre chiavi arbitrarie passano come CSS vars con lo stesso nome.
+    Object.keys(theme).forEach(function(k){
+      if(GYM_THEME_VARS.indexOf(k)!==-1) return;
+      const v=theme[k];
+      if(typeof v==='string'&&v) root.setProperty('--'+k,v);
+    });
+  }catch(e){console.warn('[gym] applyGymTheme error:',e);}
 }
 // ── EMAILJS CONFIG ────────────────────────────────────────────────────────────
 // 1. Vai su emailjs.com → crea account gratuito
@@ -384,12 +397,12 @@ var openCheckout=function(plan){
 :root{
   --bg:#0a0f1e;--sidebar:#070c18;--card:#111827;--border:#1f2937;--border2:#374151;
   --text:#e2e8f0;--muted:#6b7280;--dim:#4b5563;--input-bg:#0a0f1e;--strong:#f9fafb;
-  --accent:#3b82f6;
+  --accent:#3b82f6;--accentSecondary:#10b981;--onAccent:#ffffff;
 }
 :root.light{
   --bg:#f8fafc;--sidebar:#f1f5f9;--card:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
   --text:#1e293b;--muted:#64748b;--dim:#94a3b8;--input-bg:#ffffff;--strong:#0f172a;
-  --accent:#3b82f6;
+  --accent:#3b82f6;--accentSecondary:#10b981;--onAccent:#ffffff;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body,#root{height:100%;overflow:hidden;background:var(--bg);transition:background .3s}
@@ -845,7 +858,7 @@ const LANGS={
     schedaEmpty:'Questa scheda non ha ancora esercizi.',
     splitPush:'Push',splitPull:'Pull',splitLegs:'Gambe',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
     slotLegsComp:'Gambe compound',slotBack:'Dorso',slotBackComp:'Dorso compound',slotBackAcc:'Dorso accessorio',slotBackExtra:'Dorso extra',slotShoulders:'Spalle',slotShouldersAcc:'Spalle accessorio',slotCore:'Core',slotBalance:'Equilibrio / Stabilita',slotExplosive:'Esplosivo (salti/box)',slotGlutesComp:'Glutei compound',slotGlutesIso:'Glutei isolamento',slotGlutesExtra:'Glutei extra',slotGlutes:'Glutei',slotChest:'Petto',slotChestComp:'Petto compound',slotChestAcc:'Petto accessorio',slotChestExtra:'Petto extra',slotBiceps:'Bicipiti',slotBicepsExtra:'Bicipiti extra',slotTraps:'Trapezio / Deltoidi',slotTriceps:'Tricipiti',slotQuadsComp:'Quadricipiti compound',slotQuadsAcc:'Quadricipiti accessorio',slotHams:'Femorali',slotHamsAcc:'Femorali accessorio',slotCalves:'Polpacci',slotHamsGlutes:'Femorali / Glutei',
-    generatedWith:'Generata con PT Board',pdfAge:'Età',
+    generatedWith:'Generata con PT Board',poweredBy:'Powered by',pdfAge:'Età',
     // Sedute (Bookings)
     nextSessions:'Prossime sedute',expired:'scadute',noScheduled:'Nessuna seduta programmata',
     completeBtn:'Completa',phRpe:'Sforzo percepito 0-10 (RPE)',phHowWent:'Come è andata?',
@@ -1422,7 +1435,7 @@ const LANGS={
     gpRazSplFbBeg:'Full Body: lavoro globale ogni seduta (principiante/riabilitazione).',gpRazSplFb1:'Full Body ×1: massima copertura muscolare nell\'unica seduta disponibile.',gpRazSplFb2:'Full Body ×2: frequenza minima ≥2×/muscolo/sett (Schoenfeld 2016).',gpRazSplPpl3:'PPL ×3: struttura ottimale per performance atletica con 3 sessioni.',gpRazSplFb3H:'Full Body ×3: superiore a PPL per ipertrofia — 3×/muscolo/sett vs 1× (Schoenfeld 2016). Compound multi-articolari con volume modulato.',gpRazSplFb3G:'Full Body ×3: massima frequenza, ideale per salute generale e perdita di peso.',gpRazSplUl2:'Upper/Lower ×2: ogni gruppo muscolare 2×/sett — bilancio ottimale volume-recupero.',gpRazSplFb4:'Full Body ×4: continuità di stimolo per salute/riabilitazione.',gpRazSplPpl5:'PPL ×2 (5 giorni): alto volume — ogni muscolo 2×/sett.',gpRazSplUlC:'Upper/Lower + cardio extra: 5 sedute per obiettivo metabolico/performance.',gpRazSplPpl6:'PPL ×2 (6 giorni): volume massimo per ipertrofia avanzata.',gpRazSplUl3:'Upper/Lower ×3 (6 giorni): alta frequenza per performance/composizione avanzata.',
     gpRazFreq:'Sedute/sett.: {n} (ACSM 11th ed. — profilo {pr}, obiettivo {ob}).',gpRazInt:'RPE target {rpe1}–{rpe2}, recupero {rec}s, {s} serie base (post-modulatori).',
     pdfKpiSets:'Serie × Rip',pdfKpiRest:'Recupero',pdfListTitle:'Lista clienti',pdfListGenOn:'Lista clienti generata il',pdfListTotSes:'sedute totali',pdfListClient:'Cliente',pdfListWeight:'Peso',pdfListLastAss:'Ultima val.',
-    qaBtn:'⚡ Valutazione rapida',qaTitle:'Valutazione rapida',qaIntro:'8 campi, meno di 5 minuti. Scheda proposta subito.',qaName:'Nome *',qaSurname:'Cognome *',qaSexLabel:'Sesso *',qaSexM:'M',qaSexF:'F',qaBirthYear:'Anno di nascita *',qaBirthYearHint:'4 cifre, 1920–oggi',qaHeight:'Altezza (cm)',qaWeight:'Peso (kg)',qaExperience:'Esperienza',qaExpBeg:'Principiante',qaExpInt:'Intermedio',qaExpAdv:'Avanzato',qaActivity:'Attività quotidiana',qaActSed:'Sedentaria',qaActLight:'Leggera',qaActActive:'Attiva',qaActVery:'Molto attiva',qaSessions:'Sedute / settimana',qaDuration:'Durata seduta (min)',qaGoalLabel:'Obiettivo *',qaDefault:'default',qaParqTitle:'Screening PAR-Q+ *',qaParqHint:'Rispondi a tutte e 7 le domande.',qaParqYes:'SI',qaParqNo:'NO',qaClinicalTitle:'Clinica',qaClinicalNormalHint:'PAR-Q+ tutto NO → precompilato (puoi comunque aggiungere dettagli).',qaClinicalGateHint:'⚠ Hai risposto SI ad almeno una PAR-Q+: compila patologie e infortuni e raccogli il certificato medico prima dell\'allenamento.',qaCertRequired:'Serve certificato medico',qaPathologies:'Patologie *',qaInjuries:'Infortuni / limitazioni',qaSubmit:'Genera scheda ⚡',qaMissingPrefix:'Mancano:',qaMissingSex:'sesso',qaMissingYear:'anno di nascita',qaMissingGoal:'obiettivo',qaMissingParq:'PAR-Q+ (7 risposte)',qaMissingClinical:'patologie (gate PAR-Q+)',qaMissingName:'nome e cognome',qaLoading:'Caricamento dati...',qaMissingCount:'Mancano {n} campi',loadErrorMsg:'Impossibile caricare i dati. Le modifiche NON vengono salvate. Ricarica la pagina.',reload:'Ricarica',gymSignupLabel:'Che tipo di account?',gymSignupPt:'Personal trainer',gymSignupGym:'Palestra',gymSignupPtHint:'Clienti tuoi, workspace personale.',gymSignupGymHint:'Clienti condivisi fra più PT. Tu sei titolare.',gymOnboardTitle:'Benvenuto nello Spazio Palestra',gymOnboardIntro:'Dai un nome alla tua palestra. Potrai cambiarlo e aggiungere logo/colori più avanti.',gymOnboardNameLabel:'Nome palestra',gymOnboardNamePh:'FitLab Roma',gymOnboardSave:'Crea palestra',gymOnboardError:'Impossibile creare la palestra. Riprova.',gymSpaceLabel:'Spazio Palestra',gymHomeTip:'Panoramica palestra',gymDashTip:'Dashboard palestra',gymClientsTip:'Clienti condivisi della palestra',gymExercisesTip:'Libreria esercizi palestra',inviteLabel:'App per il cliente',inviteTip:'Crea un link per dare l\'app al cliente',gymTeam:'Team',gymTeamTip:'Gestione PT della palestra (in arrivo)',gymBranding:'Branding',gymBrandingTip:'Logo e tema (in arrivo)',gymBilling:'Abbonamento',gymBillingTip:'Piano Palestra (in arrivo)',gymComingSoon:'In arrivo',gymTeamSoon:'Inviti PT e gestione membri arriveranno con la FASE 4.',gymBrandingSoon:'Logo, palette e tema personalizzati arriveranno con la FASE 5.',gymBillingSoon:'Piano Palestra e checkout Stripe arriveranno con la FASE 7.',gymExAddCustom:'+ Nuovo esercizio',gymExCustomBadge:'Palestra',gymExOverrideBadge:'Modificato',gymSaveError:'Salvataggio non riuscito: controlla la connessione e riprova.',gymTeamSubtitle:'{n} membri · {k} inviti attivi',gymTeamMembers:'Membri',gymTeamMemberNo:'Nessun membro.',gymTeamOwner:'Titolare',gymTeamTrainer:'PT',gymTeamRemove:'Rimuovi',gymTeamConfirmRemove:'Rimuovere questo PT dalla palestra? Perderà subito l\'accesso ai clienti.',gymTeamRemoved:'PT rimosso dalla palestra.',gymTeamInviteBtn:'+ Invita PT',gymTeamCodeLabel:'Codice invito (7 giorni)',gymTeamLinkLabel:'Link',gymTeamCopyLink:'Copia link',gymTeamCopyCode:'Copia codice',gymTeamCopied:'Copiato.',gymTeamShareMsg:'Ti ho invitato nella palestra {nome} su PT Board. Entra qui: {link} (o inserisci il codice {code}).',gymTeamActiveInvites:'Inviti attivi',gymTeamNoInvites:'Nessun invito attivo. Genera un codice per invitare un PT.',gymTeamInviteExpires:'Scade',gymTeamRevoke:'Revoca',gymJoinTitle:'Unisciti a {nome}?',gymJoinSubtitle:'Entrerai come PT: potrai vedere e modificare tutti i clienti e le schede di questa palestra.',gymJoinConfirm:'Unisciti',gymJoinSuccess:'Benvenuto in {nome}!',gymJoinInvalid:'Codice invito non valido',gymJoinExpired:'Codice invito scaduto',gymJoinRevoked:'Codice invito revocato',gymJoinAlready:'Sei già membro di {nome}.',gymJoinJoining:'Collegamento in corso…',gymJoinDone:'Entrato in {nome}!',gymJoinWriteErr:'Impossibile unirsi alla palestra: ',authGymCodeCta:'Hai un codice palestra?',authGymCodeTitle:'Codice palestra',authGymCodeHint:'6 caratteri (ricevuti dal titolare della palestra).',authGymCodeSaved:'✓ Codice memorizzato: dopo il login ti chiederemo di confermare l\'ingresso.',
+    qaBtn:'⚡ Valutazione rapida',qaTitle:'Valutazione rapida',qaIntro:'8 campi, meno di 5 minuti. Scheda proposta subito.',qaName:'Nome *',qaSurname:'Cognome *',qaSexLabel:'Sesso *',qaSexM:'M',qaSexF:'F',qaBirthYear:'Anno di nascita *',qaBirthYearHint:'4 cifre, 1920–oggi',qaHeight:'Altezza (cm)',qaWeight:'Peso (kg)',qaExperience:'Esperienza',qaExpBeg:'Principiante',qaExpInt:'Intermedio',qaExpAdv:'Avanzato',qaActivity:'Attività quotidiana',qaActSed:'Sedentaria',qaActLight:'Leggera',qaActActive:'Attiva',qaActVery:'Molto attiva',qaSessions:'Sedute / settimana',qaDuration:'Durata seduta (min)',qaGoalLabel:'Obiettivo *',qaDefault:'default',qaParqTitle:'Screening PAR-Q+ *',qaParqHint:'Rispondi a tutte e 7 le domande.',qaParqYes:'SI',qaParqNo:'NO',qaClinicalTitle:'Clinica',qaClinicalNormalHint:'PAR-Q+ tutto NO → precompilato (puoi comunque aggiungere dettagli).',qaClinicalGateHint:'⚠ Hai risposto SI ad almeno una PAR-Q+: compila patologie e infortuni e raccogli il certificato medico prima dell\'allenamento.',qaCertRequired:'Serve certificato medico',qaPathologies:'Patologie *',qaInjuries:'Infortuni / limitazioni',qaSubmit:'Genera scheda ⚡',qaMissingPrefix:'Mancano:',qaMissingSex:'sesso',qaMissingYear:'anno di nascita',qaMissingGoal:'obiettivo',qaMissingParq:'PAR-Q+ (7 risposte)',qaMissingClinical:'patologie (gate PAR-Q+)',qaMissingName:'nome e cognome',qaLoading:'Caricamento dati...',qaMissingCount:'Mancano {n} campi',loadErrorMsg:'Impossibile caricare i dati. Le modifiche NON vengono salvate. Ricarica la pagina.',reload:'Ricarica',gymSignupLabel:'Che tipo di account?',gymSignupPt:'Personal trainer',gymSignupGym:'Palestra',gymSignupPtHint:'Clienti tuoi, workspace personale.',gymSignupGymHint:'Clienti condivisi fra più PT. Tu sei titolare.',gymOnboardTitle:'Benvenuto nello Spazio Palestra',gymOnboardIntro:'Dai un nome alla tua palestra. Potrai cambiarlo e aggiungere logo/colori più avanti.',gymOnboardNameLabel:'Nome palestra',gymOnboardNamePh:'FitLab Roma',gymOnboardSave:'Crea palestra',gymOnboardError:'Impossibile creare la palestra. Riprova.',gymSpaceLabel:'Spazio Palestra',gymHomeTip:'Panoramica palestra',gymDashTip:'Dashboard palestra',gymClientsTip:'Clienti condivisi della palestra',gymExercisesTip:'Libreria esercizi palestra',inviteLabel:'App per il cliente',inviteTip:'Crea un link per dare l\'app al cliente',gymTeam:'Team',gymTeamTip:'Gestione PT della palestra (in arrivo)',gymBranding:'Branding',gymBrandingTip:'Logo e tema (in arrivo)',gymBilling:'Abbonamento',gymBillingTip:'Piano Palestra (in arrivo)',gymComingSoon:'In arrivo',gymTeamSoon:'Inviti PT e gestione membri arriveranno con la FASE 4.',gymBrandingSoon:'Logo, palette e tema personalizzati arriveranno con la FASE 5.',gymBillingSoon:'Piano Palestra e checkout Stripe arriveranno con la FASE 7.',gymExAddCustom:'+ Nuovo esercizio',gymExCustomBadge:'Palestra',gymExOverrideBadge:'Modificato',gymSaveError:'Salvataggio non riuscito: controlla la connessione e riprova.',gymTeamSubtitle:'{n} membri · {k} inviti attivi',gymTeamMembers:'Membri',gymTeamMemberNo:'Nessun membro.',gymTeamOwner:'Titolare',gymTeamTrainer:'PT',gymTeamRemove:'Rimuovi',gymTeamConfirmRemove:'Rimuovere questo PT dalla palestra? Perderà subito l\'accesso ai clienti.',gymTeamRemoved:'PT rimosso dalla palestra.',gymTeamInviteBtn:'+ Invita PT',gymTeamCodeLabel:'Codice invito (7 giorni)',gymTeamLinkLabel:'Link',gymTeamCopyLink:'Copia link',gymTeamCopyCode:'Copia codice',gymTeamCopied:'Copiato.',gymTeamShareMsg:'Ti ho invitato nella palestra {nome} su PT Board. Entra qui: {link} (o inserisci il codice {code}).',gymTeamActiveInvites:'Inviti attivi',gymTeamNoInvites:'Nessun invito attivo. Genera un codice per invitare un PT.',gymTeamInviteExpires:'Scade',gymTeamRevoke:'Revoca',gymJoinTitle:'Unisciti a {nome}?',gymJoinSubtitle:'Entrerai come PT: potrai vedere e modificare tutti i clienti e le schede di questa palestra.',gymJoinConfirm:'Unisciti',gymJoinSuccess:'Benvenuto in {nome}!',gymJoinInvalid:'Codice invito non valido',gymJoinExpired:'Codice invito scaduto',gymJoinRevoked:'Codice invito revocato',gymJoinAlready:'Sei già membro di {nome}.',gymJoinJoining:'Collegamento in corso…',gymJoinDone:'Entrato in {nome}!',gymJoinWriteErr:'Impossibile unirsi alla palestra: ',authGymCodeCta:'Hai un codice palestra?',authGymCodeTitle:'Codice palestra',authGymCodeHint:'6 caratteri (ricevuti dal titolare della palestra).',authGymCodeSaved:'✓ Codice memorizzato: dopo il login ti chiederemo di confermare l\'ingresso.',brandingSubtitle:'Logo e colori della palestra. Visti da tutti i membri e dai clienti nei link di condivisione.',brandingLogoLabel:'Logo',brandingUpload:'Carica logo',brandingLogoHint:'PNG/JPG/SVG. Ridimensionato a 256px, convertito in WebP, <60KB.',brandingSuggested:'Colori proposti dal logo',brandingPrimary:'Colore primario',brandingSecondary:'Colore secondario',brandingContrastOk:'✓ Contrasto AA OK ({ratio}:1). Testo su primario: ',brandingContrastKo:'⚠ Contrasto {ratio}:1 sotto AA 4.5:1. Il testo sarà automaticamente ',brandingPreview:'Anteprima',brandingBtnSample:'Genera scheda',brandingBtnSecondary:'Secondario',brandingCardSampleTitle:'Mario Rossi',brandingCardSampleSub:'Scheda · 3 giorni/settimana',brandingBadgeA:'Profilo A',brandingBadgeB:'Attivo',brandingSave:'Salva branding',brandingReset:'Ripristina PT Board',brandingSaved:'Branding salvato.',brandingResetToast:'Branding ripristinato.',brandingSaveHint:'Al salvataggio, l\'app cambia colore per tutti i membri (real-time). I clienti nei link di condivisione vedono logo, nome e colori della palestra.',brandingErrNoFile:'Nessun file selezionato.',brandingErrNotImage:'Il file non è un\'immagine.',brandingErrTooBig:'Logo troppo grande anche dopo compressione.',brandingWarnBig:'Logo oltre 60KB ({kb}KB): considera un\'immagine più semplice.',brandingErrGeneric:'Errore nel caricamento del logo.',
   }},
   en:{flag:'🇬🇧',name:'English',t:{
     dashboard:'Dashboard',patients:'Clients',calendar:'Calendar',exercises:'Exercises',
@@ -1695,7 +1708,7 @@ const LANGS={
     schedaEmpty:'This workout has no exercises yet.',
     splitPush:'Push',splitPull:'Pull',splitLegs:'Legs',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
     slotLegsComp:'Legs compound',slotBack:'Back',slotBackComp:'Back compound',slotBackAcc:'Back accessory',slotBackExtra:'Back extra',slotShoulders:'Shoulders',slotShouldersAcc:'Shoulders accessory',slotCore:'Core',slotBalance:'Balance / Stability',slotExplosive:'Explosive (jumps/box)',slotGlutesComp:'Glutes compound',slotGlutesIso:'Glutes isolation',slotGlutesExtra:'Glutes extra',slotGlutes:'Glutes',slotChest:'Chest',slotChestComp:'Chest compound',slotChestAcc:'Chest accessory',slotChestExtra:'Chest extra',slotBiceps:'Biceps',slotBicepsExtra:'Biceps extra',slotTraps:'Traps / Rear Delts',slotTriceps:'Triceps',slotQuadsComp:'Quads compound',slotQuadsAcc:'Quads accessory',slotHams:'Hamstrings',slotHamsAcc:'Hamstrings accessory',slotCalves:'Calves',slotHamsGlutes:'Hamstrings / Glutes',
-    generatedWith:'Generated with PT Board',pdfAge:'Age',
+    generatedWith:'Generated with PT Board',poweredBy:'Powered by',pdfAge:'Age',
     // Sedute (Bookings)
     nextSessions:'Upcoming sessions',expired:'expired',noScheduled:'No sessions scheduled',
     completeBtn:'Complete',phRpe:'Perceived effort 0-10 (RPE)',phHowWent:'How did it go?',
@@ -2272,7 +2285,7 @@ const LANGS={
     gpRazSplFbBeg:'Full Body: full-body work each session (beginner/rehabilitation).',gpRazSplFb1:'Full Body ×1: maximum muscle coverage in the single available session.',gpRazSplFb2:'Full Body ×2: minimum frequency ≥2×/muscle/week (Schoenfeld 2016).',gpRazSplPpl3:'PPL ×3: optimal structure for athletic performance with 3 sessions.',gpRazSplFb3H:'Full Body ×3: superior to PPL for hypertrophy — 3×/muscle/week vs 1× (Schoenfeld 2016). Multi-joint compounds with modulated volume.',gpRazSplFb3G:'Full Body ×3: maximum frequency, ideal for general health and weight loss.',gpRazSplUl2:'Upper/Lower ×2: each muscle group 2×/week — optimal volume-recovery balance.',gpRazSplFb4:'Full Body ×4: continuous stimulus for health/rehabilitation.',gpRazSplPpl5:'PPL ×2 (5 days): high volume — each muscle 2×/week.',gpRazSplUlC:'Upper/Lower + extra cardio: 5 sessions for metabolic/performance goal.',gpRazSplPpl6:'PPL ×2 (6 days): maximum volume for advanced hypertrophy.',gpRazSplUl3:'Upper/Lower ×3 (6 days): high frequency for advanced performance/body composition.',
     gpRazFreq:'Sessions/week: {n} (ACSM 11th ed. — profile {pr}, goal {ob}).',gpRazInt:'RPE target {rpe1}–{rpe2}, rest {rec}s, {s} base sets (post-modulators).',
     pdfKpiSets:'Sets × Reps',pdfKpiRest:'Rest',pdfListTitle:'Client list',pdfListGenOn:'Client list generated on',pdfListTotSes:'total sessions',pdfListClient:'Client',pdfListWeight:'Weight',pdfListLastAss:'Last assess.',
-    qaBtn:'⚡ Quick assessment',qaTitle:'Quick assessment',qaIntro:'8 fields, under 5 minutes. A workout plan is proposed right away.',qaName:'First name *',qaSurname:'Surname *',qaSexLabel:'Gender *',qaSexM:'M',qaSexF:'F',qaBirthYear:'Birth year *',qaBirthYearHint:'4 digits, 1920–today',qaHeight:'Height (cm)',qaWeight:'Weight (kg)',qaExperience:'Training experience',qaExpBeg:'Beginner',qaExpInt:'Intermediate',qaExpAdv:'Advanced',qaActivity:'Daily activity',qaActSed:'Sedentary',qaActLight:'Light',qaActActive:'Active',qaActVery:'Very active',qaSessions:'Sessions / week',qaDuration:'Session length (min)',qaGoalLabel:'Goal *',qaDefault:'default',qaParqTitle:'PAR-Q+ screening *',qaParqHint:'Answer all 7 questions.',qaParqYes:'YES',qaParqNo:'NO',qaClinicalTitle:'Clinical',qaClinicalNormalHint:'PAR-Q+ all NO → pre-filled (you can still add details).',qaClinicalGateHint:'⚠ You answered YES to at least one PAR-Q+ item: fill pathologies and injuries and collect a medical certificate before training.',qaCertRequired:'Medical certificate required',qaPathologies:'Pathologies *',qaInjuries:'Injuries / limitations',qaSubmit:'Generate workout ⚡',qaMissingPrefix:'Missing:',qaMissingSex:'gender',qaMissingYear:'birth year',qaMissingGoal:'goal',qaMissingParq:'PAR-Q+ (7 answers)',qaMissingClinical:'pathologies (PAR-Q+ gate)',qaMissingName:'name and surname',qaLoading:'Loading data...',qaMissingCount:'{n} fields missing',loadErrorMsg:'Could not load your data. Changes are NOT being saved. Reload the page.',reload:'Reload',gymSignupLabel:'What type of account?',gymSignupPt:'Personal trainer',gymSignupGym:'Gym',gymSignupPtHint:'Your clients, personal workspace.',gymSignupGymHint:'Clients shared across multiple PTs. You are the owner.',gymOnboardTitle:'Welcome to Gym Workspace',gymOnboardIntro:'Give your gym a name. You can change it and add logo/colors later.',gymOnboardNameLabel:'Gym name',gymOnboardNamePh:'FitLab London',gymOnboardSave:'Create gym',gymOnboardError:'Could not create the gym. Try again.',gymSpaceLabel:'Gym workspace',gymHomeTip:'Gym overview',gymDashTip:'Gym dashboard',gymClientsTip:'Shared gym clients',gymExercisesTip:'Gym exercise library',inviteLabel:'Client app',inviteTip:'Create a link to hand the app to the client',gymTeam:'Team',gymTeamTip:'Gym PT management (coming soon)',gymBranding:'Branding',gymBrandingTip:'Logo and theme (coming soon)',gymBilling:'Subscription',gymBillingTip:'Gym plan (coming soon)',gymComingSoon:'Coming soon',gymTeamSoon:'PT invites and member management arrive with PHASE 4.',gymBrandingSoon:'Logo, palette and custom theme arrive with PHASE 5.',gymBillingSoon:'Gym plan and Stripe checkout arrive with PHASE 7.',gymExAddCustom:'+ New exercise',gymExCustomBadge:'Gym',gymExOverrideBadge:'Modified',gymSaveError:'Could not save: check your connection and try again.',gymTeamSubtitle:'{n} members · {k} active invites',gymTeamMembers:'Members',gymTeamMemberNo:'No members.',gymTeamOwner:'Owner',gymTeamTrainer:'PT',gymTeamRemove:'Remove',gymTeamConfirmRemove:'Remove this PT from the gym? They will immediately lose access to the clients.',gymTeamRemoved:'PT removed from the gym.',gymTeamInviteBtn:'+ Invite PT',gymTeamCodeLabel:'Invite code (7 days)',gymTeamLinkLabel:'Link',gymTeamCopyLink:'Copy link',gymTeamCopyCode:'Copy code',gymTeamCopied:'Copied.',gymTeamShareMsg:'I invited you to the gym {nome} on PT Board. Join here: {link} (or enter code {code}).',gymTeamActiveInvites:'Active invites',gymTeamNoInvites:'No active invites. Generate a code to invite a PT.',gymTeamInviteExpires:'Expires',gymTeamRevoke:'Revoke',gymJoinTitle:'Join {nome}?',gymJoinSubtitle:'You will join as a PT: you will see and edit all clients and workouts of this gym.',gymJoinConfirm:'Join',gymJoinSuccess:'Welcome to {nome}!',gymJoinInvalid:'Invalid invite code',gymJoinExpired:'Expired invite code',gymJoinRevoked:'Invite code revoked',gymJoinAlready:'You are already a member of {nome}.',gymJoinJoining:'Joining…',gymJoinDone:'Joined {nome}!',gymJoinWriteErr:'Could not join the gym: ',authGymCodeCta:'Have a gym code?',authGymCodeTitle:'Gym code',authGymCodeHint:'6 characters (from the gym owner).',authGymCodeSaved:'✓ Code saved: after login we will ask you to confirm joining.',
+    qaBtn:'⚡ Quick assessment',qaTitle:'Quick assessment',qaIntro:'8 fields, under 5 minutes. A workout plan is proposed right away.',qaName:'First name *',qaSurname:'Surname *',qaSexLabel:'Gender *',qaSexM:'M',qaSexF:'F',qaBirthYear:'Birth year *',qaBirthYearHint:'4 digits, 1920–today',qaHeight:'Height (cm)',qaWeight:'Weight (kg)',qaExperience:'Training experience',qaExpBeg:'Beginner',qaExpInt:'Intermediate',qaExpAdv:'Advanced',qaActivity:'Daily activity',qaActSed:'Sedentary',qaActLight:'Light',qaActActive:'Active',qaActVery:'Very active',qaSessions:'Sessions / week',qaDuration:'Session length (min)',qaGoalLabel:'Goal *',qaDefault:'default',qaParqTitle:'PAR-Q+ screening *',qaParqHint:'Answer all 7 questions.',qaParqYes:'YES',qaParqNo:'NO',qaClinicalTitle:'Clinical',qaClinicalNormalHint:'PAR-Q+ all NO → pre-filled (you can still add details).',qaClinicalGateHint:'⚠ You answered YES to at least one PAR-Q+ item: fill pathologies and injuries and collect a medical certificate before training.',qaCertRequired:'Medical certificate required',qaPathologies:'Pathologies *',qaInjuries:'Injuries / limitations',qaSubmit:'Generate workout ⚡',qaMissingPrefix:'Missing:',qaMissingSex:'gender',qaMissingYear:'birth year',qaMissingGoal:'goal',qaMissingParq:'PAR-Q+ (7 answers)',qaMissingClinical:'pathologies (PAR-Q+ gate)',qaMissingName:'name and surname',qaLoading:'Loading data...',qaMissingCount:'{n} fields missing',loadErrorMsg:'Could not load your data. Changes are NOT being saved. Reload the page.',reload:'Reload',gymSignupLabel:'What type of account?',gymSignupPt:'Personal trainer',gymSignupGym:'Gym',gymSignupPtHint:'Your clients, personal workspace.',gymSignupGymHint:'Clients shared across multiple PTs. You are the owner.',gymOnboardTitle:'Welcome to Gym Workspace',gymOnboardIntro:'Give your gym a name. You can change it and add logo/colors later.',gymOnboardNameLabel:'Gym name',gymOnboardNamePh:'FitLab London',gymOnboardSave:'Create gym',gymOnboardError:'Could not create the gym. Try again.',gymSpaceLabel:'Gym workspace',gymHomeTip:'Gym overview',gymDashTip:'Gym dashboard',gymClientsTip:'Shared gym clients',gymExercisesTip:'Gym exercise library',inviteLabel:'Client app',inviteTip:'Create a link to hand the app to the client',gymTeam:'Team',gymTeamTip:'Gym PT management (coming soon)',gymBranding:'Branding',gymBrandingTip:'Logo and theme (coming soon)',gymBilling:'Subscription',gymBillingTip:'Gym plan (coming soon)',gymComingSoon:'Coming soon',gymTeamSoon:'PT invites and member management arrive with PHASE 4.',gymBrandingSoon:'Logo, palette and custom theme arrive with PHASE 5.',gymBillingSoon:'Gym plan and Stripe checkout arrive with PHASE 7.',gymExAddCustom:'+ New exercise',gymExCustomBadge:'Gym',gymExOverrideBadge:'Modified',gymSaveError:'Could not save: check your connection and try again.',gymTeamSubtitle:'{n} members · {k} active invites',gymTeamMembers:'Members',gymTeamMemberNo:'No members.',gymTeamOwner:'Owner',gymTeamTrainer:'PT',gymTeamRemove:'Remove',gymTeamConfirmRemove:'Remove this PT from the gym? They will immediately lose access to the clients.',gymTeamRemoved:'PT removed from the gym.',gymTeamInviteBtn:'+ Invite PT',gymTeamCodeLabel:'Invite code (7 days)',gymTeamLinkLabel:'Link',gymTeamCopyLink:'Copy link',gymTeamCopyCode:'Copy code',gymTeamCopied:'Copied.',gymTeamShareMsg:'I invited you to the gym {nome} on PT Board. Join here: {link} (or enter code {code}).',gymTeamActiveInvites:'Active invites',gymTeamNoInvites:'No active invites. Generate a code to invite a PT.',gymTeamInviteExpires:'Expires',gymTeamRevoke:'Revoke',gymJoinTitle:'Join {nome}?',gymJoinSubtitle:'You will join as a PT: you will see and edit all clients and workouts of this gym.',gymJoinConfirm:'Join',gymJoinSuccess:'Welcome to {nome}!',gymJoinInvalid:'Invalid invite code',gymJoinExpired:'Expired invite code',gymJoinRevoked:'Invite code revoked',gymJoinAlready:'You are already a member of {nome}.',gymJoinJoining:'Joining…',gymJoinDone:'Joined {nome}!',gymJoinWriteErr:'Could not join the gym: ',authGymCodeCta:'Have a gym code?',authGymCodeTitle:'Gym code',authGymCodeHint:'6 characters (from the gym owner).',authGymCodeSaved:'✓ Code saved: after login we will ask you to confirm joining.',brandingSubtitle:'Logo and colors of the gym. Seen by all members and clients in the share links.',brandingLogoLabel:'Logo',brandingUpload:'Upload logo',brandingLogoHint:'PNG/JPG/SVG. Resized to 256px, converted to WebP, <60KB.',brandingSuggested:'Colors suggested by the logo',brandingPrimary:'Primary color',brandingSecondary:'Secondary color',brandingContrastOk:'✓ AA contrast OK ({ratio}:1). Text on primary: ',brandingContrastKo:'⚠ Contrast {ratio}:1 below AA 4.5:1. Text will be automatically ',brandingPreview:'Preview',brandingBtnSample:'Generate workout',brandingBtnSecondary:'Secondary',brandingCardSampleTitle:'John Doe',brandingCardSampleSub:'Workout · 3 days/week',brandingBadgeA:'Profile A',brandingBadgeB:'Active',brandingSave:'Save branding',brandingReset:'Reset to PT Board',brandingSaved:'Branding saved.',brandingResetToast:'Branding reset.',brandingSaveHint:'On save, the app recolors for all members in real time. Clients in share links see logo, name, and gym colors.',brandingErrNoFile:'No file selected.',brandingErrNotImage:'The file is not an image.',brandingErrTooBig:'Logo too large even after compression.',brandingWarnBig:'Logo over 60KB ({kb}KB): consider a simpler image.',brandingErrGeneric:'Error loading the logo.',
   }},
   fr:{flag:'🇫🇷',name:'Français',t:{
     dashboard:'Tableau de bord',patients:'Clients',calendar:'Calendrier',exercises:'Exercices',
@@ -2545,7 +2558,7 @@ const LANGS={
     schedaEmpty:"Cette fiche n'a pas encore d'exercices.",
     splitPush:'Poussée',splitPull:'Tirage',splitLegs:'Jambes',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
     slotLegsComp:'Jambes (compound)',slotBack:'Dos',slotBackComp:'Dos (compound)',slotBackAcc:'Dos (accessoire)',slotBackExtra:'Dos (extra)',slotShoulders:'Épaules',slotShouldersAcc:'Épaules (accessoire)',slotCore:'Gainage',slotBalance:'Équilibre / Stabilité',slotExplosive:'Explosif (sauts/box)',slotGlutesComp:'Fessiers (compound)',slotGlutesIso:'Fessiers (isolation)',slotGlutesExtra:'Fessiers (extra)',slotGlutes:'Fessiers',slotChest:'Pectoraux',slotChestComp:'Pectoraux (compound)',slotChestAcc:'Pectoraux (accessoire)',slotChestExtra:'Pectoraux (extra)',slotBiceps:'Biceps',slotBicepsExtra:'Biceps (extra)',slotTraps:'Trapèzes / Deltoïdes',slotTriceps:'Triceps',slotQuadsComp:'Quadriceps (compound)',slotQuadsAcc:'Quadriceps (accessoire)',slotHams:'Ischio-jambiers',slotHamsAcc:'Ischio-jambiers (accessoire)',slotCalves:'Mollets',slotHamsGlutes:'Ischio-jambiers / Fessiers',
-    generatedWith:'Généré avec PT Board',pdfAge:'Âge',
+    generatedWith:'Généré avec PT Board',poweredBy:'Propulsé par',pdfAge:'Âge',
     // Sedute (Bookings)
     nextSessions:'Prochaines séances',expired:'expirées',noScheduled:'Aucune séance programmée',
     completeBtn:'Terminer',phRpe:'Effort perçu 0-10 (RPE)',phHowWent:"Comment ça s'est passé ?",
@@ -3122,7 +3135,7 @@ const LANGS={
     gpRazSplFbBeg:'Full Body : travail global à chaque séance (débutant/rééducation).',gpRazSplFb1:'Full Body ×1 : couverture musculaire maximale dans la seule séance disponible.',gpRazSplFb2:'Full Body ×2 : fréquence minimale ≥2×/muscle/sem (Schoenfeld 2016).',gpRazSplPpl3:'PPL ×3 : structure optimale pour la performance athlétique avec 3 séances.',gpRazSplFb3H:'Full Body ×3 : supérieur au PPL pour l\'hypertrophie — 3×/muscle/sem vs 1× (Schoenfeld 2016). Polyarticulaires avec volume modulé.',gpRazSplFb3G:'Full Body ×3 : fréquence maximale, idéal pour la santé générale et la perte de poids.',gpRazSplUl2:'Upper/Lower ×2 : chaque groupe musculaire 2×/sem — équilibre optimal volume-récupération.',gpRazSplFb4:'Full Body ×4 : stimulation continue pour la santé/rééducation.',gpRazSplPpl5:'PPL ×2 (5 jours) : volume élevé — chaque muscle 2×/sem.',gpRazSplUlC:'Upper/Lower + cardio supplémentaire : 5 séances pour objectif métabolique/performance.',gpRazSplPpl6:'PPL ×2 (6 jours) : volume maximal pour l\'hypertrophie avancée.',gpRazSplUl3:'Upper/Lower ×3 (6 jours) : haute fréquence pour performance/composition corporelle avancée.',
     gpRazFreq:'Séances/sem. : {n} (ACSM 11e éd. — profil {pr}, objectif {ob}).',gpRazInt:'RPE cible {rpe1}–{rpe2}, récupération {rec}s, {s} séries de base (post-modulateurs).',
     pdfKpiSets:'Séries × Rép',pdfKpiRest:'Récupération',pdfListTitle:'Liste des clients',pdfListGenOn:'Liste des clients générée le',pdfListTotSes:'séances au total',pdfListClient:'Client',pdfListWeight:'Poids',pdfListLastAss:'Dern. éval.',
-    qaBtn:'⚡ Évaluation rapide',qaTitle:'Évaluation rapide',qaIntro:'8 champs, moins de 5 minutes. Fiche proposée immédiatement.',qaName:'Prénom *',qaSurname:'Nom *',qaSexLabel:'Sexe *',qaSexM:'M',qaSexF:'F',qaBirthYear:'Année de naissance *',qaBirthYearHint:'4 chiffres, 1920–aujourd\'hui',qaHeight:'Taille (cm)',qaWeight:'Poids (kg)',qaExperience:"Expérience d'entraînement",qaExpBeg:'Débutant',qaExpInt:'Intermédiaire',qaExpAdv:'Avancé',qaActivity:'Activité quotidienne',qaActSed:'Sédentaire',qaActLight:'Légère',qaActActive:'Active',qaActVery:'Très active',qaSessions:'Séances / semaine',qaDuration:'Durée séance (min)',qaGoalLabel:'Objectif *',qaDefault:'défaut',qaParqTitle:'Dépistage PAR-Q+ *',qaParqHint:'Répondez aux 7 questions.',qaParqYes:'OUI',qaParqNo:'NON',qaClinicalTitle:'Clinique',qaClinicalNormalHint:'PAR-Q+ tout NON → pré-rempli (vous pouvez tout de même ajouter des détails).',qaClinicalGateHint:'⚠ Vous avez répondu OUI à au moins une PAR-Q+ : remplissez pathologies et blessures et récoltez un certificat médical avant l\'entraînement.',qaCertRequired:'Certificat médical requis',qaPathologies:'Pathologies *',qaInjuries:'Blessures / limitations',qaSubmit:'Générer la fiche ⚡',qaMissingPrefix:'Manquent :',qaMissingSex:'sexe',qaMissingYear:'année de naissance',qaMissingGoal:'objectif',qaMissingParq:'PAR-Q+ (7 réponses)',qaMissingClinical:'pathologies (gate PAR-Q+)',qaMissingName:'prénom et nom',qaLoading:'Chargement des données...',qaMissingCount:'{n} champs manquants',loadErrorMsg:'Impossible de charger les données. Les modifications NE sont PAS enregistrées. Rechargez la page.',reload:'Recharger',gymSignupLabel:'Quel type de compte ?',gymSignupPt:'Personal trainer',gymSignupGym:'Salle de sport',gymSignupPtHint:'Vos clients, espace personnel.',gymSignupGymHint:'Clients partagés entre plusieurs PT. Vous êtes le propriétaire.',gymOnboardTitle:'Bienvenue dans l\'Espace Salle',gymOnboardIntro:'Donnez un nom à votre salle. Vous pourrez le changer et ajouter logo/couleurs plus tard.',gymOnboardNameLabel:'Nom de la salle',gymOnboardNamePh:'FitLab Paris',gymOnboardSave:'Créer la salle',gymOnboardError:'Impossible de créer la salle. Réessayez.',gymSpaceLabel:'Espace Salle',gymHomeTip:'Aperçu de la salle',gymDashTip:'Tableau de bord salle',gymClientsTip:'Clients partagés de la salle',gymExercisesTip:'Bibliothèque exercices salle',inviteLabel:'App pour le client',inviteTip:"Créer un lien pour donner l'app au client",gymTeam:'Équipe',gymTeamTip:'Gestion PT de la salle (bientôt)',gymBranding:'Branding',gymBrandingTip:'Logo et thème (bientôt)',gymBilling:'Abonnement',gymBillingTip:'Plan Salle (bientôt)',gymComingSoon:'Bientôt',gymTeamSoon:'Invitations PT et gestion membres arrivent avec la PHASE 4.',gymBrandingSoon:'Logo, palette et thème personnalisé arrivent avec la PHASE 5.',gymBillingSoon:'Plan Salle et checkout Stripe arrivent avec la PHASE 7.',gymExAddCustom:'+ Nouvel exercice',gymExCustomBadge:'Salle',gymExOverrideBadge:'Modifié',gymSaveError:'Enregistrement échoué : vérifiez la connexion et réessayez.',gymTeamSubtitle:'{n} membres · {k} invitations actives',gymTeamMembers:'Membres',gymTeamMemberNo:'Aucun membre.',gymTeamOwner:'Propriétaire',gymTeamTrainer:'PT',gymTeamRemove:'Retirer',gymTeamConfirmRemove:'Retirer ce PT de la salle ? Il perdra immédiatement l\'accès aux clients.',gymTeamRemoved:'PT retiré de la salle.',gymTeamInviteBtn:'+ Inviter PT',gymTeamCodeLabel:'Code invitation (7 jours)',gymTeamLinkLabel:'Lien',gymTeamCopyLink:'Copier le lien',gymTeamCopyCode:'Copier le code',gymTeamCopied:'Copié.',gymTeamShareMsg:'Je t\'ai invité dans la salle {nome} sur PT Board. Rejoins ici : {link} (ou saisis le code {code}).',gymTeamActiveInvites:'Invitations actives',gymTeamNoInvites:'Aucune invitation active. Génère un code pour inviter un PT.',gymTeamInviteExpires:'Expire',gymTeamRevoke:'Révoquer',gymJoinTitle:'Rejoindre {nome} ?',gymJoinSubtitle:'Tu rejoindras en tant que PT : tu pourras voir et modifier tous les clients et fiches de cette salle.',gymJoinConfirm:'Rejoindre',gymJoinSuccess:'Bienvenue dans {nome} !',gymJoinInvalid:'Code invitation invalide',gymJoinExpired:'Code invitation expiré',gymJoinRevoked:'Code invitation révoqué',gymJoinAlready:'Tu es déjà membre de {nome}.',gymJoinJoining:'Connexion en cours…',gymJoinDone:'Rejoint {nome} !',gymJoinWriteErr:'Impossible de rejoindre la salle : ',authGymCodeCta:'Tu as un code salle ?',authGymCodeTitle:'Code salle',authGymCodeHint:'6 caractères (reçus du propriétaire de la salle).',authGymCodeSaved:'✓ Code mémorisé : après la connexion on te demandera de confirmer l\'entrée.',
+    qaBtn:'⚡ Évaluation rapide',qaTitle:'Évaluation rapide',qaIntro:'8 champs, moins de 5 minutes. Fiche proposée immédiatement.',qaName:'Prénom *',qaSurname:'Nom *',qaSexLabel:'Sexe *',qaSexM:'M',qaSexF:'F',qaBirthYear:'Année de naissance *',qaBirthYearHint:'4 chiffres, 1920–aujourd\'hui',qaHeight:'Taille (cm)',qaWeight:'Poids (kg)',qaExperience:"Expérience d'entraînement",qaExpBeg:'Débutant',qaExpInt:'Intermédiaire',qaExpAdv:'Avancé',qaActivity:'Activité quotidienne',qaActSed:'Sédentaire',qaActLight:'Légère',qaActActive:'Active',qaActVery:'Très active',qaSessions:'Séances / semaine',qaDuration:'Durée séance (min)',qaGoalLabel:'Objectif *',qaDefault:'défaut',qaParqTitle:'Dépistage PAR-Q+ *',qaParqHint:'Répondez aux 7 questions.',qaParqYes:'OUI',qaParqNo:'NON',qaClinicalTitle:'Clinique',qaClinicalNormalHint:'PAR-Q+ tout NON → pré-rempli (vous pouvez tout de même ajouter des détails).',qaClinicalGateHint:'⚠ Vous avez répondu OUI à au moins une PAR-Q+ : remplissez pathologies et blessures et récoltez un certificat médical avant l\'entraînement.',qaCertRequired:'Certificat médical requis',qaPathologies:'Pathologies *',qaInjuries:'Blessures / limitations',qaSubmit:'Générer la fiche ⚡',qaMissingPrefix:'Manquent :',qaMissingSex:'sexe',qaMissingYear:'année de naissance',qaMissingGoal:'objectif',qaMissingParq:'PAR-Q+ (7 réponses)',qaMissingClinical:'pathologies (gate PAR-Q+)',qaMissingName:'prénom et nom',qaLoading:'Chargement des données...',qaMissingCount:'{n} champs manquants',loadErrorMsg:'Impossible de charger les données. Les modifications NE sont PAS enregistrées. Rechargez la page.',reload:'Recharger',gymSignupLabel:'Quel type de compte ?',gymSignupPt:'Personal trainer',gymSignupGym:'Salle de sport',gymSignupPtHint:'Vos clients, espace personnel.',gymSignupGymHint:'Clients partagés entre plusieurs PT. Vous êtes le propriétaire.',gymOnboardTitle:'Bienvenue dans l\'Espace Salle',gymOnboardIntro:'Donnez un nom à votre salle. Vous pourrez le changer et ajouter logo/couleurs plus tard.',gymOnboardNameLabel:'Nom de la salle',gymOnboardNamePh:'FitLab Paris',gymOnboardSave:'Créer la salle',gymOnboardError:'Impossible de créer la salle. Réessayez.',gymSpaceLabel:'Espace Salle',gymHomeTip:'Aperçu de la salle',gymDashTip:'Tableau de bord salle',gymClientsTip:'Clients partagés de la salle',gymExercisesTip:'Bibliothèque exercices salle',inviteLabel:'App pour le client',inviteTip:"Créer un lien pour donner l'app au client",gymTeam:'Équipe',gymTeamTip:'Gestion PT de la salle (bientôt)',gymBranding:'Branding',gymBrandingTip:'Logo et thème (bientôt)',gymBilling:'Abonnement',gymBillingTip:'Plan Salle (bientôt)',gymComingSoon:'Bientôt',gymTeamSoon:'Invitations PT et gestion membres arrivent avec la PHASE 4.',gymBrandingSoon:'Logo, palette et thème personnalisé arrivent avec la PHASE 5.',gymBillingSoon:'Plan Salle et checkout Stripe arrivent avec la PHASE 7.',gymExAddCustom:'+ Nouvel exercice',gymExCustomBadge:'Salle',gymExOverrideBadge:'Modifié',gymSaveError:'Enregistrement échoué : vérifiez la connexion et réessayez.',gymTeamSubtitle:'{n} membres · {k} invitations actives',gymTeamMembers:'Membres',gymTeamMemberNo:'Aucun membre.',gymTeamOwner:'Propriétaire',gymTeamTrainer:'PT',gymTeamRemove:'Retirer',gymTeamConfirmRemove:'Retirer ce PT de la salle ? Il perdra immédiatement l\'accès aux clients.',gymTeamRemoved:'PT retiré de la salle.',gymTeamInviteBtn:'+ Inviter PT',gymTeamCodeLabel:'Code invitation (7 jours)',gymTeamLinkLabel:'Lien',gymTeamCopyLink:'Copier le lien',gymTeamCopyCode:'Copier le code',gymTeamCopied:'Copié.',gymTeamShareMsg:'Je t\'ai invité dans la salle {nome} sur PT Board. Rejoins ici : {link} (ou saisis le code {code}).',gymTeamActiveInvites:'Invitations actives',gymTeamNoInvites:'Aucune invitation active. Génère un code pour inviter un PT.',gymTeamInviteExpires:'Expire',gymTeamRevoke:'Révoquer',gymJoinTitle:'Rejoindre {nome} ?',gymJoinSubtitle:'Tu rejoindras en tant que PT : tu pourras voir et modifier tous les clients et fiches de cette salle.',gymJoinConfirm:'Rejoindre',gymJoinSuccess:'Bienvenue dans {nome} !',gymJoinInvalid:'Code invitation invalide',gymJoinExpired:'Code invitation expiré',gymJoinRevoked:'Code invitation révoqué',gymJoinAlready:'Tu es déjà membre de {nome}.',gymJoinJoining:'Connexion en cours…',gymJoinDone:'Rejoint {nome} !',gymJoinWriteErr:'Impossible de rejoindre la salle : ',authGymCodeCta:'Tu as un code salle ?',authGymCodeTitle:'Code salle',authGymCodeHint:'6 caractères (reçus du propriétaire de la salle).',authGymCodeSaved:'✓ Code mémorisé : après la connexion on te demandera de confirmer l\'entrée.',brandingSubtitle:'Logo et couleurs de la salle. Vus par tous les membres et les clients dans les liens de partage.',brandingLogoLabel:'Logo',brandingUpload:'Charger le logo',brandingLogoHint:'PNG/JPG/SVG. Redimensionné à 256px, converti en WebP, <60KB.',brandingSuggested:'Couleurs proposées par le logo',brandingPrimary:'Couleur primaire',brandingSecondary:'Couleur secondaire',brandingContrastOk:'✓ Contraste AA OK ({ratio}:1). Texte sur primaire : ',brandingContrastKo:'⚠ Contraste {ratio}:1 sous AA 4.5:1. Le texte sera automatiquement ',brandingPreview:'Aperçu',brandingBtnSample:'Générer la fiche',brandingBtnSecondary:'Secondaire',brandingCardSampleTitle:'Jean Dupont',brandingCardSampleSub:'Fiche · 3 jours/semaine',brandingBadgeA:'Profil A',brandingBadgeB:'Actif',brandingSave:'Enregistrer branding',brandingReset:'Rétablir PT Board',brandingSaved:'Branding enregistré.',brandingResetToast:'Branding réinitialisé.',brandingSaveHint:'À l\'enregistrement, l\'app change de couleur pour tous les membres en temps réel. Les clients dans les liens de partage voient logo, nom et couleurs de la salle.',brandingErrNoFile:'Aucun fichier sélectionné.',brandingErrNotImage:'Le fichier n\'est pas une image.',brandingErrTooBig:'Logo trop grand même après compression.',brandingWarnBig:'Logo au-dessus de 60KB ({kb}KB) : prends une image plus simple.',brandingErrGeneric:'Erreur lors du chargement du logo.',
   }},
 };
 // ── PDF LISTA CLIENTI ─────────────────────────────────────────────────────
@@ -4828,10 +4841,15 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const exportSchedaPDF=(scheda)=>{
     if(typeof gtag!=='undefined')gtag('event','export_pdf',{type:'scheda'});
     try{localStorage.setItem('ptboard_first_pdf_exported','1');}catch(e){}
-    const nomeStudio=trainerProfile?.nomeStudio||'PT Board';
+    // Spazio Palestra: usa branding del gym (nome, logo, accent) se disponibile.
+    const _isGymPdf=!!(trainerProfile&&trainerProfile.gymId&&userLastSpace(trainerProfile)==='gym'&&trainerProfile._gymDoc);
+    const _gymDoc=_isGymPdf?trainerProfile._gymDoc:null;
+    const _gymAccent=(_gymDoc&&_gymDoc.theme&&_gymDoc.theme.accent)||null;
+    const nomeStudio=(_gymDoc&&_gymDoc.nome)||trainerProfile?.nomeStudio||'PT Board';
+    const _logo=(_gymDoc&&_gymDoc.logo)||trainerProfile?.logo||null;
     const dataOggi=scheda.data||fmtDate();
-    const brandHtml=trainerProfile?.logo
-      ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+esc(trainerProfile.logo)+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain;border-radius:6px"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div></div>'
+    const brandHtml=_logo
+      ?'<div style="display:flex;align-items:center;gap:14px"><img src="'+esc(_logo)+'" alt="logo" style="max-height:50px;max-width:140px;object-fit:contain;border-radius:6px"/><div><div style="font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.3px">'+esc(nomeStudio)+'</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div></div>'
       :'<div><div style="font-size:24px;font-weight:900;color:#3b82f6;letter-spacing:-.5px">PT Board</div><div style="font-size:9px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-top:3px">'+esc(T.schedaTitle)+'</div></div>';
     const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:null;
     const profCode=scheda.config?.profilo||(pr?pr.code:'');
@@ -4972,9 +4990,9 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       'footer .center b{color:#3b82f6;font-weight:700}'+
       '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}'+
       '</style></head><body>'+
-      '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6">'+
+      '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid '+(_gymAccent||'#3b82f6')+'">'+
       '<button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+esc(T.pdfBackToApp)+'</button>'+
-      '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+esc(T.pdfPrint)+'</button></div>'+
+      '<button onclick="window.print()" style="background:'+(_gymAccent||'#3b82f6')+';color:#fff;border:none;padding:11px 22px;border-radius:9px;font-weight:700;cursor:pointer;font-size:14px;font-family:inherit">'+esc(T.pdfPrint)+'</button></div>'+
       '<div class="pg">'+
       '<div class="hdr">'+
       brandHtml+
@@ -4998,7 +5016,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '<div class="footer-line"></div>'+
       '<footer>'+
       '<span>'+esc(nomeStudio)+'</span>'+
-      '<span class="center">'+esc(T.generatedWith||'Generata con')+' <b>PT Board</b> \u00B7 personaltrainerboard.com</span>'+
+      '<span class="center">'+(_isGymPdf?(esc(T.poweredBy||'Powered by')+' <b>PT Board</b>'):(esc(T.generatedWith||'Generata con')+' <b>PT Board</b> \u00B7 personaltrainerboard.com'))+'</span>'+
       '<span>'+esc(dataOggi)+'</span>'+
       '</footer>'+
       '</div></body></html>';
@@ -5988,13 +6006,30 @@ footer .center b{color:#3b82f6;font-weight:700}
                               giorni:tuttiGiorni,
                               updatedAt:Date.now()
                             };
+                            // Spazio Palestra: denormalizza branding gym nel doc condiviso cosi'
+                            // share.html (lettura anonima) puo' applicare logo/nome/colori.
+                            var _isGym=!!(trainerProfile&&trainerProfile.gymId&&userLastSpace(trainerProfile)==='gym');
+                            var gymBranding=null;
+                            if(_isGym&&trainerProfile._gymDoc){
+                              var gd=trainerProfile._gymDoc;
+                              gymBranding={
+                                gymNome:gd.nome||'',
+                                logo:gd.logo||null,
+                                theme:gd.theme||null
+                              };
+                            }
                             var ref=fbDb.collection('sharedClients').doc(sid);
                             var snap=await ref.get();
                             if(snap.exists){
-                              await ref.update({schedaAttuale:sa,attivo:true,updatedAt:Date.now()});
+                              var upFields={schedaAttuale:sa,attivo:true,updatedAt:Date.now()};
+                              if(gymBranding) upFields.gymBranding=gymBranding;
+                              else upFields.gymBranding=firebase.firestore.FieldValue.delete();
+                              await ref.update(upFields);
                             }else{
                               var ptNome=(trainerProfile&&(trainerProfile.nome||trainerProfile.nomeStudio))||'Il tuo PT';
-                              await ref.set({ownerUid:user.uid,cliente:(p.nome||'')+' '+(p.cognome||''),ptNome:ptNome,attivo:true,schedaAttuale:sa,log:[],createdAt:Date.now(),updatedAt:Date.now()});
+                              var setData={ownerUid:user.uid,cliente:(p.nome||'')+' '+(p.cognome||''),ptNome:ptNome,attivo:true,schedaAttuale:sa,log:[],createdAt:Date.now(),updatedAt:Date.now()};
+                              if(gymBranding) setData.gymBranding=gymBranding;
+                              await ref.set(setData);
                             }
                             if(!p.shareId){upd(function(){return{shareId:sid};});}
                             _setShareId(sid);
@@ -7631,6 +7666,277 @@ function GymTeamPage({T,gymId,gymDoc,ownerUid,refreshGymDoc}){
   );
 }
 
+// GYM BRANDING PAGE (FASE 5) — owner only. Upload logo + estrazione palette
+// + color picker + WCAG + save su gyms/{gymId} {logo, theme}. Reset ai default.
+function GymBrandingPage({T,gymId,gymDoc,refreshGymDoc}){
+  const [logoDataUrl,setLogoDataUrl]=useState((gymDoc&&gymDoc.logo)||'');
+  const [primary,setPrimary]=useState(((gymDoc&&gymDoc.theme&&gymDoc.theme.accent))||'#3b82f6');
+  const [secondary,setSecondary]=useState(((gymDoc&&gymDoc.theme&&gymDoc.theme.accentSecondary))||'#10b981');
+  const [suggestions,setSuggestions]=useState([]);
+  const [uploading,setUploading]=useState(false);
+  const [saving,setSaving]=useState(false);
+  const [err,setErr]=useState('');
+  const [sizeInfo,setSizeInfo]=useState(gymDoc&&gymDoc.logo?Math.round(gymDoc.logo.length*0.75/1024):0);
+
+  // Luminance sRGB per WCAG.
+  function hexToRgb(hex){const h=hex.replace('#','');if(h.length!==6)return[0,0,0];return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+  function luminance(r,g,b){const toLin=function(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);};return 0.2126*toLin(r)+0.7152*toLin(g)+0.0722*toLin(b);}
+  function contrast(hex1,hex2){const [r1,g1,b1]=hexToRgb(hex1);const [r2,g2,b2]=hexToRgb(hex2);const l1=luminance(r1,g1,b1);const l2=luminance(r2,g2,b2);return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);}
+  function pickOnAccent(bgHex){
+    // Testo bianco o nero in base al contrasto migliore (AA minimo 4.5).
+    const cW=contrast(bgHex,'#ffffff');
+    const cB=contrast(bgHex,'#000000');
+    return cW>=cB?'#ffffff':'#000000';
+  }
+  const onPrimary=React.useMemo(function(){return pickOnAccent(primary);},[primary]);
+  const contrastRatio=React.useMemo(function(){return contrast(primary,onPrimary);},[primary,onPrimary]);
+  const contrastOK=contrastRatio>=4.5;
+
+  // Estrazione colori dominanti dal canvas del logo.
+  function extractDominant(canvas){
+    try{
+      const ctx=canvas.getContext('2d');
+      const w=canvas.width,h=canvas.height;
+      const data=ctx.getImageData(0,0,w,h).data;
+      const buckets={};
+      for(let i=0;i<data.length;i+=4){
+        const r=data[i],g=data[i+1],b=data[i+2],a=data[i+3];
+        if(a<128) continue;
+        const maxC=Math.max(r,g,b),minC=Math.min(r,g,b);
+        const bright=(r+g+b)/3;
+        // Scarta bianchi/quasi-bianchi e neri/quasi-neri + grigi desaturati.
+        if(bright>235) continue;
+        if(bright<25) continue;
+        const sat=maxC===0?0:(maxC-minC)/maxC;
+        if(sat<0.12) continue;
+        // Quantize a 16 bucket per canale (4 bit).
+        const qr=Math.round(r/32)*32,qg=Math.round(g/32)*32,qb=Math.round(b/32)*32;
+        const key=qr+','+qg+','+qb;
+        buckets[key]=(buckets[key]||0)+1;
+      }
+      const entries=Object.keys(buckets).map(function(k){return {k:k,n:buckets[k]};}).sort(function(a,b){return b.n-a.n;});
+      const top=entries.slice(0,3).map(function(e){
+        const [r,g,b]=e.k.split(',').map(Number);
+        const hex='#'+[r,g,b].map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+        return hex;
+      });
+      return top;
+    }catch(e){console.warn('[branding] extract',e);return [];}
+  }
+
+  // Carica/ridimensiona/converti il logo. Target < 60KB.
+  async function processFile(file){
+    setErr('');
+    if(!file){setErr(T.brandingErrNoFile||'Nessun file selezionato.');return;}
+    if(!/^image\//.test(file.type)){setErr(T.brandingErrNotImage||'Il file non e\' un\'immagine.');return;}
+    setUploading(true);
+    try{
+      // Leggi file come data URL per <img>
+      const srcData=await new Promise(function(res,rej){
+        const fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=rej;fr.readAsDataURL(file);
+      });
+      const img=await new Promise(function(res,rej){const i=new Image();i.onload=function(){res(i);};i.onerror=function(){rej(new Error('invalid-image'));};i.src=srcData;});
+      const MAX=256;
+      const scale=Math.min(1,MAX/Math.max(img.width,img.height));
+      const canvas=document.createElement('canvas');
+      canvas.width=Math.max(1,Math.round(img.width*scale));
+      canvas.height=Math.max(1,Math.round(img.height*scale));
+      const ctx=canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      // Tenta WebP a vari livelli di qualita'; fallback PNG.
+      const trials=[{type:'image/webp',q:0.85},{type:'image/webp',q:0.70},{type:'image/webp',q:0.55},{type:'image/webp',q:0.40},{type:'image/png',q:1}];
+      let picked=null;
+      for(let i=0;i<trials.length;i++){
+        const t=trials[i];
+        const blob=await new Promise(function(res){canvas.toBlob(function(b){res(b);},t.type,t.q);});
+        if(!blob) continue;
+        if(blob.size<=60*1024||i===trials.length-1){
+          const dataUrl=await new Promise(function(res,rej){const fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=rej;fr.readAsDataURL(blob);});
+          picked={dataUrl:dataUrl,size:blob.size,type:t.type};
+          if(blob.size<=60*1024) break;
+        }
+      }
+      if(!picked){setErr(T.brandingErrTooBig||'Logo troppo grande anche dopo compressione.');setUploading(false);return;}
+      if(picked.size>60*1024){
+        setErr((T.brandingWarnBig||'Logo oltre 60KB ({kb}KB): considera un\'immagine piu\' semplice.').replace('{kb}',Math.round(picked.size/1024)));
+      }
+      setLogoDataUrl(picked.dataUrl);
+      setSizeInfo(Math.round(picked.size/1024));
+      // Estrai palette.
+      const sug=extractDominant(canvas);
+      setSuggestions(sug);
+      if(sug.length>=1&&(!gymDoc||!gymDoc.theme||!gymDoc.theme.accent)) setPrimary(sug[0]);
+      if(sug.length>=2&&(!gymDoc||!gymDoc.theme||!gymDoc.theme.accentSecondary)) setSecondary(sug[1]);
+    }catch(e){
+      console.warn('[branding] processFile',e);
+      setErr(T.brandingErrGeneric||'Errore nel caricamento del logo.');
+    }
+    setUploading(false);
+  }
+
+  async function save(){
+    setSaving(true);setErr('');
+    try{
+      const payload={
+        logo:logoDataUrl||null,
+        theme:{accent:primary,accentSecondary:secondary,onAccent:onPrimary},
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await fbDb.collection('gyms').doc(gymId).update(gymClean(payload));
+      // Mirror in gymsPublic/{gymId}: public read, serve ad atleta.html (anonimo pre-login).
+      try{
+        await fbDb.collection('gymsPublic').doc(gymId).set(gymClean({
+          gymId:gymId,
+          nome:(gymDoc&&gymDoc.nome)||'',
+          logo:logoDataUrl||null,
+          theme:payload.theme,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        }));
+      }catch(mirrorErr){console.warn('[branding] mirror gymsPublic',mirrorErr);}
+      await refreshGymDoc();
+      // Applica subito per il tenant corrente (onSnapshot lo rifa anche per gli altri).
+      applyGymTheme({logo:logoDataUrl,theme:payload.theme});
+      if(typeof showToast==='function') showToast(T.brandingSaved||'Branding salvato.','success');
+    }catch(e){
+      console.warn('[branding] save',e);
+      setErr(T.gymSaveError||'Salvataggio non riuscito');
+      if(typeof showToast==='function') showToast(T.gymSaveError||'Salvataggio non riuscito','error');
+    }
+    setSaving(false);
+  }
+
+  async function resetDefaults(){
+    setSaving(true);setErr('');
+    try{
+      // Rimuove logo e theme con FieldValue.delete() (atomico, no race con onSnapshot).
+      await fbDb.collection('gyms').doc(gymId).update({
+        logo:firebase.firestore.FieldValue.delete(),
+        theme:firebase.firestore.FieldValue.delete(),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      // Rimuovi anche il mirror pubblico (lo lasciamo con nome ma senza logo/theme).
+      try{
+        await fbDb.collection('gymsPublic').doc(gymId).set(gymClean({
+          gymId:gymId,
+          nome:(gymDoc&&gymDoc.nome)||'',
+          logo:null,
+          theme:null,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        }));
+      }catch(mirrorErr){console.warn('[branding] mirror gymsPublic reset',mirrorErr);}
+      await refreshGymDoc();
+      applyGymTheme(null);
+      setLogoDataUrl('');
+      setPrimary('#3b82f6');
+      setSecondary('#10b981');
+      setSuggestions([]);
+      setSizeInfo(0);
+      if(typeof showToast==='function') showToast(T.brandingReset||'Branding ripristinato.','success');
+    }catch(e){
+      console.warn('[branding] reset',e);
+      setErr(T.gymSaveError||'Salvataggio non riuscito');
+    }
+    setSaving(false);
+  }
+
+  return(
+    <div style={{maxWidth:900,margin:'0 auto'}}>
+      <h1 style={{fontSize:20,fontWeight:800,color:C.strong,margin:'0 0 4px'}}>🎨 {T.gymBranding||'Branding'}</h1>
+      <p style={{fontSize:12,color:C.muted,margin:'0 0 20px'}}>{T.brandingSubtitle||'Logo e colori della palestra. Visti da tutti i membri e dai clienti nei link di condivisione.'}</p>
+
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr',gap:18}}>
+        {/* COLONNA SINISTRA — upload + palette */}
+        <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:18}}>
+          <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:0.5,textTransform:'uppercase',marginBottom:10}}>{T.brandingLogoLabel||'Logo'}</div>
+          <div style={{display:'flex',gap:14,alignItems:'center',marginBottom:12}}>
+            <div style={{width:88,height:88,borderRadius:10,background:C.bg,border:'1px dashed '+C.border2,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',flexShrink:0}}>
+              {logoDataUrl?<img src={logoDataUrl} alt="logo" style={{maxWidth:'100%',maxHeight:'100%',objectFit:'contain'}}/>:<div style={{fontSize:28,color:C.dim}}>⚡</div>}
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <label style={{display:'inline-block',padding:'8px 12px',borderRadius:8,background:'var(--accent)',color:'var(--onAccent)',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>
+                {uploading?'…':(T.brandingUpload||'Carica logo')}
+                <input type="file" accept="image/*" style={{display:'none'}} onChange={function(e){processFile(e.target.files&&e.target.files[0]);e.target.value='';}} disabled={uploading}/>
+              </label>
+              <div style={{fontSize:11,color:C.muted,marginTop:6,lineHeight:1.4}}>{(T.brandingLogoHint||'PNG/JPG/SVG. Ridimensionato a 256px, convertito in WebP, <60KB.').replace('{kb}',sizeInfo||'—')}{sizeInfo?' · '+sizeInfo+'KB':''}</div>
+            </div>
+          </div>
+
+          {err&&<div style={{fontSize:12,color:'#dc2626',background:'#fef2f2',border:'1px solid #fecaca',padding:'8px 10px',borderRadius:6,marginBottom:10}}>{err}</div>}
+
+          {suggestions.length>0&&<div style={{marginTop:14}}>
+            <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:0.5,textTransform:'uppercase',marginBottom:8}}>{T.brandingSuggested||'Colori proposti dal logo'}</div>
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              {suggestions.map(function(hex,i){
+                return(
+                  <div key={i} style={{display:'flex',gap:4}}>
+                    <button type="button" title={hex+' → primario'} onClick={function(){setPrimary(hex);}} style={{width:36,height:36,borderRadius:8,background:hex,border:'2px solid '+(primary===hex?'#fff':'transparent'),outline:'1px solid '+C.border2,cursor:'pointer'}}/>
+                    <button type="button" title={hex+' → secondario'} onClick={function(){setSecondary(hex);}} style={{width:14,height:36,borderRadius:4,background:hex,border:'2px solid '+(secondary===hex?'#fff':'transparent'),outline:'1px solid '+C.border2,cursor:'pointer',padding:0}}>{secondary===hex?'·':''}</button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>}
+
+          <div style={{marginTop:16}}>
+            <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:0.5,textTransform:'uppercase',marginBottom:8}}>{T.brandingPrimary||'Colore primario'}</div>
+            <div style={{display:'flex',gap:10,alignItems:'center'}}>
+              <input type="color" value={primary} onChange={function(e){setPrimary(e.target.value);}} style={{width:48,height:36,border:'none',borderRadius:6,background:'transparent',cursor:'pointer'}}/>
+              <input type="text" value={primary} onChange={function(e){const v=e.target.value;if(/^#[0-9A-Fa-f]{6}$/.test(v)) setPrimary(v);else if(v.length<=7) setPrimary(v);}} style={{...S.inp,maxWidth:140,fontFamily:'monospace',textTransform:'uppercase'}}/>
+            </div>
+          </div>
+
+          <div style={{marginTop:12}}>
+            <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:0.5,textTransform:'uppercase',marginBottom:8}}>{T.brandingSecondary||'Colore secondario'}</div>
+            <div style={{display:'flex',gap:10,alignItems:'center'}}>
+              <input type="color" value={secondary} onChange={function(e){setSecondary(e.target.value);}} style={{width:48,height:36,border:'none',borderRadius:6,background:'transparent',cursor:'pointer'}}/>
+              <input type="text" value={secondary} onChange={function(e){const v=e.target.value;if(/^#[0-9A-Fa-f]{6}$/.test(v)) setSecondary(v);else if(v.length<=7) setSecondary(v);}} style={{...S.inp,maxWidth:140,fontFamily:'monospace',textTransform:'uppercase'}}/>
+            </div>
+          </div>
+
+          <div style={{marginTop:14,padding:'8px 12px',borderRadius:8,background:contrastOK?'#10b98115':'#f59e0b15',border:'1px solid '+(contrastOK?'#10b98160':'#f59e0b60'),fontSize:12,color:contrastOK?C.strong:'#b45309'}}>
+            {contrastOK?(T.brandingContrastOk||'✓ Contrasto AA OK ({ratio}:1). Testo su primario: ').replace('{ratio}',contrastRatio.toFixed(2)):(T.brandingContrastKo||'⚠ Contrasto {ratio}:1 sotto AA 4.5:1. Il testo sara\' automaticamente ').replace('{ratio}',contrastRatio.toFixed(2))}
+            <span style={{display:'inline-block',marginLeft:6,padding:'2px 8px',borderRadius:4,background:primary,color:onPrimary,fontWeight:700,fontFamily:'monospace',fontSize:11}}>{onPrimary.toUpperCase()}</span>
+          </div>
+        </div>
+
+        {/* COLONNA DESTRA — anteprima + salva/reset */}
+        <div>
+          <div style={{background:C.card,border:'1px solid '+C.border2,borderRadius:12,padding:18,marginBottom:14}}>
+            <div style={{fontSize:11,color:C.muted,fontWeight:700,letterSpacing:0.5,textTransform:'uppercase',marginBottom:10}}>{T.brandingPreview||'Anteprima'}</div>
+
+            {/* Header */}
+            <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:primary,color:onPrimary,borderRadius:8,marginBottom:10}}>
+              <div style={{width:28,height:28,borderRadius:6,background:'rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
+                {logoDataUrl?<img src={logoDataUrl} alt="" style={{maxWidth:'100%',maxHeight:'100%',objectFit:'contain'}}/>:<span>⚡</span>}
+              </div>
+              <div style={{fontSize:13,fontWeight:700}}>{(gymDoc&&gymDoc.nome)||T.gymSpaceLabel||'Spazio Palestra'}</div>
+            </div>
+
+            {/* Bottone */}
+            <button type="button" style={{background:primary,color:onPrimary,border:'none',padding:'10px 18px',borderRadius:8,fontSize:13,fontWeight:700,fontFamily:'inherit',cursor:'default',marginRight:8}}>{T.brandingBtnSample||'Genera scheda'}</button>
+            <button type="button" style={{background:secondary,color:pickOnAccent(secondary),border:'none',padding:'10px 18px',borderRadius:8,fontSize:13,fontWeight:700,fontFamily:'inherit',cursor:'default'}}>{T.brandingBtnSecondary||'Secondario'}</button>
+
+            {/* Card esempio */}
+            <div style={{marginTop:14,padding:14,background:C.bg,border:'1px solid '+C.border2,borderRadius:10}}>
+              <div style={{fontSize:12,fontWeight:700,color:C.strong,marginBottom:4}}>{T.brandingCardSampleTitle||'Mario Rossi'}</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8}}>{T.brandingCardSampleSub||'Scheda · 3 giorni/settimana'}</div>
+              <div style={{display:'inline-block',padding:'3px 8px',borderRadius:999,background:primary+'20',color:primary,fontSize:10,fontWeight:700,marginRight:4}}>{T.brandingBadgeA||'Profilo A'}</div>
+              <div style={{display:'inline-block',padding:'3px 8px',borderRadius:999,background:secondary+'20',color:secondary,fontSize:10,fontWeight:700}}>{T.brandingBadgeB||'Attivo'}</div>
+            </div>
+          </div>
+
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button type="button" style={{...S.btn(),flex:1}} onClick={save} disabled={saving||uploading}>{saving?'…':(T.brandingSave||'Salva branding')}</button>
+            <button type="button" style={S.btn('ghost')} onClick={resetDefaults} disabled={saving||uploading}>{T.brandingReset||'Ripristina PT Board'}</button>
+          </div>
+          <div style={{fontSize:11,color:C.muted,marginTop:10,lineHeight:1.5}}>{T.brandingSaveHint||'Al salvataggio, l\'app cambia colore per tutti i membri (real-time). I clienti nei link di condivisione vedono logo, nome e colori della palestra.'}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AppInner({user,profile,setProfile,trialLeft}){
   var trainerProfile=profile;
   var tpNome=trainerProfile?.nome||trainerProfile?.displayName||'';
@@ -7696,6 +8002,18 @@ function AppInner({user,profile,setProfile,trialLeft}){
   // Schede per cliente, caricate on-demand quando apro il detail: {clientId: [schede]}
   const [gymSchedePerClient,setGymSchedePerClient]=useState({});
   const [gymExercises,setGymExercises]=useState([]);
+  // Sottoscrizione real-time al doc gym (branding, members, memberInfo).
+  // Al cambio (es. owner salva branding) applica subito il tema per questo membro.
+  useEffect(()=>{
+    if(!isGym||!gymId) return;
+    const unsub=fbDb.collection('gyms').doc(gymId).onSnapshot(function(snap){
+      if(!snap.exists) return;
+      const g=snap.data();
+      applyGymTheme(g);
+      setProfile(function(prev){return prev?Object.assign({},prev,{_gymDoc:g}):prev;});
+    },function(err){console.warn('[gym] gymDoc snapshot err:',err);});
+    return function(){unsub&&unsub();};
+  },[isGym,gymId]);
   // Sottoscrizione real-time ai clienti del gym (solo in isGym)
   useEffect(()=>{
     if(!isGym||!gymId) return;
@@ -8151,7 +8469,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
       </div>}
       {/* Modal Invita atleta */}
       {showInviteModal&&(()=>{
-        var inviteLink='https://personaltrainerboard.com/atleta.html?inv='+user.uid;
+        var inviteLink='https://personaltrainerboard.com/atleta.html?inv='+user.uid+(isGym&&gymId?('&gym='+gymId):'');
         var waText=encodeURIComponent('Ciao! Ti invito a usare PT Board come app per la tua scheda di allenamento. Iscriviti qui: '+inviteLink);
         return(
           <div onClick={()=>setShowInviteModal(false)} style={{position:'fixed',inset:0,background:'#0008',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
@@ -8457,7 +8775,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           {page==='calendar'&&!isGym&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
           {page==='exercises'&&<ExercisesPage exercises={effectiveExercises} setExercises={setExercises} T={T} isGym={isGym} onAddGymEx={addGymExercise} onUpdateGymEx={updateGymExercise} onRemoveGymEx={removeGymExercise} gymExercises={gymExercises}/>}
           {page==='gymTeam'&&isGym&&isGymOwner(trainerProfile)&&<GymTeamPage T={T} gymId={gymId} gymDoc={trainerProfile&&trainerProfile._gymDoc} ownerUid={trainerProfile.uid||user.uid} refreshGymDoc={async function(){try{const g=await fbDb.collection('gyms').doc(gymId).get();if(g.exists){const d=g.data();setProfile(function(prev){return prev?Object.assign({},prev,{_gymDoc:d}):prev;});}}catch(e){console.warn('[gym] refresh gymDoc',e);}}}/>}
-          {page==='gymBranding'&&isGym&&isGymOwner(trainerProfile)&&<GymPlaceholder T={T} icon="🎨" title={T.gymBranding||'Branding'} tip={T.gymBrandingSoon||'Logo, palette e tema personalizzati arriveranno con la FASE 5.'}/>}
+          {page==='gymBranding'&&isGym&&isGymOwner(trainerProfile)&&<GymBrandingPage T={T} gymId={gymId} gymDoc={trainerProfile&&trainerProfile._gymDoc} refreshGymDoc={async function(){try{const g=await fbDb.collection('gyms').doc(gymId).get();if(g.exists){const d=g.data();setProfile(function(prev){return prev?Object.assign({},prev,{_gymDoc:d}):prev;});}}catch(e){console.warn('[gym] refresh gymDoc',e);}}}/>}
           {page==='gymBilling'&&isGym&&isGymOwner(trainerProfile)&&<GymPlaceholder T={T} icon="💳" title={T.gymBilling||'Abbonamento'} tip={T.gymBillingSoon||'Piano Palestra e checkout Stripe arriveranno con la FASE 7.'}/>}
         </div>
       </main>
