@@ -725,7 +725,7 @@ const LANGS={
     genEquipConfirm:'Genera scheda',
     genDurationLabel:'Durata seduta',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
     volumeAdaptedNote:'Volume adattato alla durata della seduta ({min} min).',
-    schedaDurata:'Durata stimata',
+    schedaDurata:'Durata stimata',schedaCloneFrom:'Parti da (opzionale)',schedaCloneNone:'— Nuova vuota —',schedaClonedToast:'Esercizi clonati da scheda esistente',schedaSections:'Sezioni',schedaEmptyExHint:'Nessun esercizio ancora. Clic "+ Aggiungi esercizio".',schedaValidName:'Nome richiesto',schedaValidEx:'Aggiungi almeno 1 esercizio',schedaReady:'Pronto da salvare',schedaNotePh:'Es. carichi target, cadenza, variazioni…',
     swapExercise:'Sostituisci esercizio',swapAlternatives:'Alternative',
     swapNone:'Nessuna alternativa disponibile',swapDone:'Sostituito con',
     fProgStart:'Data inizio',fProgSessions:'Sedute/sett.',fProgCardioMin:'Min cardio/sett.',
@@ -1572,7 +1572,7 @@ const LANGS={
     genEquipConfirm:'Generate plan',
     genDurationLabel:'Session duration',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
     volumeAdaptedNote:'Volume adapted to session duration ({min} min).',
-    schedaDurata:'Estimated duration',
+    schedaDurata:'Estimated duration',schedaCloneFrom:'Clone from (optional)',schedaCloneNone:'— New empty —',schedaClonedToast:'Exercises cloned from existing plan',schedaSections:'Sections',schedaEmptyExHint:'No exercises yet. Click "+ Add exercise".',schedaValidName:'Name required',schedaValidEx:'Add at least 1 exercise',schedaReady:'Ready to save',schedaNotePh:'E.g. target loads, tempo, variations…',
     swapExercise:'Swap exercise',swapAlternatives:'Alternatives',
     swapNone:'No alternatives available',swapDone:'Swapped with',
     exTitle:'Exercise Library',exNew:'+ New exercise',exName:'Name',
@@ -2422,7 +2422,7 @@ const LANGS={
     genEquipConfirm:'Générer la fiche',
     genDurationLabel:'Durée de la séance',genDur30:'30 min',genDur45:'45 min',genDur60:'60 min',genDur90:'90 min',
     volumeAdaptedNote:'Volume adapté à la durée de la séance ({min} min).',
-    schedaDurata:'Durée estimée',
+    schedaDurata:'Durée estimée',schedaCloneFrom:'Partir de (optionnel)',schedaCloneNone:'— Nouvelle vide —',schedaClonedToast:'Exercices clonés depuis une fiche existante',schedaSections:'Sections',schedaEmptyExHint:'Aucun exercice. Clic "+ Ajouter un exercice".',schedaValidName:'Nom requis',schedaValidEx:'Ajoute au moins 1 exercice',schedaReady:'Prêt à enregistrer',schedaNotePh:'Ex. charges cibles, tempo, variations…',
     swapExercise:"Remplacer l'exercice",swapAlternatives:'Alternatives',
     swapNone:'Aucune alternative disponible',swapDone:'Remplacé par',
     exTitle:"Bibliothèque d'exercices",exNew:'+ Nouvel exercice',exName:'Nom',
@@ -6598,7 +6598,7 @@ footer .center b{color:#3b82f6;font-weight:700}
         </div>
       </Modal>}
 
-      {showSchedaModal&&<SchedaModal exercises={exercises} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)} T={T}/>}
+      {showSchedaModal&&<SchedaModal exercises={exercises} patient={p} onSave={(s)=>{upd(x=>({schede:(x.schede||[]).concat([s])}));setShowSchedaModal(false)}} onClose={()=>setShowSchedaModal(false)} T={T}/>}
       {exTimer&&<ExerciseCountdown seconds={exTimer.sec} mode={exTimer.mode} T={T} onClose={()=>setExTimer(null)}/>}
       {showGenEquipModal&&<Modal title={T.genEquipTitle} width="420px" onClose={()=>setShowGenEquipModal(false)}>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
@@ -6716,52 +6716,268 @@ footer .center b{color:#3b82f6;font-weight:700}
   );
 }
 
-function SchedaModal({exercises,onSave,onClose,T}){
+// Tipi di scheda manuale: ciascuno con sezioni suggerite.
+// Il PT puo' scegliere Custom (nessuna sezione) o uno split pre-strutturato.
+const SCHEDA_TIPI={
+  'Full Body':{sections:['Full Body']},
+  'Upper / Lower':{sections:['Upper','Lower']},
+  'Push / Pull / Legs':{sections:['Push','Pull','Legs']},
+  'Custom':{sections:[]}
+};
+
+function SchedaModal({exercises,patient,onSave,onClose,T}){
   const _T=T||LANGS.it.t;
-  const [form,setForm]=useState({nome:'',tipo:'Forza',data:fmtDate(),esercizi:[],note:''});
-  const [addEx,setAddEx]=useState({eId:'',serie:3,reps:12,peso:'',rec:60});
-  const upd=e=>setForm(f=>({...f,[e.target.name]:e.target.value}));
+  const todayYmd=(function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+  const [tipo,setTipo]=useState('Full Body');
+  const [nome,setNome]=useState('');
+  const [data,setData]=useState(fmtDate());
+  const [esercizi,setEsercizi]=useState([]);
+  const [note,setNote]=useState('');
+  // Sezione attiva (tab) per tipi multi-sezione.
+  const [activeSection,setActiveSection]=useState('Full Body');
+  const [pickOpen,setPickOpen]=useState(false);
+  const [dragInfo,setDragInfo]=useState(null);
+  const [dragOverEi,setDragOverEi]=useState(null);
+  // Base da scheda esistente.
+  const schedeEsist=(patient&&Array.isArray(patient.schede))?patient.schede:[];
+  const [cloneFrom,setCloneFrom]=useState('');
+
+  // Nome auto-suggest basato su tipo + data (es. "Full Body 24-10-2026").
+  React.useEffect(function(){
+    if(!nome||nome===''||/^(Full Body|Upper \/ Lower|Push \/ Pull \/ Legs|Custom)/.test(nome)){
+      setNome(tipo+' '+(data||fmtDate()));
+    }
+  // eslint-disable-next-line
+  },[tipo]);
+
+  // Quando cambio tipo, aggiorna sezione attiva coerente.
+  React.useEffect(function(){
+    const secs=SCHEDA_TIPI[tipo]&&SCHEDA_TIPI[tipo].sections||[];
+    if(secs.length) setActiveSection(secs[0]);
+    else setActiveSection('');
+  },[tipo]);
+
+  // Clona da scheda esistente del paziente.
+  function doClone(schedaId){
+    const sch=schedeEsist.find(function(s,i){return (s.codice||String(i))===schedaId;});
+    if(!sch) return;
+    setEsercizi((sch.esercizi||[]).map(function(ex){return Object.assign({},ex);}));
+    if(sch.note) setNote(sch.note);
+    // Deriva tipo se possibile.
+    if(sch.split && SCHEDA_TIPI[sch.split]) setTipo(sch.split);
+    if(typeof showToast==='function') showToast(_T.schedaClonedToast||'Esercizi clonati da scheda esistente','info',2500);
+  }
+
+  // Stima durata (sec): warmup 5min + sum(serie*45s + rec*(serie-1)) per esercizio.
+  const warmupSec=5*60;
+  const avgSetSec=45;
+  const tempoStimatoSec=(function(){
+    let t=warmupSec;
+    esercizi.forEach(function(ex){
+      const s=+ex.serie||1,r=+ex.rec||0;
+      t+=s*avgSetSec+(s>1?(s-1)*r:0);
+    });
+    return t;
+  })();
+  const tempoStimatoMin=Math.round(tempoStimatoSec/60);
+
+  // Esercizi per la sezione attiva.
+  const sectionEsercizi=activeSection?esercizi.filter(function(ex){return (ex.sezione||'')===activeSection;}):esercizi;
+
+  // Add da ExerciseSearchModal.
+  function handlePick(res){
+    const isCustom=res&&res.custom;
+    const base={serie:3,reps:10,rec:60,peso:'',note:''};
+    const newEx=isCustom
+      ?Object.assign({eId:null,nomeCustom:res.nomeCustom},base,{note:res.muscoli||''})
+      :Object.assign({eId:res.id},base);
+    if(activeSection) newEx.sezione=activeSection;
+    setEsercizi(function(arr){return arr.concat([newEx]);});
+    setPickOpen(false);
+    if(typeof showToast==='function') showToast(isCustom?(_T.exAddedCustomToast||'Esercizio custom aggiunto'):(_T.exAddedToast||'Esercizio aggiunto'),'success',1500);
+  }
+
+  // Modifica inline di un esercizio (per indice assoluto nella lista).
+  function patchEx(absoluteIdx, patch){
+    setEsercizi(function(arr){return arr.map(function(ex,i){return i===absoluteIdx?Object.assign({},ex,patch):ex;});});
+  }
+  function removeEx(absoluteIdx){
+    setEsercizi(function(arr){return arr.filter(function(_,i){return i!==absoluteIdx;});});
+  }
+
+  // Validazione.
+  const nomeOk=(nome||'').trim().length>0;
+  const esOk=esercizi.length>0;
+  const canSave=nomeOk && esOk;
+
+  function doSave(){
+    if(!canSave) return;
+    const codice='SCH-M-'+Date.now().toString(36).toUpperCase().slice(-5);
+    const split=tipo;
+    const splitDay=activeSection||tipo;
+    const scheda={
+      nome:nome.trim(),
+      codice:codice,
+      tipo:tipo,
+      split:split,
+      splitDay:splitDay,
+      data:data,
+      esercizi:esercizi,
+      note:(note||'').trim(),
+      config:{tipo:tipo,equip:'',durataSeduta:0,tempoStimato:tempoStimatoMin,numEx:esercizi.length,manuale:true}
+    };
+    onSave(scheda);
+  }
+
+  const sections=SCHEDA_TIPI[tipo]&&SCHEDA_TIPI[tipo].sections||[];
+  const chipStyle=(active)=>({
+    display:'inline-flex',alignItems:'center',gap:5,padding:'7px 12px',borderRadius:16,
+    border:'1px solid '+(active?'var(--accent)':C.border2),
+    background:active?'var(--accent)':'transparent',color:active?'var(--onAccent)':C.text,
+    fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3,textTransform:'uppercase',transition:'all .15s'
+  });
+  const sectionLbl={fontSize:10,color:C.muted,fontWeight:800,letterSpacing:0.5,textTransform:'uppercase',marginBottom:6};
+
   return(
-    <Modal title={_T.schedaModalTitle} onClose={onClose} width="660px">
-      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'1fr 1fr 1fr',gap:12,marginBottom:16}}>
-        <FF label={_T.schedaNome} name="nome" value={form.nome} onChange={upd}/>
-        <FF label={_T.calType} name="tipo" value={form.tipo} onChange={upd} options={['Forza','Cardio','Funzionale','Mobilità','Full Body','Upper','Lower','HIIT']}/>
-        <FF label={_T.fDate} name="data" value={form.data} onChange={upd}/>
-      </div>
-      <div style={{...S.card,marginBottom:14}}>
-        <div style={S.st}>{_T.schedaAddExTitle}</div>
-        <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr 1fr':'2fr 1fr 1fr 1fr 1fr',gap:8,alignItems:'end'}}>
-          <div style={{gridColumn:isMobile?'1 / -1':'auto'}}>
-            <FF label={_T.tblExercise} name="eId" value={addEx.eId} onChange={e=>setAddEx(f=>({...f,eId:e.target.value}))} options={[{v:'',l:_T.schedaChoose}].concat(exercises.map(e=>({v:e.id,l:exName(e,getLang())+' ('+e.cat+')'})))}/>
-          </div>
-          <FF label={_T.tblSets} name="serie" type="number" value={addEx.serie} onChange={e=>setAddEx(f=>({...f,serie:+e.target.value}))}/>
-          <FF label={_T.tblReps} name="reps" type="number" value={addEx.reps} onChange={e=>setAddEx(f=>({...f,reps:+e.target.value}))}/>
-          <FF label={_T.schedaAddPeso} name="peso" value={addEx.peso} onChange={e=>setAddEx(f=>({...f,peso:e.target.value}))}/>
-          <FF label={_T.schedaAddRec} name="rec" type="number" value={addEx.rec} onChange={e=>setAddEx(f=>({...f,rec:+e.target.value}))}/>
+    <Modal title={_T.schedaModalTitle||'Nuova scheda'} onClose={onClose} width="760px">
+      {/* HEADER: nome + preview durata */}
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,marginBottom:14,flexWrap:'wrap'}}>
+        <div style={{flex:1,minWidth:200}}>
+          <div style={sectionLbl}>{_T.schedaNome||'Nome'}</div>
+          <input value={nome} onChange={function(e){setNome(e.target.value);}}
+            placeholder={tipo+' '+data}
+            style={{width:'100%',boxSizing:'border-box',background:C.bg,border:'1px solid '+C.border2,borderRadius:9,padding:'10px 12px',color:C.text,fontSize:14,outline:'none',fontFamily:'inherit',fontWeight:700}}/>
         </div>
-        <button style={{...S.btn('success',true),marginTop:8}} onClick={()=>{if(addEx.eId){setForm(f=>({...f,esercizi:[...f.esercizi,{...addEx}]}));setAddEx({eId:'',serie:3,reps:12,peso:'',rec:60})}}}>{_T.schedaAddBtn}</button>
+        <div style={{textAlign:'center',minWidth:110,padding:'8px 12px',background:'var(--accent)10',border:'1px solid var(--accent)30',borderRadius:10}}>
+          <div style={{fontSize:9,color:C.muted,fontWeight:800,letterSpacing:0.5,textTransform:'uppercase',marginBottom:2}}>{_T.schedaDurata||'Durata stimata'}</div>
+          <div style={{fontSize:18,fontWeight:900,color:'var(--accent)',lineHeight:1}}>~{tempoStimatoMin} min</div>
+          <div style={{fontSize:9,color:C.muted,marginTop:3}}>{esercizi.length} ex</div>
+        </div>
       </div>
-      {form.esercizi.length>0&&(
-        <div style={{marginBottom:14}}>
-          <div style={S.st}>{_T.schedaEsercizi.charAt(0).toUpperCase()+_T.schedaEsercizi.slice(1)} ({form.esercizi.length})</div>
-          {form.esercizi.map((ex,i)=>{
-            const info=exercises.find(e=>e.id===ex.eId);
-            return(
-              <div key={ex.eId+'-'+i} style={{...S.row,border:`1px solid ${C.border2}`,borderRadius:8,marginBottom:5}}>
-                <span style={{fontSize:12,color:C.blue,fontWeight:700,minWidth:20}}>{i+1}</span>
-                <span style={{flex:1,fontSize:13,color:C.strong}}>{exName(info,getLang())}</span>
-                <span style={{fontSize:12,color:C.muted}}>{ex.serie}×{ex.reps}{ex.peso?` @ ${ex.peso}kg`:''} · rec {ex.rec}s</span>
-                <button style={{...S.btn('danger',true),padding:'2px 7px'}} onClick={()=>setForm(f=>({...f,esercizi:f.esercizi.filter((_,ii)=>ii!==i)}))}>✕</button>
-              </div>
-            );
+
+      {/* CHIP TIPO + DATA */}
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'2fr 1fr',gap:12,marginBottom:14}}>
+        <div>
+          <div style={sectionLbl}>{_T.calType||'Tipo'}</div>
+          <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+            {Object.keys(SCHEDA_TIPI).map(function(k){return <button key={k} type="button" style={chipStyle(tipo===k)} onClick={function(){setTipo(k);}}>{k}</button>;})}
+          </div>
+        </div>
+        <div>
+          <div style={sectionLbl}>{_T.fDate||'Data'}</div>
+          <input type="date" value={data.length===10&&data.indexOf('-')===4?data:todayYmd} onChange={function(e){const v=e.target.value;try{const d=new Date(v);setData(d.toLocaleDateString('it-IT'));}catch(_){setData(v);}}}
+            style={{width:'100%',boxSizing:'border-box',background:C.bg,border:'1px solid '+C.border2,borderRadius:9,padding:'10px 12px',color:C.text,fontSize:13,outline:'none',fontFamily:'inherit'}}/>
+        </div>
+      </div>
+
+      {/* PARTI DA scheda esistente (solo se il paziente ne ha) */}
+      {schedeEsist.length>0 && <div style={{marginBottom:14}}>
+        <div style={sectionLbl}>{_T.schedaCloneFrom||'Parti da (opzionale)'}</div>
+        <select value={cloneFrom} onChange={function(e){const v=e.target.value;setCloneFrom(v);if(v) doClone(v);}}
+          style={{width:'100%',boxSizing:'border-box',background:C.bg,border:'1px solid '+C.border2,borderRadius:9,padding:'10px 12px',color:C.text,fontSize:13,outline:'none',fontFamily:'inherit'}}>
+          <option value="">{_T.schedaCloneNone||'— Nuova vuota —'}</option>
+          {schedeEsist.map(function(sch,i){const id=sch.codice||String(i);return <option key={id} value={id}>{sch.nome||('Scheda '+(i+1))} · {(sch.esercizi||[]).length} ex</option>;})}
+        </select>
+      </div>}
+
+      {/* TABS SEZIONI (solo per tipi multi-sezione) */}
+      {sections.length>1 && <div style={{marginBottom:12,paddingBottom:10,borderBottom:'1px solid '+C.border2}}>
+        <div style={sectionLbl}>{_T.schedaSections||'Sezioni'}</div>
+        <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+          {sections.map(function(s){
+            const cnt=esercizi.filter(function(ex){return (ex.sezione||'')===s;}).length;
+            return <button key={s} type="button" onClick={function(){setActiveSection(s);}}
+              style={{padding:'7px 12px',borderRadius:8,border:'1px solid '+(activeSection===s?'var(--accent)':C.border2),background:activeSection===s?'var(--accent)':'transparent',color:activeSection===s?'var(--onAccent)':C.text,fontSize:12,fontWeight:800,cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:6}}>
+              {s}<span style={{padding:'1px 6px',borderRadius:8,background:activeSection===s?'rgba(255,255,255,.22)':C.border2+'80',fontSize:10,fontWeight:800}}>{cnt}</span>
+            </button>;
           })}
         </div>
-      )}
-      <FF label={_T.schedaNoteField} name="note" type="textarea" value={form.note} onChange={upd}/>
-      <div style={{display:'flex',gap:8,marginTop:16,justifyContent:'flex-end'}}>
-        <button style={S.btn('ghost')} onClick={onClose}>{_T.cancel}</button>
-        <button style={S.btn()} onClick={()=>form.nome&&onSave(form)}>{_T.schedaSave}</button>
+      </div>}
+
+      {/* LISTA esercizi per sezione (o totale) */}
+      <div style={{marginBottom:12}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+          <div style={sectionLbl}>{activeSection?activeSection:(_T.schedaEsercizi||'Esercizi')} ({sectionEsercizi.length})</div>
+        </div>
+        {sectionEsercizi.length===0 ? (
+          <div style={{textAlign:'center',padding:'22px 14px',background:C.bg,borderRadius:10,border:'1px dashed '+C.border2,color:C.muted,fontSize:12,marginBottom:8}}>
+            {_T.schedaEmptyExHint||'Nessun esercizio ancora. Clic "+ Aggiungi esercizio".'}
+          </div>
+        ) : (
+          <div style={{display:'flex',flexDirection:'column',gap:4,maxHeight:'36vh',overflowY:'auto'}}>
+            {sectionEsercizi.map(function(ex,sectIdx){
+              const absoluteIdx=esercizi.indexOf(ex);
+              const info=(exercises||[]).find(function(x){return x.id===ex.eId;})||{};
+              const nomeEx=exName(info,getLang())||ex.nomeCustom||ex.eId||'—';
+              const liv=info.livello||'';
+              const isDragging=dragInfo&&dragInfo.ei===absoluteIdx;
+              const isOver=dragOverEi===absoluteIdx;
+              return <div key={absoluteIdx}
+                draggable={true}
+                onDragStart={function(e){setDragInfo({ei:absoluteIdx});try{e.dataTransfer.effectAllowed='move';}catch(_){}}}
+                onDragOver={function(e){if(dragInfo){e.preventDefault();if(dragOverEi!==absoluteIdx) setDragOverEi(absoluteIdx);}}}
+                onDragLeave={function(){if(dragOverEi===absoluteIdx) setDragOverEi(null);}}
+                onDragEnd={function(){setDragInfo(null);setDragOverEi(null);}}
+                onDrop={function(e){e.preventDefault();if(!dragInfo||dragInfo.ei===absoluteIdx){setDragInfo(null);setDragOverEi(null);return;}
+                  setEsercizi(function(arr){const list=arr.slice();const moved=list.splice(dragInfo.ei,1)[0];list.splice(absoluteIdx,0,moved);return list;});
+                  setDragInfo(null);setDragOverEi(null);
+                }}
+                style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:sectIdx%2===0?C.bg:'transparent',border:'1px solid '+(isOver?'var(--accent)':'transparent'),borderRadius:9,opacity:isDragging?0.4:1,transition:'all .15s'}}>
+                <span style={{color:C.muted,fontSize:14,cursor:'grab',userSelect:'none',flexShrink:0,lineHeight:1}}>{'⋮⋮'}</span>
+                <div style={{width:26,height:26,borderRadius:7,background:C.blue+'10',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:800,color:C.blue,flexShrink:0}}>{sectIdx+1}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:700,color:C.strong,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{nomeEx}{!info.id && ex.nomeCustom && <span style={{marginLeft:5,padding:'1px 5px',borderRadius:4,fontSize:8,fontWeight:700,background:C.purple+'15',color:C.purple}}>{_T.exCustomBadge||'custom'}</span>}{liv && <span style={{marginLeft:5,padding:'1px 5px',borderRadius:4,fontSize:8,fontWeight:700,background:liv==='base'?'#10b98115':liv==='intermedio'?'#f59e0b15':'#ef444415',color:liv==='base'?C.green:liv==='intermedio'?'#f59e0b':'#ef4444'}}>{liv}</span>}</div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:3,flexShrink:0}}>
+                  <select value={ex.serie||3} onChange={function(e){patchEx(absoluteIdx,{serie:+e.target.value});}}
+                    style={{fontSize:12,fontWeight:800,color:C.strong,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,padding:'3px 4px',cursor:'pointer',fontFamily:'inherit'}}>
+                    {Array.from({length:8},(_,i)=>i+1).map(function(n){return <option key={n} value={n}>{n}</option>;})}
+                  </select>
+                  <span style={{fontSize:12,fontWeight:800,color:C.strong}}>×</span>
+                  <select value={ex.reps||10} onChange={function(e){patchEx(absoluteIdx,{reps:+e.target.value});}}
+                    style={{fontSize:12,fontWeight:800,color:C.strong,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,padding:'3px 4px',cursor:'pointer',fontFamily:'inherit'}}>
+                    {Array.from({length:30},(_,i)=>i+1).map(function(n){return <option key={n} value={n}>{n}</option>;})}
+                  </select>
+                  <select value={ex.rec||60} onChange={function(e){patchEx(absoluteIdx,{rec:+e.target.value});}}
+                    style={{fontSize:10,color:'#f59e0b',background:'#f59e0b15',border:'1px solid #f59e0b40',borderRadius:5,padding:'2px 4px',cursor:'pointer',fontFamily:'inherit',fontWeight:700,marginLeft:3}}>
+                    {[0,15,30,45,60,75,90,120,150,180,240,300].map(function(n){return <option key={n} value={n}>{n===0?'—':n+'s'}</option>;})}
+                  </select>
+                </div>
+                <button type="button" title={_T.exDeleteTip||'Elimina'} onClick={function(){removeEx(absoluteIdx);}} style={{background:'transparent',border:'none',cursor:'pointer',fontSize:12,color:C.muted,padding:'3px 6px',borderRadius:6,flexShrink:0,lineHeight:1,fontFamily:'inherit'}}>{'\u{1F5D1}'}</button>
+              </div>;
+            })}
+          </div>
+        )}
+        <button type="button" onClick={function(){setPickOpen(true);}}
+          style={{marginTop:8,width:'100%',padding:'10px 12px',borderRadius:9,border:'1px dashed '+C.border2,background:'transparent',color:C.muted,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3,transition:'all .15s'}}
+          onMouseEnter={function(e){e.currentTarget.style.borderColor='var(--accent)';e.currentTarget.style.color='var(--accent)';}}
+          onMouseLeave={function(e){e.currentTarget.style.borderColor=C.border2;e.currentTarget.style.color=C.muted;}}>
+          {_T.exAddCta||'+ Aggiungi esercizio'}
+        </button>
       </div>
+
+      {/* NOTE */}
+      <div style={{marginBottom:14}}>
+        <div style={sectionLbl}>{_T.schedaNoteField||'Note'}</div>
+        <textarea value={note} onChange={function(e){setNote(e.target.value);}}
+          placeholder={_T.schedaNotePh||'Es. carichi target, cadenza, variazioni…'}
+          rows={2}
+          style={{width:'100%',boxSizing:'border-box',background:C.bg,border:'1px solid '+C.border2,borderRadius:8,padding:'9px 11px',color:C.text,fontSize:12,outline:'none',fontFamily:'inherit',resize:'vertical',minHeight:50}}/>
+      </div>
+
+      {/* FOOTER */}
+      <div style={{display:'flex',gap:8,marginTop:4,justifyContent:'space-between',alignItems:'center',flexWrap:'wrap'}}>
+        <div style={{fontSize:11,color:canSave?C.green:C.muted,fontWeight:600}}>
+          {!nomeOk?(_T.schedaValidName||'Nome richiesto'):!esOk?(_T.schedaValidEx||'Aggiungi almeno 1 esercizio'):(_T.schedaReady||'Pronto da salvare')}
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <button style={{...S.btn('ghost'),padding:'9px 15px'}} onClick={onClose}>{_T.cancel||'Annulla'}</button>
+          <button style={{...S.btn(),padding:'9px 15px',opacity:canSave?1:0.5,cursor:canSave?'pointer':'not-allowed'}} onClick={doSave} disabled={!canSave}>{_T.schedaSave||'Salva'}</button>
+        </div>
+      </div>
+
+      {/* MODAL ricerca esercizi */}
+      {pickOpen && <ExerciseSearchModal open={true} onClose={function(){setPickOpen(false);}} onSelect={handlePick} exercises={exercises} T={_T} lang={getLang()} allowCustom={true} title={_T.exAddTitle||'+ Aggiungi esercizio'}/>}
     </Modal>
   );
 }
