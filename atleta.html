@@ -670,7 +670,8 @@ var fbDb=firebase.firestore();
   function stopRestTimer(){
     if(restTimerInterval){clearInterval(restTimerInterval);restTimerInterval=null;}
     var el=$('restTimer');
-    setTimeout(function(){el.classList.remove('show');},100);
+    // nasconde solo se nel frattempo non è partito un nuovo timer (startRestTimer chiama stop prima di show)
+    setTimeout(function(){if(!restTimerInterval)el.classList.remove('show');},100);
   }
 
   // ── END SESSION ──
