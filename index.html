@@ -5157,10 +5157,15 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '<div class="hdr-line"></div>'+
       '<div class="scheda-title">'+esc(scheda.nome)+((scheda.config&&(scheda.config.tempoStimato||scheda.config.stimaMin))?' <span style="font-size:13px;font-weight:700;color:#8b5cf6;margin-left:10px;letter-spacing:0">\u23F1 '+esc(T.schedaDurata)+': ~'+(scheda.config.tempoStimato||scheda.config.stimaMin)+' min</span>':'')+'</div>'+
       '<div class="scheda-sub">'+(scheda.codice?esc(scheda.codice)+' \u00B7 ':'')+esc(dataOggi)+'</div>'+
+      /* KPI PULITI (coerenza con detail cliente): rimosse pills Serie\u00D7Rip
+         e Recupero perche' mostravano valori di config generici che non
+         coincidevano con i reali parametri degli esercizi (ciascuno ha
+         serie/reps/rec propri, visibili in tabella). Lasciate Split e
+         Attrezzatura, info per-scheda sempre coerenti. Aggiunto numero
+         totale esercizi come kpi utile a colpo d'occhio. */
       '<div class="kpi-row">'+
       '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||'Full Body')+'</div><div class="kpi-lbl">Split</div></div>'+
-      '<div class="kpi sets"><div class="kpi-val">'+(scheda.config?.serie||3)+'\u00D7'+(scheda.config?.rip||10)+'</div><div class="kpi-lbl">Serie \u00D7 Rip</div></div>'+
-      '<div class="kpi rest"><div class="kpi-val">'+(scheda.config?.rec||60)+'s</div><div class="kpi-lbl">'+(T.pdfKpiRest)+'</div></div>'+
+      '<div class="kpi sets"><div class="kpi-val">'+numEx+'</div><div class="kpi-lbl">'+esc(T.schedaEsercizi||'Esercizi')+'</div></div>'+
       '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">'+(T.exEquip)+'</div></div>'+
       '</div>'+
       tablesHtml+
