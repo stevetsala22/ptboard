@@ -64,7 +64,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - 3070–3098: `NOTIFICHE[]` (campanella), `NOTIF_READ_KEY`, read helpers.
 - 3100–3160: tema `C`, tabelle normative test (`mwtNorms`, `stsNorms`, `hgNorms`, `tugNorms`).
 - 3163–3450: `stimaTest`.
-- 3763–4062: `INIT_EXERCISES` (254 esercizi `E01..E254`, campi `{id, nome:{it,en,fr}, cat, muscoli, desc, livello, equip, primary, move, primarySplit}`).
+- 3763–4062: `INIT_EXERCISES` (305 esercizi `E01..E305`, di cui E255–E305 macchine/cavi/multipower/landmine/cardio da palestra, campi `{id, nome:{it,en,fr}, cat, muscoli, desc, livello, equip, primary, move, primarySplit}`).
 - 4065–4103: `MUSCOLI_TRANS`, `muscoliLocale`, `livelloLocale`.
 - 4104: `INIT_PATIENTS=[]`.
 - 4136–4318: Toast, `Avatar`, `FF`, `Modal`, `StatCard`, chart helpers.
@@ -161,7 +161,8 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - Supporto cliente: `ptboard.info@gmail.com`
 
 ## Librerie esercizi (due, separate)
-- **`index.html`** — `INIT_EXERCISES` (`index.html:3763-4062`): **254 esercizi** `E01..E254`, oggetti `{id, nome:{it,en,fr}, cat, muscoli, desc, livello, equip, primary, move, primarySplit}`. Fonte di verità per PT, auto-generatore, condivisione.
+- **`index.html`** — `INIT_EXERCISES`: **305 esercizi** `E01..E305`, oggetti `{id, nome:{it,en,fr}, cat, muscoli, desc, livello, equip, primary, move, primarySplit}`. Fonte di verità per PT, auto-generatore, condivisione. Le macchine hanno nome generico; la marca (es. Technogym Selection/Pure Strength/Kinesis) compare solo come esempio nella descrizione.
+- **Esercizi creati dal PT**: `buildCustomExercise` → id `U…`, `custom:true`, nome uguale in IT/EN/FR, `move`/`primarySplit`/`cat` ricavati dal gruppo muscolare (`PRIMARY_META`). Salvati da `addLibraryExercise` (AppInner) in `exercises` (spazio PT, autosave) o in `gyms/{gymId}/exercises` (palestra). Entrano nella ricerca (badge "Tuo") e nel generatore. Sulla scheda l'esercizio porta anche `nomeCustom` come nome di riserva.
 - **`atleta.html`** — `EXERCISE_LIBRARY` (`atleta.html:333`): **222 nomi** `{it,en,fr}`. Lista separata, usata solo per l'autocomplete del wizard setup scheda atleta. **I nomi NON sono allineati** alla libreria principale di `index.html` (sono stati inseriti a mano, molti coincidono ma la copertura è parziale).
 
 ## Da verificare (incongruenze trovate nel repo)
