@@ -135,6 +135,8 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - Styling: stili inline tramite oggetto `C` (CSS variables + hex). Nessun Tailwind, nessun CSS module.
 - Modal/toast: hub imperativo (`_toastDispatch`, `showToast`, `showConfirmToast`, `showAskToast`).
 - Esercizio auto-generato nel giorno: `{eId, serie, reps, rec, peso:'', note, sezione:day.name, splitCode, category}` (8358). Cardio: `(e.note||'').indexOf('Cardio')!==-1`.
+- Campi esercizio opzionali: `repsMode:'time'` (reps = secondi), `nomeCustom` (esercizio fuori libreria, `eId:null`), `blocco:<id>` (Superset/Circuito).
+- Blocchi: `scheda.blocchi = {<id>: {tipo:'superset'|'circuito', giri, recEx, recGiri}}`. Gli esercizi di un blocco sono contigui; dentro il blocco serie e rec del singolo esercizio sono ignorati (contano giri e recEx). Helper: `bloccoOf`, `bloccoLabels`, `stimaDurataMin`, `bloccoSharePatch`. Nel link cliente l'esercizio porta `blocco:{id,label,tipo,giri,recEx,recGiri}` con `serie=giri`.
 - Storico sessioni atleta: `scheda.storico[]`.
 
 ## ⚠️ Trappole note (NON ripeterle)
