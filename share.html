@@ -52,9 +52,17 @@ var fbDb=firebase.firestore();
 
   /* Exercise card */
   .ex-block{background:#fafafa;border:1px solid #f0f0ec;border-radius:12px;padding:14px;margin-bottom:12px}
-  .ex-block.in-blk{border-left:4px solid var(--accent)}
-  .blk-banner{background:#fff;border:1px dashed var(--accent);border-radius:8px;padding:8px 10px;margin-bottom:10px}
-  .blk-title{font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.4px}
+  .ex-block.in-blk{border-left:5px solid #8b5cf6;background:#faf8ff}
+  .ex-block.in-blk.blk-sup{border-left-color:#f97316;background:#fffaf5}
+  .blk-banner{background:#fff;border:1px solid #8b5cf6;border-left-width:4px;border-radius:8px;padding:8px 10px;margin-bottom:10px}
+  .blk-sup .blk-banner{border-color:#f97316}
+  .blk-title{font-size:12px;font-weight:800;color:#6d28d9;text-transform:uppercase;letter-spacing:.4px}
+  .blk-sup .blk-title{color:#c2410c}
+  .ex-num{display:inline-block;min-width:22px;padding:1px 5px;margin-right:6px;border-radius:6px;background:#e6edf5;color:#042C53;font-size:12px;font-weight:800;text-align:center}
+  .in-blk .ex-num{background:#8b5cf6;color:#fff}
+  .in-blk.blk-sup .ex-num{background:#f97316}
+  .ex-block.grp-start{margin-top:26px;position:relative}
+  .ex-block.grp-start::before{content:'';position:absolute;left:0;right:0;top:-15px;border-top:2px solid #b4b2a9}
   .blk-sub{font-size:12px;color:#5F5E5A;margin-top:2px}
   .ex-block.done{background:#f0fdf4;border-color:#bbf7d0}
   .ex-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px}
@@ -316,8 +324,16 @@ var fbDb=firebase.firestore();
     var doneSets=st.sets.filter(function(s){return st.timed?s.fatto:!!(s.reps||s.kg);}).length;
     var allDone=doneSets>=totalSets&&totalSets>0;
 
+    var lista=SCHEDA.giorni[giornoAttivo].esercizi||[];
+    var prevE=lista[ei-1];
+    var grp=function(x){return x&&x.blocco?'b:'+x.blocco.id:'_singoli';};
+    // Numero da palestra: A1, A2 dentro il blocco; 1, 2, 3 per gli esercizi singoli.
+    var num='';
+    if(e.blocco){var pos=0;for(var k=0;k<=ei;k++){if(lista[k].blocco&&lista[k].blocco.id===e.blocco.id)pos++;}num=(e.blocco.label||'')+pos;}
+    else{var n=0;for(var k2=0;k2<=ei;k2++){if(!lista[k2].blocco)n++;}num=String(n);}
+
     var block=document.createElement('div');
-    block.className='ex-block'+(allDone?' done':'')+(e.blocco?' in-blk':'');
+    block.className='ex-block'+(allDone?' done':'')+(e.blocco?' in-blk'+(e.blocco.tipo==='superset'?' blk-sup':''):'')+(prevE&&grp(prevE)!==grp(e)?' grp-start':'');
 
     // Banner del blocco dentro il primo esercizio (non come fratello: updateProgress usa l'indice dei figli).
     if(e.blocco){
@@ -335,7 +351,7 @@ var fbDb=firebase.firestore();
     var header=document.createElement('div');
     header.className='ex-header';
     var carico=e.carico?' @ '+esc(e.carico):'';
-    header.innerHTML='<div class="ex-header-left"><div class="ex-name">'+esc(e.nome)+'</div><div class="ex-target">'+esc(String(e.serie||''))+' × '+esc(String(e.reps||''))+esc(carico)+(e.rec?' · '+esc(e.rec)+' rec':'')+'</div>'+(e.muscoli?'<div class="ex-muscles">'+esc(e.muscoli)+'</div>':'')+(e.nota?'<div class="ex-nota">'+esc(e.nota)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
+    header.innerHTML='<div class="ex-header-left"><div class="ex-name"><span class="ex-num">'+esc(num)+'</span>'+esc(e.nome)+'</div><div class="ex-target">'+esc(String(e.serie||''))+' × '+esc(String(e.reps||''))+esc(carico)+(e.rec?' · '+esc(e.rec)+' rec':'')+'</div>'+(e.muscoli?'<div class="ex-muscles">'+esc(e.muscoli)+'</div>':'')+(e.nota?'<div class="ex-nota">'+esc(e.nota)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
     block.appendChild(header);
 
     for(var i=0;i<st.sets.length;i++){
