@@ -103,6 +103,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 | Nome | Dove | Cosa fa |
 |---|---|---|
 | `generaSchedaAuto(params, esercizi)` | index.html:7418 | Entry point auto-generatore. Filtra per livello/equip/patologie, sceglie split (FB / Upper-Lower / PPL), riempie giorni, chiama `applyVolumeRules` e `trimPerTempo`. Ritorna array di scheda. |
+| `generaSchedaAuto` con `params.struttura==='circuito'` | index.html (ramo prima di `var days`) | Circuito total body a stazioni (gambe, spinta, tirata, core, anca, spalle, braccia + stazione cardio per obiettivi metabolici), niente bilanciere/stacchi, salti solo per Performance. Parametri per profilo (giri, reps, recEx, recGiri), giri adattati alla durata con `stimaDurataMin`. Un giorno per seduta (max 3, sezione 'Giorno A/B/C'), un blocco circuito per giorno. Se trova meno di 4 esercizi ripiega sulla struttura classica. Struttura consigliata: `strutturaConsigliata(obiettivo)`. |
 | `buildSchedaAttuale(p, exercises, lang)` | index.html:4587 | Formatta `schedaAttuale` scritto in `sharedClients/{sid}` per il link `/s/`. |
 | `buildGiorniDaTutteLeSchede(p, exercises, lang)` | index.html:4611 | Spezza le schede del paziente in giorni per `share.html`. Se gli esercizi hanno campo `sezione` e >1 sezioni, divide in un giorno per sezione; altrimenti 1 giorno per scheda (comportamento legacy). |
 | `trimPerTempo(scheda, budgetSec, minSlots, splitDayName)` | index.html:8067 | 3 fasi: (1) rimuove small/big/core dalla coda ma protegge 1 push + 1 pull + 1 legs + 1 core quando `splitDayName==='Full Body'`; (2) scala di 1 serie i big/small (mai compound/core) fino a 8 iterazioni; (3) imposta `overBudget` se ancora >budget*1.15. Ritorna `{esercizi, tempoSec, trimmed, scaled, overBudget}`. |
@@ -111,6 +112,11 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 | `classifyExercise(ex)` | index.html:7538 | Ritorna `'compound'|'big'|'small'|'core'`. |
 | `applyVolumeRules(dayArr)` | index.html:8223 | Taglia tutto ciò che segue il 2° compound pesante (`rec>=180`) nello stesso giorno. |
 | `setPlan(uid, plan, duration)` | index.html:10996 | Admin: scrive `plan`, `planType`, `planExpiresAt`. Annuale=370d, mensile=33d. |
+
+## Obiettivi
+- Valori canonici (`OBIETTIVI_CANON`): Perdere peso, Aumentare massa, Tonificare, Resistenza, Forza, Salute (mostrato come "Salute e benessere"), Riabilitazione, Performance.
+- `Benessere` e' confluito in `Salute` (stesso comportamento del motore): resta valido nei dati vecchi, `getObiettivi` lo legge come `Salute`.
+- `Tonificare`: split come ipertrofia, 10-15 rep / 60-90 s (clamp in `exParamsFor`, sotto le regole per patologia), kcal 0.95×TDEE, proteine 1.8 g/kg.
 
 ## i18n
 - `const LANGS={it:{flag,name,t:{…}}, en:{…}, fr:{…}}` in `index.html:456`. Blocco IT @ 457, EN @ 1306, FR @ 2155.
