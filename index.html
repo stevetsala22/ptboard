@@ -243,6 +243,24 @@ function buildCustomExercise(data){
     primary:primary,move:meta.move,primarySplit:meta.split,custom:true
   };
 }
+// Ripara schede salvate con nomeCustom non testuale (bug precedente): stessa identita' se non c'e' nulla da sistemare.
+function sanitizeNomiSchede(p){
+  if(!p||!Array.isArray(p.schede)) return p;
+  let dirty=false;
+  const schede=p.schede.map(function(sch){
+    if(!sch||!Array.isArray(sch.esercizi)) return sch;
+    let d=false;
+    const es=sch.esercizi.map(function(ex){
+      if(ex&&('nomeCustom' in ex)&&typeof ex.nomeCustom!=='string'){d=true;const c=Object.assign({},ex);delete c.nomeCustom;return c;}
+      return ex;
+    });
+    if(!d) return sch;
+    dirty=true;return Object.assign({},sch,{esercizi:es});
+  });
+  return dirty?Object.assign({},p,{schede:schede}):p;
+}
+// Un esercizio di libreria senza nome non va mostrato (residuo del bug precedente).
+function hasNome(e){const n=e&&e.nome;if(typeof n==='string')return !!n.trim();return !!(n&&typeof n.it==='string'&&n.it.trim());}
 function findExerciseByName(exercises,nome){
   const n=String(nome||'').trim().toLowerCase();
   if(!n) return null;
@@ -3313,7 +3331,7 @@ const exportPDFLista=(patients,trainerProfile,lang)=>{
 const getLang=()=>{try{return localStorage.getItem('ptboard_lang')||'it';}catch{return 'it';}};
 const setLangStore=(l)=>{try{localStorage.setItem('ptboard_lang',l);}catch{}};
 const gT=()=>LANGS[getLang()]?.t||LANGS.it.t;
-const exName=(ex,lang)=>ex.nome?.[lang]||ex.nome?.it||ex.nome||'';
+const exName=(ex,lang)=>{const n=ex&&ex.nome;if(!n)return '';if(typeof n==='string')return n;const v=n[lang]||n.it||n.en||n.fr;return typeof v==='string'?v:'';};
 window.gT=gT;
 
 // ── NOTIFICHE STATICHE ──
@@ -5130,7 +5148,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
   const [clientLog,setClientLog]=useState(null);
   const [clientLogLoading,setClientLogLoading]=useState(false);
 
-  const p=patient;
+  const p=sanitizeNomiSchede(patient);
   const b=bmi(p.peso,p.altezza);
   const {l:bl,c:bc}=bmiCat(b);
   const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
@@ -6886,12 +6904,13 @@ footer .center b{color:#3b82f6;font-weight:700}
           }
         }
         function onPick(res){
-          var isCustom=res&&res.custom;
+          // newCustom = il PT ha appena scritto un esercizio. (custom:true invece marca gli esercizi gia' salvati in libreria.)
+          var isCustom=!!(res&&res.newCustom);
           var found=!isCustom?res:null;
           // Esercizio scritto dal PT: lo salvo in libreria e lo uso come un esercizio normale.
           if(isCustom&&typeof onAddExercise==='function'){
-            found=onAddExercise({nome:res.nomeCustom,muscoli:res.muscoli,primary:res.primary,livello:res.livello,equip:res.equip});
-            isCustom=false;
+            found=onAddExercise({nome:res.nomeCustom,muscoli:res.muscoli,primary:res.primary,livello:res.livello,equip:res.equip})||null;
+            isCustom=!found;
           }
           if(pickTarget.mode==='add'){
             // Aggiunta: nuova entry con default 3x10 rec 60. Il PT regola dopo le select inline.
@@ -7022,13 +7041,13 @@ function SchedaModal({exercises,patient,onSave,onClose,T,onAddExercise}){
 
   // Add da ExerciseSearchModal.
   function handlePick(res){
-    let isCustom=res&&res.custom;
+    let isCustom=!!(res&&res.newCustom);
     const base={serie:3,reps:10,rec:60,peso:'',note:''};
     let lib=isCustom?null:res;
     // Esercizio scritto dal PT: salvato in libreria, poi usato come gli altri.
     if(isCustom&&typeof onAddExercise==='function'){
-      lib=onAddExercise({nome:res.nomeCustom,muscoli:res.muscoli,primary:res.primary,livello:res.livello,equip:res.equip});
-      isCustom=false;
+      lib=onAddExercise({nome:res.nomeCustom,muscoli:res.muscoli,primary:res.primary,livello:res.livello,equip:res.equip})||null;
+      isCustom=!lib;
     }
     const newEx=isCustom
       ?Object.assign({eId:null,nomeCustom:res.nomeCustom},base,{note:res.muscoli||''})
@@ -7858,7 +7877,7 @@ function ExerciseSearchModal({open,onClose,onSelect,exercises,T,lang,prefilterMu
             <button type="button" style={{padding:'7px 13px',borderRadius:7,border:'none',background:'var(--accent)',color:'var(--onAccent)',fontSize:11,fontWeight:800,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}} onClick={function(){
               const nome=(customNome||'').trim();
               if(!nome){if(typeof showToast==='function') showToast(T.exSearchCustomNoName||'Serve un nome','warning');return;}
-              onSelect({custom:true,nomeCustom:nome,muscoli:(customMuscoli||'').trim(),primary:customMeta.primary,livello:customMeta.livello,equip:customMeta.equip});
+              onSelect({newCustom:true,nomeCustom:nome,muscoli:(customMuscoli||'').trim(),primary:customMeta.primary,livello:customMeta.livello,equip:customMeta.equip});
             }}>{T.exSearchCustomBtn||'+ Aggiungi custom'}</button>
           </div>
         </div>
@@ -9435,6 +9454,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
   // Salva in libreria un esercizio scritto dal PT (spazio PT: exercises + autosave;
   // palestra: gyms/{gymId}/exercises). Se esiste gia' un esercizio con lo stesso nome, riusa quello.
   function addLibraryExercise(data){
+    if(!String((data&&data.nome)||'').trim()) return null;
     const existing=findExerciseByName(effectiveExercises,data&&data.nome);
     if(existing) return existing;
     const ex=buildCustomExercise(data||{});
@@ -9447,13 +9467,13 @@ function AppInner({user,profile,setProfile,trialLeft}){
     return ex;
   }
   const effectiveExercises=React.useMemo(function(){
-    if(!isGym) return exercises;
+    if(!isGym) return (exercises||[]).filter(hasNome);
     const overrideById={};
     (gymExercises||[]).forEach(function(ge){overrideById[ge.id]=ge;});
     const merged=INIT_EXERCISES.map(function(e){return overrideById[e.id]?Object.assign({},e,overrideById[e.id]):e;});
     // Esercizi custom non in INIT_EXERCISES vengono appesi
     (gymExercises||[]).forEach(function(ge){if(!INIT_EXERCISES.find(function(e){return e.id===ge.id;})) merged.push(ge);});
-    return merged;
+    return merged.filter(hasNome);
   },[isGym,exercises,gymExercises]);
 
   // Adapter unificato: addClient / updateClient / removeClient / addScheda / addGymExercise / updateGymExercise.
