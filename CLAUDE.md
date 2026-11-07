@@ -93,6 +93,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 ## Modello dati Firestore
 - `users/{uid}` — profilo PT: `{email, plan, planType, planExpiresAt, planExpiredAt?}`. Owner read/write; admin read/write.
 - `users/{uid}/appdata/main` — stato PT: `{patients:[…], bookings:[…], exercises:[…], isLight:bool, dataVersion:4}`. Il load lo ignora se `remote.dataVersion < 4` (6851). Autosave gated da `loadedFromFirebase.current`.
+- `users/{uid}/appdata/templates` — modelli di scheda del PT: `{list:[scheda+{tplId}], updatedAt}`. Doc separato (non passa dall'autosave), letto al login e scritto a ogni modifica SOLO dopo un load riuscito (`templatesLoaded` ref). Vale anche in spazio palestra (modelli personali del PT). Coperto dalla regola owner `appdata/{docId}`: nessuna modifica alle regole.
 - `athletes/{athleteId}/appdata/main` — stato atleta: `{scheda:{giorni:[{nome, esercizi:[{name,serie,reps,rec}], storico?:[…]}], updatedAt}, updatedAt:serverTimestamp, invitedBy:<ptUid|null>, dataVersion:1}`. Scrittura con `{merge:true}`.
 - `sharedClients/{shareId}` — vista cliente anonima: `{ownerUid, cliente, ptNome, attivo:true, schedaAttuale:{programma, giorni:[…]}, log:[{data, giorno, esercizi, ts}], createdAt, updatedAt}`. Public read. Update anonimo consentito solo per aggiungere `log[]` e aggiornare `updatedAt`.
 - `deleteFeedback/{uid}` — feedback cancellazione: write solo da `request.auth.uid == docId`, read solo admin.
@@ -144,6 +145,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - Campi esercizio opzionali: `repsMode:'time'` (reps = secondi), `nomeCustom` (esercizio fuori libreria, `eId:null`), `blocco:<id>` (Superset/Circuito).
 - Blocchi: `scheda.blocchi = {<id>: {tipo:'superset'|'circuito', giri, recEx, recGiri}}`. Gli esercizi di un blocco sono contigui; dentro il blocco serie e rec del singolo esercizio sono ignorati (contano giri e recEx). Helper: `bloccoOf`, `bloccoLabels`, `stimaDurataMin`, `bloccoSharePatch`. Nel link cliente l'esercizio porta `blocco:{id,label,tipo,giri,recEx,recGiri}` con `serie=giri`.
 - Storico sessioni atleta: `scheda.storico[]`.
+- Riuso schede: `copiaScheda` (copia indipendente, nuovo codice, senza `_sid`/metadati) usata da "Assegna ad altri clienti" (`assignSchedaToClients` in AppInner) e "Salva come modello". "Modifica scheda" apre `SchedaModal` con `initial` (stesso codice/`_sid`, sostituisce la scheda) e aggiorna `sharedClients/{shareId}.schedaAttuale` se il link esiste (`aggiornaLinkCliente`). `tipoDaScheda` sceglie il tipo editor solo se le sezioni coincidono, altrimenti `Custom` con le sezioni della scheda.
 
 ## ⚠️ Trappole note (NON ripeterle)
 - **Firestore rules trap**: la Console sovrascrive l'intero ruleset. Pubblicare un blocco nuovo senza il resto cancella write admin su `users/`, `deleteFeedback`, `athletes/`, `sharedClients/` → attivazione piani / inviti rotti. SEMPRE copia-incolla del `firestore.rules` INTERO.
