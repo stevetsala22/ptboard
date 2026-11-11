@@ -368,7 +368,7 @@ var fbDb=firebase.firestore();
       var handle=null;
       var open=function(v){
         animAperte[key]=v;box.hidden=!v;btn.textContent=v?'Chiudi':'\u25B6 Come si esegue';btn.setAttribute('aria-expanded',String(v));
-        if(v&&!handle){handle=PTAnim.mount(box,e.anim,{label:'Esecuzione: '+e.nome});var cap=document.createElement('div');cap.className='anim-cap';var cr=PTAnim.CREDIT||{text:'Exercise data by RepDB (repdb.co)',url:'https://repdb.co'};cap.innerHTML=(PTAnim.FRAMES&&PTAnim.FRAMES[e.anim]===1?'':'Posizione di partenza e di arrivo · ')+'<a href="'+cr.url+'" target="_blank" rel="noopener nofollow">'+esc(cr.text)+'</a>';box.appendChild(cap);}
+        if(v&&!handle){handle=PTAnim.mount(box,e.anim,{label:'Esecuzione: '+e.nome});var cap=document.createElement('div');cap.className='anim-cap';var cr=PTAnim.CREDIT||{text:'Exercise data by RepDB (repdb.co)',url:'https://repdb.co'};cap.innerHTML=(PTAnim.FRAMES&&PTAnim.FRAMES[e.anim]===1?'Posizione di riferimento · ':'Posizione di partenza e di arrivo · ')+'<a href="'+cr.url+'" target="_blank" rel="noopener nofollow">'+esc(cr.text)+'</a>';box.appendChild(cap);}
         if(!v&&handle){handle.destroy();handle=null;box.innerHTML='';}
       };
       btn.addEventListener('click',function(){open(!animAperte[key]);});
