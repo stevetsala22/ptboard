@@ -231,12 +231,13 @@
 
   S.squat={key:'hip',seq:PP(2,1),hl:['quads','glute'],pose:function(p,o){
     var shin=lerp(0,32,p),thigh=lerp(0,-79,p),torso=lerp(3,o.prop==='bar'||o.prop==='barfront'?30:38,p);
-    if(o.v==='chair'){thigh=lerp(0,-74,p);shin=lerp(0,22,p);torso=lerp(3,40,p);}
+    if(o.v==='chair'||o.v==='box'){thigh=lerp(0,-74,p);shin=lerp(0,22,p);torso=lerp(3,40,p);}
     var lg=flatFoot(legUp(A0,shin,thigh)),sh=P(lg.hip,L.torso,torso),po={f:lg,sh:sh,headDeg:torso*0.5,props:[],propsBack:[]};
     if(o.prop==='db'||o.prop==='kb'){var h=P(lg.hip,L.torso*0.8,torso);h={x:h.x+Math.cos(R(torso))*16,y:h.y+Math.sin(R(torso))*16};po.aF=armTo(sh,h,DOWN);po.props=propsInHands(po,o);}
     else if(o.prop==='bar'){var b=P(sh,6,torso-90);po.aF=armTo(sh,b,DOWN);po.props=[{t:'plate',c:b,r:15}];}
     else if(o.prop==='barfront'){var bf=P(sh,15,torso+108);po.aF=armTo(sh,bf,DOWN);po.props=[{t:'plate',c:bf,r:13}];}
     else {var ad=lerp(178,86,p);po.aF=arm(sh,ad,ad-4);}
+    if(o.v==='box'){po.propsBack=[{t:'rect',x:84,y:160,w:48,h:G-160,rx:3,dark:true}];}
     if(o.v==='chair'){po.propsBack=[{t:'rect',x:88,y:150,w:40,h:7},{t:'line',a:{x:92,y:157},b:{x:92,y:G},w:4},{t:'line',a:{x:124,y:157},b:{x:124,y:G},w:4},{t:'line',a:{x:90,y:150},b:{x:86,y:96},w:4}];}
     return po;
   }};
@@ -367,6 +368,14 @@
   }};
 
   S.ohp={seq:PP(1.8,1.2),hl:['delt','triceps'],pose:function(p,o){
+    if(o.v==='seat'){
+      // Seduto con schienale (manubri o macchina).
+      var hipS={x:124,y:152},shS=P(hipS,L.torso,-4),fS=legDown(hipS,90,180);fS.toe=P(fS.ankle,L.foot,90);
+      var handS=lp({x:shS.x+2,y:shS.y-66},{x:shS.x+14,y:shS.y-6},p);
+      var poS={f:fS,sh:shS,headDeg:-2,aF:armTo(shS,handS,DOWN),
+        propsBack:[{t:'pad',x:98,y:158,w:64,h:8},{t:'line',a:{x:110,y:166},b:{x:110,y:G},w:5},{t:'line',a:{x:104,y:156},b:{x:96,y:70},w:9,dark:true}]};
+      poS.props=o.prop==='none'?[{t:'handle',c:handS}]:propsInHands(poS,o);return poS;
+    }
     var lg=flatFoot(legUp(A0,0,0)),sh=P(lg.hip,L.torso,-3);
     var hand=lp({x:sh.x+2,y:sh.y-66},{x:sh.x+14,y:sh.y-6},p),po={f:lg,sh:sh,headDeg:-2,aF:armTo(sh,hand,DOWN)};
     po.props=o.prop==='bar'?[{t:'plate',c:hand,r:15}]:propsInHands(po,o);return po;
@@ -393,6 +402,15 @@
     return {lg:lg,sh:sh};
   }
   S.row={seq:PP(2,1,0.4,0.4),hl:['back','biceps'],pose:function(p,o){
+    if(o.v==='bench'){
+      // Rematore con manubrio a un braccio: ginocchio e mano opposti sulla panca, busto parallelo al suolo.
+      var hipB={x:108,y:110},shB=P(hipB,L.torso,90),bt=160;
+      var nearAnk={x:96,y:G-6},fl={hip:hipB,ankle:nearAnk,knee:legIK(hipB,nearAnk,RIGHT)};fl.toe={x:nearAnk.x+L.foot,y:G-3};
+      var fk={x:114,y:bt-5},bl={hip:{x:hipB.x-3,y:hipB.y-2},knee:fk,ankle:{x:fk.x-52,y:bt-5},toe:{x:fk.x-64,y:bt-8}};
+      var handB=lp({x:shB.x+2,y:shB.y+64},{x:shB.x-26,y:shB.y+16},1-p);
+      return {f:fl,b:bl,sh:shB,headDeg:96,aF:armTo(shB,handB,LEFT),aB:armTo({x:shB.x-3,y:shB.y-2},{x:shB.x+6,y:bt-4},LEFT),
+        props:[{t:'db',c:handB}],propsBack:[{t:'pad',x:52,y:bt,w:150,h:9},{t:'line',a:{x:64,y:bt+9},b:{x:64,y:G},w:5},{t:'line',a:{x:190,y:bt+9},b:{x:190,y:G},w:5}]};
+    }
     var b=bentRow(),sh=b.sh,hand=lp({x:sh.x+2,y:sh.y+64},{x:sh.x-28,y:sh.y+20},1-p);
     var po={f:b.lg,sh:sh,headDeg:86,aF:armTo(sh,hand,LEFT)};
     po.props=o.prop==='bar'?[{t:'plate',c:hand,r:15}]:[{t:'db',c:hand}];return po;
@@ -410,6 +428,10 @@
     var hip={x:112,y:186},torso=lerp(-4,18,p),sh=P(hip,L.torso,torso);
     var ank={x:204,y:186},f={hip:hip,ankle:ank,knee:legIK(hip,ank,UP)};f.toe=P(ank,L.foot,-10);
     var hand=lp({x:sh.x+20,y:sh.y+44},P(sh,66,96),p),anchor={x:250,y:178};
+    if(o.v==='band'){
+      // Elastico agganciato ai piedi, seduti a terra.
+      return {f:f,sh:sh,headDeg:torso,aF:armTo(sh,hand,LEFT),props:[{t:'line',a:hand,b:{x:ank.x+8,y:ank.y-2},w:3,dark:true},{t:'handle',c:hand}]};
+    }
     return {f:f,sh:sh,headDeg:torso,aF:armTo(sh,hand,LEFT),
       props:[{t:'cable',a:hand,b:anchor},{t:'handle',c:hand}],
       propsBack:[{t:'stack',x:252,top:96,w:26,n:9,lift:(1-p)*30},{t:'pad',x:80,y:194,w:66,h:7},{t:'line',a:{x:84,y:201},b:{x:236,y:201},w:5},{t:'line',a:{x:212,y:166},b:{x:212,y:201},w:6,dark:true},{t:'pulley',c:{x:250,y:178},r:6}]};
@@ -434,7 +456,7 @@
     // p=0 mento sopra la sbarra, p=1 braccia tese
     var cx=150,barY=24,shY=lerp(50,88,p),s='';
     s+=line({x:60,y:barY},{x:240,y:barY},6,C.frame)+line({x:66,y:barY},{x:66,y:G},5,C.frameLight)+line({x:234,y:barY},{x:234,y:G},5,C.frameLight)+line({x:10,y:G+1},{x:290,y:G+1},2,C.ground);
-    var body=frontFigure({cx:cx,shY:shY,hipY:shY+60,legs:'hang',feet:10,hands:[{x:cx-48,y:barY},{x:cx+48,y:barY}],latOpen:1-p},['lats','biceps'],C);
+    var gw=o.v==='narrow'?24:48,body=frontFigure({cx:cx,shY:shY,hipY:shY+60,legs:'hang',feet:10,hands:[{x:cx-gw,y:barY},{x:cx+gw,y:barY}],latOpen:1-p},['lats','biceps'],C);
     s+=body;
     if(st&&(st.i===1||st.i===3)){var dn=st.i===1;s+=arrowM({x:270,y:dn?70:150},{x:270,y:dn?150:70},C.acc);}
     return s;
@@ -457,6 +479,7 @@
   }};
   S.pushdown={seq:PP(1.8,1,0.4,0.3),hl:['triceps'],pose:function(p,o){
     var lg=flatFoot(legUp(A0,0,0)),sh=P(lg.hip,L.torso,10),elb=P(sh,L.upper,172),hand=P(elb,L.fore,lerp(176,56,p));
+    if(o.v==='band') return {f:lg,sh:sh,headDeg:8,aF:{elb:elb,hand:hand},propsBack:[{t:'line',a:{x:214,y:0},b:{x:214,y:G},w:6}],props:[{t:'line',a:hand,b:{x:212,y:24},w:3,dark:true},{t:'dot',c:{x:212,y:24},r:4},{t:'handle',c:hand}]};
     return {f:lg,sh:sh,headDeg:8,aF:{elb:elb,hand:hand},propsBack:[{t:'stack',x:214,top:4,w:26,n:9,lift:(1-p)*28}],props:[{t:'pulley',c:{x:210,y:12},r:6},{t:'cable',a:hand,b:{x:210,y:12}},{t:'handle',c:hand}]};
   }};
   S.trioverhead={seq:PP(2,1,0.3,0.4),hl:['triceps'],pose:function(p,o){
@@ -561,20 +584,20 @@
 
   // ── Mappa esercizio → animazione (solo dove il movimento e' rappresentato fedelmente) ──
   var MAP={
-    E01:'squat',E02:'squat',E03:'squat:db',E04:'legpress',E05:'lunge:db:rfe',E07:'bridge',E08:'hipthrust:bar',E09:'lunge',E10:'stepup',
+    E01:'squat',E02:'squat::box',E03:'squat:db',E04:'legpress',E05:'lunge:db:rfe',E07:'bridge',E08:'hipthrust:bar',E09:'lunge',E10:'stepup',
     E11:'rdl:bar',E12:'rdl:none',E13:'rdl:barback',E14:'legcurl',E16:'pushup',E18:'pushup::knee',E19:'bench:db',E20:'bench:bar',E21:'fly',E22:'dip',
-    E23:'row:db',E24:'pulldown',E25:'pullup',E26:'rowseated',E27:'rowseated',E28:'row:bar',E29:'ohp:db',E30:'lateral:db',E32:'ohp:db',E33:'shrug:db',
-    E34:'curl:db',E35:'curl:bar',E36:'curl:db',E37:'curl:db',E38:'skull:bar',E39:'pushdown',E41:'kickback:db',E42:'calf:none',E44:'plank',E45:'deadbug',
-    E46:'climber',E47:'crunch',E50:'birddog',E54:'walk',E55:'bike',E56:'run',E57:'rower',E58:'jjack',E67:'bench:db:incline',E72:'ohp:bar',E73:'ohp:none',
+    E23:'row:db:bench',E24:'pulldown',E25:'pullup',E26:'rowseated',E27:'rowseated::band',E28:'row:bar',E29:'ohp:db:seat',E30:'lateral:db',E32:'ohp:db:seat',E33:'shrug:db',
+    E34:'curl:db',E35:'curl:bar',E36:'curl:db',E38:'skull:bar',E39:'pushdown',E41:'kickback:db',E42:'calf:none',E44:'plank',E45:'deadbug',
+    E46:'climber',E47:'crunch',E50:'birddog',E54:'walk',E55:'bike',E56:'run',E57:'rower',E58:'jjack',E67:'bench:db:incline',E72:'ohp:bar',E73:'ohp:none:seat',
     E75:'curl:cable',E77:'squat:db',E78:'legext',E79:'rdl:db',E86:'hangraise',E87:'walk::treadmill',E89:'bike',E90:'walk::treadmill',E91:'jumpsquat',
-    E92:'calf:none',E93:'calf:none',E94:'pullup',E97:'pullup',E99:'pushup',E104:'bridge',E105:'squat:barfront',E110:'lunge',E111:'lunge',
+    E92:'calf:none',E93:'calf:none',E94:'pullup',E97:'pullup::narrow',E99:'pushup',E104:'bridge',E105:'squat:barfront',E110:'lunge',E111:'lunge',
     E115:'deadlift',E116:'deadlift',E117:'deadlift',E118:'rdl:bar',E120:'kbswing',E124:'bridge',E128:'hipthrust:bar',E131:'calf:none',
     E133:'bench:bar:incline',E134:'bench:bar',E140:'pushup',E145:'row:bar',E148:'pullup',E150:'pulldown',E155:'ohp:bar',E160:'front_raise:db',
     E161:'revfly',E162:'lateral:none',E167:'curl:db',E168:'curl:bar',E169:'curl:db',E171:'curl:bar',E172:'curl:bar',E173:'skull:bar',E174:'bench:bar',
-    E175:'pushdown',E177:'trioverhead:cable',E179:'pushdown',E181:'hangraise',E187:'hangraise::knee',E191:'plank',E197:'walk:db',E198:'bike',E205:'bike',
-    E206:'jumpsquat',E220:'squat:kb',E239:'birddog',E240:'crunch',E241:'bridge',E245:'squat::chair',E246:'walk',E248:'legext::chair',E249:'rowseated',
-    E250:'run',E255:'rowseated',E256:'pulldown',E257:'rowseated',E258:'curl:none',E259:'dip',E260:'legcurl',E266:'calf:none',E267:'legpress',
-    E270:'rowseated',E271:'pulldown',E272:'ohp:none',E275:'hipthrust:none',E276:'squat:bar',E277:'bench:bar',E278:'lunge:barback',E279:'ohp:bar',
+    E175:'pushdown',E177:'trioverhead:cable',E179:'pushdown::band',E181:'hangraise',E187:'hangraise::knee',E191:'plank',E197:'walk:db',E198:'bike',E205:'bike',
+    E206:'jumpsquat',E220:'squat:kb',E239:'birddog',E240:'crunch',E241:'bridge',E245:'squat::chair',E246:'walk',E248:'legext::chair',E249:'rowseated::band',
+    E250:'run',E255:'rowseated',E256:'pulldown',E257:'rowseated',E259:'dip',E260:'legcurl',E266:'calf:none',E267:'legpress',
+    E270:'rowseated',E271:'pulldown',E272:'ohp:none:seat',E275:'hipthrust:none',E276:'squat:bar',E277:'bench:bar',E278:'lunge:barback',E279:'ohp:bar',
     E280:'rowseated',E287:'front_raise:none',E288:'kickback:cable',E289:'curl:cable',E290:'rowseated',E295:'hangraise::knee',E296:'lunge',
     E300:'shrug:none',E301:'lateral:none',E302:'run::treadmill'
   };
