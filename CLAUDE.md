@@ -17,7 +17,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **Firebase compat 10.7.0**, progetto `ptboard-1`. Firestore + Auth (Google login).
 - **Pagamenti**: Stripe tramite 4 Payment Links in `const PLANS` (`index.html:136-141`).
 - **Email transazionali**: Brevo, inviate tramite Cloudflare Worker `ptboard-webhook.ptboard-info.workers.dev` (endpoint `/send-email`). Il Worker vive in un repo separato (progetto Cloudflare dell'account `ptboard-info`): qui dentro c'è SOLO il client che chiama `WORKER_URL+'/send-email'` (`index.html:198-230`).
-- **PWA**: `sw.js` (cache `ptboard-v55`) + `manifest.json`.
+- **PWA**: `sw.js` (cache `ptboard-v56`) + `manifest.json`.
 - **Hosting**: GitHub Pages via `.nojekyll` + `CNAME`.
 
 ## ⚠️ REGOLE CRITICHE — non violare mai
@@ -39,12 +39,13 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `index.html` — app PT single-file (~11.500 righe). Vedi §Mappa index.html.
 - `atleta.html` — mini-app atleta (vanilla JS). Google login, setup scheda, vista palestra con timer di recupero, storico sessioni.
 - `share.html` — vista anonima della scheda condivisa dal PT. Un giorno per sezione se multi-day (Upper/Lower, PPL).
+- `anim-esercizi.js` — animazioni vettoriali "Come si esegue" (vanilla JS, globale `PTAnim`), caricato da `index.html` e `share.html`. 43 schemi di movimento (figura stilizzata di lato, muscoli principali in colore) e mappa `MAP` id esercizio → `'schema:attrezzo:variante'` (138 esercizi; mobilita'/stretching ed esercizi senza uno schema fedele restano senza). API: `PTAnim.specFor(ex)`, `PTAnim.has(ex)`, `PTAnim.mount(el, spec, opts)`. Colori dai CSS var `--anim-fig/acc/prop/bg/ground`. In app: `AnimBtn` (ricerca esercizi e scheda espansa) → `AnimModal`. Nel link cliente l'esercizio porta `anim` (da `animSharePatch`, in `buildSchedaAttuale` e `buildGiorniDaTutteLeSchede`): i link creati prima compaiono con le animazioni dopo un nuovo "Condividi" o una modifica della scheda. Precaricato da `sw.js`.
 - `404.html` — fallback SPA: cattura `/s/{id}` dal path e redirige a `share.html?id=…` via `sessionStorage`.
 - `landing.html` + `landing-i18n.js` + `landing-demo.js` — homepage pubblica (IT inline, EN/FR da `window.TR`).
 - `blog/index.html`, `blog/valutazione-funzionale-pt-guida-2026.html` — blog SEO.
 - `privacy.html`, `terms.html` — pagine legali.
 - `firestore.rules` — fonte di verità delle regole (poi copiata a mano in Console).
-- `sw.js` — service worker PWA (cache `ptboard-v55`).
+- `sw.js` — service worker PWA (cache `ptboard-v56`).
 - `manifest.json`, `icon192.png`, `icon512.png`, `favicon.*` — PWA assets.
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
 - `dashboard.jpg`, `mobile.jpg` — immagini `og:image` referenziate da `landing.html`.

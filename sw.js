@@ -1,9 +1,10 @@
-const CACHE='ptboard-v55';
+const CACHE='ptboard-v56';
 const ASSETS=[
   '/',
   '/index.html',
   '/landing.html',
   '/manifest.json',
+  '/anim-esercizi.js',
   '/icon192.png',
   '/icon512.png'
 ];
