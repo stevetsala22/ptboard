@@ -23,7 +23,7 @@ var fbDb=firebase.firestore();
 </script>
 
 <style>
-  :root{--accent:#185FA5;--anim-acc:var(--accent);--anim-bg:#f1f4f8;--anim-ground:#d5dce6}
+  :root{--accent:#185FA5}
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa;color:#042C53;min-height:100vh;line-height:1.55;-webkit-font-smoothing:antialiased}
   body{display:flex;align-items:flex-start;justify-content:center;padding:24px}
@@ -75,6 +75,7 @@ var fbDb=firebase.firestore();
   .anim-btn{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 10px;border-radius:12px;border:1px solid var(--accent);background:#fff;color:var(--accent);font:600 12px inherit;font-family:inherit;cursor:pointer}
   .anim-box{margin:4px 0 10px;border-radius:10px;overflow:hidden;background:var(--anim-bg)}
   .anim-cap{font-size:11px;color:#5F5E5A;padding:4px 8px 6px}
+  .anim-cap a{color:#5F5E5A}
   .ex-progress{font-size:11px;color:var(--accent);font-weight:600;background:#E6F1FB;padding:3px 8px;border-radius:12px;white-space:nowrap}
   .ex-progress.done{color:#166534;background:#dcfce7}
 
@@ -367,7 +368,7 @@ var fbDb=firebase.firestore();
       var handle=null;
       var open=function(v){
         animAperte[key]=v;box.hidden=!v;btn.textContent=v?'Chiudi':'\u25B6 Come si esegue';btn.setAttribute('aria-expanded',String(v));
-        if(v&&!handle){handle=PTAnim.mount(box,e.anim,{label:'Esecuzione: '+e.nome});var cap=document.createElement('div');cap.className='anim-cap';cap.textContent='In colore i muscoli principali.';box.appendChild(cap);}
+        if(v&&!handle){handle=PTAnim.mount(box,e.anim,{label:'Esecuzione: '+e.nome});var cap=document.createElement('div');cap.className='anim-cap';var cr=PTAnim.CREDIT||{text:'Exercise data by RepDB (repdb.co)',url:'https://repdb.co'};cap.innerHTML=(PTAnim.FRAMES&&PTAnim.FRAMES[e.anim]===1?'':'Posizione di partenza e di arrivo · ')+'<a href="'+cr.url+'" target="_blank" rel="noopener nofollow">'+esc(cr.text)+'</a>';box.appendChild(cap);}
         if(!v&&handle){handle.destroy();handle=null;box.innerHTML='';}
       };
       btn.addEventListener('click',function(){open(!animAperte[key]);});
