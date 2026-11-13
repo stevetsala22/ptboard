@@ -211,6 +211,9 @@ var fbDb=firebase.firestore();
 
   // ── HELPERS ──
   function $(id){return document.getElementById(id);}
+  // Tempi: i dati arrivano come "45s"/"90s"; si mostrano "45s", "1min 30s", "2min" (come nell'app).
+  function fmtSec(n){n=Math.round(+n||0);if(n<=0)return '';if(n<60)return n+'s';var m=Math.floor(n/60),r=n%60;return m+'min'+(r?' '+r+'s':'');}
+  function fmtT(v){var m=String(v==null?'':v).match(/^\s*(\d+)\s*s\s*$/);return m?fmtSec(+m[1]):String(v==null?'':v);}
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   function isTimed(reps){return /s|sec|:/i.test(String(reps));}
   function secFromReps(reps){var s=String(reps);var mm=s.match(/(\d+):(\d+)/);if(mm)return (+mm[1])*60+(+mm[2]);var m=s.match(/(\d+)/);return m?+m[1]:30;}
@@ -349,7 +352,7 @@ var fbDb=firebase.firestore();
         var ban=document.createElement('div');
         ban.className='blk-banner';
         ban.innerHTML='<div class="blk-title">'+(b.tipo==='superset'?'Superset':'Circuito')+' '+esc(b.label)+' · '+b.giri+' giri</div>'+
-          '<div class="blk-sub">Esegui gli esercizi in sequenza'+(b.recEx?' con '+b.recEx+'s di pausa':' senza pausa')+', poi '+(b.recGiri?b.recGiri+'s di recupero e ':'')+'riparti dal primo.</div>';
+          '<div class="blk-sub">Esegui gli esercizi in sequenza'+(b.recEx?' con '+fmtSec(b.recEx)+' di pausa':' senza pausa')+', poi '+(b.recGiri?fmtSec(b.recGiri)+' di recupero e ':'')+'riparti dal primo.</div>';
         block.appendChild(ban);
       }
     }
@@ -357,7 +360,7 @@ var fbDb=firebase.firestore();
     var header=document.createElement('div');
     header.className='ex-header';
     var carico=e.carico?' @ '+esc(e.carico):'';
-    header.innerHTML='<div class="ex-header-left"><div class="ex-name"><span class="ex-num">'+esc(num)+'</span>'+esc(e.nome)+'</div><div class="ex-target">'+esc(String(e.serie||''))+' × '+esc(String(e.reps||''))+esc(carico)+(e.rec?' · '+esc(e.rec)+' rec':'')+'</div>'+(e.muscoli?'<div class="ex-muscles">'+esc(e.muscoli)+'</div>':'')+(e.nota?'<div class="ex-nota">'+esc(e.nota)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
+    header.innerHTML='<div class="ex-header-left"><div class="ex-name"><span class="ex-num">'+esc(num)+'</span>'+esc(e.nome)+'</div><div class="ex-target">'+esc(String(e.serie||''))+' × '+esc(fmtT(e.reps||''))+esc(carico)+(e.rec?' · '+esc(fmtT(e.rec))+' rec':'')+'</div>'+(e.muscoli?'<div class="ex-muscles">'+esc(e.muscoli)+'</div>':'')+(e.nota?'<div class="ex-nota">'+esc(e.nota)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
     block.appendChild(header);
 
     // Animazione "Come si esegue" (anim-esercizi.js), dentro il blocco: updateProgress usa l'indice dei figli.
