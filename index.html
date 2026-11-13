@@ -276,6 +276,48 @@ function copiaScheda(s){
 }
 // Esercizi raggruppati per sezione (giorno) nell'ordine in cui le sezioni compaiono,
 // mantenendo l'ordine interno. Evita giorni "spezzati" (es. Giorno A ripetuto dopo il Giorno C).
+// ── Ricerca esercizi tollerante ──
+// Senza accenti e trattini, parole in qualsiasi ordine, singolare/plurale (IT/EN/FR),
+// parole attaccate o staccate ("pull up" = "pullup"), qualche sinonimo da palestra.
+function normTesto(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
+function radiceParola(w){
+  if(w.length<5) return w;
+  w=w.replace(/(chi|che)$/,'c').replace(/(ghi|ghe)$/,'g');
+  return w.replace(/(es|s|x|i|e|o|a)$/,'');
+}
+const SINONIMI_RICERCA={
+  piegamenti:['push','pomp','piegament','flession'],flessioni:['push','pomp','piegament','flession'],
+  addominali:['core','abs','crunch','addom','addominal'],addome:['core','abs','crunch','addom'],abs:['core','abs','crunch','addom'],
+  gainage:['plank','gainag'],spinte:['press','distension','spint'],spinta:['press','distension','spint'],distensioni:['press','distension','spint'],
+  horizontal:['horizontal','assis','seat','sedut','low','bass'],orizzontale:['horizontal','assis','seat','sedut','low','bass'],
+  tirage:['tirag','rowing','row','pulldown','tirat'],
+  pulley:['pulley','cable row','cavo bass','seated cable'],trazioni:['trazion','pull','chin','traction'],
+  stacco:['stacc','deadlift','soulev'],flessione:['push','pomp','piegament','flession']
+};
+const _hayCache=typeof WeakMap!=='undefined'?new WeakMap():null;
+function hayEsercizio(ex){
+  if(_hayCache&&_hayCache.has(ex)) return _hayCache.get(ex);
+  const n=ex&&ex.nome||{};
+  const txt=normTesto([typeof n==='string'?n:'',n.it,n.en,n.fr,ex&&ex.kw,ex&&ex.muscoli,ex&&ex.id].join(' '));
+  const words=txt.split(' ').filter(Boolean);
+  const h={words:words,stems:words.map(radiceParola),compact:words.join('')};
+  if(_hayCache) _hayCache.set(ex,h);
+  return h;
+}
+function matchEsercizio(ex,query){
+  const q=normTesto(query);if(!q) return true;
+  // Codice esercizio (es. E23): solo corrispondenza esatta.
+  if(/^e\d+$/.test(q)) return String(ex&&ex.id||'').toLowerCase()===q;
+  const h=hayEsercizio(ex),qc=q.replace(/ /g,'');
+  if(qc.length>=4&&h.compact.indexOf(qc)!==-1) return true;
+  return q.split(' ').every(function(t){
+    const alts=(SINONIMI_RICERCA[t]||[]).concat([radiceParola(t)]);
+    return alts.some(function(a){
+      if(a.indexOf(' ')!==-1) return h.words.join(' ').indexOf(a)!==-1;
+      return h.stems.some(function(w,i){return w.indexOf(a)===0||h.words[i].indexOf(a)===0||(a.length>=4&&h.words[i].indexOf(a)!==-1);});
+    });
+  });
+}
 function multiGiorno(scheda){
   const k={};((scheda&&scheda.esercizi)||[]).forEach(function(e){if(e&&e.sezione) k[e.sezione]=1;});
   return Object.keys(k).length>1;
@@ -8162,13 +8204,7 @@ function ExerciseSearchModal({open,onClose,onSelect,exercises,T,lang,prefilterMu
     const q=(query||'').trim().toLowerCase();
     const activeGroup=muscleKey?muscleGroups.find(function(g){return g.k===muscleKey;}):null;
     return (exercises||[]).filter(function(ex){
-      if(q){
-        const nIt=(ex.nome&&ex.nome.it)||(typeof ex.nome==='string'?ex.nome:'')||ex.id||'';
-        const nEn=(ex.nome&&ex.nome.en)||'';
-        const nFr=(ex.nome&&ex.nome.fr)||'';
-        const mus=(ex.muscoli||'').toLowerCase();
-        if(nIt.toLowerCase().indexOf(q)===-1 && nEn.toLowerCase().indexOf(q)===-1 && nFr.toLowerCase().indexOf(q)===-1 && mus.indexOf(q)===-1) return false;
-      }
+      if(q&&!matchEsercizio(ex,q)) return false;
       if(activeGroup){
         const p=(ex.primary||'').toLowerCase();
         if(!activeGroup.match.some(function(m){return p===m;})) return false;
@@ -8402,13 +8438,7 @@ function ExercisesPage({exercises,setExercises,T,isGym,onAddGymEx,onUpdateGymEx,
     const activeGroup=muscleKey?muscleGroups.find(function(g){return g.k===muscleKey;}):null;
     return (exercises||[]).filter(function(ex){
       if(filter!=='Tutti' && ex.cat!==filter) return false;
-      if(q){
-        const nIt=(ex.nome&&ex.nome.it)||(typeof ex.nome==='string'?ex.nome:'')||ex.id||'';
-        const nEn=(ex.nome&&ex.nome.en)||'';
-        const nFr=(ex.nome&&ex.nome.fr)||'';
-        const mus=(ex.muscoli||'').toLowerCase();
-        if(nIt.toLowerCase().indexOf(q)===-1 && nEn.toLowerCase().indexOf(q)===-1 && nFr.toLowerCase().indexOf(q)===-1 && mus.indexOf(q)===-1) return false;
-      }
+      if(q&&!matchEsercizio(ex,q)) return false;
       if(activeGroup){
         var p=(ex.primary||'').toLowerCase();
         if(!activeGroup.match.some(function(m){return p===m;})) return false;
