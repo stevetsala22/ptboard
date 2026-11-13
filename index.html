@@ -5685,7 +5685,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '<div style="text-align:right">'+
       '<div class="client-name">'+esc(p.nome)+' '+esc(p.cognome)+'</div>'+
       '<div class="client-meta">'+headerMeta+'</div>'+
-      (profLbl?'<div class="prof-badge" style="background:'+profGrad+';color:'+profBorder+';border:1px solid '+profBorder+'">'+esc(profLbl)+'</div>':'')+
+      // Spazio Palestra: nessun giudizio sulla forma nei documenti per il cliente.
+      (profLbl&&!isGymLite?'<div class="prof-badge" style="background:'+profGrad+';color:'+profBorder+';border:1px solid '+profBorder+'">'+esc(profLbl)+'</div>':'')+
       '</div>'+
       '</div>'+
       '<div class="hdr-line"></div>'+
@@ -5825,12 +5826,12 @@ footer .center b{color:#3b82f6;font-weight:700}
     <div style="text-align:right">
       <div class="client-name">${esc(p.nome)} ${esc(p.cognome)}</div>
       <div class="client-meta">${esc(p.id)} &middot; ${T.assessmentNum}: ${esc(p.dataValutazione)||'—'}</div>
-      ${pr2?`<div class="prof-badge" style="background:${profGrad};color:${profBorder};border:1px solid ${profBorder}">${profLbl}${pr2.score?' &middot; '+pr2.score+'/100':''}</div>`:''}
+      ${pr2&&!isGymLite?`<div class="prof-badge" style="background:${profGrad};color:${profBorder};border:1px solid ${profBorder}">${profLbl}${pr2.score?' &middot; '+pr2.score+'/100':''}</div>`:''}
     </div>
   </div>
   <div class="hdr-line"></div>
 
-  ${pr2?`<div style="padding:22px 26px;border-radius:14px;margin-bottom:22px;background:${profGrad};border:2px solid ${profBorder};box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  ${pr2&&!isGymLite?`<div style="padding:22px 26px;border-radius:14px;margin-bottom:22px;background:${profGrad};border:2px solid ${profBorder};box-shadow:0 1px 3px rgba(0,0,0,.06)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:12px;flex-wrap:wrap">
       <div>
         <div style="font-size:22px;font-weight:900;color:${profBorder};letter-spacing:-.5px;line-height:1">${profLbl}</div>
@@ -10850,7 +10851,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
               if(created&&created.id){setSelectedId(created.id);setPage('detail');}
             }).catch(function(err){console.warn('[addClient wizard] err:',err);});
           }
-          askSendEmail({pat:p,subject:T.emailEvalSubj,message:T.emailEvalBody1+'\n\n'+T.emailEvalFit+(pr2?.code==='A'?T.profileLowShort:pr2?.code==='B'?T.profileMedShort:pr2?.code==='C'?T.profileGoodShort:'-')+'\n'+T.emailEvalScore+(sc2?.score||'-')+'/100\n\n'+T.emailEvalNext+'\n\n[nomeMittente]',trainerProfile});
+          askSendEmail({pat:p,subject:T.emailEvalSubj,message:T.emailEvalBody1+'\n\n'+(isGym?'':(T.emailEvalFit+(pr2?.code==='A'?T.profileLowShort:pr2?.code==='B'?T.profileMedShort:pr2?.code==='C'?T.profileGoodShort:'-')+'\n'+T.emailEvalScore+(sc2?.score||'-')+'/100\n\n'))+T.emailEvalNext+'\n\n[nomeMittente]',trainerProfile});
         }}
         onClose={()=>{setShowValutazione(false);setReevalPatient(null);}}
       />}
@@ -13164,6 +13165,8 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile,lang}){
     var profGrad=pr.code==='A'?'linear-gradient(135deg,#fef2f2,#fee2e2)':pr.code==='B'?'linear-gradient(135deg,#fffbeb,#fef3c7)':pr.code==='C+'?'linear-gradient(135deg,#eff6ff,#dbeafe)':'linear-gradient(135deg,#f0fdf4,#d1fae5)';
     var profBorder=pr.code==='A'?'#ef4444':pr.code==='B'?'#f59e0b':pr.code==='C+'?'#3b82f6':'#10b981';
     var profLbl=pr.code==='A'?T.profileLowShort:pr.code==='B'?T.profileMedShort:pr.code==='C+'?T.profileExcellentShort:T.profileGoodShort;
+    // Spazio Palestra: niente profilo/punteggio nel documento per il cliente.
+    var inGym=!!(trainerProfile&&trainerProfile.gymId&&typeof userLastSpace==='function'&&userLastSpace(trainerProfile)==='gym');
     var componentsHtml=(pr.components||[]).map(function(comp){
       var barC=comp.score>=70?'#10b981':comp.score>=40?'#f59e0b':'#ef4444';
       return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><div style="font-size:11px;font-weight:600;color:#0f172a">'+(comp.icon||'')+' '+esc(comp.label)+'</div><div style="font-size:10px;color:#64748b">'+esc(comp.val)+' &middot; <span style="font-weight:800;color:'+barC+'">'+comp.score+'/100</span></div></div><div style="height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:'+comp.score+'%;height:100%;background:'+barC+';border-radius:4px"></div></div></div>';
@@ -13238,7 +13241,7 @@ footer .center b{color:#3b82f6;font-weight:700}
   </div>
   <div class="hdr-line"></div>
 
-  <div class="profilo" style="background:${profGrad};border:2px solid ${profBorder}">
+  ${inGym?'':`<div class="profilo" style="background:${profGrad};border:2px solid ${profBorder}">
     <div class="prof-row">
       <div>
         <div class="prof-name" style="color:${profBorder}">${profLbl}</div>
@@ -13248,7 +13251,7 @@ footer .center b{color:#3b82f6;font-weight:700}
     </div>
     <div class="prof-desc">${prog.desc}</div>
     ${componentsHtml?'<div style="background:rgba(255,255,255,.55);border-radius:10px;padding:14px 16px">'+componentsHtml+'</div>':''}
-  </div>
+  </div>`}
 
   <div class="kpi-row">
     <div class="kpi bmi"><div class="kpi-val">${bmiVal||'—'}</div><div class="kpi-lbl">BMI &middot; ${bmiLbl}</div></div>
