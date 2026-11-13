@@ -855,7 +855,7 @@ const exportCSV=(patients)=>{
   const headers=['ID','Cognome','Nome','Sesso','Data nascita','Altezza (cm)','Peso (kg)','BMI','Profilo','Attività','Obiettivo','Patologie','Farmaci','6MWT (m)','STS 30s (rip)','Sedute totali','Data valutazione'];
   const rows=patients.map(p=>{
     const b=bmi(p.peso,p.altezza);
-    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
+    const pr=profiloCliente(p);
     return [p.id,p.cognome,p.nome,p.sesso,p.ddn,p.altezza,p.peso,b||'',pr?.code||'',p.attivita,p.obiettivo,p.patologie,p.farmaci,p.test?.mwtDist,p.test?.stsRip,p.log?.length||0,p.dataValutazione].map(v=>{
       const s=String(v??'');
       return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.split('"').join('""')+'"':s;
@@ -3432,7 +3432,7 @@ const exportPDFLista=(patients,trainerProfile,lang)=>{
   const totSedute=patients.reduce((a,p)=>a+(p.log?.length||0),0);
   const righe=patients.map((p,i)=>{
     const b=p.peso&&p.altezza?(p.peso/(p.altezza/100)**2).toFixed(1):'—';
-    const pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
+    const pr=profiloCliente(p);
     const bg=i%2===0?'#f8fafc':'#ffffff';
     return '<tr style="background:'+bg+'">'+
       '<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#1e293b;font-weight:600">'+esc(p.nome)+' '+esc(p.cognome)+'</td>'+
@@ -3828,6 +3828,15 @@ const profilo=(mwt,sts,sesso,test,extra,eta)=>{
   const t=test||{mwtDist:mwt,stsRip:sts};
   const r=calcScore(t,sesso||'M',extra,eta||50);
   return r;
+};
+// Profilo di un cliente per lista, contatori ed export: dai test funzionali; se mancano
+// (Valutazione rapida, Spazio Palestra senza test) stima dall'anamnesi, come il generatore.
+const profiloCliente=(p)=>{
+  if(!p) return null;
+  const eta=p.annoNascita?new Date().getFullYear()-p.annoNascita:50;
+  const r=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},eta);
+  if(r) return r;
+  try{return calcScoreAnamnestico(p,eta);}catch(e){return null;}
 };
 const calcNutrizione=(p)=>{
   if(!p)return null;
@@ -5185,7 +5194,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,onQuickAssess,quickAssess
         </div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:isMobile?8:14,marginBottom:14}}>
-        {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50)?.code==='A').length,c:C.red},{l:T.profileMed.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50)?.code==='C').length,c:C.green}].map(x=>(
+        {[{l:T.totalPatients,v:filtered.length,c:C.blue},{l:T.profileLow.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profiloCliente(p)?.code==='A').length,c:C.red},{l:T.profileMed.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>profiloCliente(p)?.code==='B').length,c:C.yellow},{l:T.profileGood.replace('🔴 ','').replace('🟡 ','').replace('🟢 ',''),v:filtered.filter(p=>{var c=profiloCliente(p)?.code;return c==='C'||c==='C+';}).length,c:C.green}].map(x=>(
           <StatCard key={x.l} label={x.l} value={x.v} color={x.c}/>
         ))}
       </div>
@@ -5205,7 +5214,7 @@ function PatientList({patients,onSelect,onAdd,onNewVal,onQuickAssess,quickAssess
         {filtered.map(function(p,idx){
           var b=bmi(p.peso,p.altezza);
           var bc2=bmiCat(b);var bl=bc2.l;var bc=bc2.c;
-          var pr=profilo(p.test?.mwtDist,p.test?.stsRip,p.sesso,p.test,{biaFM:p.bia?.FM},p.annoNascita?new Date().getFullYear()-p.annoNascita:50);
+          var pr=profiloCliente(p);
           var delay=Math.min(idx*0.03,0.3);
           return(
             <div key={p.id} onClick={()=>onSelect(p.id)}
