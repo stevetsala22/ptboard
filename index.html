@@ -326,6 +326,8 @@ function fmtSec(n){
   const m=Math.floor(n/60),r=n%60;
   return m+'min'+(r?' '+r+'s':'');
 }
+// Valori della tendina "Tempo" (in secondi): ogni 5s fino al minuto, ogni 15s fino a 5min, poi ogni minuto fino a 60min.
+const TEMPO_OPZIONI=(function(){const a=[];for(let s=5;s<60;s+=5)a.push(s);for(let s=60;s<=300;s+=15)a.push(s);for(let m=6;m<=60;m++)a.push(m*60);return a;})();
 function multiGiorno(scheda){
   const k={};((scheda&&scheda.esercizi)||[]).forEach(function(e){if(e&&e.sezione) k[e.sezione]=1;});
   return Object.keys(k).length>1;
@@ -6756,7 +6758,7 @@ footer .center b{color:#3b82f6;font-weight:700}
                                   const isTime=ex.repsMode==='time';
                                   const defaultVal=isTime?60:10;
                                   const curVal=(ex.reps!=null && ex.reps!=='')?ex.reps:defaultVal;
-                                  const timeOpts=[5,10,15,20,30,45,60,75,90,120,150,180,240,300];
+                                  const timeOpts=TEMPO_OPZIONI;
                                   const repOpts=Array.from({length:30},(_,i)=>i+1);
                                   return <>
                                     <select
@@ -7776,7 +7778,7 @@ function SchedaModal({exercises,patient,onSave,onClose,T,onAddExercise,initial,t
                   <span style={{fontSize:12,fontWeight:800,color:C.strong}}>×</span></>}
                   <select value={ex.reps||(isTime?60:10)} onChange={function(e){patchEx(absoluteIdx,{reps:+e.target.value});}}
                     style={{fontSize:12,fontWeight:800,color:C.strong,background:'transparent',border:'1px solid '+C.border2,borderRadius:6,padding:'3px 4px',cursor:'pointer',fontFamily:'inherit'}}>
-                    {(isTime?[5,10,15,20,30,45,60,75,90,120,150,180,240,300]:Array.from({length:30},(_,i)=>i+1)).map(function(n){return <option key={n} value={n}>{isTime?fmtSec(n):n}</option>;})}
+                    {(isTime?TEMPO_OPZIONI:Array.from({length:30},(_,i)=>i+1)).map(function(n){return <option key={n} value={n}>{isTime?fmtSec(n):n}</option>;})}
                   </select>
                   <RepsTimeToggle isTime={isTime} T={_T} onChange={function(m){patchEx(absoluteIdx,{repsMode:m,reps:m==='time'?60:10});}}/>
                   {!bl&&<select value={ex.rec||60} onChange={function(e){patchEx(absoluteIdx,{rec:+e.target.value});}}
