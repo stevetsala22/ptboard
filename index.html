@@ -5720,7 +5720,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '<div class="kpi sets"><div class="kpi-val">'+numEx+'</div><div class="kpi-lbl">'+esc(T.schedaEsercizi||'Esercizi')+'</div></div>'+
       '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">'+(T.exEquip)+'</div></div>'+
       '</div>'+
-      (riepilogoScheda(scheda,T)?'<div style="margin:-14px 0 18px;font-size:11px;font-weight:700;color:#475569">'+esc(riepilogoScheda(scheda,T))+'</div>':'')+
+      /* Riepilogo composizione tolto dal PDF del cliente (resta nell'app per il PT). */
       tablesHtml+
       noteHtml+
       '<div class="footer-line"></div>'+
