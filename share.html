@@ -50,6 +50,17 @@ var fbDb=firebase.firestore();
 
   /* Body */
   .body{padding:20px 24px}
+  .parti{padding:0 24px}.parti:empty{display:none}
+  #partePrima{padding-top:18px}#parteDopo{padding-bottom:6px}
+  #partePrima:not(:empty)+.body{padding-top:4px}
+  .rp-box{border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:#444441;line-height:1.5;background:#f0fdfa;border-left:4px solid #0f766e}
+  .rp-box.prog{background:#f5f3ff;border-left-color:#7c3aed}
+  .rp-tit{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0f766e;margin-bottom:3px}
+  .rp-box.prog .rp-tit{color:#6d28d9}
+  .parte-lbl{font-size:10.5px;font-weight:800;color:#888780;letter-spacing:.08em;text-transform:uppercase;margin:6px 0 6px}
+  .parte-box{background:#fff;border:1px solid #f0f0ec;border-left:4px solid #d97706;border-radius:12px;padding:10px 14px;font-size:13px;color:#444441;line-height:1.5;margin-bottom:6px}
+  .parte-box.defat{border-left-color:#0284c7}
+  .blk-nota{font-size:12px;color:#042C53;font-style:italic;margin-top:4px}
 
   /* Exercise card */
   .ex-block{background:#fafafa;border:1px solid #f0f0ec;border-radius:12px;padding:14px;margin-bottom:12px}
@@ -180,7 +191,9 @@ var fbDb=firebase.firestore();
       </div>
     </section>
 
+    <section class="parti" id="partePrima"></section>
     <section class="body" id="exerciseList"></section>
+    <section class="parti" id="parteDopo"></section>
 
     <div class="save-area">
       <button class="btn-save" id="btnSave">Salva seduta</button>
@@ -342,6 +355,20 @@ var fbDb=firebase.firestore();
     (giorno.esercizi||[]).forEach(function(e,ei){
       list.appendChild(renderExerciseBlock(e,ei));
     });
+    renderParti(giorno);
+  }
+  // Regole, progressione, riscaldamento e defaticamento: fuori da #exerciseList (updateProgress usa l'indice dei figli).
+  function testoRighe(t){return esc(t).replace(/\n/g,'<br>');}
+  function renderParti(g){
+    var prima='',dopo='';
+    if(g.regole) prima+='<div class="rp-box"><div class="rp-tit">📌 Regole</div>'+testoRighe(g.regole)+'</div>';
+    if(g.progressione) prima+='<div class="rp-box prog"><div class="rp-tit">📈 Progressione</div>'+testoRighe(g.progressione)+'</div>';
+    var r=g.riscaldamento,d=g.defaticamento;
+    if(r) prima+='<div class="parte-lbl">🔥 Riscaldamento'+(r.min?' · '+r.min+' min':'')+'</div>'+(r.testo?'<div class="parte-box">'+testoRighe(r.testo)+'</div>':'');
+    if(r||d) prima+='<div class="parte-lbl" style="margin-top:14px">Parte principale</div>';
+    if(d) dopo+='<div class="parte-lbl">🧘 Defaticamento'+(d.min?' · '+d.min+' min':'')+'</div>'+(d.testo?'<div class="parte-box defat">'+testoRighe(d.testo)+'</div>':'');
+    $('partePrima').innerHTML=prima;
+    $('parteDopo').innerHTML=dopo;
   }
 
   function renderExerciseBlock(e,ei){
@@ -368,7 +395,7 @@ var fbDb=firebase.firestore();
         var b=e.blocco;
         var ban=document.createElement('div');
         ban.className='blk-banner';
-        ban.innerHTML='<div class="blk-title">'+esc(bannerTitolo(b))+'</div><div class="blk-sub">'+esc(bannerTesto(b))+'</div>';
+        ban.innerHTML='<div class="blk-title">'+esc(bannerTitolo(b))+'</div><div class="blk-sub">'+esc(bannerTesto(b))+'</div>'+(b.nota?'<div class="blk-nota">'+esc(b.nota)+'</div>':'');
         block.appendChild(ban);
       }
     }
@@ -555,14 +582,17 @@ var fbDb=firebase.firestore();
   }
 
   // ── ADAPTER Firestore → SCHEDA ──
+  function parteOk(v){if(!v||typeof v!=='object')return null;var t=typeof v.testo==='string'?v.testo:'',m=+v.min||0;return (t||m)?{testo:t,min:m}:null;}
   function adatta(data){
     var sa=data.schedaAttuale||{};
     var giorni=(sa.giorni||[]).map(function(g){
       g=g||{};
       return {nome:g.nome||'Allenamento',esercizi:(g.esercizi||[]).filter(function(e){return e;}).map(function(e){
-        var b=(e.blocco&&typeof e.blocco==='object')?{id:String(e.blocco.id||''),label:String(e.blocco.label||''),tipo:TIPI_BLOCCO.indexOf(e.blocco.tipo)!==-1?e.blocco.tipo:'circuito',giri:+e.blocco.giri||1,recEx:+e.blocco.recEx||0,recGiri:+e.blocco.recGiri||0,durata:+e.blocco.durata||0}:null;
+        var b=(e.blocco&&typeof e.blocco==='object')?{id:String(e.blocco.id||''),label:String(e.blocco.label||''),tipo:TIPI_BLOCCO.indexOf(e.blocco.tipo)!==-1?e.blocco.tipo:'circuito',giri:+e.blocco.giri||1,recEx:+e.blocco.recEx||0,recGiri:+e.blocco.recGiri||0,durata:+e.blocco.durata||0,nota:typeof e.blocco.nota==='string'?e.blocco.nota:''}:null;
         return {nome:e.nome||'Esercizio',muscoli:e.muscoli||'',serie:e.serie||1,reps:e.reps!=null?e.reps:'',carico:e.carico||'',rec:e.rec||'',nota:e.nota||'',lato:!!e.lato,blocco:b,anim:typeof e.anim==='string'?e.anim:''};
-      })};
+      }),
+        regole:typeof g.regole==='string'?g.regole:'',progressione:typeof g.progressione==='string'?g.progressione:'',
+        riscaldamento:parteOk(g.riscaldamento),defaticamento:parteOk(g.defaticamento)};
     }).filter(function(g){return g.esercizi.length>0;});
     return {cliente:data.cliente||'',ptNome:data.ptNome||'',programma:sa.programma||'',giorni:giorni,gymBranding:data.gymBranding||null};
   }
