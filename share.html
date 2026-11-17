@@ -62,6 +62,10 @@ var fbDb=firebase.firestore();
   .ex-num{display:inline-block;min-width:22px;padding:1px 5px;margin-right:6px;border-radius:6px;background:#e6edf5;color:#042C53;font-size:12px;font-weight:800;text-align:center}
   .in-blk .ex-num{background:#8b5cf6;color:#fff}
   .in-blk.blk-sup .ex-num{background:#f97316}
+  .ex-block.in-blk.blk-emom{border-left-color:#6366f1;background:#f7f7ff}.blk-emom .blk-banner{border-color:#6366f1}.blk-emom .blk-title{color:#4338ca}.in-blk.blk-emom .ex-num{background:#6366f1}
+  .ex-block.in-blk.blk-amrap{border-left-color:#0891b2;background:#f3fbfd}.blk-amrap .blk-banner{border-color:#0891b2}.blk-amrap .blk-title{color:#0e7490}.in-blk.blk-amrap .ex-num{background:#0891b2}
+  .ex-block.in-blk.blk-hyrox{border-left-color:#0f766e;background:#f2faf8}.blk-hyrox .blk-banner{border-color:#0f766e}.blk-hyrox .blk-title{color:#0f766e}.in-blk.blk-hyrox .ex-num{background:#0f766e}
+  .ex-block.in-blk.blk-finisher{border-left-color:#e11d48;background:#fff7f8}.blk-finisher .blk-banner{border-color:#e11d48}.blk-finisher .blk-title{color:#be123c}.in-blk.blk-finisher .ex-num{background:#e11d48}
   .ex-block.grp-start{margin-top:26px;position:relative}
   .ex-block.grp-start::before{content:'';position:absolute;left:0;right:0;top:-15px;border-top:2px solid #b4b2a9}
   .blk-sub{font-size:12px;color:#5F5E5A;margin-top:2px}
@@ -215,6 +219,19 @@ var fbDb=firebase.firestore();
   function fmtSec(n){n=Math.round(+n||0);if(n<=0)return '';if(n<60)return n+'s';var m=Math.floor(n/60),r=n%60;return m+'min'+(r?' '+r+'s':'');}
   function fmtT(v){var m=String(v==null?'':v).match(/^\s*(\d+)\s*s\s*$/);return m?fmtSec(+m[1]):String(v==null?'':v);}
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  var TIPI_BLOCCO=['superset','circuito','emom','amrap','hyrox','finisher'];
+  function bannerTitolo(b){
+    var nome={superset:'Superset',circuito:'Circuito',emom:'EMOM',amrap:'AMRAP',hyrox:'Hyrox',finisher:'Finisher'}[b.tipo]||'Circuito';
+    var dopo=(b.tipo==='emom'||b.tipo==='amrap')?(b.durata||12)+' min':b.giri+(b.giri===1?' giro':' giri');
+    return nome+' '+b.label+' · '+dopo;
+  }
+  function bannerTesto(b){
+    if(b.tipo==='emom') return 'Ogni minuto parte una stazione: finita la stazione, recuperi fino all\'inizio del minuto successivo. Avanti così per '+(b.durata||12)+' minuti.';
+    if(b.tipo==='amrap') return 'Più giri possibili in '+(b.durata||12)+' minuti, a ritmo costante.';
+    if(b.tipo==='hyrox') return 'Esegui le stazioni in sequenza senza pause programmate per '+b.giri+(b.giri===1?' giro':' giri')+'. Segna il tempo totale.';
+    if(b.tipo==='finisher') return 'Ultimo sforzo: dai il massimo'+(b.recGiri?', '+fmtSec(b.recGiri)+' di recupero tra i giri':'')+'.';
+    return 'Esegui gli esercizi in sequenza'+(b.recEx?' con '+fmtSec(b.recEx)+' di pausa':' senza pausa')+', poi '+(b.recGiri?fmtSec(b.recGiri)+' di recupero e ':'')+'riparti dal primo.';
+  }
   function isTimed(reps){return /s|sec|:/i.test(String(reps));}
   function secFromReps(reps){var s=String(reps);var mm=s.match(/(\d+):(\d+)/);if(mm)return (+mm[1])*60+(+mm[2]);var m=s.match(/(\d+)/);return m?+m[1]:30;}
   function secFromRec(rec){if(!rec)return 0;return secFromReps(rec);}
@@ -342,7 +359,7 @@ var fbDb=firebase.firestore();
     else{var n=0;for(var k2=0;k2<=ei;k2++){if(!lista[k2].blocco)n++;}num=String(n);}
 
     var block=document.createElement('div');
-    block.className='ex-block'+(allDone?' done':'')+(e.blocco?' in-blk'+(e.blocco.tipo==='superset'?' blk-sup':''):'')+(prevE&&grp(prevE)!==grp(e)?' grp-start':'');
+    block.className='ex-block'+(allDone?' done':'')+(e.blocco?' in-blk'+(e.blocco.tipo==='superset'?' blk-sup':(e.blocco.tipo!=='circuito'?' blk-'+e.blocco.tipo:'')):'')+(prevE&&grp(prevE)!==grp(e)?' grp-start':'');
 
     // Banner del blocco dentro il primo esercizio (non come fratello: updateProgress usa l'indice dei figli).
     if(e.blocco){
@@ -351,16 +368,17 @@ var fbDb=firebase.firestore();
         var b=e.blocco;
         var ban=document.createElement('div');
         ban.className='blk-banner';
-        ban.innerHTML='<div class="blk-title">'+(b.tipo==='superset'?'Superset':'Circuito')+' '+esc(b.label)+' · '+b.giri+' giri</div>'+
-          '<div class="blk-sub">Esegui gli esercizi in sequenza'+(b.recEx?' con '+fmtSec(b.recEx)+' di pausa':' senza pausa')+', poi '+(b.recGiri?fmtSec(b.recGiri)+' di recupero e ':'')+'riparti dal primo.</div>';
+        ban.innerHTML='<div class="blk-title">'+esc(bannerTitolo(b))+'</div><div class="blk-sub">'+esc(bannerTesto(b))+'</div>';
         block.appendChild(ban);
       }
     }
 
     var header=document.createElement('div');
     header.className='ex-header';
-    var carico=e.carico?' @ '+esc(e.carico):'';
-    header.innerHTML='<div class="ex-header-left"><div class="ex-name"><span class="ex-num">'+esc(num)+'</span>'+esc(e.nome)+'</div><div class="ex-target">'+esc(String(e.serie||''))+' × '+esc(fmtT(e.reps||''))+esc(carico)+(e.rec?' · '+esc(fmtT(e.rec))+' rec':'')+'</div>'+(e.muscoli?'<div class="ex-muscles">'+esc(e.muscoli)+'</div>':'')+(e.nota?'<div class="ex-nota">'+esc(e.nota)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
+    var carico=e.carico?' @ '+e.carico:'';
+    var aDurata=e.blocco&&(e.blocco.tipo==='emom'||e.blocco.tipo==='amrap');
+    var dose=fmtT(e.reps||'')+(e.lato?' per lato':'');
+    header.innerHTML='<div class="ex-header-left"><div class="ex-name"><span class="ex-num">'+esc(num)+'</span>'+esc(e.nome)+'</div><div class="ex-target">'+(aDurata?'':esc(String(e.serie||''))+' × ')+esc(dose)+esc(carico)+(e.rec?' · '+esc(fmtT(e.rec))+' rec':'')+'</div>'+(e.muscoli?'<div class="ex-muscles">'+esc(e.muscoli)+'</div>':'')+(e.nota?'<div class="ex-nota">'+esc(e.nota)+'</div>':'')+'</div><div class="ex-progress'+(allDone?' done':'')+'">'+doneSets+'/'+totalSets+'</div>';
     block.appendChild(header);
 
     // Animazione "Come si esegue" (anim-esercizi.js), dentro il blocco: updateProgress usa l'indice dei figli.
@@ -542,8 +560,8 @@ var fbDb=firebase.firestore();
     var giorni=(sa.giorni||[]).map(function(g){
       g=g||{};
       return {nome:g.nome||'Allenamento',esercizi:(g.esercizi||[]).filter(function(e){return e;}).map(function(e){
-        var b=(e.blocco&&typeof e.blocco==='object')?{id:String(e.blocco.id||''),label:String(e.blocco.label||''),tipo:e.blocco.tipo==='superset'?'superset':'circuito',giri:+e.blocco.giri||1,recEx:+e.blocco.recEx||0,recGiri:+e.blocco.recGiri||0}:null;
-        return {nome:e.nome||'Esercizio',muscoli:e.muscoli||'',serie:e.serie||1,reps:e.reps!=null?e.reps:'',carico:e.carico||'',rec:e.rec||'',nota:e.nota||'',blocco:b,anim:typeof e.anim==='string'?e.anim:''};
+        var b=(e.blocco&&typeof e.blocco==='object')?{id:String(e.blocco.id||''),label:String(e.blocco.label||''),tipo:TIPI_BLOCCO.indexOf(e.blocco.tipo)!==-1?e.blocco.tipo:'circuito',giri:+e.blocco.giri||1,recEx:+e.blocco.recEx||0,recGiri:+e.blocco.recGiri||0,durata:+e.blocco.durata||0}:null;
+        return {nome:e.nome||'Esercizio',muscoli:e.muscoli||'',serie:e.serie||1,reps:e.reps!=null?e.reps:'',carico:e.carico||'',rec:e.rec||'',nota:e.nota||'',lato:!!e.lato,blocco:b,anim:typeof e.anim==='string'?e.anim:''};
       })};
     }).filter(function(g){return g.esercizi.length>0;});
     return {cliente:data.cliente||'',ptNome:data.ptNome||'',programma:sa.programma||'',giorni:giorni,gymBranding:data.gymBranding||null};
