@@ -364,6 +364,51 @@ function multiGiorno(scheda){
   const k={};((scheda&&scheda.esercizi)||[]).forEach(function(e){if(e&&e.sezione) k[e.sezione]=1;});
   return Object.keys(k).length>1;
 }
+// ── Spiegazioni (tooltip): elementi con data-tip. Su computer compaiono al passaggio del cursore;
+// su telefono si tocca la piccola "i" (.tip-i), che non esegue l'azione del bottone.
+(function(){
+  try{
+    if(typeof document==='undefined'||!document.addEventListener) return;
+    var tip=null,cur=null;
+    var hoverOk=!!(window.matchMedia&&window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+    function box(){if(!tip){tip=document.createElement('div');tip.id='pt-tip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);}return tip;}
+    function show(t){
+      var txt=t.getAttribute('data-tip');if(!txt) return;
+      var d=box();d.textContent=txt;d.style.display='block';
+      var r=t.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
+      var x=Math.min(Math.max(8,r.left+r.width/2-w/2),window.innerWidth-w-8);
+      var y=r.top-h-8;if(y<8) y=r.bottom+8;
+      d.style.left=x+'px';d.style.top=y+'px';cur=t;
+    }
+    function hide(){if(tip) tip.style.display='none';cur=null;}
+    function init(){
+      var st=document.createElement('style');
+      st.textContent='#pt-tip{position:fixed;z-index:100000;max-width:280px;background:#0f172a;color:#fff;font:500 12px/1.45 system-ui,-apple-system,sans-serif;padding:8px 11px;border-radius:9px;box-shadow:0 6px 20px rgba(0,0,0,.3);pointer-events:none;display:none;text-align:left;white-space:normal}'+
+        '.tip-i{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;font:800 9.5px/1 Georgia,serif;font-style:italic;margin-left:5px;border:1px solid currentColor;opacity:.8;cursor:pointer;vertical-align:middle;flex-shrink:0}'+
+        '@media (hover: hover) and (pointer: fine){.tip-i{display:none}}';
+      document.head.appendChild(st);
+      document.addEventListener('mouseover',function(e){
+        if(!hoverOk) return;
+        var t=e.target&&e.target.closest?e.target.closest('[data-tip]'):null;
+        if(t&&t!==cur) show(t); else if(!t&&cur) hide();
+      },true);
+      // Fase di cattura: il tocco sulla "i" non arriva al bottone (React ascolta sulla radice).
+      document.addEventListener('click',function(e){
+        var i=e.target&&e.target.closest?e.target.closest('.tip-i'):null;
+        if(i){e.stopPropagation();e.preventDefault();if(cur===i) hide(); else show(i);return;}
+        if(cur&&!hoverOk) hide();
+      },true);
+      // Scorrendo, la spiegazione segue l'elemento (o sparisce se esce dallo schermo).
+      window.addEventListener('scroll',function(){if(!cur) return;if(!document.body.contains(cur)){hide();return;}var r=cur.getBoundingClientRect();if(r.bottom<0||r.top>window.innerHeight) hide(); else show(cur);},true);
+    }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+  }catch(e){}
+})();
+// Spiegazione di un tipo di blocco (bottoni "+ EMOM" ecc. e tendina del blocco).
+function tipBlocco(tipo,T){
+  var k={superset:'tipSuperset',circuito:'tipCircuito',emom:'tipEmom',amrap:'tipAmrap',hyrox:'tipHyrox',finisher:'tipFinisher'}[tipo]||'tipCircuito';
+  return (T&&T[k])||'';
+}
 function ordinaPerSezione(list){
   const ord=[],by={};
   (list||[]).forEach(function(e){const k=(e&&e.sezione)||'';if(!by[k]){by[k]=[];ord.push(k);}by[k].push(e);});
@@ -1878,7 +1923,7 @@ const LANGS={
     authVerifyTitle:'Verifica la tua email',authVerifyDesc1:"Abbiamo inviato un'email di verifica a",authVerifyDesc2:"Clicca il link nell'email per attivare il tuo account.",authVerifyCheck:"Email non ancora verificata. Controlla la casella di posta (anche lo spam).",authVerifyResent:'Email rinviata!',authVerifyResendErr:"Errore nell'invio. Riprova tra qualche minuto.",authVerifyBtn:'Ho verificato, accedi',authVerifyResend:'Rinvia email',
     wFinish:'✓ Inizia ad usare PT Board',
     toastAskEmail:'📧 Notificare {nome} via email?',toastEmailSent:'Email inviata a {email}',toastEmailErr:'Errore invio email',toastUndone:'Azione annullata',toastNoSesso:'Sesso non specificato — scheda generata con parametri neutri',planActivated:'{plan} attivato!',libUpdated:'Libreria aggiornata: {n} nuovi esercizi aggiunti',shareBtn:'🔗 Condividi con cliente',shareCopyLink:'Copia link',shareCopyMsg:'Copia messaggio',shareOpen:'Apri anteprima',shareDeactivate:'Disattiva link',shareClientLog:'Sedute dal cliente',shareNoLog:'Nessuna seduta registrata dal cliente. Condividi la scheda per iniziare.',shareMsgTemplate:'Ciao {nome}! 💪 Ecco la tua scheda personale su PT Board: {link}\nSalvala nella home del telefono per aprirla con un tap. — {pt}',shareActive:'Link attivo',shareInactive:'Link disattivato',shareLinkLabel:'Link scheda',accDeleted:'Account eliminato',accDeleteErr:"Per sicurezza, esci e rientra prima di eliminare l'account",requiredFields:'Campi da correggere',
-    admTitle:'👑 Pannello Admin',admPlanUpdated:'✓ Piano aggiornato',admPlanError:'❌ Errore nel salvataggio: {msg}',admNoUsers:'Nessun utente ancora',admStatTotal:'Totale',admStatTrial:'Trial attivi',admStatProTeam:'Pro/Team',admStatExpired:'Scaduti',admColEmail:'Email',admColName:'Nome',admColPlan:'Piano',admColDays:'Giorni rimasti',admColJoined:'Iscritto',admColChangePlan:'Cambia piano',admPlanBlocked:'🚫 Bloccato',admMonthly:'Mensile',admYearly:'Annuale',admExpired:'Scaduto',admDaySuffix:'g',admFeedbackTitle:'📋 Feedback eliminazioni',admNoFeedback:'Nessun feedback di eliminazione',admFbReason:'Motivo',admFbDetail:'Dettaglio',admFbDays:'Giorni usati',admFbDate:'Data eliminazione',admBackupTitle:'📥 Backup dati',admBackupLoading:'⏳ Backup in corso...',admBackupDone:'✓ Backup completato: {n} utenti',admBackupError:'❌ Errore backup: {msg}',admBackupDesc:'Scarica tutti gli utenti e i loro dati (appdata) in formato JSON.',
+    admTitle:'👑 Pannello Admin',admPlanUpdated:'✓ Piano aggiornato',admPlanError:'❌ Errore nel salvataggio: {msg}',admNoUsers:'Nessun utente ancora',admStatTotal:'Totale',admStatTrial:'Trial attivi',admStatProTeam:'Pro/Team',admStatExpired:'Scaduti',admColEmail:'Email',admColName:'Nome',admColPlan:'Piano',admColDays:'Giorni rimasti',admColJoined:'Iscritto',admColChangePlan:'Cambia piano',admPlanBlocked:'🚫 Bloccato',admMonthly:'Mensile',admYearly:'Annuale',admExpired:'Scaduto',admDaySuffix:'g',admFeedbackTitle:'📋 Feedback eliminazioni',admNoFeedback:'Nessun feedback di eliminazione',admFbReason:'Motivo',admFbDetail:'Dettaglio',admFbDays:'Giorni usati',admFbDate:'Data eliminazione',admBackupTitle:'📥 Backup dati',tipSuperset:'Superset: 2 esercizi uno dopo l’altro senza pausa, poi recupero. Fa risparmiare tempo e aumenta l’intensità.',tipCircuito:'Circuito: più stazioni in sequenza per un certo numero di giri. Ideale per lavorare tutto il corpo con un ritmo costante.',tipEmom:'EMOM (ogni minuto): a ogni minuto parte una stazione, il tempo che resta è recupero. Tiene l’intensità sotto controllo e la tecnica pulita.',tipAmrap:'AMRAP: più giri possibili in un tempo fisso, al proprio ritmo. Ottimo per vedere i progressi: il cliente conta i giri ogni settimana.',tipHyrox:'Hyrox: stazioni in sequenza senza pause programmate, si segna il tempo totale. Stile gara, per resistenza e lavoro funzionale.',tipFinisher:'Finisher: breve blocco finale ad alta intensità (es. slitta, farmer’s walk) per chiudere la seduta.',tipUnita:'Unità della dose: Rip (ripetizioni), Tempo (secondi o minuti), m (metri, es. slitta o vogatore), cal (calorie su bike, vogatore, ski erg).',tipLato:'Per lato: la dose vale per ogni lato o gamba (es. 8 per gamba). Nella durata stimata conta il doppio.',tipCarico:'Carico: scrivi un numero (diventa kg) o un testo libero, es. “slitta + 20 kg” o “2 × 12 kg”.',tipNota:'Nota per il cliente (max 80 caratteri), es. “fermo 1\" in alto”. La vede nel PDF e nel suo link.',tipBlkNota:'Nota del blocco: un consiglio per tutto il blocco, es. “ritmo costante”. Compare sotto la spiegazione.',tipRisc:'Riscaldamento del giorno, con i minuti: compare prima della parte principale nel PDF e nel link del cliente.',tipDefat:'Defaticamento del giorno, con i minuti: compare alla fine nel PDF e nel link del cliente.',tipRegole:'Regole da seguire in ogni seduta (fatica, schiena, impatto…). Compaiono in cima alla scheda, anche per il cliente.',tipProgr:'Come cambia la scheda nelle settimane (giri, ripetizioni, carico). Compare in cima alla scheda, anche per il cliente.',admNewsTitle:'📣 Email novità a tutti i PT',admNewsHelp:'Crea prima il modello in Brevo, poi scrivi qui il suo numero (ID). Chi l’ha già ricevuta non la riceve di nuovo.',admNewsTplPh:'ID modello Brevo',admNewsBtn:'Invia a tutti',admNewsConfirm:'Inviare l’email (modello {tpl}) a {n} PT?',admNewsProgress:'Invio in corso… {i}/{n}',admNewsDone:'Fatto: {ok} inviate, {ko} non riuscite',admNewsNoTpl:'Scrivi l’ID del modello Brevo',admNewsNone:'Tutti i PT hanno già ricevuto questa email',admBackupLoading:'⏳ Backup in corso...',admBackupDone:'✓ Backup completato: {n} utenti',admBackupError:'❌ Errore backup: {msg}',admBackupDesc:'Scarica tutti gli utenti e i loro dati (appdata) in formato JSON.',
     progRpeTarget:'RPE target',progZonaFC:'Zona FC',progRazionale:'Razionale scientifico',progSplit:'Split',progDurata:'Durata',progFrequenza:'Frequenza',progIntensita:'Intensità',progModulatori:'Modulatori',progSerieExtra:'+1 serie sui compound ({s}×{r})',progSerieInv:'Serie invariate',progNoteForza:'Forza — metodo lineare. +{p}%/sett (modulato su {n} sed/sett). Deload W4: -30%.',progNoteIpert:'Ipertrofia — doppia progressione. +{p}% carico{extra}. {n} sed/sett → recupero {rec}.',progNoteIpertSerie:' + +1 serie in W3',progRecAmpio:'ampio, incrementi maggiori',progRecRidotto:'ridotto, incrementi conservativi',progNoteMetab:'Metabolico — +{p}% carico o -5s recupero. Con {n} sedute: volume {vol}.',progVolElevato:'elevato, priorità recupero',progVolModerato:'moderato, spazio per progressione',progNoteResist:'Resistenza — +{p}% carico o +1 rep ogni sett. {n} sed/sett.',progNoteSalute:'Salute generale — +{p}% a settimane alterne. Adattare al feedback RPE.',progW1:'W1 — Scheda {split} · {s}×{r} · Carico: {c}% 1RM percepito · Rec: {rec}s · Focus tecnica e registrazione carichi.',progW2:'W2 — Stessa scheda · Carico +{p}% su tutti i compound · Serie/rep invariate · RPE target: {rpe1}-{rpe2}. ({n} sed/sett → tasso progressione calibrato)',progW3:'W3 — Stessa scheda · {label} · Carico +{p}% ulteriore · Picco volume.',progW4:'W4 — DELOAD · {s}×{r} · Carico -25% · Rec +20s · {note}',progWarnForza:'Per risultati ottimali di forza si consigliano almeno 3-4 sedute/settimana.',progWarnIpert:'Per risultati ottimali di ipertrofia si consigliano almeno 3-4 sedute/settimana.',progWarnDeficit:'Per un deficit efficace si consigliano almeno 3 sedute/settimana.',
     offTrackBelow:'Progresso sotto le attese',offTrackAbove:'Progresso sopra le attese',offTrackLine1:'Osservato: {obs} kg/sett · Atteso: {exp} kg/sett ({pct}% del target).',offTrackLow:'Considera aggiustamento kcal o aumento volume allenamento.',offTrackHigh:'Verifica ritenzione idrica o monitora composizione corporea.',
     normFumoNoneL:'Non fumatore',normFumoExL:'Ex fumatore',normFumoLightL:'Fumatore leggero (<10/die)',normFumoModL:'Fumatore moderato (10-20/die)',normFumoHeavyL:'Fumatore pesante (>20/die)',normFumoNoneCons:'Nessun impatto da fumo su VO2max e FC. Capacità aerobica non limitata da fattori tabagici.',normFumoExCons:'Benefici progressivi dopo cessazione: FC normalizzata in 2-12 settimane, VO2max +10-15% in 3-9 mesi, funzione polmonare migliorata in 1-9 mesi (AHA). Allenamento aerobico accelera il recupero. Progressione normale del programma.',normFumoLightCons:'Impatto: VO2max ridotto ~5-8%, FC a riposo +5-10 bpm (↑ attivazione simpatica), COHb 3-5% → ridotta capacità di trasporto O2. Soglia anaerobica anticipata. Adattamento: ridurre intensità aerobica attesa del 10%, allungare fasi di riscaldamento, monitorare SpO2. Motivare alla cessazione.',normFumoModCons:'Impatto significativo: VO2max ridotto ~10-15%, FC riposo +10-15 bpm, COHb 5-8%. Ridotta clearance mucociliare, maggiore dispnea da sforzo. Adattamento: FC target calcolata -10%, evitare esercizio intenso in ambienti freddi, pause più frequenti, monitorare SpO2 e sintomi. Forte raccomandazione cessazione — invio centro antifumo.',normFumoHeavyCons:'⚠️ Impatto severo: VO2max ridotto 15-25%, FC riposo +15-20 bpm, COHb >8%. Rischio eventi cardiaci aumentato durante esercizio. Adattamento: SOLO attività leggera (camminata, cyclette bassa intensità), RPE ≤4, monitoraggio PA/FC costante, evitare sforzi massimali. Clearance cardiologica consigliata. Cessazione fumo è la priorità clinica n.1.',normSmokeDefault:'Stato fumo registrato.',
@@ -2728,7 +2773,7 @@ const LANGS={
     authVerifyTitle:'Verify your email',authVerifyDesc1:'We sent a verification email to',authVerifyDesc2:'Click the link in the email to activate your account.',authVerifyCheck:'Email not yet verified. Check your inbox (including spam).',authVerifyResent:'Email resent!',authVerifyResendErr:'Error sending. Try again in a few minutes.',authVerifyBtn:"I've verified, sign in",authVerifyResend:'Resend email',
     wFinish:'✓ Start using PT Board',
     toastAskEmail:'📧 Notify {nome} via email?',toastEmailSent:'Email sent to {email}',toastEmailErr:'Error sending email',toastUndone:'Action cancelled',toastNoSesso:'Sex not specified — workout generated with neutral parameters',planActivated:'{plan} activated!',libUpdated:'Library updated: {n} new exercises added',shareBtn:'🔗 Share with client',shareCopyLink:'Copy link',shareCopyMsg:'Copy message',shareOpen:'Open preview',shareDeactivate:'Deactivate link',shareClientLog:'Client sessions',shareNoLog:'No sessions recorded by the client. Share the workout to get started.',shareMsgTemplate:'Hi {nome}! 💪 Here is your personal workout on PT Board: {link}\nSave it to your phone home screen to open with one tap. — {pt}',shareActive:'Link active',shareInactive:'Link deactivated',shareLinkLabel:'Workout link',accDeleted:'Account deleted',accDeleteErr:'For security, sign out and sign back in before deleting your account',requiredFields:'Fields to correct',
-    admTitle:'👑 Admin Panel',admPlanUpdated:'✓ Plan updated',admPlanError:'❌ Save error: {msg}',admNoUsers:'No users yet',admStatTotal:'Total',admStatTrial:'Active trials',admStatProTeam:'Pro/Team',admStatExpired:'Expired',admColEmail:'Email',admColName:'Name',admColPlan:'Plan',admColDays:'Days left',admColJoined:'Joined',admColChangePlan:'Change plan',admPlanBlocked:'🚫 Blocked',admMonthly:'Monthly',admYearly:'Yearly',admExpired:'Expired',admDaySuffix:'d',admFeedbackTitle:'📋 Deletion feedback',admNoFeedback:'No deletion feedback',admFbReason:'Reason',admFbDetail:'Detail',admFbDays:'Days used',admFbDate:'Deletion date',admBackupTitle:'📥 Data backup',admBackupLoading:'⏳ Backup in progress...',admBackupDone:'✓ Backup complete: {n} users',admBackupError:'❌ Backup error: {msg}',admBackupDesc:'Download all users and their data (appdata) in JSON format.',
+    admTitle:'👑 Admin Panel',admPlanUpdated:'✓ Plan updated',admPlanError:'❌ Save error: {msg}',admNoUsers:'No users yet',admStatTotal:'Total',admStatTrial:'Active trials',admStatProTeam:'Pro/Team',admStatExpired:'Expired',admColEmail:'Email',admColName:'Name',admColPlan:'Plan',admColDays:'Days left',admColJoined:'Joined',admColChangePlan:'Change plan',admPlanBlocked:'🚫 Blocked',admMonthly:'Monthly',admYearly:'Yearly',admExpired:'Expired',admDaySuffix:'d',admFeedbackTitle:'📋 Deletion feedback',admNoFeedback:'No deletion feedback',admFbReason:'Reason',admFbDetail:'Detail',admFbDays:'Days used',admFbDate:'Deletion date',admBackupTitle:'📥 Data backup',tipSuperset:'Superset: 2 exercises back to back with no rest, then recover. Saves time and raises intensity.',tipCircuito:'Circuit: several stations in sequence for a number of rounds. Great for full-body work at a steady pace.',tipEmom:'EMOM (every minute on the minute): a station starts each minute, the time left is rest. Keeps intensity in check and technique clean.',tipAmrap:'AMRAP: as many rounds as possible in a fixed time, at your own pace. Great for tracking progress: the client counts rounds each week.',tipHyrox:'Hyrox: stations in sequence with no planned rest, record the total time. Race style, for endurance and functional work.',tipFinisher:'Finisher: short high-intensity final block (e.g. sled, farmer’s walk) to close the session.',tipUnita:'Dose unit: Reps, Time (seconds or minutes), m (metres, e.g. sled or rower), cal (calories on bike, rower, ski erg).',tipLato:'Per side: the dose is for each side or leg (e.g. 8 per leg). It counts double in the estimated duration.',tipCarico:'Load: type a number (becomes kg) or free text, e.g. “sled + 20 kg” or “2 × 12 kg”.',tipNota:'Note for the client (max 80 characters), e.g. “1\" pause at the top”. Shown in the PDF and in their link.',tipBlkNota:'Block note: a tip for the whole block, e.g. “steady pace”. Shown under the description.',tipRisc:'Warm-up for the day, with minutes: shown before the main part in the PDF and the client link.',tipDefat:'Cool-down for the day, with minutes: shown at the end in the PDF and the client link.',tipRegole:'Rules for every session (effort, back, impact…). Shown at the top of the plan, also to the client.',tipProgr:'How the plan changes over the weeks (rounds, reps, load). Shown at the top of the plan, also to the client.',admNewsTitle:'📣 News email to all PTs',admNewsHelp:'First create the template in Brevo, then type its number (ID) here. Anyone who already received it won’t get it again.',admNewsTplPh:'Brevo template ID',admNewsBtn:'Send to all',admNewsConfirm:'Send the email (template {tpl}) to {n} PTs?',admNewsProgress:'Sending… {i}/{n}',admNewsDone:'Done: {ok} sent, {ko} failed',admNewsNoTpl:'Type the Brevo template ID',admNewsNone:'All PTs already received this email',admBackupLoading:'⏳ Backup in progress...',admBackupDone:'✓ Backup complete: {n} users',admBackupError:'❌ Backup error: {msg}',admBackupDesc:'Download all users and their data (appdata) in JSON format.',
     progRpeTarget:'RPE target',progZonaFC:'HR Zone',progRazionale:'Scientific rationale',progSplit:'Split',progDurata:'Duration',progFrequenza:'Frequency',progIntensita:'Intensity',progModulatori:'Modulators',progSerieExtra:'+1 set on compounds ({s}×{r})',progSerieInv:'Sets unchanged',progNoteForza:'Strength — linear method. +{p}%/week (modulated on {n} sessions/week). Deload W4: -30%.',progNoteIpert:'Hypertrophy — double progression. +{p}% load{extra}. {n} sessions/week → recovery {rec}.',progNoteIpertSerie:' + +1 set in W3',progRecAmpio:'ample, larger increments',progRecRidotto:'reduced, conservative increments',progNoteMetab:'Metabolic — +{p}% load or -5s rest. With {n} sessions: volume {vol}.',progVolElevato:'high, prioritise recovery',progVolModerato:'moderate, room for progression',progNoteResist:'Endurance — +{p}% load or +1 rep each week. {n} sessions/week.',progNoteSalute:'General health — +{p}% on alternate weeks. Adjust to RPE feedback.',progW1:'W1 — {split} plan · {s}×{r} · Load: {c}% perceived 1RM · Rest: {rec}s · Focus on technique and recording loads.',progW2:'W2 — Same plan · Load +{p}% on all compounds · Sets/reps unchanged · RPE target: {rpe1}-{rpe2}. ({n} sessions/week → progression rate calibrated)',progW3:'W3 — Same plan · {label} · Load +{p}% further · Volume peak.',progW4:'W4 — DELOAD · {s}×{r} · Load -25% · Rest +20s · {note}',progWarnForza:'For optimal strength results at least 3–4 sessions/week are recommended.',progWarnIpert:'For optimal hypertrophy results at least 3–4 sessions/week are recommended.',progWarnDeficit:'For an effective caloric deficit at least 3 sessions/week are recommended.',
     offTrackBelow:'Progress below expectations',offTrackAbove:'Progress above expectations',offTrackLine1:'Observed: {obs} kg/week · Expected: {exp} kg/week ({pct}% of target).',offTrackLow:'Consider adjusting kcal or increasing training volume.',offTrackHigh:'Check for water retention or monitor body composition.',
     normFumoNoneL:'Non-smoker',normFumoExL:'Ex-smoker',normFumoLightL:'Light smoker (<10/day)',normFumoModL:'Moderate smoker (10-20/day)',normFumoHeavyL:'Heavy smoker (>20/day)',normFumoNoneCons:'No smoking impact on VO2max and HR. Aerobic capacity not limited by tobacco factors.',normFumoExCons:'Progressive benefits after cessation: HR normalised in 2-12 weeks, VO2max +10-15% in 3-9 months, lung function improved in 1-9 months (AHA). Aerobic training accelerates recovery. Normal programme progression.',normFumoLightCons:'Impact: VO2max reduced ~5-8%, resting HR +5-10 bpm (↑ sympathetic activation), COHb 3-5% → reduced O2 transport capacity. Anaerobic threshold earlier. Adaptation: reduce expected aerobic intensity by 10%, extend warm-up phases, monitor SpO2. Motivate towards cessation.',normFumoModCons:'Significant impact: VO2max reduced ~10-15%, resting HR +10-15 bpm, COHb 5-8%. Reduced mucociliary clearance, greater exertional dyspnoea. Adaptation: calculated target HR -10%, avoid intense exercise in cold environments, more frequent breaks, monitor SpO2 and symptoms. Strong cessation recommendation — referral to smoking cessation centre.',normFumoHeavyCons:'⚠️ Severe impact: VO2max reduced 15-25%, resting HR +15-20 bpm, COHb >8%. Increased risk of cardiac events during exercise. Adaptation: ONLY light activity (walking, low-intensity cycling), RPE ≤4, constant BP/HR monitoring, avoid maximal efforts. Cardiology clearance advised. Smoking cessation is clinical priority #1.',normSmokeDefault:'Smoking status recorded.',
@@ -3578,7 +3623,7 @@ const LANGS={
     authVerifyTitle:'Vérifiez votre email',authVerifyDesc1:"Nous avons envoyé un email de vérification à",authVerifyDesc2:"Cliquez sur le lien dans l'email pour activer votre compte.",authVerifyCheck:'Email pas encore vérifiée. Vérifiez votre boîte de réception (y compris les spams).',authVerifyResent:'Email renvoyé !',authVerifyResendErr:"Erreur d'envoi. Réessayez dans quelques minutes.",authVerifyBtn:"J'ai vérifié, me connecter",authVerifyResend:"Renvoyer l'email",
     wFinish:'✓ Commencer à utiliser PT Board',
     toastAskEmail:'📧 Notifier {nome} par email ?',toastEmailSent:'Email envoyé à {email}',toastEmailErr:"Erreur d'envoi de l'email",toastUndone:'Action annulée',toastNoSesso:'Sexe non spécifié — séance générée avec des paramètres neutres',planActivated:'{plan} activé !',libUpdated:'Bibliothèque mise à jour : {n} nouveaux exercices ajoutés',shareBtn:'🔗 Partager avec le client',shareCopyLink:'Copier le lien',shareCopyMsg:'Copier le message',shareOpen:'Aperçu',shareDeactivate:'Désactiver le lien',shareClientLog:'Séances du client',shareNoLog:'Aucune séance enregistrée par le client. Partagez la fiche pour commencer.',shareMsgTemplate:'Bonjour {nome} ! 💪 Voici votre programme personnel sur PT Board : {link}\nAjoutez-le à l\'écran d\'accueil de votre téléphone. — {pt}',shareActive:'Lien actif',shareInactive:'Lien désactivé',shareLinkLabel:'Lien programme',accDeleted:'Compte supprimé',accDeleteErr:'Pour des raisons de sécurité, déconnectez-vous et reconnectez-vous avant de supprimer votre compte',requiredFields:'Champs à corriger',
-    admTitle:'👑 Panneau Admin',admPlanUpdated:'✓ Plan mis à jour',admPlanError:'❌ Erreur de sauvegarde : {msg}',admNoUsers:'Aucun utilisateur encore',admStatTotal:'Total',admStatTrial:'Essais actifs',admStatProTeam:'Pro/Équipe',admStatExpired:'Expirés',admColEmail:'Email',admColName:'Nom',admColPlan:'Plan',admColDays:'Jours restants',admColJoined:'Inscrit',admColChangePlan:'Changer de plan',admPlanBlocked:'🚫 Bloqué',admMonthly:'Mensuel',admYearly:'Annuel',admExpired:'Expiré',admDaySuffix:'j',admFeedbackTitle:'📋 Retours de suppression',admNoFeedback:'Aucun retour de suppression',admFbReason:'Motif',admFbDetail:'Détail',admFbDays:'Jours utilisés',admFbDate:'Date de suppression',admBackupTitle:'📥 Sauvegarde des données',admBackupLoading:'⏳ Sauvegarde en cours...',admBackupDone:'✓ Sauvegarde terminée : {n} utilisateurs',admBackupError:'❌ Erreur de sauvegarde : {msg}',admBackupDesc:'Téléchargez tous les utilisateurs et leurs données (appdata) au format JSON.',
+    admTitle:'👑 Panneau Admin',admPlanUpdated:'✓ Plan mis à jour',admPlanError:'❌ Erreur de sauvegarde : {msg}',admNoUsers:'Aucun utilisateur encore',admStatTotal:'Total',admStatTrial:'Essais actifs',admStatProTeam:'Pro/Équipe',admStatExpired:'Expirés',admColEmail:'Email',admColName:'Nom',admColPlan:'Plan',admColDays:'Jours restants',admColJoined:'Inscrit',admColChangePlan:'Changer de plan',admPlanBlocked:'🚫 Bloqué',admMonthly:'Mensuel',admYearly:'Annuel',admExpired:'Expiré',admDaySuffix:'j',admFeedbackTitle:'📋 Retours de suppression',admNoFeedback:'Aucun retour de suppression',admFbReason:'Motif',admFbDetail:'Détail',admFbDays:'Jours utilisés',admFbDate:'Date de suppression',admBackupTitle:'📥 Sauvegarde des données',tipSuperset:'Superset : 2 exercices enchaînés sans pause, puis récupération. Fait gagner du temps et augmente l’intensité.',tipCircuito:'Circuit : plusieurs stations à la suite pendant un nombre de tours. Idéal pour travailler tout le corps à rythme régulier.',tipEmom:'EMOM (chaque minute) : une station démarre chaque minute, le temps restant sert à récupérer. Garde l’intensité sous contrôle et la technique propre.',tipAmrap:'AMRAP : le plus de tours possible en un temps fixe, à son rythme. Parfait pour voir les progrès : le client compte ses tours chaque semaine.',tipHyrox:'Hyrox : stations à la suite sans pause prévue, on note le temps total. Style compétition, pour l’endurance et le fonctionnel.',tipFinisher:'Finisher : court bloc final à haute intensité (ex. traîneau, farmer’s walk) pour finir la séance.',tipUnita:'Unité : Rép (répétitions), Temps (secondes ou minutes), m (mètres, ex. traîneau ou rameur), cal (calories sur vélo, rameur, ski erg).',tipLato:'Par côté : la dose vaut pour chaque côté ou jambe (ex. 8 par jambe). Compte double dans la durée estimée.',tipCarico:'Charge : écris un nombre (devient kg) ou un texte libre, ex. « traîneau + 20 kg » ou « 2 × 12 kg ».',tipNota:'Note pour le client (80 caractères max), ex. « pause 1\" en haut ». Visible dans le PDF et dans son lien.',tipBlkNota:'Note du bloc : un conseil pour tout le bloc, ex. « rythme régulier ». Affichée sous la description.',tipRisc:'Échauffement du jour, avec les minutes : affiché avant la partie principale dans le PDF et le lien du client.',tipDefat:'Retour au calme du jour, avec les minutes : affiché à la fin dans le PDF et le lien du client.',tipRegole:'Règles pour chaque séance (effort, dos, impact…). Affichées en haut de la fiche, aussi pour le client.',tipProgr:'Comment la fiche évolue au fil des semaines (tours, répétitions, charge). Affichée en haut de la fiche, aussi pour le client.',admNewsTitle:'📣 E-mail nouveautés à tous les PT',admNewsHelp:'Crée d’abord le modèle dans Brevo, puis écris ici son numéro (ID). Ceux qui l’ont déjà reçu ne le recevront pas à nouveau.',admNewsTplPh:'ID du modèle Brevo',admNewsBtn:'Envoyer à tous',admNewsConfirm:'Envoyer l’e-mail (modèle {tpl}) à {n} PT ?',admNewsProgress:'Envoi en cours… {i}/{n}',admNewsDone:'Terminé : {ok} envoyés, {ko} échecs',admNewsNoTpl:'Écris l’ID du modèle Brevo',admNewsNone:'Tous les PT ont déjà reçu cet e-mail',admBackupLoading:'⏳ Sauvegarde en cours...',admBackupDone:'✓ Sauvegarde terminée : {n} utilisateurs',admBackupError:'❌ Erreur de sauvegarde : {msg}',admBackupDesc:'Téléchargez tous les utilisateurs et leurs données (appdata) au format JSON.',
     progRpeTarget:'RPE cible',progZonaFC:'Zone FC',progRazionale:'Raisonnement scientifique',progSplit:'Split',progDurata:'Durée',progFrequenza:'Fréquence',progIntensita:'Intensité',progModulatori:'Modulateurs',progSerieExtra:'+1 série sur les composés ({s}×{r})',progSerieInv:'Séries inchangées',progNoteForza:'Force — méthode linéaire. +{p}%/sem (modulé sur {n} séances/sem). Décharge W4: -30%.',progNoteIpert:'Hypertrophie — double progression. +{p}% charge{extra}. {n} séances/sem → récupération {rec}.',progNoteIpertSerie:' + +1 série en W3',progRecAmpio:'ample, incréments plus grands',progRecRidotto:'réduite, incréments conservateurs',progNoteMetab:'Métabolique — +{p}% charge ou -5s récupération. Avec {n} séances : volume {vol}.',progVolElevato:'élevé, priorité à la récupération',progVolModerato:'modéré, marge pour la progression',progNoteResist:'Endurance — +{p}% charge ou +1 rép chaque semaine. {n} séances/sem.',progNoteSalute:'Santé générale — +{p}% en semaines alternées. Adapter selon RPE.',progW1:'W1 — Plan {split} · {s}×{r} · Charge : {c}% 1RM perçu · Repos : {rec}s · Focus technique et enregistrement charges.',progW2:'W2 — Même plan · Charge +{p}% sur tous les composés · Séries/rép inchangées · RPE cible : {rpe1}-{rpe2}. ({n} séances/sem → taux de progression calibré)',progW3:'W3 — Même plan · {label} · Charge +{p}% supplémentaire · Pic de volume.',progW4:'W4 — DÉCHARGE · {s}×{r} · Charge -25% · Repos +20s · {note}',progWarnForza:'Pour des résultats optimaux en force, au moins 3–4 séances/semaine sont recommandées.',progWarnIpert:'Pour des résultats optimaux en hypertrophie, au moins 3–4 séances/semaine sont recommandées.',progWarnDeficit:'Pour un déficit calorique efficace, au moins 3 séances/semaine sont recommandées.',
     offTrackBelow:'Progrès en dessous des attentes',offTrackAbove:'Progrès au-dessus des attentes',offTrackLine1:"Observé : {obs} kg/sem · Attendu : {exp} kg/sem ({pct}% de l'objectif).",offTrackLow:"Envisager un ajustement kcal ou une augmentation du volume d'entraînement.",offTrackHigh:'Vérifier la rétention d\'eau ou surveiller la composition corporelle.',
     normFumoNoneL:'Non-fumeur',normFumoExL:'Ex-fumeur',normFumoLightL:'Fumeur léger (<10/jour)',normFumoModL:'Fumeur modéré (10-20/jour)',normFumoHeavyL:'Fumeur intense (>20/jour)',normFumoNoneCons:"Aucun impact du tabac sur le VO2max et la FC. Capacité aérobie non limitée par des facteurs tabagiques.",normFumoExCons:"Bénéfices progressifs après l'arrêt : FC normalisée en 2-12 semaines, VO2max +10-15% en 3-9 mois, fonction pulmonaire améliorée en 1-9 mois (AHA). L'entraînement aérobie accélère la récupération. Progression normale du programme.",normFumoLightCons:"Impact : VO2max réduit ~5-8%, FC au repos +5-10 bpm (↑ activation sympathique), COHb 3-5% → capacité de transport O2 réduite. Seuil anaérobie anticipé. Adaptation : réduire l'intensité aérobie attendue de 10%, prolonger les phases d'échauffement, surveiller SpO2. Encourager l'arrêt.",normFumoModCons:"Impact significatif : VO2max réduit ~10-15%, FC repos +10-15 bpm, COHb 5-8%. Clairance mucociliaire réduite, plus grande dyspnée à l'effort. Adaptation : FC cible calculée -10%, éviter l'exercice intense dans les environnements froids, pauses plus fréquentes, surveiller SpO2 et symptômes. Forte recommandation d'arrêt — orientation vers centre antitabac.",normFumoHeavyCons:"⚠️ Impact sévère : VO2max réduit 15-25%, FC repos +15-20 bpm, COHb >8%. Risque accru d'événements cardiaques pendant l'exercice. Adaptation : SEULEMENT activité légère (marche, vélo basse intensité), RPE ≤4, surveillance TA/FC constante, éviter les efforts maximaux. Bilan cardiologique conseillé. L'arrêt du tabac est la priorité clinique n°1.",normSmokeDefault:'État tabagique enregistré.',
@@ -3664,6 +3709,20 @@ window.gT=gT;
 // Per aggiungere una notifica: aggiungi un oggetto IN CIMA all'array (le più
 // recenti per prime). Usa un id univoco — tutti i PT vedranno il badge.
 var NOTIFICHE=[
+  {
+    id:'schede-functional-2026-11',
+    data:'17/11/2026',
+    titolo:{
+      it:'Novità: schede functional',
+      en:'New: functional workout plans',
+      fr:'Nouveau : fiches fonctionnelles'
+    },
+    testo:{
+      it:'Nella scheda trovi nuovi blocchi EMOM, AMRAP, Hyrox e Finisher, le unità metri, calorie e "per lato", il carico libero (es. "slitta + 20 kg") e una nota per ogni esercizio. Puoi aggiungere riscaldamento e defaticamento per ogni giorno, e regole e progressione in cima alla scheda, con frasi pronte. Nel PDF e nel link del cliente si vede tutto; il cliente ha anche i timer EMOM, AMRAP e Hyrox. Passa il cursore (o tocca la "i") per una spiegazione.',
+      en:'In the plan you now have EMOM, AMRAP, Hyrox and Finisher blocks, metres, calories and "per side" units, free-text load (e.g. "sled + 20 kg") and a note for every exercise. You can add a warm-up and cool-down for each day, plus rules and progression at the top of the plan, with ready-made phrases. Everything shows in the PDF and the client link; clients also get EMOM, AMRAP and Hyrox timers. Hover (or tap the "i") for an explanation.',
+      fr:'Dans la fiche, vous trouvez les nouveaux blocs EMOM, AMRAP, Hyrox et Finisher, les unités mètres, calories et « par côté », la charge libre (ex. « traîneau + 20 kg ») et une note par exercice. Vous pouvez ajouter échauffement et retour au calme pour chaque jour, ainsi que règles et progression en haut de la fiche, avec des phrases prêtes. Tout apparaît dans le PDF et le lien du client ; le client a aussi les minuteurs EMOM, AMRAP et Hyrox. Survolez (ou touchez le « i ») pour une explication.'
+    }
+  },
   {
     id:'app-cliente-2026-06',
     data:'15/06/2026',
@@ -4901,9 +4960,10 @@ function BloccoHeader({bl,label,count,T,onChange,onUngroup}){
     <div style={{padding:'9px 11px',background:col+'14',border:'1px solid '+col+'55',borderLeft:'5px solid '+col,borderBottom:'none',borderRadius:'10px 10px 0 0'}}>
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',minWidth:26,height:26,borderRadius:7,background:col,color:'#fff',fontSize:13,fontWeight:900}}>{label}</span>
+        <span style={{display:'inline-flex',alignItems:'center',color:col}} data-tip={tipBlocco(tipo,T)}>
         <select value={tipo} onClick={stop} onChange={function(e){cambiaTipo(e.target.value);}} style={{...sel,color:col,textTransform:'uppercase',letterSpacing:0.4,borderColor:col+'66'}}>
           {TIPI_BLOCCO.map(function(t){return <option key={t} value={t}>{nomeTipoBlocco(t,T)}</option>;})}
-        </select>
+        </select><TipI tip={tipBlocco(tipo,T)}/></span>
         {bloccoADurata(bl)?<span style={{display:'inline-flex',alignItems:'center'}}><span style={lbl}>{(T&&T.blkDurata)||'Durata'}</span>
           <select value={bl.durata||12} onClick={stop} onChange={function(e){onChange({durata:+e.target.value});}} style={sel}>{[4,5,6,8,10,12,14,15,16,18,20,24,25,30,35,40,45].map(function(n){return <option key={n} value={n}>{n+' min'}</option>;})}</select></span>
         :<>
@@ -4917,7 +4977,7 @@ function BloccoHeader({bl,label,count,T,onChange,onUngroup}){
         <button type="button" onClick={function(e){stop(e);onUngroup();}} title={(T&&T.blkUngroupTip)||'Sciogli il blocco: gli esercizi restano nella scheda'} style={{marginLeft:'auto',background:'transparent',border:'1px solid '+C.border2,color:C.muted,borderRadius:6,padding:'3px 8px',fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>{(T&&T.blkUngroup)||'Sciogli'}</button>
       </div>
       <div style={{fontSize:11,color:col,fontWeight:700,marginTop:5}}>{desc}</div>
-      <div style={{marginTop:3}}><TestoInline value={bl.nota||''} maxLength={100} inputWidth={260}
+      <div style={{marginTop:3}} data-tip={(T&&T.tipBlkNota)||''}><TestoInline value={bl.nota||''} maxLength={100} inputWidth={260}
         placeholder={(T&&T.blkNotaPh)||'es. ritmo costante, respira'} addLabel={(T&&T.blkNotaAdd)||'+ nota del blocco'}
         style={bl.nota?{fontStyle:'italic',color:C.text}:{}}
         onSave={function(v){onChange({nota:v});}}/></div>
@@ -4942,6 +5002,11 @@ function NumeroEsercizio({label,bl,size}){
   return <div style={{minWidth:sz,height:sz,padding:'0 4px',boxSizing:'border-box',borderRadius:8,background:bl?col:col+'10',color:bl?'#fff':col,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:900,flexShrink:0}}>{label}</div>;
 }
 
+// Piccola "i" per il telefono: toccandola compare la spiegazione (su computer e' nascosta, basta il cursore).
+function TipI({tip}){
+  if(!tip) return null;
+  return <span className="tip-i" data-tip={tip} role="button" tabIndex={0} aria-label={tip}>i</span>;
+}
 // Dose di un esercizio: valore + unita' (Rip / Tempo / m / cal) + "per lato".
 // onPatch riceve {reps, repsMode, perLato}.
 function DoseControls({ex,T,onPatch,size}){
@@ -4957,12 +5022,12 @@ function DoseControls({ex,T,onPatch,size}){
     <select value={cur} onClick={stop} onChange={function(e){onPatch({reps:+e.target.value});}} style={selSt} aria-label="Reps">
       {list.map(function(n){return <option key={n} value={n}>{mode==='reps'?n:fmtDoseVal(n,mode)}</option>;})}
     </select>
-    <select value={mode} onClick={stop} title={(T&&T.repsModeToggleTip)||'Ripetizioni, tempo, distanza o calorie'}
+    <select value={mode} onClick={stop} data-tip={(T&&T.tipUnita)||''} aria-label={(T&&T.repsModeToggleTip)||'Ripetizioni, tempo, distanza o calorie'}
       onChange={function(e){const m=e.target.value;onPatch({repsMode:m,reps:doseDefault(m)});}}
       style={{fontSize:10,fontWeight:800,color:'var(--accent)',background:'transparent',border:'1px solid '+C.border2,borderRadius:6,padding:'3px 2px',cursor:'pointer',fontFamily:'inherit'}}>
       {MODI_DOSE.map(function(m){return <option key={m} value={m}>{unitLbl[m]}</option>;})}
     </select>
-    <button type="button" aria-pressed={!!ex.perLato} title={(T&&T.perLatoTip)||'Per lato / per gamba'} onClick={function(e){stop(e);onPatch({perLato:!ex.perLato});}}
+    <button type="button" aria-pressed={!!ex.perLato} data-tip={(T&&T.tipLato)||''} aria-label={(T&&T.perLatoTip)||'Per lato / per gamba'} onClick={function(e){stop(e);onPatch({perLato:!ex.perLato});}}
       style={{border:'1px solid '+(ex.perLato?'var(--accent)':C.border2),background:ex.perLato?'var(--accent)':'transparent',color:ex.perLato?'var(--onAccent)':C.muted,borderRadius:6,padding:'3px 5px',fontSize:9,fontWeight:800,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>
       {(T&&T.perLatoShort)||'×lato'}
     </button>
@@ -4986,7 +5051,7 @@ function TestoInline({value,placeholder,addLabel,maxLength,onSave,style,inputWid
 }
 // Riquadro di testo modificabile con ✏️: textarea + frasi pronte (separate da '|') + minuti opzionali.
 // Vuoto: mostra solo il bottone addLabel. onSave(testo, min).
-function BoxTesto({titolo,icona,value,min,conMin,frasi,placeholder,addLabel,T,onSave,colore}){
+function BoxTesto({titolo,icona,value,min,conMin,frasi,placeholder,addLabel,T,onSave,colore,tip}){
   const [edit,setEdit]=useState(false);
   const [txt,setTxt]=useState(value||'');
   const [mm,setMm]=useState(+min||0);
@@ -5018,9 +5083,9 @@ function BoxTesto({titolo,icona,value,min,conMin,frasi,placeholder,addLabel,T,on
       <button type="button" onClick={salva} style={{background:col,border:'none',color:'#fff',borderRadius:7,padding:'5px 14px',fontSize:11,fontWeight:800,cursor:'pointer',fontFamily:'inherit'}}>{(T&&T.save)||'Salva'}</button>
     </div>
   </div>;
-  if(!value&&!+min) return <button type="button" onClick={apri}
-    style={{padding:'5px 10px',borderRadius:8,border:'1px dashed '+col+'70',background:'transparent',color:col,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>{addLabel}</button>;
-  return <div role="button" tabIndex={0} onClick={apri} onKeyDown={function(e){if(e.key==='Enter') apri();}}
+  if(!value&&!+min) return <button type="button" onClick={apri} data-tip={tip||''}
+    style={{padding:'5px 10px',borderRadius:8,border:'1px dashed '+col+'70',background:'transparent',color:col,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',display:'inline-flex',alignItems:'center'}}>{addLabel}<TipI tip={tip}/></button>;
+  return <div role="button" tabIndex={0} onClick={apri} data-tip={tip||''} onKeyDown={function(e){if(e.key==='Enter') apri();}}
     style={{borderLeft:'3px solid '+col,background:col+'0d',borderRadius:'0 8px 8px 0',padding:'7px 10px',margin:'6px 0',cursor:'pointer'}}>
     <div style={{display:'flex',alignItems:'center',gap:6}}>
       <span style={tit}>{icona} {titolo}{+min?' · '+min+' min':''}</span>
@@ -5032,10 +5097,10 @@ function BoxTesto({titolo,icona,value,min,conMin,frasi,placeholder,addLabel,T,on
 // Regole e progressione della scheda, in cima (scheda espansa ed editor).
 function RegoleProgressione({regole,progressione,T,onSave}){
   return <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'flex-start',margin:'0 0 10px'}}>
-    {[['regole',regole,'\u{1F4CC}',(T&&T.regoleTitolo)||'Regole',(T&&T.regoleAdd)||'+ Regole',(T&&T.regolePh)||'',(T&&T.regoleFrasi)||'','#0f766e'],
-      ['progressione',progressione,'\u{1F4C8}',(T&&T.progrTitolo)||'Progressione',(T&&T.progrAdd)||'+ Progressione',(T&&T.progrPh)||'',(T&&T.progrFrasi)||'','#7c3aed']].map(function(r){
+    {[['regole',regole,'\u{1F4CC}',(T&&T.regoleTitolo)||'Regole',(T&&T.regoleAdd)||'+ Regole',(T&&T.regolePh)||'',(T&&T.regoleFrasi)||'','#0f766e',(T&&T.tipRegole)||''],
+      ['progressione',progressione,'\u{1F4C8}',(T&&T.progrTitolo)||'Progressione',(T&&T.progrAdd)||'+ Progressione',(T&&T.progrPh)||'',(T&&T.progrFrasi)||'','#7c3aed',(T&&T.tipProgr)||'']].map(function(r){
       return <div key={r[0]} style={r[1]?{flexBasis:'100%'}:{}}>
-        <BoxTesto titolo={r[3]} icona={r[2]} value={r[1]||''} addLabel={r[4]} placeholder={r[5]} frasi={r[6]} colore={r[7]} T={T}
+        <BoxTesto titolo={r[3]} icona={r[2]} value={r[1]||''} addLabel={r[4]} placeholder={r[5]} frasi={r[6]} colore={r[7]} T={T} tip={r[8]}
           onSave={function(v){const patch={};patch[r[0]]=v;onSave(patch);}}/>
       </div>;
     })}
@@ -5050,21 +5115,22 @@ function ParteBox({tipo,val,T,onSave}){
       addLabel={risc?((T&&T.riscAdd)||'+ Riscaldamento'):((T&&T.defatAdd)||'+ Defaticamento')}
       placeholder={risc?((T&&T.riscPh)||''):((T&&T.defatPh)||'')}
       frasi={risc?((T&&T.riscFrasi)||''):((T&&T.defatFrasi)||'')}
+      tip={risc?((T&&T.tipRisc)||''):((T&&T.tipDefat)||'')}
       value={(val&&val.testo)||''} min={(val&&val.min)||0} T={T} onSave={onSave}/>
   </div>;
 }
 // Carico (testo libero) e nota del PT sotto il nome dell'esercizio.
 function CaricoNota({ex,T,onPatch}){
   return <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginTop:3}}>
-    <TestoInline value={ex.peso?String(ex.peso):''} maxLength={30} inputWidth={120}
+    <span data-tip={(T&&T.tipCarico)||''} style={{display:'inline-flex'}}><TestoInline value={ex.peso?String(ex.peso):''} maxLength={30} inputWidth={120}
       placeholder={(T&&T.caricoPh)||'es. 20 kg, slitta + 20 kg'} addLabel={(T&&T.caricoAdd)||'+ carico'}
       style={ex.peso?{fontWeight:800,color:C.blue}:{}}
-      onSave={function(v){onPatch({peso:v});}}/>
+      onSave={function(v){onPatch({peso:v});}}/></span>
     {ex.peso?<span style={{fontSize:10,color:C.muted,marginLeft:-4}}>{/^\d+([.,]\d+)?$/.test(String(ex.peso).trim())?'kg':''}</span>:null}
-    <TestoInline value={ex.nota||''} maxLength={80}
+    <span data-tip={(T&&T.tipNota)||''} style={{display:'inline-flex'}}><TestoInline value={ex.nota||''} maxLength={80}
       placeholder={(T&&T.notaPh)||'es. fermo 1" in alto'} addLabel={(T&&T.notaAdd)||'+ nota'}
       style={ex.nota?{fontStyle:'italic',color:C.muted}:{}}
-      onSave={function(v){onPatch({nota:v});}}/>
+      onSave={function(v){onPatch({nota:v});}}/></span>
   </div>;
 }
 
@@ -7183,9 +7249,9 @@ footer .center b{color:#3b82f6;font-weight:700}
                               style={{flex:2,minWidth:150,padding:'8px 10px',borderRadius:8,border:'1px dashed '+C.border2,background:'transparent',color:C.muted,fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
                               {(T.exAddToDay||'+ Esercizio in {g}').replace('{g}',ex.sezione)}
                             </button>
-                            {TIPI_BLOCCO.map(function(tipo){return <button key={tipo} type="button" onClick={function(){setPickTarget({mode:'add',si:si,sezione:ex.sezione,newBlocco:{id:newBloccoId(),tipo:tipo}});}}
+                            {TIPI_BLOCCO.map(function(tipo){return <button key={tipo} type="button" data-tip={tipBlocco(tipo,T)} onClick={function(){setPickTarget({mode:'add',si:si,sezione:ex.sezione,newBlocco:{id:newBloccoId(),tipo:tipo}});}}
                               style={{flex:1,minWidth:76,padding:'7px 8px',borderRadius:8,border:'1px dashed '+BLOCCO_COLOR[tipo]+'90',background:'transparent',color:BLOCCO_COLOR[tipo],fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
-                              {'+ '+nomeTipoBlocco(tipo,T)}
+                              {'+ '+nomeTipoBlocco(tipo,T)}<TipI tip={tipBlocco(tipo,T)}/>
                             </button>;})}
                           </div>}
                         </React.Fragment>
@@ -7199,9 +7265,9 @@ footer .center b{color:#3b82f6;font-weight:700}
                     </button>
                     {/* Nuovo blocco: il primo esercizio scelto apre il blocco. */}
                     <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
-                      {TIPI_BLOCCO.map(function(tipo){return <button key={tipo} type="button" onClick={function(){setPickTarget({mode:'add',si:si,newBlocco:{id:newBloccoId(),tipo:tipo}});}}
+                      {TIPI_BLOCCO.map(function(tipo){return <button key={tipo} type="button" data-tip={tipBlocco(tipo,T)} onClick={function(){setPickTarget({mode:'add',si:si,newBlocco:{id:newBloccoId(),tipo:tipo}});}}
                         style={{flex:1,minWidth:76,padding:'8px 8px',borderRadius:8,border:'1px dashed '+BLOCCO_COLOR[tipo]+'90',background:'transparent',color:BLOCCO_COLOR[tipo],fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}}>
-                        {'+ '+nomeTipoBlocco(tipo,T)}
+                        {'+ '+nomeTipoBlocco(tipo,T)}<TipI tip={tipBlocco(tipo,T)}/>
                       </button>;})}
                     </div>
                     </>}
@@ -8048,9 +8114,9 @@ function SchedaModal({exercises,patient,onSave,onClose,T,onAddExercise,initial,t
           {_T.exAddCta||'+ Aggiungi esercizio'}
         </button>
         <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
-          {TIPI_BLOCCO.map(function(tp){return <button key={tp} type="button" onClick={function(){setPickCtx({newBlocco:{id:newBloccoId(),tipo:tp}});}}
+          {TIPI_BLOCCO.map(function(tp){return <button key={tp} type="button" data-tip={tipBlocco(tp,_T)} onClick={function(){setPickCtx({newBlocco:{id:newBloccoId(),tipo:tp}});}}
             style={{flex:1,minWidth:76,padding:'8px 8px',borderRadius:9,border:'1px dashed '+BLOCCO_COLOR[tp]+'90',background:'transparent',color:BLOCCO_COLOR[tp],fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.3}}>
-            {'+ '+nomeTipoBlocco(tp,_T)}
+            {'+ '+nomeTipoBlocco(tp,_T)}<TipI tip={tipBlocco(tp,_T)}/>
           </button>;})}
         </div>
       </div>
@@ -14886,6 +14952,31 @@ function AdminModal({onClose,lang}){
   const [msg,setMsg]=useState('');
   const [feedbacks,setFeedbacks]=useState([]);
   const [backupLoading,setBackupLoading]=useState(false);
+  const [newsTpl,setNewsTpl]=useState('');
+  const [newsStato,setNewsStato]=useState(null);
+  async function inviaNovita(){
+    const tid=parseInt(newsTpl,10);
+    if(!tid){setMsg(T.admNewsNoTpl);setTimeout(function(){setMsg('');},3000);return;}
+    const me=fbAuth.currentUser;if(!me) return;
+    const camp='tpl'+tid;
+    const ref=fbDb.collection('users').doc(me.uid).collection('appdata').doc('broadcasts');
+    let gia=[];
+    try{const sn=await ref.get();gia=(sn.exists&&sn.data()[camp])||[];}catch(e){setMsg(String(e.message||e));return;}
+    const dest=users.filter(function(u){return u.email&&gia.indexOf(u.id)===-1;});
+    if(!dest.length){setMsg(T.admNewsNone);setTimeout(function(){setMsg('');},3000);return;}
+    if(!window.confirm(T.admNewsConfirm.replace('{tpl}',tid).replace('{n}',dest.length))) return;
+    let ok=0,ko=0;
+    setNewsStato({running:true,i:0,n:dest.length,ok:0,ko:0});
+    for(let i=0;i<dest.length;i++){
+      const u=dest[i];
+      const r=await sendBrevoEmail(u.email,u.nome||u.nomeStudio||'',tid);
+      if(r&&r.ok){ok++;gia=gia.concat([u.id]);try{const upd={};upd[camp]=gia;await ref.set(upd,{merge:true});}catch(e){}}
+      else ko++;
+      setNewsStato({running:true,i:i+1,n:dest.length,ok:ok,ko:ko});
+      await new Promise(function(res){setTimeout(res,350);});
+    }
+    setNewsStato({running:false,i:dest.length,n:dest.length,ok:ok,ko:ko});
+  }
 
   useEffect(()=>{
     fbGetAllUsers().then(u=>{setUsers(u);setLoading(false);});
@@ -15038,6 +15129,20 @@ function AdminModal({onClose,lang}){
                 </tbody>
               </table>
             </div>}
+          </div>
+
+          {/* Email novita' a tutti i PT (modello Brevo). Chi l'ha gia' ricevuta e' segnato in
+              users/{admin}/appdata/broadcasts, cosi' un secondo clic o un invio interrotto non duplica. */}
+          <div style={{marginTop:28}}>
+            <div style={{fontSize:14,fontWeight:800,color:'#f8fafc',marginBottom:6}}>{T.admNewsTitle}</div>
+            <div style={{fontSize:12,color:'#94a3b8',marginBottom:10,lineHeight:1.5}}>{T.admNewsHelp}</div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+              <input value={newsTpl} onChange={function(e){setNewsTpl(e.target.value.replace(/[^0-9]/g,''));}} placeholder={T.admNewsTplPh} inputMode="numeric"
+                style={{width:150,padding:'9px 11px',borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f8fafc',fontSize:13,fontFamily:'inherit'}}/>
+              <button disabled={!!newsStato&&newsStato.running} onClick={inviaNovita}
+                style={{background:'#2563eb',color:'#fff',border:'none',padding:'10px 18px',borderRadius:8,fontWeight:700,cursor:'pointer',fontSize:13,fontFamily:'inherit',opacity:(newsStato&&newsStato.running)?0.6:1}}>{T.admNewsBtn}</button>
+              {newsStato&&<span style={{fontSize:12,color:'#cbd5e1'}}>{newsStato.running?T.admNewsProgress.replace('{i}',newsStato.i).replace('{n}',newsStato.n):T.admNewsDone.replace('{ok}',newsStato.ok).replace('{ko}',newsStato.ko)}</span>}
+            </div>
           </div>
 
           {/* Backup dati */}
