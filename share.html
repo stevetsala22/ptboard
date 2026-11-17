@@ -61,6 +61,20 @@ var fbDb=firebase.firestore();
   .parte-box{background:#fff;border:1px solid #f0f0ec;border-left:4px solid #d97706;border-radius:12px;padding:10px 14px;font-size:13px;color:#444441;line-height:1.5;margin-bottom:6px}
   .parte-box.defat{border-left-color:#0284c7}
   .blk-nota{font-size:12px;color:#042C53;font-style:italic;margin-top:4px}
+  .day-chips{flex:1;display:flex;gap:6px;flex-wrap:wrap}
+  .day-chip{padding:7px 12px;border-radius:10px;border:1px solid #d3d1c7;background:#fff;color:#5F5E5A;font:700 12px inherit;font-family:inherit;cursor:pointer}
+  .day-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .blk-timer{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-top:10px}
+  .bt-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#5F5E5A}
+  .bt-val{font-size:28px;font-weight:800;color:#042C53;font-variant-numeric:tabular-nums;line-height:1.15}
+  .bt-sub{font-size:11.5px;color:#5F5E5A}
+  .bt-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+  .bt-go{border:none;border-radius:10px;background:var(--accent);color:#fff;font:700 13px inherit;font-family:inherit;padding:10px 14px;cursor:pointer;min-width:92px}
+  .bt-go:disabled{opacity:.5}
+  .bt-reset{border:1px solid #d3d1c7;border-radius:10px;background:#fff;color:#5F5E5A;font:600 12px inherit;font-family:inherit;padding:6px 10px;cursor:pointer}
+  .blk-emom .bt-go{background:#6366f1}.blk-emom .bt-lbl{color:#4338ca}
+  .blk-amrap .bt-go{background:#0891b2}.blk-amrap .bt-lbl{color:#0e7490}
+  .blk-hyrox .bt-go{background:#0f766e}.blk-hyrox .bt-lbl{color:#0f766e}
 
   /* Exercise card */
   .ex-block{background:#fafafa;border:1px solid #f0f0ec;border-radius:12px;padding:14px;margin-bottom:12px}
@@ -188,6 +202,7 @@ var fbDb=firebase.firestore();
       <div class="ctrl-row" id="daySelectWrap" style="display:none">
         <span class="ctrl-label">📋 Giorno</span>
         <select class="ctrl-select" id="daySelect"></select>
+        <div class="day-chips" id="dayChips" hidden></div>
       </div>
     </section>
 
@@ -293,6 +308,75 @@ var fbDb=firebase.firestore();
   }
   function salvaStato(){try{localStorage.setItem(storageKey(),JSON.stringify(stato));}catch(e){}}
 
+  // ── TIMER DEI BLOCCHI: EMOM (minuto per minuto), AMRAP (conto alla rovescia), Hyrox (cronometro) ──
+  // Stato per giorno+blocco, fuori dal DOM: la lista si puo' ridisegnare senza perdere il tempo.
+  var blkTimers={},blkTick=null,wakeLock=null;
+  function tState(k){return blkTimers[k]||(blkTimers[k]={acc:0,start:null,lastMin:0,done:false});}
+  function tElapsed(t){return t.acc+(t.start?Date.now()-t.start:0);}
+  function mmss(sec){sec=Math.max(0,Math.ceil(sec-0.001));var m=Math.floor(sec/60),r=sec%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+  function beep(lungo){
+    try{if(navigator.vibrate)navigator.vibrate(lungo?[300,120,300]:150);}catch(e){}
+    try{var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;beep.ctx=beep.ctx||new AC();var c=beep.ctx,o=c.createOscillator(),g=c.createGain();
+      o.frequency.value=lungo?660:880;g.gain.value=0.15;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(lungo?0.6:0.2));}catch(e){}
+  }
+  function wake(on){
+    try{
+      if(on&&!wakeLock&&navigator.wakeLock) navigator.wakeLock.request('screen').then(function(w){wakeLock=w;}).catch(function(){});
+      else if(!on&&wakeLock){wakeLock.release();wakeLock=null;}
+    }catch(e){}
+  }
+  function gestisciTick(){
+    var attivi=Object.keys(blkTimers).some(function(k){return !!blkTimers[k].start;});
+    if(attivi&&!blkTick){blkTick=setInterval(tickTimers,250);wake(true);}
+    if(!attivi&&blkTick){clearInterval(blkTick);blkTick=null;wake(false);}
+  }
+  function tickTimers(){var els=document.querySelectorAll('.blk-timer');for(var i=0;i<els.length;i++)aggiornaTimer(els[i]);gestisciTick();}
+  function aggiornaTimer(el){
+    var k=el.getAttribute('data-k'),tipo=el.getAttribute('data-tipo'),durMin=+el.getAttribute('data-dur')||12,dur=durMin*60;
+    var st=[];try{st=JSON.parse(el.getAttribute('data-st')||'[]');}catch(e){}
+    var t=tState(k),sec=tElapsed(t)/1000,val='',sub='';
+    if(tipo==='hyrox'){
+      val=mmss(Math.floor(sec));
+      sub=t.start?'In corso… vai senza pause':(sec>0?'Tempo totale: '+mmss(Math.floor(sec)):'Premi Avvia e segna il tempo totale');
+    }else{
+      if(sec>=dur&&!t.done){t.done=true;t.acc=dur*1000;t.start=null;sec=dur;beep(true);}
+      if(tipo==='emom'){
+        var min=Math.min(Math.floor(sec/60)+1,durMin);
+        if(t.start&&min!==t.lastMin){if(t.lastMin)beep(false);t.lastMin=min;}
+        val=t.done?'00:00':mmss(60-(sec%60));
+        sub=t.done?'Finito! Ottimo lavoro':('Minuto '+min+' di '+durMin+(st.length?' · '+st[(min-1)%st.length]:''));
+      }else{
+        val=mmss(dur-sec);
+        sub=t.done?'Finito! Segna quanti giri hai fatto':(t.start?'Più giri possibili, ritmo costante':(sec>0?'In pausa':'Premi Avvia quando sei pronto'));
+      }
+    }
+    el.querySelector('.bt-val').textContent=val;
+    el.querySelector('.bt-sub').textContent=sub;
+    var go=el.querySelector('.bt-go');
+    go.textContent=t.start?'Pausa':(t.done?'Finito':(sec>0?'Riprendi':'Avvia'));
+    go.disabled=!!t.done;
+  }
+  function creaTimer(b,stazioni){
+    var k=giornoAttivo+':'+b.id;
+    var el=document.createElement('div');
+    el.className='blk-timer';
+    el.setAttribute('data-k',k);el.setAttribute('data-tipo',b.tipo);el.setAttribute('data-dur',String(b.durata||12));el.setAttribute('data-st',JSON.stringify(stazioni));
+    var lbl={emom:'Timer EMOM',amrap:'Timer AMRAP',hyrox:'Cronometro'}[b.tipo];
+    el.innerHTML='<div><div class="bt-lbl">'+lbl+'</div><div class="bt-val">00:00</div><div class="bt-sub"></div></div>'+
+      '<div class="bt-btns"><button type="button" class="bt-go">Avvia</button><button type="button" class="bt-reset">Azzera</button></div>';
+    el.querySelector('.bt-go').addEventListener('click',function(ev){
+      ev.stopPropagation();var t=tState(k);if(t.done)return;
+      if(t.start){t.acc+=Date.now()-t.start;t.start=null;}
+      else{t.start=Date.now();if(!t.acc){t.lastMin=1;beep(false);}}
+      gestisciTick();aggiornaTimer(el);
+    });
+    el.querySelector('.bt-reset').addEventListener('click',function(ev){
+      ev.stopPropagation();blkTimers[k]={acc:0,start:null,lastMin:0,done:false};gestisciTick();aggiornaTimer(el);
+    });
+    aggiornaTimer(el);
+    return el;
+  }
+
   // ── REST TIMER (floating) ──
   function startRestTimer(seconds,label,onEnd){
     if(!seconds||seconds<=0){if(onEnd)onEnd();return;}
@@ -341,6 +425,12 @@ var fbDb=firebase.firestore();
       return '<option value="'+gi+'" '+(gi===giornoAttivo?'selected':'')+'>'+esc(g.nome)+'</option>';
     }).join('');
     wrap.style.display=SCHEDA.giorni.length>1?'flex':'none';
+    // Fino a 6 giorni: bottoni al posto della tendina.
+    var chips=$('dayChips');
+    if(SCHEDA.giorni.length>1&&SCHEDA.giorni.length<=6){
+      chips.innerHTML=SCHEDA.giorni.map(function(g,gi){return '<button type="button" class="day-chip'+(gi===giornoAttivo?' on':'')+'" data-gi="'+gi+'">'+esc(g.nome)+'</button>';}).join('');
+      chips.hidden=false;sel.style.display='none';
+    }else{chips.hidden=true;sel.style.display='';}
 
     renderExerciseList();
     $('loadingScreen').style.display='none';
@@ -396,6 +486,10 @@ var fbDb=firebase.firestore();
         var ban=document.createElement('div');
         ban.className='blk-banner';
         ban.innerHTML='<div class="blk-title">'+esc(bannerTitolo(b))+'</div><div class="blk-sub">'+esc(bannerTesto(b))+'</div>'+(b.nota?'<div class="blk-nota">'+esc(b.nota)+'</div>':'');
+        if(b.tipo==='emom'||b.tipo==='amrap'||b.tipo==='hyrox'){
+          var stazioni=[];lista.forEach(function(x){if(x.blocco&&x.blocco.id===b.id)stazioni.push((b.label||'')+(stazioni.length+1)+' '+x.nome);});
+          ban.appendChild(creaTimer(b,stazioni));
+        }
         block.appendChild(ban);
       }
     }
@@ -633,8 +727,14 @@ var fbDb=firebase.firestore();
   // ── EVENTS ──
   $('btnSave').addEventListener('click',salva);
   $('dataSeduta').addEventListener('change',function(){stato.dataSeduta=this.value;salvaStato();});
+  $('dayChips').addEventListener('click',function(ev){
+    var b=ev.target.closest('.day-chip');if(!b)return;
+    var sel=$('daySelect');sel.value=b.getAttribute('data-gi');
+    sel.dispatchEvent(new Event('change'));
+  });
   $('daySelect').addEventListener('change',function(){
     giornoAttivo=+this.value;
+    var cs=document.querySelectorAll('#dayChips .day-chip');for(var ci=0;ci<cs.length;ci++)cs[ci].classList.toggle('on',+cs[ci].getAttribute('data-gi')===giornoAttivo);
     if(!stato.giorni[giornoAttivo]){
       // Inizializza il giorno se non esiste (es. switch tra giorni)
       stato.giorni[giornoAttivo]={esercizi:{}};

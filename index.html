@@ -1313,7 +1313,7 @@ const LANGS={
     schedaGenerated:'Scheda generata:',schedeGenerated:'schede generate',
     schedaDeleted:'Scheda eliminata',schedaTitle:'Scheda Allenamento',
     // PDF tables
-    tblExercise:'Esercizio',tblGroup:'Gruppo',tblLevel:'Livello',tblSets:'Serie',tblReps:'Rip',tblRest:'Rec',
+    tblExercise:'Esercizio',tblGroup:'Gruppo',tblLevel:'Livello',tblSets:'Serie',tblReps:'Rip',tblLoad:'Carico',tblNote:'Note',pdfAseduta:'A seduta',tblRest:'Rec',
     exTimerPrep:'Preparati',exTimerGo:'VAI!',exTimerRecov:'Recupero',exTimerDone:'Stop!',
     schedaEmpty:'Questa scheda non ha ancora esercizi.',
     splitPush:'Push',splitPull:'Pull',splitLegs:'Gambe',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
@@ -2163,7 +2163,7 @@ const LANGS={
     schedaGenerated:'Workout generated:',schedeGenerated:'workouts generated',
     schedaDeleted:'Workout deleted',schedaTitle:'Workout Sheet',
     // PDF tables
-    tblExercise:'Exercise',tblGroup:'Group',tblLevel:'Level',tblSets:'Sets',tblReps:'Reps',tblRest:'Rest',
+    tblExercise:'Exercise',tblGroup:'Group',tblLevel:'Level',tblSets:'Sets',tblReps:'Reps',tblLoad:'Load',tblNote:'Notes',pdfAseduta:'Per session',tblRest:'Rest',
     exTimerPrep:'Get ready',exTimerGo:'GO!',exTimerRecov:'Rest',exTimerDone:'Stop!',
     schedaEmpty:'This workout has no exercises yet.',
     splitPush:'Push',splitPull:'Pull',splitLegs:'Legs',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
@@ -3013,7 +3013,7 @@ const LANGS={
     schedaGenerated:'Fiche générée :',schedeGenerated:'fiches générées',
     schedaDeleted:'Fiche supprimée',schedaTitle:"Fiche d'Entraînement",
     // PDF tables
-    tblExercise:'Exercice',tblGroup:'Groupe',tblLevel:'Niveau',tblSets:'Séries',tblReps:'Rép',tblRest:'Repos',
+    tblExercise:'Exercice',tblGroup:'Groupe',tblLevel:'Niveau',tblSets:'Séries',tblReps:'Rép',tblLoad:'Charge',tblNote:'Notes',pdfAseduta:'Par séance',tblRest:'Repos',
     exTimerPrep:'Préparez-vous',exTimerGo:'ALLEZ!',exTimerRecov:'Repos',exTimerDone:'Stop!',
     schedaEmpty:"Cette fiche n'a pas encore d'exercices.",
     splitPush:'Poussée',splitPull:'Tirage',splitLegs:'Jambes',splitFullBody:'Full Body',splitUpperA:'Upper A',splitLowerB:'Lower B',
@@ -5806,6 +5806,10 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       }
       var _blkLabels=bloccoLabels(scheda);
       var _numeri=numeriEsercizi(scheda);
+      // Colonne Carico e Note solo se almeno un esercizio della scheda le usa.
+      var _colCar=(scheda.esercizi||[]).some(function(x){return !!fmtCarico(x.peso);});
+      var _colNota=(scheda.esercizi||[]).some(function(x){return !!x.nota;});
+      var _ncol=5+(_colCar?1:0)+(_colNota?1:0);
       // Riscaldamento prima della tabella, defaticamento dopo.
       var _sezB=(block.righe[0]&&block.righe[0].ex.sezione)||'';
       var _parteHtml=function(tipo){
@@ -5819,11 +5823,11 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
         var prevR=block.righe[ri-1];
         var blkHdr='';
         // Linea spessa quando cambia gruppo (singoli / superset / circuito).
-        if(prevR&&gruppoEsercizio(scheda,prevR.ex)!==gruppoEsercizio(scheda,ex)) blkHdr+='<tr class="grp-sep"><td colspan="7"></td></tr>';
+        if(prevR&&gruppoEsercizio(scheda,prevR.ex)!==gruppoEsercizio(scheda,ex)) blkHdr+='<tr class="grp-sep"><td colspan="'+_ncol+'"></td></tr>';
         if(bl&&(!prevR||prevR.ex.blocco!==ex.blocco)){
           var _bc=bloccoColor(bl);
           var _bn=(block.righe.filter(function(x){return x.ex.blocco===ex.blocco;})).length;
-          blkHdr+='<tr class="blk-row"><td colspan="7" style="background:'+_bc+'14;color:'+_bc+';border-left:5px solid '+_bc+'">'+esc(bloccoTitolo(bl,_blkLabels[ex.blocco],T))+' · '+esc(bloccoParametri(bl,T))+'<div class="blk-desc">'+esc(bloccoDesc(bl,_bn,T))+'</div>'+(bl.nota?'<div class="blk-desc blk-nota">'+esc(bl.nota)+'</div>':'')+'</td></tr>';
+          blkHdr+='<tr class="blk-row"><td colspan="'+_ncol+'" style="background:'+_bc+'14;color:'+_bc+';border-left:5px solid '+_bc+'">'+esc(bloccoTitolo(bl,_blkLabels[ex.blocco],T))+' · '+esc(bloccoParametri(bl,T))+'<div class="blk-desc">'+esc(bloccoDesc(bl,_bn,T))+'</div>'+(bl.nota?'<div class="blk-desc blk-nota">'+esc(bl.nota)+'</div>':'')+'</td></tr>';
         }
         var _pdfLang=getLang();
         var nome=exName(eInfo,_pdfLang)||ex.nomeCustom||ex.eId||'';
@@ -5854,29 +5858,30 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
           if(bloccoADurata(bl)){serieCol='—';recCol='—';}else{serieCol=bl.giri;recCol=(bl.recEx?fmtSec(bl.recEx):'—');}
           rowClass+=' blk-item';_numSt=' style="background:'+_c+'"';_firstSt=' style="border-left:5px solid '+_c+'"';
         }
-        // Carico (testo libero) e nota del PT sotto il nome.
+        // Gruppo muscolare e livello sotto il nome; carico e nota nelle loro colonne.
+        var _car=fmtCarico(ex.peso);
         var _sub=[];
-        var _car=fmtCarico(ex.peso);if(_car) _sub.push('<span class="ex-load">'+esc(_car)+'</span>');
-        if(ex.nota) _sub.push('<span class="ex-note-pt">'+esc(ex.nota)+'</span>');
+        if(gruppo) _sub.push(esc(gruppo));
+        if(livello) _sub.push('<span class="lv-badge" style="background:'+livBg+';color:'+livClr+'">'+esc(livello)+'</span>');
         return blkHdr+'<tr class="'+rowClass+'" style="background:'+rowBg+'">'+
           '<td class="num-cell"'+_firstSt+'><div class="num-circle"'+_numSt+'>'+esc(String(_numeri[ei]||ei+1))+'</div></td>'+
           '<td class="ex-cell"><b>'+esc(nome)+'</b>'+(_sub.length?'<div class="ex-sub">'+_sub.join(' · ')+'</div>':'')+'</td>'+
-          '<td class="grp-cell">'+esc(gruppo)+'</td>'+
-          '<td class="lv-cell">'+(livello?'<span class="lv-badge" style="background:'+livBg+';color:'+livClr+'">'+esc(livello)+'</span>':'—')+'</td>'+
           '<td class="n-cell">'+esc(String(serieCol))+'</td>'+
           '<td class="n-cell">'+esc(String(ripCol))+'</td>'+
+          (_colCar?'<td class="n-cell load-cell">'+(_car?esc(_car):'—')+'</td>':'')+
           '<td class="n-cell">'+esc(String(recCol))+'</td>'+
+          (_colNota?'<td class="note-cell">'+esc(ex.nota||'')+'</td>':'')+
         '</tr>';
       }).join('');
       return header+_parteHtml('risc')+
         '<table class="ex-table"><thead><tr>'+
         '<th class="th-num">#</th>'+
         '<th>'+esc(T.tblExercise)+'</th>'+
-        '<th>'+esc(T.tblGroup)+'</th>'+
-        '<th>'+esc(T.tblLevel)+'</th>'+
         '<th>'+esc(T.tblSets)+'</th>'+
         '<th>'+esc(T.tblReps)+'</th>'+
+        (_colCar?'<th>'+esc(T.tblLoad||'Carico')+'</th>':'')+
         '<th>'+esc(T.tblRest)+'</th>'+
+        (_colNota?'<th>'+esc(T.tblNote||'Note')+'</th>':'')+
         '</tr></thead><tbody>'+rowsHtml+'</tbody></table>'+_parteHtml('defat');
     };
     const tablesHtml=numEx===0
@@ -5926,9 +5931,10 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '.ex-note{font-size:9px;color:#64748b;margin-top:2px;font-style:italic}'+
       '.blk-row td{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:6px 10px}'+
       '.blk-row .blk-desc{font-size:9px;font-weight:600;text-transform:none;letter-spacing:0;opacity:.85;margin-top:2px}'+
-      '.ex-sub{font-size:9.5px;margin-top:2px;color:#64748b}'+
-      '.ex-load{font-weight:800;color:#1d4ed8}'+
-      '.ex-note-pt{font-style:italic}'+
+      '.ex-sub{font-size:9px;margin-top:3px;color:#64748b}'+
+      '.ex-sub .lv-badge{padding:1px 6px;font-size:8px}'+
+      '.load-cell{color:#1d4ed8;font-weight:800}'+
+      '.note-cell{font-size:9.5px;color:#64748b;font-style:italic;max-width:170px}'+
       '.blk-row .blk-nota{font-style:italic}'+
       '.parte-box{margin:8px 0;padding:7px 10px;border-left:4px solid #d97706;background:#fffbeb;border-radius:0 6px 6px 0;font-size:11px;color:#334155;line-height:1.45;page-break-inside:avoid}'+
       '.parte-defat{border-left-color:#0284c7;background:#f0f9ff}'+
@@ -5964,8 +5970,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       '</div>'+
       '</div>'+
       '<div class="hdr-line"></div>'+
-      '<div class="scheda-title">'+esc(scheda.nome)+((scheda.esercizi&&scheda.esercizi.length)?' <span style="font-size:13px;font-weight:700;color:#8b5cf6;margin-left:10px;letter-spacing:0">\u23F1 '+esc(T.schedaDurata)+': '+esc(testoDurata(scheda,exercises,T))+'</span>':'')+'</div>'+
-      '<div class="scheda-sub">'+(scheda.codice?esc(scheda.codice)+' \u00B7 ':'')+esc(dataOggi)+'</div>'+
+      '<div class="scheda-title">'+esc(scheda.nome)+'</div>'+
+      '<div class="scheda-sub">'+(scheda.codice?esc(scheda.codice)+' \u00B7 ':'')+esc(dataOggi)+(durateSedute(scheda,exercises).length>1?' \u00B7 '+esc(durateSedute(scheda,exercises).map(function(x){return (x.nome||'\u2014')+' '+x.min+"'";}).join(' \u00B7 ')):'')+'</div>'+
       /* KPI PULITI (coerenza con detail cliente): rimosse pills Serie\u00D7Rip
          e Recupero perche' mostravano valori di config generici che non
          coincidevano con i reali parametri degli esercizi (ciascuno ha
@@ -5974,7 +5980,8 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
          totale esercizi come kpi utile a colpo d'occhio. */
       '<div class="kpi-row">'+
       '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||'Full Body')+'</div><div class="kpi-lbl">Split</div></div>'+
-      '<div class="kpi sets"><div class="kpi-val">'+numEx+'</div><div class="kpi-lbl">'+esc(T.schedaEsercizi||'Esercizi')+'</div></div>'+
+      '<div class="kpi sets"><div class="kpi-val">~'+stimaDurataMin(scheda,exercises)+' min</div><div class="kpi-lbl">'+esc(T.pdfAseduta||'A seduta')+'</div></div>'+
+      '<div class="kpi rest"><div class="kpi-val">'+numEx+'</div><div class="kpi-lbl">'+esc(T.schedaEsercizi||'Esercizi')+'</div></div>'+
       '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">'+(T.exEquip)+'</div></div>'+
       '</div>'+
       /* Riepilogo composizione tolto dal PDF del cliente (resta nell'app per il PT). */
