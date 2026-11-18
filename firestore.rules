@@ -115,12 +115,48 @@ service cloud.firestore {
         }
       }
 
+      // Modelli di scheda condivisi con i PT della palestra.
+      // Leggono tutti i membri; si crea solo a proprio nome; l'autore modifica (senza cambiare
+      // autore); eliminano l'autore o l'owner della palestra.
+      match /templates/{tplId} {
+        allow read: if request.auth != null
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+        allow create: if request.auth != null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt'])
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+        allow update: if request.auth != null
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt']);
+        allow delete: if request.auth != null
+          && (resource.data.ownerUid == request.auth.uid
+              || get(/databases/$(database)/documents/gyms/$(gymId)).data.ownerUid == request.auth.uid);
+      }
+
       // Libreria esercizi condivisa della palestra: override di INIT_EXERCISES
       // o nuovi esercizi custom. Stesso accesso dei clienti (tutti i membri).
       match /exercises/{exId} {
         allow read, create, update, delete: if request.auth != null
           && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
       }
+    }
+
+    // ── MODELLI DI SCHEDA PER TUTTI I PT ──
+    // Leggibili da ogni utente loggato; si crea solo a proprio nome; l'autore modifica;
+    // eliminano l'autore o l'admin (moderazione).
+    match /publicTemplates/{tplId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt']);
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt']);
+      allow delete: if request.auth != null
+                    && (resource.data.ownerUid == request.auth.uid
+                        || request.auth.token.email == 'stevetsala22@gmail.com');
     }
 
     // ── GYMS PUBLIC MIRROR (branding visibile ai clienti anonimi) ──

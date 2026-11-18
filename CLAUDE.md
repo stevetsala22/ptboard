@@ -23,7 +23,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 ## ⚠️ REGOLE CRITICHE — non violare mai
 1. **MAI** `fbDb.enableIndexedDbPersistence()` / `fbDb.enablePersistence()`. Fanno crashare Firebase compat 10.7.0.
 2. **Deploy SOLO via GitHub Pages**. MAI Netlify, MAI altri hosting.
-3. **Regole Firestore**: modifica SEMPRE prima `firestore.rules` nel repo, POI copia il file intero in Firebase Console → Firestore → Regole. L'editor Console sovrascrive l'intero ruleset: una regola nuova pubblicata senza il resto cancella tutte le altre. Dopo ogni modifica verifica che ci siano TUTTI i 7 blocchi (vedi §Firestore rules).
+3. **Regole Firestore**: modifica SEMPRE prima `firestore.rules` nel repo, POI copia il file intero in Firebase Console → Firestore → Regole. L'editor Console sovrascrive l'intero ruleset: una regola nuova pubblicata senza il resto cancella tutte le altre. Dopo ogni modifica verifica che ci siano TUTTI i blocchi dell'appendice (users, admin, deleteFeedback, sharedClients, athletes, gyms con clients/schede/templates/exercises, publicTemplates, gymsPublic, gymInvites, blocca-tutto).
 4. **Nessuna chiave API/segreto nel frontend**. Brevo passa dal Cloudflare Worker; Stripe passa dalle Payment Links. Public keys (Firebase, EmailJS public key, Sentry DSN, GA4, Meta Pixel) sono per design pubbliche e OK in HTML.
 5. **Brevo**: in `ONBOARDING_EMAILS` (`index.html:199-206`) i template id **4 e 5 sono invertiti rispetto al giorno** (`templateId:5 → day14`, `templateId:4 → day25`). È voluto, allineato alle configurazioni Brevo. NON "correggere" senza istruzione esplicita di Steve.
 6. **i18n**: ogni nuovo testo UI va aggiunto in **tutte e 3 le lingue** (IT @ `index.html:457`, EN @ 1306, FR @ 2155). Stessa chiave in tutti e tre i blocchi.
@@ -97,6 +97,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `users/{uid}/appdata/templates` — modelli di scheda del PT: `{list:[scheda+{tplId}], updatedAt}`. Doc separato (non passa dall'autosave), letto al login e scritto a ogni modifica SOLO dopo un load riuscito (`templatesLoaded` ref). Vale anche in spazio palestra (modelli personali del PT). Coperto dalla regola owner `appdata/{docId}`: nessuna modifica alle regole.
 - `athletes/{athleteId}/appdata/main` — stato atleta: `{scheda:{giorni:[{nome, esercizi:[{name,serie,reps,rec}], storico?:[…]}], updatedAt}, updatedAt:serverTimestamp, invitedBy:<ptUid|null>, dataVersion:1}`. Scrittura con `{merge:true}`.
 - `sharedClients/{shareId}` — vista cliente anonima: `{ownerUid, cliente, ptNome, attivo:true, schedaAttuale:{programma, giorni:[…]}, log:[{data, giorno, esercizi, ts}], createdAt, updatedAt}`. Public read. Update anonimo consentito solo per aggiungere `log[]` e aggiornare `updatedAt`.
+- `gyms/{gymId}/templates/{tplId}` e `publicTemplates/{tplId}` — modelli di scheda condivisi (palestra / tutti i PT), vedi Convenzioni.
 - `deleteFeedback/{uid}` — feedback cancellazione: write solo da `request.auth.uid == docId`, read solo admin.
 
 `dataVersion`: 4 lato PT, 1 lato atleta, assente in `sharedClients`.
@@ -151,6 +152,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - Link cliente: giorni come bottoni (`#dayChips`, fino a 6 giorni; la tendina `#daySelect` resta e riceve l'evento change). Timer nei blocchi EMOM (minuto per minuto, stazione corrente, bip/vibrazione a ogni minuto), AMRAP (conto alla rovescia) e Hyrox (cronometro): `creaTimer`, stato in `blkTimers` per giorno+blocco fuori dal DOM, un solo interval attivo solo mentre un timer gira, schermo tenuto acceso con Wake Lock quando disponibile.
 - Spiegazioni (tooltip): attributo `data-tip` su qualsiasi elemento + host globale (IIFE prima di `ordinaPerSezione`, div `#pt-tip`). Su computer compaiono al passaggio del cursore; su telefono si tocca la "i" (`<TipI tip=…/>`, classe `.tip-i`, nascosta sui dispositivi con mouse): il listener in fase di cattura ferma il click, quindi la "i" dentro un bottone non esegue l'azione. Testi `tip*` in IT/EN/FR, `tipBlocco(tipo,T)` per i tipi di blocco.
 - Email novita' a tutti i PT: pannello admin, sezione "📣 Email novita'" (`inviaNovita` in `AdminModal`). Si scrive l'ID di un modello Brevo creato da Steve; invio uno alla volta con `sendBrevoEmail`, chi l'ha ricevuta e' salvato in `users/{admin}/appdata/broadcasts` (`tpl<ID>: [uid…]`), quindi niente doppioni. Campanella: `NOTIFICHE` (in cima la piu' recente).
+- Modelli di scheda (3 livelli): "Salva come modello" apre `SalvaModelloModal` (nome + "Solo io" / "I PT della mia palestra" / "Tutti i PT"). Solo io: `users/{uid}/appdata/templates` come prima. Palestra: `gyms/{gymId}/templates/{tplId}`; tutti: `publicTemplates/{tplId}`; doc `{tplId, ownerUid, autore, nome, ambito, scheda, createdAt}` con `scheda = schedaPerModello(s)` (solo struttura: esercizi, blocchi, note, regole, progressione, parti, config ridotta a tipo/equip/durata; niente dati del cliente). AppInner unisce i 3 elenchi in `allTemplates` (`_scope`, `_autore`, `_mine`); "Parti da" li mostra in 3 gruppi; elimina solo chi puo' (autore, owner palestra, admin per i pubblici). "Parti da" copia anche regole, progressione e parti della seduta.
 - Importa scheda: bottone "📥 Importa scheda" accanto a "Nuova scheda" (PatientDetail). File .json o testo incollato `{ptboard:'scheda', v:1, scheda:{nome, regole, progressione, parti, blocchi, esercizi:[{eId?, nome, serie, reps, repsMode?, perLato?, rec, peso, nota, sezione, blocco}]}}`. `importaScheda(raw, lib)` (script globale) tiene solo i campi noti con tipi e lunghezze controllati, collega gli esercizi per `eId` o per nome (IT/EN/FR/kw, `normTesto`), altrimenti `nomeCustom`; nuovi id ai blocchi. La scheda si apre in `SchedaModal` (prop `titolo`) per il controllo prima del salvataggio. Nello script globale non ci sono `exName`/`fmtDate` (stanno nello script Babel).
 - Storico sessioni atleta: `scheda.storico[]`.
 - Durata stimata: calcolo UNICO nello script globale (`durateSedute`, `stimaDurataMin(scheda, lib)` = seduta piu' lunga, `testoDurata`, `tempoVoceSec`, `classificaEsercizio` + `COMPOUND_KEYWORDS`). Lo usano generatore (`tempoEsercizioSec`/`classifyExercise` delegano qui), scheda espansa, editor e PDF, sempre calcolato dalla scheda attuale (non da `config.tempoStimato`). Per seduta (una sezione = un giorno): riscaldamento 5' + preparazione per tipo + serie × lavoro (3 s/rep, 4 compound, 2 core; secondi se `repsMode:'time'`; cardio in minuti) + recuperi; blocchi: 60 s + giri × stazioni + recuperi.
@@ -256,6 +258,149 @@ service cloud.firestore {
       match /appdata/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == athleteId;
       }
+    }
+
+    // ── GYMS (Spazio Palestra) ──
+    // Vedi docs/GYM_PLAN.md §C per il razionale di sicurezza.
+    match /gyms/{gymId} {
+      // Lettura: solo membri del gym.
+      allow read: if request.auth != null
+                  && resource.data.members.hasAny([request.auth.uid]);
+
+      // Create: il fondatore e' owner e UNICO membro iniziale.
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.members == [request.auth.uid]
+                    && request.resource.data.memberRoles[request.auth.uid] == 'owner';
+
+      // (A) Update dell'owner: puo' cambiare tutto EXCETTO ownerUid.
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      // (B) Update dell'admin: stessa clausola di invarianza su ownerUid.
+      allow update: if request.auth != null
+                    && request.auth.token.email == 'stevetsala22@gmail.com'
+                    && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      // (C) Self-join di un PT invitato: diff SOLO su members + memberRoles + memberInfo + joinCode.
+      // Verifica che il PT aggiunga SOLO il proprio uid, con ruolo 'trainer',
+      // e che il codice usato (joinCode) esista come doc gymInvites/{joinCode}
+      // attivo, non scaduto, e punti a questo gymId. ownerUid immutabile.
+      // SECURITY: le diff di memberRoles e memberInfo devono toccare SOLO la
+      // chiave del chiamante — un attaccante non puo' promuoversi owner,
+      // degradare un altro membro o alterare nome/email di qualcun altro.
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['members','memberRoles','memberInfo','joinCode'])
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && !(request.auth.uid in resource.data.members)
+                    && request.resource.data.members == resource.data.members.concat([request.auth.uid])
+                    && request.resource.data.memberRoles[request.auth.uid] == 'trainer'
+                    && request.resource.data.memberRoles.diff(resource.data.memberRoles).affectedKeys().hasOnly([request.auth.uid])
+                    && request.resource.data.memberInfo.diff(resource.data.memberInfo).affectedKeys().hasOnly([request.auth.uid])
+                    && exists(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode))
+                    && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.gymId == gymId
+                    && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.status == 'active'
+                    && get(/databases/$(database)/documents/gymInvites/$(request.resource.data.joinCode)).data.expiresAt > request.time;
+
+      allow delete: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+
+      // Clienti del gym: tutti i membri possono CRUD.
+      match /clients/{clientId} {
+        allow read, create, update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+
+        // Schede del cliente.
+        match /schede/{schedaId} {
+          allow read, create, update, delete: if request.auth != null
+            && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+        }
+      }
+
+      // Modelli di scheda condivisi con i PT della palestra.
+      // Leggono tutti i membri; si crea solo a proprio nome; l'autore modifica (senza cambiare
+      // autore); eliminano l'autore o l'owner della palestra.
+      match /templates/{tplId} {
+        allow read: if request.auth != null
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+        allow create: if request.auth != null
+          && request.resource.data.ownerUid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt'])
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+        allow update: if request.auth != null
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt']);
+        allow delete: if request.auth != null
+          && (resource.data.ownerUid == request.auth.uid
+              || get(/databases/$(database)/documents/gyms/$(gymId)).data.ownerUid == request.auth.uid);
+      }
+
+      // Libreria esercizi condivisa della palestra: override di INIT_EXERCISES
+      // o nuovi esercizi custom. Stesso accesso dei clienti (tutti i membri).
+      match /exercises/{exId} {
+        allow read, create, update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/gyms/$(gymId)).data.members.hasAny([request.auth.uid]);
+      }
+    }
+
+    // ── MODELLI DI SCHEDA PER TUTTI I PT ──
+    // Leggibili da ogni utente loggato; si crea solo a proprio nome; l'autore modifica;
+    // eliminano l'autore o l'admin (moderazione).
+    match /publicTemplates/{tplId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt']);
+      allow update: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && request.resource.data.keys().hasOnly(['tplId','ownerUid','autore','nome','ambito','scheda','createdAt']);
+      allow delete: if request.auth != null
+                    && (resource.data.ownerUid == request.auth.uid
+                        || request.auth.token.email == 'stevetsala22@gmail.com');
+    }
+
+    // ── GYMS PUBLIC MIRROR (branding visibile ai clienti anonimi) ──
+    // Snapshot di gyms/{gymId} ridotto a {gymId, nome, logo, theme}, usato
+    // da atleta.html (anonimo pre-login) per applicare il tema della palestra.
+    // Public read; write solo dall'owner del corrispondente gyms/{gymId}.
+    match /gymsPublic/{gymId} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && get(/databases/$(database)/documents/gyms/$(gymId)).data.ownerUid == request.auth.uid;
+      allow delete: if request.auth != null
+        && get(/databases/$(database)/documents/gyms/$(gymId)).data.ownerUid == request.auth.uid;
+    }
+
+    // ── INVITI PT (codice 6 char = document id) ──
+    match /gymInvites/{inviteId} {
+      // Owner crea l'invito. status='active', expiresAt entro 30 giorni.
+      // SECURITY: solo l'owner della palestra bersaglio puo' crearne inviti
+      // (un trainer o un estraneo loggato non puo' emettere inviti per gyms altrui).
+      allow create: if request.auth != null
+                    && request.resource.data.invitedByUid == request.auth.uid
+                    && request.resource.data.status == 'active'
+                    && request.resource.data.expiresAt is timestamp
+                    && request.resource.data.expiresAt > request.time
+                    && request.resource.data.expiresAt < request.time + duration.value(30, 'd')
+                    && get(/databases/$(database)/documents/gyms/$(request.resource.data.gymId)).data.ownerUid == request.auth.uid;
+
+      // GET consentito a chiunque loggato (serve all'accept per validare).
+      // NESSUN list: enumerazione collezione proibita.
+      allow get: if request.auth != null;
+
+      // Update: solo owner originale puo' revocare/cambiare la scadenza.
+      // invitedByUid e gymId immutabili.
+      allow update: if request.auth != null
+                    && resource.data.invitedByUid == request.auth.uid
+                    && request.resource.data.invitedByUid == resource.data.invitedByUid
+                    && request.resource.data.gymId == resource.data.gymId;
+
+      allow delete: if request.auth != null
+                    && resource.data.invitedByUid == request.auth.uid;
     }
 
     // ── BLOCCA TUTTO IL RESTO ──
