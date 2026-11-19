@@ -123,7 +123,8 @@ en:{
 "foot.blog":"Blog",
 "foot.privacy":"Privacy",
 "foot.terms":"Terms",
-"foot.login":"Sign in"
+"foot.login":"Sign in",
+"foot.cookies":"Cookie settings"
 },
 fr:{
 "meta.title":"PT Board · Le logiciel de gestion de l'entraînement pour coachs sportifs et salles",
@@ -246,7 +247,8 @@ fr:{
 "foot.blog":"Blog",
 "foot.privacy":"Confidentialité",
 "foot.terms":"Conditions",
-"foot.login":"Se connecter"
+"foot.login":"Se connecter",
+"foot.cookies":"Préférences cookies"
 }
 };
 

@@ -7,30 +7,8 @@
   src="https://js-de.sentry-cdn.com/57393661f5ebf80ff4e43d5cd42d7cd8.min.js"
   crossorigin="anonymous"
 ></script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EXPPE8PWMT"></script>
-<script>
-window.dataLayer=window.dataLayer||[];
-function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());
-gtag('config','G-EXPPE8PWMT');
-</script>
-<!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1671690820676185');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
+<!-- Google Analytics e Meta Pixel: caricati solo dopo il consenso (cookie-consent.js) -->
+<script src="/cookie-consent.js"></script>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="apple-touch-icon" href="/favicon.png"/>
 <meta name="theme-color" content="#ffffff"/>
@@ -406,6 +384,7 @@ footer a:hover{color:var(--ink)}
       <a href="/privacy.html" data-i18n="foot.privacy">Privacy</a>
       <a href="/terms.html" data-i18n="foot.terms">Termini</a>
       <a href="/?login=1" data-i18n="foot.login">Accedi</a>
+      <a href="#" onclick="if(window.ptCookieSettings){ptCookieSettings();}return false;" data-i18n="foot.cookies">Preferenze cookie</a>
     </nav>
   </div>
 </footer>
