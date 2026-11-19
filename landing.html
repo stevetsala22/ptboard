@@ -308,7 +308,7 @@ footer a:hover{color:var(--ink)}
       <div class="head">
         <span class="eyebrow" data-i18n="pr.eyebrow">Prezzi</span>
         <h2 data-i18n="pr.title">Semplice, come dovrebbe essere.</h2>
-        <p data-i18n="pr.sub">Inizia con 15 giorni gratis. Disdici quando vuoi. I tuoi dati restano tuoi.</p>
+        <p data-i18n="pr.sub">Inizia con 15 giorni gratis con tutto incluso. Poi continui gratis con 3 clienti, oppure passi a Pro. I tuoi dati restano tuoi.</p>
       </div>
       <div class="prices">
         <div class="price">
@@ -389,6 +389,10 @@ footer a:hover{color:var(--ink)}
   </div>
 </footer>
 
+<script>
+// Invito di un collega: ?ref=<uid>, ricordato fino alla registrazione nell'app.
+(function(){try{var r=new URLSearchParams(location.search).get('ref');if(r&&/^[A-Za-z0-9]{10,40}$/.test(r))localStorage.setItem('ptb_ref',r);}catch(e){}})();
+</script>
 <script src="/landing-i18n.js"></script>
 <script>
 // Bordo della barra quando si scorre.

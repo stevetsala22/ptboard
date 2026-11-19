@@ -216,7 +216,7 @@ var fbDb=firebase.firestore();
 
     <footer class="footer">
       <div class="footer-text">
-        <a href="/landing.html">personaltrainerboard.com</a>
+        <a href="/landing.html?utm_source=link_cliente" id="ptbFirma">Scheda creata con <b>PT Board</b> · crea le tue schede gratis</a>
       </div>
     </footer>
   </div>
@@ -695,6 +695,8 @@ var fbDb=firebase.firestore();
   // CSS vars + logo + nome brand nell'header. Fallback silenzioso: se mancante,
   // resta "PT Board" come oggi.
   function applyGymBrandingSnapshot(gb){
+    // Piano Palestra: niente invito a provare PT Board nel link dei loro iscritti.
+    try{var fm=document.getElementById('ptbFirma');if(fm&&gb){fm.textContent='personaltrainerboard.com';fm.href='/landing.html';}}catch(e){}
     if(!gb) return;
     try{
       var root=document.documentElement.style;
