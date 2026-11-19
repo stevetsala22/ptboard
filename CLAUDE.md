@@ -17,7 +17,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **Firebase compat 10.7.0**, progetto `ptboard-1`. Firestore + Auth (Google login).
 - **Pagamenti**: Stripe tramite 4 Payment Links in `const PLANS` (`index.html:136-141`).
 - **Email transazionali**: Brevo, inviate tramite Cloudflare Worker `ptboard-webhook.ptboard-info.workers.dev` (endpoint `/send-email`). Il Worker vive in un repo separato (progetto Cloudflare dell'account `ptboard-info`): qui dentro c'è SOLO il client che chiama `WORKER_URL+'/send-email'` (`index.html:198-230`).
-- **PWA**: `sw.js` (cache `ptboard-v60`) + `manifest.json`.
+- **PWA**: `sw.js` (cache `ptboard-v61`) + `manifest.json`.
 - **Hosting**: GitHub Pages via `.nojekyll` + `CNAME`.
 
 ## ⚠️ REGOLE CRITICHE — non violare mai
@@ -45,7 +45,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `blog/index.html`, `blog/valutazione-funzionale-pt-guida-2026.html` — blog SEO.
 - `privacy.html`, `terms.html` — pagine legali.
 - `firestore.rules` — fonte di verità delle regole (poi copiata a mano in Console).
-- `sw.js` — service worker PWA (cache `ptboard-v60`).
+- `sw.js` — service worker PWA (cache `ptboard-v61`).
 - `manifest.json`, `icon192.png`, `icon512.png`, `favicon.*` — PWA assets.
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
 - `og-image.jpg` — anteprima social di `landing.html` (1200×630). `dashboard.jpg`, `mobile.jpg` — vecchie anteprime, da tenere.
