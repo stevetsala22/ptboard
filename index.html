@@ -125,9 +125,13 @@ try{
     try{sessionStorage.setItem('ptb_gym_signup','1');}catch(e){}
     try{localStorage.setItem('ptb_entered','1');}catch(e){}
   } else if(window.location.pathname==='/'||window.location.pathname==='/index.html'){
-    var came=localStorage.getItem('ptb_entered');
-    if(!came&&!document.referrer.includes('personaltrainerboard.com')){
-      localStorage.setItem('ptb_entered','1');
+    // Chi non e' collegato (nessun ptboard_uid, tolto al logout) vede la landing.
+    // Restano sull'app: chi arriva da una pagina del sito (es. "Accedi" della landing),
+    // l'app installata sul telefono (PWA) e ?login=1 (link diretto al login).
+    var collegato=!!localStorage.getItem('ptboard_uid');
+    var daSito=document.referrer.indexOf('personaltrainerboard.com')!==-1;
+    var pwa=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+    if(!collegato&&!daSito&&!pwa&&_q.get('login')!=='1'){
       window.location.replace('/landing.html');
     }
   }
@@ -804,6 +808,11 @@ function gymClean(v){
     return out;
   }
   return v;
+}
+// Logout: dopo l'uscita si torna alla landing (nell'app installata resta la schermata di accesso).
+function esciVersoLanding(){
+  var pwa=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  Promise.resolve(fbAuth.signOut()).catch(function(){}).then(function(){if(!pwa) window.location.href='/landing.html';});
 }
 // Firestore helper: crea gyms/{gymId} e aggiorna users/{uid} con i campi dello spazio palestra.
 // Rispetta la rule (create) di §C: ownerUid = uid, members = [uid], memberRoles[uid] = 'owner'.
@@ -11423,7 +11432,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
             <div style={{fontSize:14,color:'#64748b',marginBottom:24}}>{T.logoutDesc}</div>
             <div style={{display:'flex',gap:12}}>
               <button onClick={()=>setShowLogoutModal(false)} style={{flex:1,padding:'12px',borderRadius:10,border:'1px solid #1a2547',background:'transparent',color:'#94a3b8',fontSize:14,fontWeight:600,cursor:'pointer'}}>{T.cancel}</button>
-              <button onClick={()=>{setShowLogoutModal(false);localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{flex:1,padding:'12px',borderRadius:10,border:'none',background:'#ef4444',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>{T.logoutYes}</button>
+              <button onClick={()=>{setShowLogoutModal(false);localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');esciVersoLanding();}} style={{flex:1,padding:'12px',borderRadius:10,border:'none',background:'#ef4444',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>{T.logoutYes}</button>
             </div>
           </div>
         </div>
@@ -14926,7 +14935,7 @@ function PaywallScreen({user,profile,blocked}){
         <div style={{fontSize:40,marginBottom:12}}>🚫</div>
         <div style={{fontSize:28,fontWeight:900,color:'#f8fafc',marginBottom:8}}>{profile?.planExpiredAt?gT().paywallSubExpired:gT().paywallSubBlocked}</div>
         <div style={{fontSize:14,color:'#64748b',marginBottom:32}}>{profile?.planExpiredAt?gT().paywallSubExpiredDesc:gT().paywallSubBlockedDesc}</div>
-        <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>{gT().exitAcc.replace('{email}',user?.email)}</button>
+        <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');esciVersoLanding();}} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12,fontFamily:'inherit'}}>{gT().exitAcc.replace('{email}',user?.email)}</button>
       </div>
     </div>
   );
@@ -14974,7 +14983,7 @@ function TrialBlockScreen({user}){
         })}
       </div>
       <div style={{fontSize:12,color:C.muted,textAlign:'center',marginTop:20}}>{gT().paywallAlreadyPaid}</div>
-      <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');fbAuth.signOut();}} style={{fontSize:12,background:'transparent',color:'#ef4444',border:'none',cursor:'pointer',marginTop:20,display:'block',margin:'20px auto'}}>{gT().logout}</button>
+      <button onClick={()=>{localStorage.removeItem('fitmanager_v4');localStorage.removeItem('ptboard_uid');esciVersoLanding();}} style={{fontSize:12,background:'transparent',color:'#ef4444',border:'none',cursor:'pointer',marginTop:20,display:'block',margin:'20px auto'}}>{gT().logout}</button>
     </div>
   );
 }
@@ -15409,7 +15418,7 @@ function EmailVerifyScreen({user}){
     setLoading(false);
   };
 
-  const logout=async()=>{await fbAuth.signOut();};
+  const logout=async()=>{localStorage.removeItem('ptboard_uid');esciVersoLanding();};
 
   return(
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'#07090f',padding:20}}>
@@ -15609,7 +15618,7 @@ function AuthScreen({onProfileReady}){
         {mode!=='reset'&&<GymCodeField T={T}/>}
         <div style={{textAlign:'center',marginTop:20,fontSize:11,color:'#334155'}}>{T.authSafeData}</div>
         <div style={{textAlign:'center',marginTop:14}}>
-          <a href="landing.html" style={{fontSize:12,color:'#64748b',textDecoration:'none'}}>{T.authBackHome}</a>
+          <a href="landing.html" style={{display:'inline-block',fontSize:13,fontWeight:700,color:'#93c5fd',textDecoration:'none',padding:'9px 16px',border:'1px solid #1e3a5f',borderRadius:10}}>{T.authBackHome}</a>
         </div>
       </div>
     </div>

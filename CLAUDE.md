@@ -17,7 +17,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **Firebase compat 10.7.0**, progetto `ptboard-1`. Firestore + Auth (Google login).
 - **Pagamenti**: Stripe tramite 4 Payment Links in `const PLANS` (`index.html:136-141`).
 - **Email transazionali**: Brevo, inviate tramite Cloudflare Worker `ptboard-webhook.ptboard-info.workers.dev` (endpoint `/send-email`). Il Worker vive in un repo separato (progetto Cloudflare dell'account `ptboard-info`): qui dentro c'è SOLO il client che chiama `WORKER_URL+'/send-email'` (`index.html:198-230`).
-- **PWA**: `sw.js` (cache `ptboard-v58`) + `manifest.json`.
+- **PWA**: `sw.js` (cache `ptboard-v59`) + `manifest.json`.
 - **Hosting**: GitHub Pages via `.nojekyll` + `CNAME`.
 
 ## ⚠️ REGOLE CRITICHE — non violare mai
@@ -45,7 +45,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `blog/index.html`, `blog/valutazione-funzionale-pt-guida-2026.html` — blog SEO.
 - `privacy.html`, `terms.html` — pagine legali.
 - `firestore.rules` — fonte di verità delle regole (poi copiata a mano in Console).
-- `sw.js` — service worker PWA (cache `ptboard-v58`).
+- `sw.js` — service worker PWA (cache `ptboard-v59`).
 - `manifest.json`, `icon192.png`, `icon512.png`, `favicon.*` — PWA assets.
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
 - `dashboard.jpg`, `mobile.jpg` — immagini `og:image` referenziate da `landing.html`.
@@ -168,6 +168,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **Hydration pazienti**: la `.map` di hydration è avvolta in `try/catch` per singolo paziente (`index.html:6848-6930`). Un paziente malformato non deve far crollare l'intera lista.
 - **Aggiornamenti PWA**: niente `location.reload()` automatico su `controllerchange`/`SW_UPDATED` (faceva "riavviare da sola" l'app a ogni deploy, perdendo cio' che il PT stava scrivendo). Ora compare l'avviso `#pt-update-banner` ("Nuova versione disponibile · Aggiorna", testi `updAvail/updBtn/updLater`), solo se c'era gia' un service worker attivo (non al primo avvio).
 - **StatCard**: il conteggio animato usa lo stato React e si riavvia a ogni cambio di valore. Mai scrivere il numero nel DOM con `textContent`: i clienti arrivano da Firebase dopo il mount e il riquadro restava a 0.
+- **Landing e accesso**: su `/` chi non e' collegato (nessun `localStorage.ptboard_uid`) va a `/landing.html`, salvo arrivo da una pagina del sito (referrer), app installata (PWA standalone), `?login=1`, `?join=`, `?gym=1`. I link "Accedi"/"App" del sito puntano a `/?login=1`; logo e "Torna al sito" a `/landing.html`. Il logout usa `esciVersoLanding()` (signOut + landing; nella PWA resta il login). Non togliere `ptboard_uid` dal login: e' il segnale "collegato".
 - **sw.js precache obsoleto**: `sw.js` fa precache di `/landing.html`. Dopo una modifica a `landing.html`, bump `const CACHE='ptboard-v##'` altrimenti l'app serve la versione in cache fino alla naturale invalidazione.
 - **Plan expiry side-effect** in `loadProfile` (6710–6714): per ogni utente pro/team non-admin con `planExpiresAt < now`, viene scritto `plan='blocked'` al login. Idempotente ma genera una write per utente scaduto.
 - **Autogenerato Full Body**: `trimPerTempo` protegge push/pull/legs/core SOLO quando `splitDayName==='Full Body'`. Il nome del giorno deve matchare esattamente, altrimenti ricade sulla protezione minima "primo compound".
