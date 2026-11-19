@@ -108,7 +108,7 @@ if('serviceWorker' in navigator){
 </script>
 <script>
 // Tema chiaro di default anche prima che l'app parta (niente lampo scuro).
-try{var _st=JSON.parse(localStorage.getItem('fitmanager_v4')||'null');if(!(_st&&_st.themeChosen&&_st.isLight===false))document.documentElement.classList.add('light');}catch(e){document.documentElement.classList.add('light');}
+try{var _tm=localStorage.getItem('ptb_tema');var _st=_tm?null:JSON.parse(localStorage.getItem('fitmanager_v4')||'null');var _scuro=_tm?_tm==='dark':!!(_st&&_st.themeChosen&&_st.isLight===false);if(!_scuro)document.documentElement.classList.add('light');}catch(e){document.documentElement.classList.add('light');}
 </script>
 <script>
 try{
@@ -815,6 +815,7 @@ function gymClean(v){
 }
 // Logout: dopo l'uscita si torna alla landing (nell'app installata resta la schermata di accesso).
 function esciVersoLanding(){
+  try{localStorage.removeItem('ptb_tema');}catch(e){} // il tema torna dal profilo al prossimo accesso
   var pwa=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
   Promise.resolve(fbAuth.signOut()).catch(function(){}).then(function(){if(!pwa) window.location.href='/landing.html';});
 }
@@ -10371,10 +10372,28 @@ function AppInner({user,profile,setProfile,trialLeft}){
   const [deleteDetail,setDeleteDetail]=useState('');
   const [sidebarOpen,setSidebarOpen]=useState(!isMobile);
   const [showInviteModal,setShowInviteModal]=useState(false);
-  // Tema: chiaro di default. Il tema scuro resta solo per chi l'ha scelto in Personalizza (themeChosen).
-  const [isLight,setIsLight]=useState(stored&&stored.themeChosen?!!stored.isLight:true);
-  const [themeChosen,setThemeChosen]=useState(!!(stored&&stored.themeChosen));
-  const scegliTema=function(v){setThemeChosen(true);setIsLight(v);};
+  // Tema: chiaro di default. La scelta fatta in Personalizza vale per sempre, sia nello spazio PT
+  // sia in palestra: e' salvata nel profilo (users/{uid}.tema), che non dipende dall'autosave
+  // (in palestra appdata/main non si salva), e in localStorage 'ptb_tema' per l'avvio.
+  const temaLocale=(function(){try{return localStorage.getItem('ptb_tema');}catch(e){return null;}})();
+  const temaIniziale=(profile&&profile.tema)||temaLocale||((stored&&stored.themeChosen)?(stored.isLight?'light':'dark'):null);
+  const [isLight,setIsLight]=useState(temaIniziale?temaIniziale!=='dark':true);
+  const [themeChosen,setThemeChosen]=useState(!!temaIniziale);
+  const scegliTema=function(v){
+    setIsLight(v);
+    if(v===isLight&&themeChosen) return;
+    if(v===isLight&&!themeChosen) return; // aprire Personalizza senza cambiare non e' una scelta
+    setThemeChosen(true);
+    const t=v?'light':'dark';
+    try{localStorage.setItem('ptb_tema',t);}catch(e){}
+    if(user&&user.uid) fbSaveUserProfile(user.uid,{tema:t});
+    if(typeof setProfile==='function') setProfile(function(pr){return pr?Object.assign({},pr,{tema:t}):pr;});
+  };
+  // Il tema scelto su un altro dispositivo arriva con il profilo.
+  useEffect(function(){
+    if(profile&&profile.tema){setThemeChosen(true);setIsLight(profile.tema!=='dark');try{localStorage.setItem('ptb_tema',profile.tema);}catch(e){}}
+  // eslint-disable-next-line
+  },[profile&&profile.tema]);
   const [dataReady,setDataReady]=useState(true);
   const [showValutazione,setShowValutazione]=useState(false);
   const [showQuickAssess,setShowQuickAssess]=useState(false);
@@ -10803,7 +10822,7 @@ function AppInner({user,profile,setProfile,trialLeft}){
           if(pNeedHydrate){var hData=Object.assign({},remote,{patients:pHydrated});save(hData);fbSave(user.uid,hData);}
         }
         if(remote.bookings) setBookings(remote.bookings);
-        if(remote.themeChosen){setThemeChosen(true);setIsLight(!!remote.isLight);} else setIsLight(true);
+        if(!(profile&&profile.tema)){if(remote.themeChosen){setThemeChosen(true);setIsLight(!!remote.isLight);} else setIsLight(true);}
         // Aggiorna libreria esercizi: aggiunge nuovi esercizi di default e
         // ripara esercizi esistenti a cui mancano campi (es. primarySplit
         // assente sugli E105-E254 in versioni precedenti).
