@@ -389,6 +389,10 @@ footer a:hover{color:var(--ink)}
   </div>
 </footer>
 
+<script>
+// Invito di un collega: ?ref=<uid>, ricordato fino alla registrazione nell'app.
+(function(){try{var r=new URLSearchParams(location.search).get('ref');if(r&&/^[A-Za-z0-9]{10,40}$/.test(r))localStorage.setItem('ptb_ref',r);}catch(e){}})();
+</script>
 <script src="/landing-i18n.js"></script>
 <script>
 // Bordo della barra quando si scorre.

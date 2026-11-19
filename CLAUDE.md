@@ -17,7 +17,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **Firebase compat 10.7.0**, progetto `ptboard-1`. Firestore + Auth (Google login).
 - **Pagamenti**: Stripe tramite 4 Payment Links in `const PLANS` (`index.html:136-141`).
 - **Email transazionali**: Brevo, inviate tramite Cloudflare Worker `ptboard-webhook.ptboard-info.workers.dev` (endpoint `/send-email`). Il Worker vive in un repo separato (progetto Cloudflare dell'account `ptboard-info`): qui dentro c'è SOLO il client che chiama `WORKER_URL+'/send-email'` (`index.html:198-230`).
-- **PWA**: `sw.js` (cache `ptboard-v62`) + `manifest.json`.
+- **PWA**: `sw.js` (cache `ptboard-v63`) + `manifest.json`.
 - **Hosting**: GitHub Pages via `.nojekyll` + `CNAME`.
 
 ## ⚠️ REGOLE CRITICHE — non violare mai
@@ -46,7 +46,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `privacy.html`, `terms.html` — pagine legali.
 - `cookie-consent.js` — banner cookie e caricamento di Analytics/Pixel dopo il consenso.
 - `firestore.rules` — fonte di verità delle regole (poi copiata a mano in Console).
-- `sw.js` — service worker PWA (cache `ptboard-v62`).
+- `sw.js` — service worker PWA (cache `ptboard-v63`).
 - `manifest.json`, `icon192.png`, `icon512.png`, `favicon.*` — PWA assets.
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
 - `og-image.jpg` — anteprima social di `landing.html` (1200×630). `dashboard.jpg`, `mobile.jpg` — vecchie anteprime, da tenere.
@@ -171,6 +171,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **StatCard**: il conteggio animato usa lo stato React e si riavvia a ogni cambio di valore. Mai scrivere il numero nel DOM con `textContent`: i clienti arrivano da Firebase dopo il mount e il riquadro restava a 0.
 - **Tema chiaro di default**: `isLight` vale `true` salvo scelta esplicita in Personalizza. La scelta (`scegliTema`) si salva nel PROFILO `users/{uid}.tema` ('light'|'dark') e in `localStorage.ptb_tema`, cosi' vale anche in Spazio Palestra (dove `appdata/main` non si salva) e su altri dispositivi; vecchio fallback `appdata/main.themeChosen`. Aprire Personalizza senza cambiare non e' una scelta. Uno script in testa a `index.html` mette la classe `light` prima di React (niente lampo scuro). Login, verifica email, paywall, piani, lingua, codice palestra e caricamento sono chiari (colori fissi nei componenti). Il pannello admin resta scuro.
 - **Cookie e tracciamenti**: `cookie-consent.js` (landing, app, blog) mostra il banner e carica Google Analytics e Meta Pixel SOLO dopo "Accetta". Prima del consenso `gtag`/`fbq` sono funzioni vuote. Scelta in `localStorage.ptboard_cookies_consent` ('all' / 'necessary'); riapertura con `window.ptCookieSettings()` (link "Preferenze cookie" nel footer della landing, "Cookie" nella barra laterale dell'app). Mai rimettere gli script di GA/Pixel direttamente nelle pagine.
+- **Crescita**: "Invita un collega" (`InvitaModal`, link `landing.html?ref=<uid>`; `?ref` salvato in `localStorage.ptb_ref` da landing e dalla testa di `index.html`; alla registrazione `campoInvito()` scrive `invitatoDa` nel profilo). Premio manuale nel pannello admin: bottone "Premia" (+33 giorni all'invitato e all'invitante, `referralPremiato:true`). Pannello admin "Andamento · ultimi 7 giorni" (nuovi, attivi da `users.lastSeenAt`, % paganti, invitati); `lastSeenAt` scritto al massimo ogni 12 ore. Link cliente: firma "Scheda creata con PT Board · crea le tue schede gratis" (`#ptbFirma`), sostituita da un link neutro per le palestre.
 - **Landing e accesso**: su `/` chi non e' collegato (nessun `localStorage.ptboard_uid`) va a `/landing.html`, salvo arrivo da una pagina del sito (referrer), app installata (PWA standalone), `?login=1`, `?join=`, `?gym=1`. I link "Accedi"/"App" del sito puntano a `/?login=1`; logo e "Torna al sito" a `/landing.html`. Il logout usa `esciVersoLanding()` (signOut + landing; nella PWA resta il login). Non togliere `ptboard_uid` dal login: e' il segnale "collegato".
 - **sw.js precache obsoleto**: `sw.js` fa precache di `/landing.html`. Dopo una modifica a `landing.html`, bump `const CACHE='ptboard-v##'` altrimenti l'app serve la versione in cache fino alla naturale invalidazione.
 - **Plan expiry side-effect** in `loadProfile` (6710–6714): per ogni utente pro/team non-admin con `planExpiresAt < now`, viene scritto `plan='blocked'` al login. Idempotente ma genera una write per utente scaduto.
