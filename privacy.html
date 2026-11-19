@@ -43,50 +43,64 @@ footer{border-top:1px solid #1a2547;padding:40px 0;text-align:center;font-size:1
   <p class="subtitle">Ultimo aggiornamento: novembre 2026</p>
 
   <h2>1. Titolare del trattamento</h2>
-  <p>PT Board — personaltrainerboard.com<br/>Email di contatto: <a href="mailto:ptboard.app@gmail.com">ptboard.app@gmail.com</a></p>
+  <p>PT Board — personaltrainerboard.com<br/>Email di contatto: <a href="mailto:ptboard.info@gmail.com">ptboard.info@gmail.com</a></p>
+  <p>Per i dati dei clienti che il trainer inserisce nell'app (anagrafica, dati sanitari, test, schede), il titolare del trattamento è il trainer o la palestra; PT Board tratta questi dati solo per suo conto, come responsabile del trattamento (Art. 28 GDPR), per fornire il servizio.</p>
 
   <h2>2. Dati raccolti</h2>
-  <p>Raccogliamo le seguenti categorie di dati:</p>
   <ul>
     <li><strong>Dati di registrazione:</strong> indirizzo email e metodo di autenticazione (email/password o Google)</li>
-    <li><strong>Dati del profilo trainer:</strong> nome, cognome, telefono, città, logo e nome studio</li>
+    <li><strong>Dati del profilo trainer:</strong> nome, cognome, telefono, città, logo e nome studio, preferenze (lingua, tema)</li>
     <li><strong>Dati inseriti dal trainer:</strong> informazioni anagrafiche, parametri fisici, dati sanitari, test funzionali, programmi di allenamento e note nutrizionali relativi ai clienti del trainer</li>
-    <li><strong>Dati di utilizzo:</strong> funzionalità utilizzate e data dell'ultimo accesso</li>
+    <li><strong>Dati dei clienti che usano il link della scheda o l'app atleta:</strong> carichi, ripetizioni e sedute registrate; per l'app atleta, email e nome dell'account Google usato per accedere</li>
+    <li><strong>Dati di utilizzo e tecnici:</strong> data dell'ultimo accesso, funzioni usate, errori dell'app, indirizzo IP e dati del browser trattati dai fornitori elencati al punto 6</li>
     <li><strong>Dati di pagamento:</strong> gestiti interamente da Stripe. PT Board non memorizza numeri di carte di credito</li>
   </ul>
 
   <h2>3. Base giuridica</h2>
-  <p>Il trattamento dei dati è basato su: il consenso dell'utente espresso al momento della registrazione (Art. 6.1.a GDPR) e l'esecuzione del contratto di servizio (Art. 6.1.b GDPR).</p>
+  <ul>
+    <li><strong>Esecuzione del contratto</strong> (Art. 6.1.b GDPR): account, app, link per i clienti, email di servizio, pagamenti, assistenza</li>
+    <li><strong>Consenso</strong> (Art. 6.1.a GDPR): cookie di analisi e di marketing, email promozionali. Il consenso si può revocare in qualsiasi momento</li>
+    <li><strong>Legittimo interesse</strong> (Art. 6.1.f GDPR): sicurezza del servizio e individuazione degli errori</li>
+    <li><strong>Obblighi di legge</strong> (Art. 6.1.c GDPR): conservazione dei dati di fatturazione</li>
+  </ul>
 
   <h2>4. Finalità del trattamento</h2>
-  <p>I dati vengono trattati per: erogazione del servizio PT Board, invio di notifiche email relative agli appuntamenti tramite EmailJS, generazione automatica di programmi di allenamento all'interno dell'app (senza invio dei dati a servizi esterni di intelligenza artificiale), gestione degli abbonamenti e dei pagamenti.</p>
+  <p>I dati vengono trattati per: erogare il servizio PT Board; inviare email di servizio (benvenuto, prova gratuita, scadenze) e notifiche relative agli appuntamenti; generare automaticamente i programmi di allenamento all'interno dell'app, senza invio dei dati a servizi esterni di intelligenza artificiale; gestire abbonamenti e pagamenti; rispondere alle richieste di assistenza; individuare e correggere errori; solo con il consenso, misurare le visite al sito e l'efficacia delle nostre campagne pubblicitarie.</p>
 
   <h2>5. Conservazione dei dati</h2>
-  <p>I dati sono conservati su server Firebase (Google Cloud) in area UE per tutta la durata dell'account attivo. Alla cancellazione dell'account da parte dell'utente, tutti i dati vengono eliminati definitivamente entro 30 giorni.</p>
+  <p>I dati sono conservati sui server di Google Cloud (Firebase) per tutta la durata dell'account attivo. Alla cancellazione dell'account da parte dell'utente, i dati vengono eliminati definitivamente entro 30 giorni, salvo quelli che la legge impone di conservare (ad esempio i dati di fatturazione).</p>
 
-  <h2>6. Condivisione con terze parti</h2>
-  <p>I dati possono essere trattati dai seguenti fornitori di servizi:</p>
+  <h2>6. Fornitori che trattano i dati</h2>
+  <p>I dati possono essere trattati dai seguenti fornitori, ciascuno solo per la funzione indicata:</p>
   <ul>
-    <li><strong>Firebase / Google Cloud:</strong> hosting, autenticazione e database</li>
-    <li><strong>EmailJS:</strong> l'indirizzo email del cliente viene utilizzato esclusivamente per l'invio di notifiche relative agli appuntamenti</li>
-    <li><strong>Stripe:</strong> per la gestione sicura dei pagamenti</li>
+    <li><strong>Google Firebase / Google Cloud:</strong> hosting dei dati, autenticazione e database</li>
+    <li><strong>GitHub Pages:</strong> pubblicazione del sito e dell'app</li>
+    <li><strong>Brevo e Cloudflare:</strong> invio delle email di servizio (Cloudflare inoltra la richiesta, Brevo invia l'email)</li>
+    <li><strong>EmailJS:</strong> invio di email e notifiche relative agli appuntamenti</li>
+    <li><strong>Stripe:</strong> gestione sicura dei pagamenti</li>
+    <li><strong>Sentry:</strong> segnalazione automatica degli errori dell'app</li>
+    <li><strong>Crisp:</strong> chat di assistenza</li>
+    <li><strong>Google Analytics:</strong> statistiche sulle visite, solo con il consenso ai cookie di analisi</li>
+    <li><strong>Meta (Pixel di Facebook e Instagram):</strong> misura delle visite provenienti dalle nostre pubblicità, solo con il consenso ai cookie di marketing</li>
+    <li><strong>Google Fonts e reti di distribuzione del codice</strong> (unpkg, jsDelivr, gstatic): caricamento di caratteri e librerie necessari al funzionamento</li>
   </ul>
-  <p>Nessun dato personale viene venduto o ceduto a terze parti per finalità commerciali o pubblicitarie.</p>
+  <p>Alcuni fornitori possono trattare dati fuori dall'Unione Europea; in questi casi il trasferimento avviene con le garanzie previste dal GDPR (clausole contrattuali standard o EU-US Data Privacy Framework). I dati inseriti nell'app (clienti, schede, dati sanitari) non vengono mai venduti né usati per pubblicità.</p>
 
   <h2>7. Diritti dell'utente</h2>
-  <p>In conformità al GDPR (Artt. 15-22), l'utente ha diritto di: accedere ai propri dati personali, richiederne la rettifica o la cancellazione, limitare il trattamento, richiedere la portabilità dei dati, opporsi al trattamento. Per esercitare questi diritti è sufficiente scrivere a <a href="mailto:ptboard.app@gmail.com">ptboard.app@gmail.com</a>. L'account può essere eliminato in qualsiasi momento direttamente dall'app nella sezione Parametri.</p>
+  <p>In conformità al GDPR (Artt. 15-22), l'utente ha diritto di: accedere ai propri dati personali, richiederne la rettifica o la cancellazione, limitare il trattamento, richiedere la portabilità dei dati, opporsi al trattamento, revocare il consenso in qualsiasi momento. Per esercitare questi diritti è sufficiente scrivere a <a href="mailto:ptboard.info@gmail.com">ptboard.info@gmail.com</a>. L'account può essere eliminato in qualsiasi momento direttamente dall'app nella sezione Parametri. È inoltre possibile proporre reclamo al Garante per la protezione dei dati personali (garanteprivacy.it).</p>
 
   <h2>8. Cookie e tecnologie di tracciamento</h2>
-  <p>PT Board utilizza esclusivamente cookie tecnici strettamente necessari al funzionamento del servizio (autenticazione Firebase, gestione della sessione). Non vengono utilizzati cookie di profilazione, di marketing o di terze parti per finalità pubblicitarie. Non è pertanto necessario un banner cookie.</p>
+  <p><strong>Cookie e memorie tecniche</strong> (sempre attivi): accesso all'account (Firebase), preferenze di lingua e tema, scelta sui cookie. Sono necessari al funzionamento e non richiedono consenso.</p>
+  <p><strong>Cookie di analisi</strong> (Google Analytics) e <strong>di marketing</strong> (Pixel di Meta): vengono attivati solo se l'utente sceglie "Accetta" nel banner che compare alla prima visita. Scegliendo "Rifiuta" o chiudendo il banner il sito funziona normalmente. La scelta si può cambiare in qualsiasi momento dal link "Preferenze cookie" in fondo al sito o dalla voce "Cookie" nell'app.</p>
 
   <h2>9. Sicurezza</h2>
-  <p>La protezione dei dati è garantita da: connessione HTTPS obbligatoria, autenticazione Firebase con supporto Google Sign-In, regole di sicurezza Firestore che isolano i dati di ciascun utente, accesso ai dati consentito esclusivamente al proprietario dell'account.</p>
+  <p>La protezione dei dati è garantita da: connessione HTTPS obbligatoria, autenticazione Firebase con supporto Google Sign-In, regole di sicurezza Firestore che isolano i dati di ciascun utente, accesso ai dati consentito esclusivamente al proprietario dell'account e, nello Spazio Palestra, ai trainer della stessa palestra.</p>
 
   <h2>10. Modifiche alla Privacy Policy</h2>
-  <p>La presente informativa può essere aggiornata periodicamente. In caso di modifiche sostanziali, l'utente verrà informato tramite comunicazione nell'app. L'ultima modifica risale a marzo 2026.</p>
+  <p>La presente informativa può essere aggiornata periodicamente. In caso di modifiche sostanziali, l'utente verrà informato tramite comunicazione nell'app. L'ultima modifica risale a novembre 2026.</p>
 
   <h2>11. Contatti</h2>
-  <p>Per qualsiasi domanda relativa al trattamento dei dati personali: <a href="mailto:ptboard.app@gmail.com">ptboard.app@gmail.com</a></p>
+  <p>Per qualsiasi domanda relativa al trattamento dei dati personali: <a href="mailto:ptboard.info@gmail.com">ptboard.info@gmail.com</a></p>
 </div>
 
 <footer>
