@@ -861,13 +861,18 @@ function askSendEmail({pat,subject,message,trainerProfile}){
 }
 // ── BREVO ONBOARDING EMAILS ─────────────────────────────────────────────────
 var WORKER_URL='https://ptboard-webhook.ptboard-info.workers.dev';
+// Email della prova gratuita (15 giorni). Modelli Brevo: 1 Benvenuto, 2 "Hai creato il tuo primo
+// cliente?", 3 "Il tuo cliente restera' impressionato", 5 "3 funzioni che forse non hai ancora provato",
+// 4 "Il tuo trial scade tra 5 giorni", 7 "Il tuo trial e' scaduto". Le chiavi (key) restano quelle
+// storiche per non rimandare email gia' ricevute. maxDay: oltre quel giorno l'email non si manda piu'
+// (chi entra dopo tanto tempo non riceve tutte le email arretrate insieme).
 var ONBOARDING_EMAILS=[
-  {day:0, templateId:1, key:'welcome'},
-  {day:3, templateId:2, key:'day3'},
-  {day:7, templateId:3, key:'day7'},
-  {day:14, templateId:5, key:'day14'},
-  {day:25, templateId:4, key:'day25'},
-  {day:15, templateId:6, key:'trialExpired', requireNoActivePlan:true}
+  {day:0, maxDay:6, templateId:1, key:'welcome'},
+  {day:3, maxDay:6, templateId:2, key:'day3'},
+  {day:5, maxDay:8, templateId:5, key:'day14'},
+  {day:7, maxDay:9, templateId:3, key:'day7'},
+  {day:10, maxDay:14, templateId:4, key:'day25', requireNoActivePlan:true},
+  {day:15, maxDay:60, templateId:7, key:'trialExpired', requireNoActivePlan:true}
 ];
 var sendBrevoEmail=async function(toEmail,toName,templateId){
   try{
@@ -895,6 +900,7 @@ var checkOnboardingEmails=async function(uid,profile){
   var hasActivePlan=profile.plan&&profile.plan!=='trial'&&profile.planExpiresAt&&new Date(profile.planExpiresAt)>now;
   var toSend=ONBOARDING_EMAILS.filter(function(e){
     if(daysSinceReg<e.day||sentEmails[e.key])return false;
+    if(e.maxDay!==undefined&&daysSinceReg>e.maxDay)return false;
     if(e.requireNoActivePlan&&hasActivePlan)return false;
     return true;
   });

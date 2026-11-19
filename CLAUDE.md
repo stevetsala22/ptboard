@@ -25,7 +25,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 2. **Deploy SOLO via GitHub Pages**. MAI Netlify, MAI altri hosting.
 3. **Regole Firestore**: modifica SEMPRE prima `firestore.rules` nel repo, POI copia il file intero in Firebase Console → Firestore → Regole. L'editor Console sovrascrive l'intero ruleset: una regola nuova pubblicata senza il resto cancella tutte le altre. Dopo ogni modifica verifica che ci siano TUTTI i blocchi dell'appendice (users, admin, deleteFeedback, sharedClients, athletes, gyms con clients/schede/templates/exercises, publicTemplates, gymsPublic, gymInvites, blocca-tutto).
 4. **Nessuna chiave API/segreto nel frontend**. Brevo passa dal Cloudflare Worker; Stripe passa dalle Payment Links. Public keys (Firebase, EmailJS public key, Sentry DSN, GA4, Meta Pixel) sono per design pubbliche e OK in HTML.
-5. **Brevo**: in `ONBOARDING_EMAILS` (`index.html:199-206`) i template id **4 e 5 sono invertiti rispetto al giorno** (`templateId:5 → day14`, `templateId:4 → day25`). È voluto, allineato alle configurazioni Brevo. NON "correggere" senza istruzione esplicita di Steve.
+5. **Brevo**: email della prova in `ONBOARDING_EMAILS` (modelli Brevo: 1 benvenuto g0, 2 g3, 5 "3 funzioni" g5, 3 g7, 4 "il trial scade tra 5 giorni" g10, 7 "trial scaduto" g15; `maxDay` = oltre quel giorno non si manda piu'). Le chiavi (`day14`, `day25`…) sono storiche e NON corrispondono al giorno: servono a non rimandare email gia' ricevute, non rinominarle. Il modello 8 e' l'email "Novita' schede functional" (invio da pannello admin). Sistemato su richiesta di Steve (nov 2026).
 6. **i18n**: ogni nuovo testo UI va aggiunto in **tutte e 3 le lingue** (IT @ `index.html:457`, EN @ 1306, FR @ 2155). Stessa chiave in tutti e tre i blocchi.
 7. **Auto-save**: non introdurre logiche che possano sovrascrivere dati remoti con stato locale vuoto. Il guard `loadedFromFirebase` (useRef) blocca il save fin quando `fbLoad` non è completato (vedi §Trappole note).
 8. **ADMIN_EMAIL** = `stevetsala22@gmail.com` (hardcoded in `index.html:133`). Attenzione ai typo (NON `tsalasteve22`). Usato sia nel codice che nelle regole Firestore.
@@ -198,7 +198,6 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **TODO: generare `EXERCISE_LIBRARY` di `atleta.html` dai 254 di `index.html`** — serve uno script/one-shot che estragga `INIT_EXERCISES[].nome` e lo rigetti dentro `atleta.html:333` così le due liste restano sincronizzate (oggi divergono: 254 vs 222, con nomi non 1:1).
 - **Working notes stale**: `i18n_audit.md` cita "10316 righe" (oggi `index.html` ne ha 11525); `exercises_translation_preview.md` è labelled "Batch H". Entrambi probabilmente obsoleti (candidati alla rimozione).
 - **Rules duplicate match**: `firestore.rules` ha due blocchi `match /users/{userId}` (owner + admin, righe 6–11 e 14–17). Funziona (Firestore fa union delle match). **Deciso: lasciare invariato**.
-- **Brevo 4↔5 swap**: `templateId:4 → day25`, `templateId:5 → day14` nel frontend. **Deciso: lasciare invariato** (vedi Regola Critica #5).
 
 ---
 
