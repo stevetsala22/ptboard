@@ -1,4 +1,4 @@
-const CACHE='ptboard-v59';
+const CACHE='ptboard-v60';
 const ASSETS=[
   '/',
   '/index.html',

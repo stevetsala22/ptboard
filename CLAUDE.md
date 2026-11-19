@@ -17,7 +17,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - **Firebase compat 10.7.0**, progetto `ptboard-1`. Firestore + Auth (Google login).
 - **Pagamenti**: Stripe tramite 4 Payment Links in `const PLANS` (`index.html:136-141`).
 - **Email transazionali**: Brevo, inviate tramite Cloudflare Worker `ptboard-webhook.ptboard-info.workers.dev` (endpoint `/send-email`). Il Worker vive in un repo separato (progetto Cloudflare dell'account `ptboard-info`): qui dentro c'è SOLO il client che chiama `WORKER_URL+'/send-email'` (`index.html:198-230`).
-- **PWA**: `sw.js` (cache `ptboard-v59`) + `manifest.json`.
+- **PWA**: `sw.js` (cache `ptboard-v60`) + `manifest.json`.
 - **Hosting**: GitHub Pages via `.nojekyll` + `CNAME`.
 
 ## ⚠️ REGOLE CRITICHE — non violare mai
@@ -41,11 +41,11 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `share.html` — vista anonima della scheda condivisa dal PT. Un giorno per sezione se multi-day (Upper/Lower, PPL).
 - `anim-esercizi.js` + `img/esercizi/` — "Come si esegue": immagini RepDB (libreria gratuita, licenza free tier v1.0) delle due posizioni (`<id>-start.webp`/`<id>-peak.webp`, oppure `<id>-main.webp` per tenute e stretching) che si alternano con dissolvenza. Globale `PTAnim`: `MAP` id esercizio PT Board → id RepDB (232 esercizi, corrispondenze verificate una per una; gli altri non hanno il bottone ▶), `FRAMES`, `specFor(ex)`, `has(ex)`, `mount(el, spec, opts)`, `CREDIT`. **Licenza**: obbligatorio il link visibile "Exercise data by RepDB (repdb.co)" (mostrato sotto ogni immagine in app e nel link cliente); vietato ripubblicare le immagini come dataset/API o usarle per generare immagini con AI. In app: `AnimBtn` (ricerca esercizi e scheda espansa) → `AnimModal`. Nel link cliente l'esercizio porta `anim` = id RepDB (da `animSharePatch`, in `buildSchedaAttuale` e `buildGiorniDaTutteLeSchede`): i link creati prima mostrano le immagini dopo un nuovo "Condividi" o una modifica della scheda.
 - `404.html` — fallback SPA: cattura `/s/{id}` dal path e redirige a `share.html?id=…` via `sessionStorage`.
-- `landing.html` + `landing-i18n.js` + `landing-demo.js` — homepage pubblica (IT inline, EN/FR da `window.TR`).
+- `landing.html` + `landing-i18n.js` — homepage pubblica, sempre chiara: IT scritto nella pagina, EN/FR in `TR` (`landing-i18n.js`) con attributi `data-i18n` (testo), `data-i18n-alt`, `data-i18n-src` (es. PDF per lingua), piu' titolo e meta description. Ogni chiave deve esistere in EN e FR. Screenshot in `img/landing/` (link cliente e PDF in IT/EN/FR). `landing-demo.js` non e' piu' usato dalla landing.
 - `blog/index.html`, `blog/valutazione-funzionale-pt-guida-2026.html` — blog SEO.
 - `privacy.html`, `terms.html` — pagine legali.
 - `firestore.rules` — fonte di verità delle regole (poi copiata a mano in Console).
-- `sw.js` — service worker PWA (cache `ptboard-v59`).
+- `sw.js` — service worker PWA (cache `ptboard-v60`).
 - `manifest.json`, `icon192.png`, `icon512.png`, `favicon.*` — PWA assets.
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
 - `dashboard.jpg`, `mobile.jpg` — immagini `og:image` referenziate da `landing.html`.
@@ -127,7 +127,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - Esercizi: `ex.nome = {it, en, fr}`. Lookup via `exName(ex,lang)` (`index.html:3064`), fallback IT.
 - Muscoli: `MUSCOLI_TRANS` + `muscoliLocale(key,lang)` (4065–4096).
 - **Aggiungere un nuovo testo UI**: aprire tutti e 3 i blocchi (IT/EN/FR), aggiungere la stessa chiave in ciascuno. Nessun fallback automatico tra lingue: se manca in EN/FR, viene mostrato `undefined`.
-- Landing: IT inline in `landing.html`; EN/FR in `landing-i18n.js` (`window.TR[lang][key]`).
+- Landing: IT inline in `landing.html`; EN/FR in `landing-i18n.js` (`TR[lang][key]`). In francese "coach sportif" al posto di "PT".
 
 ## Feature "Atleta" (stato)
 - ✅ **Fase 1** — bottone "🔗 App per il cliente" nel menu PT (ex "Invita atleta") + `atleta.html` landing mobile-first. Link `atleta.html?inv=<ptUid>`.

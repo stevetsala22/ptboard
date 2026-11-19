@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <script
   src="https://js-de.sentry-cdn.com/57393661f5ebf80ff4e43d5cd42d7cd8.min.js"
   crossorigin="anonymous"
@@ -29,1124 +31,394 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1671690820676185&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<meta charset="UTF-8"/>
 <link rel="icon" type="image/png" href="/favicon.png"/>
 <link rel="apple-touch-icon" href="/favicon.png"/>
-<link rel="preload" as="image" href="/dashboard.jpg" fetchpriority="high"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
-<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)"/>
 <meta name="theme-color" content="#ffffff"/>
-<meta name="description" content="PT Board — Software all-in-one per Personal Trainer italiani. Valutazione funzionale in 20 min, schede automatiche, PDF professionale. Prova gratis 15 giorni, senza carta di credito."/>
-<meta name="keywords" content="personal trainer, gestione clienti, software PT, valutazione funzionale, programma allenamento, scheda cliente"/>
-<meta property="og:title" content="PT Board - Il software che ogni Personal Trainer merita"/>
-<meta property="og:description" content="Smetti di sprecare 2 ore per ogni cliente. Con PT Board valuti, programmi e generi la scheda PDF in 20 minuti — automaticamente. Da 9,99 euro/mese."/>
+<meta name="color-scheme" content="light"/>
+<title>PT Board · Il gestionale dell'allenamento per personal trainer e palestre</title>
+<meta name="description" content="PT Board è il gestionale dell'allenamento per personal trainer e palestre: valuti il cliente, crei la scheda con superset, circuiti, EMOM e Hyrox, e il cliente la segue dal telefono con timer e immagini degli esercizi. 15 giorni gratis."/>
+<meta name="keywords" content="gestionale personal trainer, software personal trainer, app personal trainer, schede allenamento, gestionale palestra allenamento, EMOM, Hyrox"/>
+<link rel="canonical" href="https://personaltrainerboard.com/landing.html"/>
+<meta property="og:title" content="PT Board · La tua scheda. Nel suo telefono."/>
+<meta property="og:description" content="Il gestionale dell'allenamento per personal trainer e palestre. Valuta, programma e segui ogni cliente da un unico posto. 15 giorni gratis."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://personaltrainerboard.com/landing.html"/>
 <meta property="og:image" content="https://personaltrainerboard.com/dashboard.jpg"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="750"/>
-<meta property="og:image:alt" content="PT Board Dashboard - Software per Personal Trainer"/>
+<meta property="og:image:alt" content="PT Board, il gestionale dell'allenamento per personal trainer"/>
 <meta property="og:site_name" content="PT Board"/>
 <meta property="og:locale" content="it_IT"/>
 <meta property="og:locale:alternate" content="en_US"/>
 <meta property="og:locale:alternate" content="fr_FR"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="PT Board - Il software che ogni Personal Trainer merita"/>
-<meta name="twitter:description" content="Valuta i tuoi clienti in 20 minuti. Schede automatiche, PDF professionale. Prova gratis 15 giorni."/>
+<meta name="twitter:title" content="PT Board · La tua scheda. Nel suo telefono."/>
+<meta name="twitter:description" content="Il gestionale dell'allenamento per personal trainer e palestre. 15 giorni gratis."/>
 <meta name="twitter:image" content="https://personaltrainerboard.com/dashboard.jpg"/>
-<title>PT Board - Il software che ogni Personal Trainer merita</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet"/>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* Layout: colonna centrale 1120px; hero a due colonne (testo + telefono vero); poi 3 pilastri, schede, cliente, palestre, prezzi, numeri, FAQ.
+   Firma visiva: i colori dei blocchi di PT Board (superset, circuito, EMOM, AMRAP, Hyrox, finisher). Sempre chiara. */
 :root{
-  --bg:#ffffff;--card:#ffffff;--card2:#f9fafb;--border:#e5e7eb;
-  --text:#374151;--muted:#6b7280;--dim:#9ca3af;--strong:#0f172a;
-  --blue:#2563eb;--green:#059669;--yellow:#d97706;--red:#dc2626;
-  --purple:#7c3aed;--cyan:#0891b2;--orange:#ea580c;--pink:#db2777;
+  --bg:#ffffff; --bg2:#f4f6fb; --ink:#0f172a; --text:#334155; --muted:#64748b; --line:#e2e8f0;
+  --blue:#2563eb; --blue-ink:#1d4ed8; --on-blue:#ffffff;
+  --sup:#ea580c; --emom:#4f46e5; --amrap:#0891b2; --hyrox:#0f766e; --fin:#e11d48; --cir:#7c3aed;
+  --shadow:0 20px 50px rgba(15,23,42,.14);
+  --font:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:light;
 }
-html{scroll-behavior:smooth;overflow-x:hidden}
-body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);line-height:1.6;overflow-x:hidden}
-a{color:var(--blue);text-decoration:none}
-img{max-width:100%;height:auto}
-
-/* ── UTILITIES ── */
-.container{max-width:1200px;margin:0 auto;padding:0 24px}
-.section{padding:100px 0}
-.section-sm{padding:60px 0}
-.text-center{text-align:center}
-.text-muted{color:var(--muted)}
-.text-gradient{background:linear-gradient(135deg,var(--blue),var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;font-size:13px;font-weight:600;background:var(--blue);background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25);letter-spacing:.3px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:16px 36px;border-radius:14px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;border:none;transition:all .2s ease;text-decoration:none;white-space:nowrap}
-.btn:active{transform:scale(.97)}
-.btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 24px rgba(59,130,246,.35)}
-.btn-primary:hover{background:#2563eb;box-shadow:0 8px 32px rgba(59,130,246,.45);transform:translateY(-1px)}
-.btn-ghost{background:#f9fafb;color:var(--text);border:1px solid var(--border)}
-.btn-ghost:hover{background:#f3f4f6;border-color:var(--blue)}
-.btn-lg{padding:20px 44px;font-size:18px;border-radius:16px}
-.btn-sm{padding:10px 22px;font-size:14px;border-radius:10px}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeInUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-@keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(59,130,246,.15)}50%{box-shadow:0 0 40px rgba(59,130,246,.3)}}
-@keyframes count{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
-@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.animate{opacity:0;transform:translateY(28px);transition:all .7s cubic-bezier(.22,1,.36,1)}
-.animate.in-view{opacity:1;transform:translateY(0)}
-.delay-1{transition-delay:.1s}
-.delay-2{transition-delay:.2s}
-.delay-3{transition-delay:.3s}
-.delay-4{transition-delay:.4s}
-
-/* ── GLOW EFFECTS ── */
-.glow-blue{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.08) 0%,transparent 70%);pointer-events:none}
-.glow-purple{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%);pointer-events:none}
-
-/* ── NAVBAR (alleggerita CRO) ── */
-.navbar{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:all .3s ease}
-.navbar.scrolled{background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 0;box-shadow:0 1px 12px rgba(15,23,42,.08)}
-.navbar .container{display:flex;align-items:center;justify-content:space-between}
-.navbar-logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:900;color:var(--strong);letter-spacing:-.5px}
-.navbar-logo span{color:var(--blue)}
-.navbar-cta{display:flex;gap:12px;align-items:center}
-.mobile-menu-btn{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer;padding:8px}
-.lang-switcher{position:relative;display:inline-flex;flex-shrink:0;margin-right:8px;font-family:inherit}
-.lang-trigger{background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:18px;line-height:1;color:var(--text);transition:background .2s,border-color .2s;font-family:inherit;min-height:36px}
-.lang-trigger:hover{background:#f3f4f6;border-color:var(--blue)}
-.lang-trigger .chev{font-size:10px;color:var(--muted);transition:transform .2s}
-.lang-switcher.open .lang-trigger{border-color:var(--blue);background:rgba(59,130,246,.08)}
-.lang-switcher.open .lang-trigger .chev{transform:rotate(180deg)}
-.lang-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 4px 20px rgba(15,23,42,.12),0 0 0 1px rgba(0,0,0,.06);min-width:160px;display:none;z-index:200}
-.lang-switcher.open .lang-menu{display:block;animation:fadeIn .15s ease}
-.lang-option{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;background:none;border:none;border-radius:8px;cursor:pointer;font-size:14px;color:var(--text);font-family:inherit;text-align:left;transition:background .15s}
-.lang-option:hover{background:#f3f4f6}
-.lang-option .flag{font-size:18px;line-height:1}
-.lang-option.active{background:rgba(59,130,246,.15);color:var(--strong);font-weight:600}
-
-/* ── HERO ── */
-.hero{position:relative;padding:160px 0 120px;overflow:hidden;min-height:100vh;display:flex;align-items:center}
-.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.07) 0%,rgba(139,92,246,.04) 40%,transparent 70%);pointer-events:none}
-.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
-.hero-content{position:relative;z-index:2}
-.hero-badge{animation:fadeInUp .6s ease both}
-.hero-title{font-size:58px;font-weight:900;line-height:1.08;color:var(--strong);margin:24px 0 20px;letter-spacing:-1.5px;animation:fadeInUp .6s ease both .1s}
-.hero-desc{font-size:19px;color:var(--muted);line-height:1.7;max-width:520px;margin-bottom:36px;animation:fadeInUp .6s ease both .2s}
-.hero-ctas{display:flex;gap:16px;flex-wrap:wrap;animation:fadeInUp .6s ease both .3s}
-.hero-cta-note{font-size:12px;color:var(--dim);margin-top:10px;animation:fadeInUp .6s ease both .35s}
-.hero-social-proof{display:flex;align-items:center;gap:14px;margin-top:24px;animation:fadeInUp .6s ease both .4s}
-.hero-early-badge{display:inline-flex;align-items:center;gap:12px;padding:10px 16px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px}
-.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(16,185,129,.6);animation:pulseDot 2s infinite}
-@keyframes pulseDot{0%{box-shadow:0 0 0 0 rgba(16,185,129,.6)}70%{box-shadow:0 0 0 10px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
-.hero-avatars{display:flex}
-.hero-avatars div{width:36px;height:36px;border-radius:50%;border:2px solid var(--bg);margin-left:-10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
-.hero-avatars div:first-child{margin-left:0}
-.hero-social-text{font-size:13px;color:var(--muted);line-height:1.5}
-.hero-social-text strong{color:var(--strong)}
-.hero-mockup{position:relative;z-index:2;animation:fadeIn 1s ease both .5s}
-
-/* ── TRUST BAR ── */
-.trust-bar{border-bottom:1px solid var(--border);background:var(--bg)}
-.trust-bar .container{display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap;padding:16px 24px}
-.trust-item{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px;font-weight:500}
-.trust-item span{font-size:15px}
-.trust-number{font-size:22px;font-weight:900;color:var(--strong)}
-
-/* ── PROBLEM ── */
-.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
-.problem-list{display:flex;flex-direction:column;gap:20px}
-.problem-item{display:flex;gap:16px;padding:20px;border-radius:14px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.18)}
-.problem-item .icon{width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.problem-item h4{font-size:15px;font-weight:700;color:var(--strong);margin-bottom:4px}
-.problem-item p{font-size:13px;color:var(--muted);line-height:1.6}
-
-.solution-card{background:linear-gradient(145deg,rgba(59,130,246,.06),rgba(139,92,246,.04));border:1px solid rgba(59,130,246,.25);border-radius:24px;padding:48px;position:relative;overflow:hidden}
-.solution-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.1),transparent);pointer-events:none}
-.solution-card h3{font-size:28px;font-weight:900;color:var(--strong);margin-bottom:12px}
-.solution-card p{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:28px}
-.solution-features{display:flex;flex-direction:column;gap:14px}
-.solution-feature{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:var(--text)}
-.solution-feature .check{width:24px;height:24px;border-radius:8px;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0}
-
-/* ── FEATURES GRID ── */
-.features-header{max-width:640px;margin:0 auto 60px;text-align:center}
-.features-header h2{font-size:42px;font-weight:900;color:var(--strong);margin-bottom:16px;letter-spacing:-1px}
-.features-header p{font-size:17px;color:var(--muted)}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.feature-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px;transition:all .3s ease;position:relative;overflow:hidden}
-.feature-card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 32px rgba(15,23,42,.1)}
-.feature-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--purple));opacity:0;transition:opacity .3s}
-.feature-card:hover::after{opacity:1}
-.feature-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:20px}
-.feature-card h3{font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px}
-.feature-card p{font-size:13px;color:var(--muted);line-height:1.7}
-.feature-tag{display:inline-block;margin-top:12px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-
-/* ── WIZARD SHOWCASE ── */
-.wizard-section{position:relative;overflow:hidden}
-.wizard-section::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.03),var(--bg))}
-.wizard-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;position:relative;z-index:2}
-.wizard-steps{display:flex;flex-direction:column;gap:12px}
-.wizard-step{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:14px;border:1px solid transparent;transition:all .3s;cursor:default}
-.wizard-step.active{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2)}
-.wizard-step .num{width:36px;height:36px;border-radius:10px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--muted);flex-shrink:0;transition:all .3s}
-.wizard-step.active .num{background:var(--blue);color:#fff;border-color:var(--blue)}
-.wizard-step.done .num{background:var(--green);color:#fff;border-color:var(--green)}
-.wizard-step .info h4{font-size:14px;font-weight:700;color:var(--strong)}
-.wizard-step .info p{font-size:12px;color:var(--muted)}
-.wizard-mockup{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 8px 32px rgba(15,23,42,.1)}
-.wizard-mockup-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.wizard-mockup-progress{height:4px;background:var(--border);border-radius:2px;margin-bottom:24px;overflow:hidden}
-.wizard-mockup-progress div{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:2px;transition:width .6s ease}
-.wizard-field{margin-bottom:14px}
-.wizard-field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px}
-.wizard-field .input{width:100%;padding:12px 16px;border-radius:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:14px}
-.wizard-field .input.filled{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.04)}
-.wizard-kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:20px}
-.wizard-kpi{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
-.wizard-kpi .val{font-size:24px;font-weight:900;line-height:1}
-.wizard-kpi .lbl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
-
-/* ── PRICING ── */
-.pricing-section{position:relative}
-.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:start}
-.price-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px;position:relative;transition:all .3s}
-.price-card:hover{transform:translateY(-4px);box-shadow:0 8px 32px rgba(15,23,42,.1)}
-.price-card.popular{border-color:var(--blue);background:linear-gradient(170deg,rgba(59,130,246,.08),var(--card));box-shadow:0 0 0 1px rgba(59,130,246,.2),0 24px 64px rgba(59,130,246,.1)}
-.price-card.popular::before{content:'PIU\0027 POPOLARE';position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;padding:5px 20px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:1px}
-.price-name{font-size:16px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.price-amount{display:flex;align-items:baseline;gap:4px;margin-bottom:6px}
-.price-amount .currency{font-size:22px;font-weight:700;color:var(--strong)}
-.price-amount .number{font-size:52px;font-weight:900;color:var(--strong);line-height:1;letter-spacing:-2px}
-.price-amount .period{font-size:15px;color:var(--muted);font-weight:500}
-.price-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5}
-.price-features{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
-.price-feature{display:flex;align-items:center;gap:10px;font-size:14px}
-.price-feature.yes{color:var(--text)}
-.price-feature.no{color:var(--dim);text-decoration:line-through;opacity:.5}
-.price-feature .icon{font-size:16px;flex-shrink:0}
-.price-divider{height:1px;background:var(--border);margin:20px 0}
-.price-competitor{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-radius:8px;background:rgba(239,68,68,.04);font-size:12px;color:var(--muted);margin-bottom:6px}
-.price-competitor .name{font-weight:600}
-.price-competitor .amount{text-decoration:line-through;color:var(--red);font-weight:700}
-
-/* ── TESTIMONIALS (reali) ── */
-.testimonial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.testimonial-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px;transition:all .3s}
-.testimonial-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-3px)}
-.testimonial-stars{color:var(--yellow);font-size:16px;margin-bottom:14px;letter-spacing:2px}
-.testimonial-text{font-size:14px;color:var(--text);line-height:1.7;margin-bottom:18px;font-style:italic}
-.testimonial-author{display:flex;align-items:center;gap:12px}
-.testimonial-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
-.testimonial-name{font-size:14px;font-weight:700;color:var(--strong)}
-.testimonial-role{font-size:12px;color:var(--muted)}
-
-/* ── USE CASES ── */
-.usecase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-
-/* ── FAQ ── */
-.faq-list{max-width:720px;margin:0 auto}
-.faq-item{border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .3s}
-.faq-item:hover{border-color:rgba(59,130,246,.2)}
-.faq-q{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;cursor:pointer;font-size:15px;font-weight:700;color:var(--strong);background:none;border:none;width:100%;text-align:left;font-family:inherit;color:var(--strong)}
-.faq-q .arrow{font-size:18px;color:var(--muted);transition:transform .3s;flex-shrink:0}
-.faq-item.open .faq-q .arrow{transform:rotate(180deg)}
-.faq-a{padding:0 24px 20px;font-size:14px;color:var(--muted);line-height:1.7;display:none}
-.faq-item.open .faq-a{display:block}
-
-/* ── CTA FINAL ── */
-.cta-section{position:relative;overflow:hidden}
-.cta-box{background:linear-gradient(145deg,rgba(59,130,246,.1),rgba(139,92,246,.06));border:1px solid rgba(59,130,246,.2);border-radius:28px;padding:80px 60px;text-align:center;position:relative;overflow:hidden}
-.cta-box::before{content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.1),transparent 70%);pointer-events:none}
-.cta-box h2{font-size:42px;font-weight:900;color:var(--strong);margin-bottom:16px;letter-spacing:-1px;position:relative;z-index:2}
-.cta-box p{font-size:18px;color:var(--muted);margin-bottom:36px;max-width:520px;margin-left:auto;margin-right:auto;position:relative;z-index:2}
-.cta-box .btn{position:relative;z-index:2}
-
-/* ── FOOTER ── */
-.footer{border-top:1px solid var(--border);padding:48px 0 32px}
-.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
-.footer-brand{font-size:18px;font-weight:900;color:var(--strong);margin-bottom:10px}
-.footer-brand span{color:var(--blue)}
-.footer-desc{font-size:13px;color:var(--muted);line-height:1.7;max-width:280px}
-.footer-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:16px}
-.footer-col a{display:block;font-size:14px;color:var(--muted);padding:4px 0;transition:color .2s}
-.footer-col a:hover{color:var(--blue)}
-.footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:24px;border-top:1px solid var(--border);font-size:12px;color:var(--dim)}
-
-/* ── DEMO INTERACTIVE SECTION ── */
-.demo-section{position:relative;padding:80px 0;background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.03),var(--bg))}
-.demo-wrap{max-width:700px;margin:0 auto;padding:0 24px}
-.demo-card{background:#ffffff;border:1px solid var(--border);border-radius:24px;padding:40px;box-shadow:0 4px 24px rgba(15,23,42,.08);position:relative;overflow:hidden}
-.demo-stepper{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px}
-.demo-stepper .dot{width:30px;height:30px;border-radius:50%;background:var(--border);color:var(--muted);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .3s ease}
-.demo-stepper .dot.active{background:var(--blue);color:#fff;box-shadow:0 0 0 4px rgba(59,130,246,.2)}
-.demo-stepper .dot.done{background:var(--green);color:#fff}
-.demo-stepper .line{width:36px;height:2px;background:var(--border);transition:background .3s}
-.demo-stepper .line.done{background:var(--green)}
-.demo-step{animation:demoFade .35s ease}
-@keyframes demoFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.demo-step-title{font-size:22px;font-weight:800;color:var(--strong);margin-bottom:6px;letter-spacing:-.3px}
-.demo-step-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.5}
-.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.demo-field{display:flex;flex-direction:column;gap:5px}
-.demo-field.full{grid-column:1 / -1}
-.demo-field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-.demo-field input,.demo-field select{width:100%;padding:11px 14px;border-radius:8px;background:#f9fafb;border:1px solid var(--border);color:var(--strong);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s}
-.demo-field input:focus,.demo-field select:focus{border-color:var(--blue)}
-.demo-info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:#cbd5e1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.demo-info-box .badge-num{font-size:18px;font-weight:900;color:var(--blue)}
-.demo-info-box.green{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25)} .demo-info-box.green .badge-num{color:var(--green)}
-.demo-info-box.yellow{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)} .demo-info-box.yellow .badge-num{color:var(--yellow)}
-.demo-info-box.red{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)} .demo-info-box.red .badge-num{color:var(--red)}
-.demo-bar-wrap{margin-top:10px}
-.demo-bar-label{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:5px}
-.demo-bar-label b{color:var(--strong);font-weight:700}
-.demo-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
-.demo-bar>div{height:100%;border-radius:4px;background:var(--blue);transition:width .6s cubic-bezier(.22,1,.36,1),background .3s}
-.demo-actions{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
-.demo-btn{padding:11px 22px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s ease}
-.demo-btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3)}
-.demo-btn-primary:hover{background:#2563eb;transform:translateY(-1px)}
-.demo-btn-primary:disabled{background:#334155;color:#64748b;cursor:not-allowed;box-shadow:none;transform:none}
-.demo-btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-.demo-btn-ghost:hover{color:var(--strong);border-color:var(--blue)}
-.demo-result{position:relative}
-.demo-profile-box{padding:28px 24px;border-radius:16px;text-align:center;margin-bottom:20px;border:2px solid;position:relative}
-.demo-profile-box.A{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));border-color:#ef4444;color:#fca5a5}
-.demo-profile-box.B{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border-color:#f59e0b;color:#fcd34d}
-.demo-profile-box.C{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border-color:#10b981;color:#6ee7b7}
-.demo-profile-name{font-size:24px;font-weight:900;letter-spacing:-.5px;line-height:1}
-.demo-profile-score{font-size:46px;font-weight:900;color:var(--strong);margin-top:10px;line-height:1;font-variant-numeric:tabular-nums}
-.demo-profile-score small{font-size:18px;color:var(--muted);font-weight:700}
-.demo-profile-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-top:18px}
-.demo-profile-bar>div{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
-.demo-comp{display:flex;flex-direction:column;gap:14px;margin-bottom:18px}
-.demo-mini-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
-.demo-mini{background:#f9fafb;border:1px solid var(--border);border-radius:12px;padding:14px}
-.demo-mini-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px}
-.demo-mini-val{font-size:14px;color:var(--strong);font-weight:600;line-height:1.4}
-
-/* Paywall overlay on result step */
-.demo-paywall{margin-top:8px;background:linear-gradient(180deg,rgba(255,255,255,.0),rgba(255,255,255,.98) 55%);border:1px solid var(--border);border-radius:16px;padding:38px 24px 8px;text-align:center}
-.demo-paywall h4{font-size:18px;font-weight:800;color:var(--strong);margin-bottom:6px;letter-spacing:-.3px}
-.demo-paywall p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;max-width:440px;margin-left:auto;margin-right:auto}
-.demo-paywall p b{color:#cbd5e1;font-weight:700}
-.demo-paywall .pw-btn{display:inline-block;background:var(--blue);color:#fff;padding:14px 30px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(59,130,246,.35);transition:all .15s}
-.demo-paywall .pw-btn:hover{background:#2563eb;transform:translateY(-1px)}
-.demo-paywall .pw-note{font-size:11px;color:var(--dim);margin-top:14px}
-
-/* ── AUTHORITY STRIP ── */
-.authority-divider{flex-shrink:0}
-
-/* ── PROOF REFS GRID ── */
-.proof-refs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
-.proof-ref-area{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
-.proof-ref-area-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--blue);margin-bottom:5px}
-.proof-ref-area-text{font-size:11px;color:var(--muted);line-height:1.55}
-
-/* ── RESPONSIVE ── */
-@media(max-width:968px){
-  .hero-grid,.problem-grid,.wizard-grid{grid-template-columns:1fr;gap:40px}
-  .hero{padding:120px 0 80px;min-height:auto}
-  .hero-title{font-size:38px}
-  .hero-desc{font-size:16px}
-  .hero-mockup{order:-1}
-  .features-grid,.pricing-grid,.testimonial-grid,.usecase-grid{grid-template-columns:1fr}
-  .features-grid{max-width:480px;margin-left:auto;margin-right:auto}
-  .features-header h2,.cta-box h2{font-size:30px}
-  .mobile-menu-btn{display:block}
-  .footer-grid{grid-template-columns:1fr 1fr}
-  .section{padding:60px 0}
-  .cta-box{padding:48px 28px}
-  .pricing-grid{max-width:420px;margin-left:auto;margin-right:auto}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6;margin:0;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{color:var(--ink);text-wrap:balance;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.05;font-weight:900}
+h2{font-size:clamp(26px,3.6vw,38px);line-height:1.12;font-weight:800}
+h3{font-size:19px;font-weight:800}
+p{margin:0}
+a{color:var(--blue)}
+/* NAV */
+.nav-bar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+.nav-bar.scrolled{border-bottom-color:var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding-block:14px;gap:12px}
+.logo{font-size:21px;font-weight:900;color:var(--ink);text-decoration:none;letter-spacing:-.03em;line-height:1.2}
+.logo span{color:var(--blue)}
+.logo small{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);margin-top:-1px}
+.nav-ctas{display:flex;gap:8px;align-items:center}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{border:none;background:transparent;color:var(--muted);font:800 12px var(--font);padding:7px 9px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;font:inherit;font-weight:800;text-decoration:none;cursor:pointer;border:1px solid transparent;padding:14px 24px;font-size:16px;white-space:nowrap}
+.btn-primary{background:var(--blue);color:var(--on-blue)}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--blue)}
+.btn-sm{padding:9px 16px;font-size:14px;border-radius:10px}
+.btn:focus-visible,.lang button:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+section{padding-block:72px;scroll-margin-top:70px}
+.alt{background:var(--bg2)}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-ink)}
+.lead{font-size:19px;color:var(--text);max-width:560px}
+/* HERO */
+.hero{padding-block:32px 64px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center}
+.hero-copy{display:flex;flex-direction:column;gap:22px;min-width:0}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.note{font-size:13px;color:var(--muted)}
+.phone{justify-self:center;width:min(330px,100%);border-radius:38px;padding:10px;background:#0f172a;box-shadow:var(--shadow);position:relative}
+.phone img{display:block;width:100%;height:auto;border-radius:30px;aspect-ratio:390/780;object-fit:cover;object-position:top}
+.phone-tag{position:absolute;left:-18px;bottom:64px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:800;box-shadow:var(--shadow)}
+.phone-tag b{color:var(--emom)}
+/* PILASTRI */
+.head{display:flex;flex-direction:column;gap:12px;max-width:680px;margin-bottom:36px}
+.pillars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.pillar{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pillar .k{font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-ink)}
+.pillar ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+/* SPLIT */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center}
+.split.rev .media{order:-1}
+.split .copy{display:flex;flex-direction:column;gap:18px;min-width:0}
+.ticks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ticks li{display:grid;grid-template-columns:22px 1fr;gap:10px}
+.ticks li::before{content:"✓";font-weight:900;color:var(--blue)}
+.media{min-width:0}
+.doc{border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:#fff}
+.doc img{display:block;width:100%;height:auto}
+.blocks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.blk{border-left:5px solid var(--c);background:var(--bg);border-radius:10px;padding:10px 12px;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.blk b{display:block;color:var(--c);font-size:14px;text-transform:uppercase;letter-spacing:.04em}
+.blk span{font-size:13px;color:var(--muted)}
+/* PALESTRE */
+.gym{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.gym div{border-top:3px solid var(--blue);padding-top:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.gym b{color:var(--ink)}
+.gym span{font-size:14px}
+/* PREZZI */
+.prices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}
+.price{border:1px solid var(--line);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+.price.hl{border:2px solid var(--blue)}
+.price .amt{font-size:42px;font-weight:900;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+.price .amt.word{font-size:30px}
+.price .amt small{font-size:16px;font-weight:700;color:var(--muted)}
+.price .sub{font-size:14px;color:var(--muted)}
+.price ul{margin:0;padding-left:18px;font-size:15px;display:flex;flex-direction:column;gap:5px;flex:1}
+.badge{align-self:flex-start;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px;background:var(--blue);color:var(--on-blue)}
+/* NUMERI */
+.nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.nums div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.nums b{font-size:44px;font-weight:900;color:var(--blue);line-height:1;font-variant-numeric:tabular-nums}
+.nums span{font-size:14px;color:var(--text)}
+.refs{margin-top:24px;font-size:14px;color:var(--muted)}
+.refs b{color:var(--ink)}
+.early{margin-top:28px;max-width:640px;border:2px solid var(--blue);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:8px}
+/* FAQ */
+.faq{max-width:760px;display:flex;flex-direction:column;gap:10px}
+details{border:1px solid var(--line);border-radius:12px;padding:14px 18px;background:var(--bg)}
+summary{cursor:pointer;font-weight:800;color:var(--ink)}
+details p{margin-top:10px;font-size:15px}
+/* FINALE + FOOTER */
+.final{text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px}
+footer{border-top:1px solid var(--line);padding-block:28px;font-size:14px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer nav{display:flex;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--ink)}
+@media (max-width:900px){
+  .hero-grid,.split{grid-template-columns:minmax(0,1fr)}
+  .split.rev .media{order:0}
+  .pillars,.prices{grid-template-columns:minmax(0,1fr)}
+  .gym{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nums{grid-template-columns:minmax(0,1fr)}
+  .phone-tag{left:8px}
+  section{padding-block:52px}
 }
-@media(max-width:768px){
-  .authority-divider{display:none!important}
-  .authority-row{gap:18px!important}
-  .authority-row>div:not(.authority-divider){font-size:18px!important}
-  .authority-row>div span{font-size:13px!important}
-  .proof-refs-grid{grid-template-columns:1fr}
-  html,body{overflow-x:hidden;max-width:100vw}
-  section,header,nav,footer,div{max-width:100vw}
-  .hero{padding:100px 0 60px}
-  .hero-title{font-size:32px;letter-spacing:-.5px;word-wrap:break-word;overflow-wrap:break-word}
-  .hero-desc{font-size:14px}
-  .hero-social-proof{gap:10px;flex-wrap:wrap}
-  .hero-avatars div{width:30px;height:30px;font-size:11px}
-  .hero-grid{gap:32px}
-  .navbar{padding:12px 0}
-  .navbar.scrolled{padding:10px 0}
-  .navbar .container{padding:0 16px}
-  .navbar-cta{gap:6px}
-  .navbar-cta .btn-ghost{display:none}
-  .navbar-cta .btn{padding:8px 14px;font-size:12px}
-  .navbar-logo{font-size:17px}
-  .section{padding:60px 0}
-  .section-sm{padding:40px 0}
-  .container{padding:0 16px}
-  .features-header{margin-bottom:36px}
-  .features-header h2{font-size:26px;line-height:1.2;word-wrap:break-word}
-  .features-header p{font-size:14px}
-  .features-grid,.pricing-grid,.testimonial-grid,.usecase-grid{
-    grid-template-columns:1fr !important;
-    max-width:100% !important;
-    gap:14px;
-  }
-  .feature-card{padding:22px}
-  .feature-card h3{font-size:16px}
-  .price-card{padding:24px}
-  .price-amount .number{font-size:44px}
-  .testimonial-card{padding:22px}
-  .wizard-grid{gap:28px}
-  .wizard-steps{padding:0}
-  .wizard-step{padding:12px 14px}
-  .wizard-mockup{padding:18px}
-  .wizard-kpi-row{grid-template-columns:1fr 1fr 1fr;gap:6px}
-  .wizard-kpi{padding:10px 6px}
-  .wizard-kpi .val{font-size:16px}
-  .footer-col a{font-size:12px}
-  .footer-bottom{flex-direction:column;gap:8px;text-align:center}
-  .footer-grid{grid-template-columns:1fr;gap:24px}
-  .footer{padding:32px 0 24px}
-  .cta-box{padding:36px 20px;border-radius:16px}
-  .cta-box h2{font-size:24px;word-wrap:break-word}
-  .cta-box p{font-size:14px;margin-bottom:22px}
-  .trust-bar .container{gap:14px;padding:12px 16px;flex-wrap:wrap}
-  .trust-item{font-size:11px;gap:5px}
-  .trust-item span{font-size:13px}
-  .problem-grid{gap:32px}
-  .problem-item{padding:16px}
-  .problem-item h4{font-size:14px}
-  .solution-card{padding:24px}
-  .solution-card h3{font-size:20px}
-  .solution-card p{font-size:14px}
-  .faq-q{padding:14px 16px;font-size:13px;gap:10px}
-  .faq-q .arrow{font-size:16px}
-  .faq-a{padding:0 16px 14px;font-size:13px}
-  .hero-mockup{overflow:visible}
-  .hero-mockup>div{overflow:hidden;border-radius:16px;padding-bottom:0}
-  .hero-badge{font-size:11px !important;padding:5px 12px !important}
-  .hero-mobile-img{width:100px!important;bottom:0!important;right:0!important;border-radius:12px!important}
-  .demo-section{padding:50px 0}
-  .demo-wrap{padding:0 16px}
-  .demo-card{padding:24px 20px;border-radius:18px}
-  .demo-grid{grid-template-columns:1fr;gap:12px}
-  .demo-mini-row{grid-template-columns:1fr;gap:8px}
-  .demo-step-title{font-size:18px}
-  .demo-step-sub{font-size:12px;margin-bottom:18px}
-  .demo-stepper .dot{width:26px;height:26px;font-size:12px}
-  .demo-stepper .line{width:24px}
-  .demo-profile-name{font-size:20px}
-  .demo-profile-score{font-size:38px}
-  .demo-paywall{padding:30px 16px 8px}
-  .demo-paywall h4{font-size:16px}
-  .demo-paywall p{font-size:12px}
-  .demo-paywall .pw-btn{padding:12px 22px;font-size:14px;width:100%}
-  .demo-actions{margin-top:22px}
-  .demo-btn{padding:10px 18px;font-size:13px}
+@media (max-width:560px){
+  .gym{grid-template-columns:minmax(0,1fr)}
+  .nav .hide-sm{display:none}
+  .logo small{display:none}
 }
-@media(max-width:480px){
-  .hero{padding:88px 0 48px}
-  .hero-title{font-size:28px;line-height:1.15}
-  .hero-desc{font-size:13px}
-  .btn-lg{padding:14px 22px;font-size:14px;border-radius:12px}
-  .btn-sm{padding:7px 12px;font-size:12px;border-radius:9px}
-  .hero-ctas{flex-direction:column;gap:10px}
-  .hero-ctas .btn{width:100%;justify-content:center}
-  .authority-row>div:not(.authority-divider){font-size:15px!important}
-  .authority-row{gap:12px!important}
-  .trust-bar .container{gap:10px;padding:12px 12px;flex-direction:column;align-items:flex-start}
-  .footer-grid{grid-template-columns:1fr}
-  .features-header h2{font-size:22px}
-  .features-header p{font-size:13px}
-  .cta-box{padding:28px 16px;border-radius:14px}
-  .cta-box h2{font-size:21px}
-  .cta-box p{font-size:13px;margin-bottom:18px}
-  .wizard-kpi-row{grid-template-columns:1fr 1fr;gap:6px}
-  .wizard-mockup{padding:14px}
-  .wizard-step{padding:10px 12px}
-  .wizard-step .info h4{font-size:13px}
-  .wizard-step .info p{font-size:11px}
-  .feature-card{padding:18px}
-  .feature-card h3{font-size:15px}
-  .feature-card p{font-size:12px}
-  .price-card{padding:20px}
-  .price-name{font-size:14px}
-  .price-amount .number{font-size:38px}
-  .price-desc{font-size:12px}
-  .price-feature{font-size:13px}
-  .solution-card{padding:20px}
-  .solution-card h3{font-size:19px}
-  .solution-feature{font-size:13px}
-  .problem-item{padding:14px;gap:12px}
-  .problem-item .icon{width:38px;height:38px;font-size:17px}
-  .testimonial-card{padding:18px}
-  .navbar .container{padding:0 12px}
-  .navbar-logo{font-size:16px;gap:6px}
-  .navbar-cta{gap:4px}
-  .navbar-cta .btn{padding:7px 11px;font-size:11px;border-radius:8px}
-  .lang-switcher{margin-right:2px}
-  .lang-trigger{padding:4px 7px;font-size:15px;min-height:30px;gap:4px}
-  .lang-trigger .chev{font-size:9px}
-  .lang-menu{min-width:140px;right:-4px}
-  .container{padding:0 14px}
-  .hero-mobile-img{width:88px!important;border-radius:10px!important}
-}
-@media(max-width:360px){
-  .container{padding:0 12px}
-  .hero{padding:84px 0 44px}
-  .hero-title{font-size:25px;letter-spacing:0}
-  .hero-desc{font-size:12px}
-  .features-header h2{font-size:20px}
-  .cta-box h2{font-size:19px}
-  .navbar-logo{font-size:15px}
-  .navbar-cta .btn{padding:6px 10px;font-size:11px}
-  .lang-trigger{padding:4px 6px;font-size:14px;min-height:28px}
-  .hero-mobile-img{width:78px!important}
-  .price-amount .number{font-size:34px}
-  .wizard-kpi .val{font-size:14px}
-  .wizard-kpi .lbl{font-size:9px}
-}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 
-<!-- ═══ NAVBAR (CRO: alleggerita, solo logo + login + CTA) ═══ -->
-<nav class="navbar" id="navbar">
-  <div class="container">
-    <div class="navbar-logo"><span>PT</span> Board</div>
-    <div class="navbar-cta">
-      <div class="lang-switcher" id="langSwitcher">
-        <button type="button" class="lang-trigger" id="langTrigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Lingua">
-          <span class="lang-current-flag">&#127470;&#127481;</span>
-          <span class="chev">&#9660;</span>
-        </button>
-        <div class="lang-menu" role="listbox">
-          <button type="button" class="lang-option" data-lang="it" role="option"><span class="flag">&#127470;&#127481;</span> Italiano</button>
-          <button type="button" class="lang-option" data-lang="en" role="option"><span class="flag">&#127468;&#127463;</span> English</button>
-          <button type="button" class="lang-option" data-lang="fr" role="option"><span class="flag">&#127467;&#127479;</span> Fran&ccedil;ais</button>
-        </div>
+<div class="nav-bar" id="navbar">
+  <header class="wrap nav">
+    <a class="logo" href="#top"><span>PT</span> Board<small data-i18n="nav.tagline">La lavagna del personal trainer</small></a>
+    <div class="nav-ctas">
+      <div class="lang" role="group" aria-label="Lingua / Language">
+        <button type="button" data-lang="it" aria-pressed="true">IT</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <button type="button" data-lang="fr" aria-pressed="false">FR</button>
       </div>
-      <a href="/?login=1" class="btn btn-ghost btn-sm" data-i18n="nav.login" onclick="sessionStorage.setItem('entered','1')">Accedi</a>
-      <a href="/?action=register" class="btn btn-primary btn-sm" data-i18n="nav.cta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Prova gratis</a>
+      <a class="btn btn-ghost btn-sm hide-sm" href="/?login=1" data-i18n="nav.login">Accedi</a>
+      <a class="btn btn-primary btn-sm" href="/?login=1" data-i18n="nav.cta">Inizia gratis</a>
     </div>
-  </div>
-</nav>
+  </header>
+</div>
 
-<!-- ═══ HERO (CRO: sottotitolo riscritto, social proof reale, micro-copy CTA) ═══ -->
-<section class="hero" id="hero">
-  <div class="container">
-    <div class="hero-grid">
-      <div class="hero-content">
-        <div class="badge hero-badge" data-i18n="hero.badge">Il software per Personal Trainer</div>
-        <h1 class="hero-title" data-i18n="hero.title">Valuta i tuoi clienti<br/>in <span class="text-gradient">20 minuti.</span><br/>Non in 2 ore.</h1>
-        <!-- CRO: sottotitolo riscritto con formula Problem+Solution -->
-        <p class="hero-desc" data-i18n="hero.desc">Smetti di sprecare 2 ore per ogni cliente. Con PT Board valuti, programmi e generi la scheda PDF in 20 minuti — automaticamente.</p>
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow" data-i18n="hero.eyebrow">Il gestionale dell'allenamento per personal trainer e palestre</span>
+        <h1 data-i18n="hero.title">La tua scheda. <em>Nel suo telefono.</em></h1>
+        <p class="lead" data-i18n="hero.lead">Valuta, programma e segui ogni cliente da un unico posto. Dalla prima valutazione all'ultima ripetizione.</p>
         <div class="hero-ctas">
-          <a href="/?action=register" class="btn btn-primary btn-lg" data-i18n="hero.ctaPrimary" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis · 15 giorni &#8594;</a>
-          <a href="#demo" class="btn btn-ghost btn-lg" data-i18n="hero.ctaSecondary">Prova subito senza registrarti</a>
+          <a class="btn btn-primary" href="/?login=1" data-i18n="cta.start">Inizia gratis</a>
+          <a class="btn btn-ghost" href="#cliente" data-i18n="hero.how">Scopri come funziona</a>
         </div>
-        <!-- CRO: micro-copy sotto CTA principale -->
-        <div class="hero-cta-note" data-i18n="hero.microCopy">Nessuna carta di credito &middot; Nessun vincolo &middot; I tuoi dati al sicuro</div>
-        <div class="hero-social-proof">
-          <div class="hero-early-badge">
-            <span class="pulse-dot"></span>
-            <div class="hero-social-text">
-              <strong data-i18n="hero.earlyTitle">Lanciato nel 2026</strong>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px" data-i18n="hero.earlySub">Aggiornamenti settimanali</div>
-            </div>
-          </div>
-        </div>
+        <p class="note" data-i18n="cta.note">15 giorni gratis. Nessuna carta di credito.</p>
       </div>
-      <div class="hero-mockup">
-        <div style="position:relative">
-          <img src="/dashboard.jpg" alt="PT Board Dashboard" data-i18n-alt="hero.imgDashAlt" style="width:100%;border-radius:16px;border:1px solid var(--border);box-shadow:0 8px 40px rgba(15,23,42,.12);display:block" loading="eager" fetchpriority="high" decoding="async" width="1200" height="750"/>
-          <img src="/mobile.jpg" alt="PT Board Mobile" data-i18n-alt="hero.imgMobileAlt" class="hero-mobile-img" style="position:absolute;bottom:-20px;right:-20px;width:160px;border-radius:20px;border:2px solid var(--border);box-shadow:0 8px 32px rgba(15,23,42,.1);z-index:2" loading="lazy" decoding="async" width="320" height="650"/>
-        </div>
+      <div class="phone">
+        <img src="/img/landing/cliente-top.jpg" data-i18n-alt="img.phoneTop" alt="Il link del cliente sul telefono: scheda con regole, progressione e riscaldamento" width="390" height="780" fetchpriority="high">
+        <div class="phone-tag" data-i18n="hero.tag">Timer <b>EMOM</b> incluso</div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ AUTHORITY STRIP — protocolli scientifici (dominante) ═══ -->
-<div style="padding:48px 0 44px;background:var(--card2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
-  <div class="container">
-    <div style="text-align:center;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2.5px;color:var(--muted);margin-bottom:24px" data-i18n="authority.title">Protocolli basati su</div>
-    <div class="authority-row" style="display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap">
-      <div style="font-size:26px;font-weight:900;color:var(--strong);letter-spacing:.3px">NSCA</div>
-      <div class="authority-divider" style="width:1px;height:28px;background:var(--border)"></div>
-      <div style="font-size:26px;font-weight:900;color:var(--strong);letter-spacing:.3px">ACSM</div>
-      <div class="authority-divider" style="width:1px;height:28px;background:var(--border)"></div>
-      <div style="font-size:26px;font-weight:900;color:var(--strong);letter-spacing:.3px">ISSN <span style="font-size:18px;font-weight:600;color:var(--muted)">2017</span></div>
-      <div class="authority-divider" style="width:1px;height:28px;background:var(--border)"></div>
-      <div style="font-size:26px;font-weight:900;color:var(--strong);letter-spacing:.3px">Schoenfeld <span style="font-size:18px;font-weight:600;color:var(--muted)">2021</span></div>
-      <div class="authority-divider" style="width:1px;height:28px;background:var(--border)"></div>
-      <div style="font-size:26px;font-weight:900;color:var(--strong);letter-spacing:.3px">ERS-ATS <span style="font-size:18px;font-weight:600;color:var(--muted)">2014</span></div>
+  <section class="alt" id="come">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow" data-i18n="how.eyebrow">Come funziona</span>
+        <h2 data-i18n="how.title">Valuta. Programma. Segui.</h2>
+        <p data-i18n="how.sub">Tutto il lavoro con un cliente, in un'unica app.</p>
+      </div>
+      <div class="pillars">
+        <article class="pillar">
+          <span class="k" data-i18n="p1.k">Valuta</span>
+          <h3 data-i18n="p1.t">Parti dai dati.</h3>
+          <ul>
+            <li data-i18n="p1.a">Anamnesi e PAR-Q guidati</li>
+            <li data-i18n="p1.b">Test standard: 6MWT, sit-to-stand, handgrip, BIA</li>
+            <li data-i18n="p1.c">Valutazione rapida in 5 minuti quando serve</li>
+            <li data-i18n="p1.d">Progressi di peso e test nel tempo</li>
+          </ul>
+        </article>
+        <article class="pillar">
+          <span class="k" data-i18n="p2.k">Programma</span>
+          <h3 data-i18n="p2.t">Costruisci come pensi.</h3>
+          <ul>
+            <li data-i18n="p2.a">Generatore automatico da obiettivo e livello</li>
+            <li data-i18n="p2.b">Superset, circuiti, EMOM, AMRAP, Hyrox, finisher</li>
+            <li data-i18n="p2.c">Ripetizioni, tempo, metri, calorie, per lato</li>
+            <li data-i18n="p2.d">Modelli tuoi, della palestra o di altri PT</li>
+          </ul>
+        </article>
+        <article class="pillar">
+          <span class="k" data-i18n="p3.k">Segui</span>
+          <h3 data-i18n="p3.t">Sempre al suo fianco.</h3>
+          <ul>
+            <li data-i18n="p3.a">Link personale, senza app da installare</li>
+            <li data-i18n="p3.b">Timer di recupero, EMOM, AMRAP e cronometro</li>
+            <li data-i18n="p3.c">Immagini "come si esegue" per oltre 230 esercizi</li>
+            <li data-i18n="p3.d">Il cliente segna carichi e ripetizioni</li>
+          </ul>
+        </article>
+      </div>
     </div>
-    <div style="text-align:center;font-size:13px;color:var(--muted);margin-top:22px;max-width:580px;margin-left:auto;margin-right:auto;line-height:1.5" data-i18n="authority.sub">18 riferimenti scientifici reali nel codice — non solo nel marketing.</div>
-  </div>
-</div>
+  </section>
 
-<!-- ═══ TRUST BAR ═══ -->
-<div class="trust-bar">
-  <div class="container">
-    <div class="trust-item" data-i18n="trust.italy"><span>&#127470;&#127481;</span> Made in Italy</div>
-    <div class="trust-item" data-i18n="trust.gdpr"><span>&#128737;&#65039;</span> GDPR compliant</div>
-    <div class="trust-item" data-i18n="trust.langs"><span>&#127760;</span> IT &middot; EN &middot; FR</div>
-    <div class="trust-item" data-i18n="trust.pwa"><span>&#128241;</span> PWA offline-ready</div>
-  </div>
-</div>
+  <section id="schede">
+    <div class="wrap split">
+      <div class="copy">
+        <span class="eyebrow" data-i18n="prog.eyebrow">Programma</span>
+        <h2 data-i18n="prog.title">I metodi che usi. In una sola scheda.</h2>
+        <p data-i18n="prog.sub">Superset, EMOM, Hyrox. Scrivi l'allenamento come lo pensi: PT Board lo trasforma in un PDF pulito e in una scheda sul telefono del cliente.</p>
+        <div class="blocks">
+          <div class="blk" style="--c:var(--sup)"><b>Superset</b><span data-i18n="blk.sup">2 esercizi, poi recupero</span></div>
+          <div class="blk" style="--c:var(--cir)"><b data-i18n="blk.cirName">Circuito</b><span data-i18n="blk.cir">stazioni × giri</span></div>
+          <div class="blk" style="--c:var(--emom)"><b>EMOM</b><span data-i18n="blk.emom">una stazione al minuto</span></div>
+          <div class="blk" style="--c:var(--amrap)"><b>AMRAP</b><span data-i18n="blk.amrap">più giri possibili</span></div>
+          <div class="blk" style="--c:var(--hyrox)"><b>Hyrox</b><span data-i18n="blk.hyrox">giri senza pause</span></div>
+          <div class="blk" style="--c:var(--fin)"><b>Finisher</b><span data-i18n="blk.fin">chiusura intensa</span></div>
+        </div>
+        <ul class="ticks">
+          <li data-i18n="prog.a">Carichi, note e progressione dove servono.</li>
+          <li data-i18n="prog.b">Riscaldamento e defaticamento in ogni seduta.</li>
+          <li data-i18n="prog.c">La durata di ogni seduta, calcolata per te.</li>
+          <li data-i18n="prog.d">Il tuo logo su ogni PDF.</li>
+        </ul>
+      </div>
+      <div class="media">
+        <div class="doc"><img src="/img/landing/pdf-it.jpg" data-i18n-src="img.pdf" data-i18n-alt="img.pdfAlt" alt="PDF della scheda: superset, EMOM e finisher con carichi e note" width="1230" height="1650" loading="lazy"></div>
+      </div>
+    </div>
+  </section>
 
-<!-- ═══ PROBLEM/SOLUTION ═══ -->
-<section class="section" id="problem">
-  <div class="container">
-    <div class="problem-grid">
-      <div class="animate">
-        <div class="badge" style="margin-bottom:20px" data-i18n="problem.badge">Il problema</div>
-        <h2 style="font-size:36px;font-weight:900;color:var(--strong);margin-bottom:12px;letter-spacing:-.5px" data-i18n="problem.title">Ogni giorno butti via<br/>2 ore in burocrazia.</h2>
-        <p style="font-size:15px;color:var(--muted);margin-bottom:32px;line-height:1.7" data-i18n="problem.desc">Fogli Excel, schede cartacee, WhatsApp per i promemoria. Conosci la storia. Il tuo tempo vale di piu.</p>
-        <div class="problem-list">
-          <div class="problem-item">
-            <div class="icon">&#128196;</div>
-            <div><h4 data-i18n="problem.item1Title">Valutazioni su carta</h4><p data-i18n="problem.item1Desc">Schede perse, dati illeggibili, nessuno storico. Quando un cliente torna dopo 3 mesi, riparti da zero.</p></div>
-          </div>
-          <div class="problem-item">
-            <div class="icon">&#9203;</div>
-            <div><h4 data-i18n="problem.item2Title">Programmi copia-incolla</h4><p data-i18n="problem.item2Desc">Perdi 45 minuti a personalizzare ogni scheda. E alla fine sembrano tutte uguali.</p></div>
-          </div>
-          <div class="problem-item">
-            <div class="icon">&#128200;</div>
-            <div><h4 data-i18n="problem.item3Title">Nessun dato oggettivo</h4><p data-i18n="problem.item3Desc">Senza test standardizzati, non puoi dimostrare i progressi. Il cliente non vede il valore del tuo lavoro.</p></div>
-          </div>
-        </div>
+  <section class="alt" id="cliente">
+    <div class="wrap split rev">
+      <div class="copy">
+        <span class="eyebrow" data-i18n="cli.eyebrow">Segui</span>
+        <h2 data-i18n="cli.title">Tu non sei in sala. La tua scheda sì.</h2>
+        <p data-i18n="cli.sub">Un link, nessuna app da installare. Il cliente apre la seduta del giorno e si allena con il tuo metodo: timer, immagini degli esercizi, carichi da segnare.</p>
+        <ul class="ticks">
+          <li data-i18n="cli.a">Su ogni telefono, senza registrazione.</li>
+          <li data-i18n="cli.b">Timer EMOM, AMRAP e recuperi che suonano.</li>
+          <li data-i18n="cli.c">Immagini di oltre 230 esercizi, per eseguirli bene.</li>
+          <li data-i18n="cli.d">Cambi la scheda, il suo link si aggiorna.</li>
+        </ul>
       </div>
-      <div class="solution-card animate delay-2">
-        <h3 data-i18n="solution.title">PT Board fa una cosa sola, bene.</h3>
-        <p data-i18n="solution.desc">Valutazione, programmazione e scheda cliente in un posto solo. In 20 minuti hai un report ordinato, leggibile, basato su test standardizzati.</p>
-        <div class="solution-features">
-          <div class="solution-feature" data-i18n="solution.f1"><div class="check">&#10003;</div> Valutazione scientifica fino a 9 step guidati</div>
-          <div class="solution-feature" data-i18n="solution.f2"><div class="check">&#10003;</div> Programma 4 settimane generato automaticamente</div>
-          <div class="solution-feature" data-i18n="solution.f3"><div class="check">&#10003;</div> Report PDF professionale con il tuo brand</div>
-          <div class="solution-feature" data-i18n="solution.f4"><div class="check">&#10003;</div> Classificazione Forma Bassa / Media / Buona basata su evidenze</div>
-          <div class="solution-feature" data-i18n="solution.f5"><div class="check">&#10003;</div> Storico completo di ogni cliente</div>
-          <div class="solution-feature" data-i18n="solution.f6"><div class="check">&#10003;</div> Funziona su telefono, tablet e PC</div>
-        </div>
+      <div class="media">
+        <div class="phone"><img src="/img/landing/cliente-emom.jpg" data-i18n-alt="img.phoneEmom" alt="Timer EMOM sul telefono del cliente: minuto 3 di 16, stazione B3" width="390" height="780" loading="lazy"></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ FEATURES ═══ -->
-<section class="section" id="features" style="background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.02),var(--bg))">
-  <div class="container">
-    <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="features.badge">Funzionalit&agrave;</div>
-      <h2 data-i18n="features.title">Strumenti professionali.<br/>Risultati misurabili.</h2>
-      <p data-i18n="features.desc">Tutto quello che ti serve per lavorare meglio — e niente che ti rallenti.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card animate">
-        <div class="feature-icon" style="background:rgba(59,130,246,.1)">&#127919;</div>
-        <h3 data-i18n="f1.title">Valutazione 20 min</h3>
-        <p data-i18n="f1.desc">8 step guidati: anagrafica, composizione corporea, 6MWT, STS, test fisici, RPE. Classificazione automatica Forma Bassa / Media / Buona.</p>
-        <span class="feature-tag" style="background:rgba(59,130,246,.1);color:var(--blue)" data-i18n="tag.core">Core</span>
+  <section id="palestre">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow" data-i18n="gym.eyebrow">Per le palestre</span>
+        <h2 data-i18n="gym.title">Un team. Uno standard.</h2>
+        <p data-i18n="gym.sub">Con Spazio Palestra ogni PT lavora con gli stessi clienti, gli stessi modelli e il marchio della tua palestra.</p>
       </div>
-      <div class="feature-card animate delay-1">
-        <div class="feature-icon" style="background:rgba(16,185,129,.1)">&#128170;</div>
-        <h3 data-i18n="f2.title">Programma automatico</h3>
-        <p data-i18n="f2.desc">Dal profilo del cliente, genera un programma di 4 settimane con cardio, forza e nutrizione calibrati.</p>
-        <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)" data-i18n="tag.auto">Auto</span>
-      </div>
-      <div class="feature-card animate delay-2">
-        <div class="feature-icon" style="background:rgba(139,92,246,.1)">&#128190;</div>
-        <h3 data-i18n="f3.title">Backup &amp; export</h3>
-        <p data-i18n="f3.desc">Esportazione JSON completa dei tuoi dati in un click. Non resti mai prigioniero del software: i clienti sono tuoi, i dati sono tuoi.</p>
-        <span class="feature-tag" style="background:rgba(139,92,246,.1);color:var(--purple)" data-i18n="tag.ownership">I dati sono tuoi</span>
-      </div>
-      <div class="feature-card animate">
-        <div class="feature-icon" style="background:rgba(6,182,212,.1)">&#128225;</div>
-        <h3 data-i18n="f4.title">BIA integrata</h3>
-        <p data-i18n="f4.desc">Inserisci i dati del bioimpedenziometro e ottieni interpretazioni automatiche: PhA, ECW/TBW, massa grassa, BCM.</p>
-        <span class="feature-tag" style="background:rgba(6,182,212,.1);color:var(--cyan)" data-i18n="tag.advanced">Avanzato</span>
-      </div>
-      <div class="feature-card animate delay-1">
-        <div class="feature-icon" style="background:rgba(245,158,11,.1)">&#128197;</div>
-        <h3 data-i18n="f5.title">Calendario smart</h3>
-        <p data-i18n="f5.desc">Gestisci appuntamenti, promemoria email automatici e visualizza le sedute di oggi dalla dashboard.</p>
-        <span class="feature-tag" style="background:rgba(245,158,11,.1);color:var(--yellow)" data-i18n="tag.core">Core</span>
-      </div>
-      <div class="feature-card animate delay-2">
-        <div class="feature-icon" style="background:rgba(236,72,153,.1)">&#128203;</div>
-        <h3 data-i18n="f6.title">Report PDF</h3>
-        <p data-i18n="f6.desc">Scheda stampabile con tutti i dati del cliente: test, programma 4 settimane, nutrizione. Esporti in PDF e la mandi su WhatsApp.</p>
-        <span class="feature-tag" style="background:rgba(236,72,153,.1);color:var(--pink)" data-i18n="tag.pro">Pro</span>
-      </div>
-      <div class="feature-card animate">
-        <div class="feature-icon" style="background:rgba(16,185,129,.1)">&#128200;</div>
-        <h3 data-i18n="f7.title">Tracking progressi</h3>
-        <p data-i18n="f7.desc">Grafici di peso, BMI, RPE e durata sedute nel tempo. Il cliente vede i numeri, non solo sensazioni.</p>
-        <span class="feature-tag" style="background:rgba(16,185,129,.1);color:var(--green)" data-i18n="tag.core">Core</span>
-      </div>
-      <div class="feature-card animate delay-1">
-        <div class="feature-icon" style="background:rgba(249,115,22,.1)">&#127869;</div>
-        <h3 data-i18n="f8.title">Nutrizione</h3>
-        <p data-i18n="f8.desc">Calcolo kcal, proteine, carboidrati e grassi personalizzati. Macro calibrati sul profilo e obiettivo del cliente.</p>
-        <span class="feature-tag" style="background:rgba(249,115,22,.1);color:var(--orange)" data-i18n="tag.core">Core</span>
-      </div>
-      <div class="feature-card animate delay-2">
-        <div class="feature-icon" style="background:rgba(59,130,246,.1)">&#128241;</div>
-        <h3 data-i18n="f9.title">PWA Mobile</h3>
-        <p data-i18n="f9.desc">Installa PT Board come un'app nativa sul telefono. Funziona offline, si sincronizza in cloud automaticamente.</p>
-        <span class="feature-tag" style="background:rgba(59,130,246,.1);color:var(--blue)" data-i18n="tag.free">Free</span>
+      <div class="gym">
+        <div><b data-i18n="gym.at">Clienti condivisi</b><span data-i18n="gym.a">Ogni PT può seguire ogni iscritto.</span></div>
+        <div><b data-i18n="gym.bt">Modelli comuni</b><span data-i18n="gym.b">Le schede migliori, per tutto lo staff.</span></div>
+        <div><b data-i18n="gym.ct">Il tuo marchio</b><span data-i18n="gym.c">Logo e colori su app, PDF e telefono del cliente.</span></div>
+        <div><b data-i18n="gym.dt">Nuovi iscritti</b><span data-i18n="gym.d">Valutazione rapida, scheda pronta in pochi minuti.</span></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ WIZARD SHOWCASE ═══ -->
-<section class="section wizard-section" id="wizard">
-  <div class="container">
-    <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="wizard.badge">Il cuore del prodotto</div>
-      <h2 data-i18n="wizard.title">Una valutazione seria,<br/>in 20 minuti.</h2>
-      <p data-i18n="wizard.desc">Fino a 9 step guidati con test validati in letteratura: 6MWT, STS, BIA, plicometria, profilo funzionale. I dati escono gi&agrave; pronti per essere inseriti nel programma.</p>
-      <p style="margin-top:8px;font-size:15px;color:var(--muted)" data-i18n="wizard.modes">3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</p>
-    </div>
-    <div class="wizard-grid">
-      <div class="wizard-steps animate">
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s1Title">Anagrafica &amp; Clinica</h4><p data-i18n="wizard.s1Desc">Dati personali, patologie, farmaci, PAR-Q</p></div></div>
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s2Title">Composizione &amp; BIA</h4><p data-i18n="wizard.s2Desc">Circonferenze, plicometria, bioimpedenziometria</p></div></div>
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s3Title">6-Minute Walk Test</h4><p data-i18n="wizard.s3Desc">Capacita aerobica con RPE e sintomi</p></div></div>
-        <div class="wizard-step done"><div class="num">&#10003;</div><div class="info"><h4 data-i18n="wizard.s4Title">Sit-to-Stand 30s</h4><p data-i18n="wizard.s4Desc">Forza arti inferiori standardizzata</p></div></div>
-        <div class="wizard-step active"><div class="num">5</div><div class="info"><h4 data-i18n="wizard.s5Title">Test fisici avanzati</h4><p data-i18n="wizard.s5Desc">Push-up, plank, squat, TUG, handgrip</p></div></div>
-        <div class="wizard-step"><div class="num">6</div><div class="info"><h4 data-i18n="wizard.s6Title">RPE &amp; Note finali</h4><p data-i18n="wizard.s6Desc">Percezione sforzo, GAD-7, sonno</p></div></div>
-        <div class="wizard-step"><div class="num">7</div><div class="info"><h4 data-i18n="wizard.s7Title">Classificazione auto</h4><p data-i18n="wizard.s7Desc">Score pesato &#8594; Forma Bassa / Media / Buona</p></div></div>
-        <div class="wizard-step"><div class="num">8</div><div class="info"><h4 data-i18n="wizard.s8Title">Programma 4 settimane</h4><p data-i18n="wizard.s8Desc">Cardio + forza + nutrizione personalizzati</p></div></div>
+  <section class="alt" id="prezzi">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow" data-i18n="pr.eyebrow">Prezzi</span>
+        <h2 data-i18n="pr.title">Semplice, come dovrebbe essere.</h2>
+        <p data-i18n="pr.sub">Inizia con 15 giorni gratis. Disdici quando vuoi. I tuoi dati restano tuoi.</p>
       </div>
-      <div class="wizard-mockup animate delay-2">
-        <div class="wizard-mockup-header">
-          <div style="width:34px;height:34px;border-radius:10px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:16px">&#128170;</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;color:var(--strong)" data-i18n="wizard.mockTitle">Test Fisici</div>
-            <div style="font-size:11px;color:var(--muted)" data-i18n="wizard.mockStep">Passo 5 di 8</div>
-          </div>
+      <div class="prices">
+        <div class="price">
+          <h3>Pro</h3>
+          <div class="amt">9,99 € <small data-i18n="pr.month">/ mese</small></div>
+          <p class="sub" data-i18n="pr.proSub">oppure 7,99 € al mese con l'annuale (95,88 € l'anno)</p>
+          <ul><li data-i18n="pr.pro1">Clienti illimitati</li><li data-i18n="pr.pro2">Valutazione, generatore e schede</li><li data-i18n="pr.pro3">Link cliente con timer</li><li data-i18n="pr.pro4">PDF con il tuo logo</li></ul>
+          <a class="btn btn-ghost" href="/?login=1" data-i18n="pr.proBtn">Inizia con Pro</a>
         </div>
-        <div class="wizard-mockup-progress"><div style="width:62.5%"></div></div>
-        <div class="wizard-field">
-          <label data-i18n="wizard.mockPushup">Push-up (ripetizioni)</label>
-          <div class="input filled">18</div>
+        <div class="price hl">
+          <span class="badge" data-i18n="pr.teamBadge">Per studi</span>
+          <h3>Team</h3>
+          <div class="amt">19,99 € <small data-i18n="pr.month2">/ mese</small></div>
+          <p class="sub" data-i18n="pr.teamSub">fino a 3 PT · 15,99 € al mese con l'annuale</p>
+          <ul><li data-i18n="pr.team1">Tutto quello che c'è in Pro</li><li data-i18n="pr.team2">Fino a 3 PT</li><li data-i18n="pr.team3">Modelli condivisi tra voi</li></ul>
+          <a class="btn btn-primary" href="/?login=1" data-i18n="pr.teamBtn">Inizia con Team</a>
         </div>
-        <div class="wizard-field">
-          <label data-i18n="wizard.mockPlank">Plank (secondi)</label>
-          <div class="input filled">45</div>
-        </div>
-        <div class="wizard-field">
-          <label data-i18n="wizard.mockHandgrip">Handgrip (kg)</label>
-          <div class="input filled">38</div>
-        </div>
-        <div class="wizard-kpi-row">
-          <div class="wizard-kpi"><div class="val" style="color:var(--green)" data-i18n="wizard.mockGood">Buona</div><div class="lbl" data-i18n="wizard.mockProfile">Profilo</div></div>
-          <div class="wizard-kpi"><div class="val" style="color:var(--blue)">22.4</div><div class="lbl">BMI</div></div>
-          <div class="wizard-kpi"><div class="val" style="color:var(--cyan)">76</div><div class="lbl" data-i18n="wizard.mockScore">Score</div></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:24px">
-          <div style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);text-align:center;font-size:13px;font-weight:600;color:var(--muted);cursor:default" data-i18n="wizard.mockBack">&#8592; Indietro</div>
-          <div style="flex:1;padding:12px;border-radius:10px;background:var(--blue);text-align:center;font-size:13px;font-weight:700;color:#fff;cursor:default" data-i18n="wizard.mockNext">Avanti &#8594;</div>
+        <div class="price">
+          <h3 data-i18n="pr.gymName">Palestra</h3>
+          <div class="amt word" data-i18n="pr.gymAmt">Su misura</div>
+          <p class="sub" data-i18n="pr.gymSub">Un'offerta costruita sul numero di PT e di iscritti.</p>
+          <ul><li data-i18n="pr.gym1">Tutti i PT della palestra</li><li data-i18n="pr.gym2">Clienti e modelli condivisi</li><li data-i18n="pr.gym3">Il marchio della palestra</li><li data-i18n="pr.gym4">Supporto dedicato</li></ul>
+          <a class="btn btn-ghost" href="mailto:ptboard.info@gmail.com?subject=PT%20Board%20-%20Palestra" data-i18n="pr.gymBtn">Parla con noi</a>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ DEMO INTERACTIVE ═══ -->
-<section class="demo-section" id="demo">
-  <div class="demo-wrap">
-    <div style="text-align:center;margin-bottom:36px" class="animate">
-      <div class="badge" style="margin-bottom:14px" data-i18n="demo.badge">Provala ora</div>
-      <h2 style="font-size:34px;font-weight:900;color:var(--strong);margin-bottom:10px;letter-spacing:-1px;line-height:1.15" data-i18n="demo.title">Prova la valutazione · gratis, senza account</h2>
-      <p style="font-size:15px;color:var(--muted);max-width:520px;margin:0 auto" data-i18n="demo.subtitle">Compila i campi e vedi il risultato calcolato in tempo reale, come nell'app vera.</p>
-    </div>
-    <div class="demo-card animate delay-1">
-      <div class="demo-stepper">
-        <div class="dot active" id="demoDot1">1</div>
-        <div class="line" id="demoLine1"></div>
-        <div class="dot" id="demoDot2">2</div>
-        <div class="line" id="demoLine2"></div>
-        <div class="dot" id="demoDot3">3</div>
+  <section id="numeri">
+    <div class="wrap">
+      <div class="head">
+        <span class="eyebrow" data-i18n="num.eyebrow">PT Board in numeri</span>
+        <h2 data-i18n="num.title">Creata da personal trainer, per personal trainer.</h2>
+        <p data-i18n="num.sub">Nasce dal lavoro in sala. Ogni test e ogni calcolo vengono dalla letteratura scientifica.</p>
       </div>
-      <!-- STEP 1 -->
-      <div class="demo-step" id="demoStep1">
-        <div class="demo-step-title" data-i18n="demo.s1Title">Dati cliente</div>
-        <div class="demo-step-sub" data-i18n="demo.s1Sub">Inserisci i dati anagrafici del tuo cliente. BMI e composizione corporea sono calcolati in tempo reale.</div>
-        <div class="demo-grid">
-          <div class="demo-field"><label data-i18n="demo.fldFirst">Nome</label><input id="demoNome" type="text" placeholder="Sara"/></div>
-          <div class="demo-field"><label data-i18n="demo.fldLast">Cognome</label><input id="demoCognome" type="text" placeholder="Rossi"/></div>
-          <div class="demo-field"><label data-i18n="demo.fldSex">Sesso</label><select id="demoSesso"><option value="F">F</option><option value="M">M</option></select></div>
-          <div class="demo-field"><label data-i18n="demo.fldAge">Et&agrave;</label><input id="demoEta" type="number" min="14" max="99" placeholder="34"/></div>
-          <div class="demo-field"><label data-i18n="demo.fldWeight">Peso (kg)</label><input id="demoPeso" type="number" min="30" max="220" placeholder="62"/></div>
-          <div class="demo-field"><label data-i18n="demo.fldHeight">Altezza (cm)</label><input id="demoAltezza" type="number" min="120" max="220" placeholder="165"/></div>
-        </div>
-        <div class="demo-info-box" id="demoBmiBox" style="display:none">
-          <span class="badge-num" id="demoBmiVal">—</span>
-          <span><b style="color:#cbd5e1" data-i18n="demo.lblBmi">BMI:</b> <span id="demoBmiLbl">—</span></span>
-        </div>
-        <div class="demo-info-box" id="demoFmBox" style="display:none">
-          <span class="badge-num" id="demoFmVal">—</span>
-          <span><b style="color:#cbd5e1" data-i18n="demo.lblFm">Massa grassa stimata:</b> <span id="demoFmLbl">—</span></span>
-        </div>
-        <div class="demo-actions">
-          <span></span>
-          <button class="demo-btn demo-btn-primary" id="demoNext1" data-i18n="demo.next">Avanti &rarr;</button>
-        </div>
+      <div class="nums">
+        <div><b>+300</b><span data-i18n="num.a">esercizi in libreria, la maggior parte con le immagini "come si esegue"</span></div>
+        <div><b>6</b><span data-i18n="num.b">tipi di blocco: superset, circuito, EMOM, AMRAP, Hyrox, finisher</span></div>
+        <div><b>3</b><span data-i18n="num.c">lingue: italiano, inglese, francese</span></div>
       </div>
-      <!-- STEP 2 -->
-      <div class="demo-step" id="demoStep2" style="display:none">
-        <div class="demo-step-title" data-i18n="demo.s2Title">Test funzionali</div>
-        <div class="demo-step-sub" data-i18n="demo.s2Sub">6MWT: cammina pi&ugrave; veloce possibile per 6 minuti, segna la distanza. STS: alzate da seduto in 30 secondi.</div>
-        <div class="demo-grid">
-          <div class="demo-field full"><label data-i18n="demo.fldMwt">6MWT · Distanza percorsa (m)</label><input id="demoMwt" type="number" min="0" max="900" placeholder="520"/></div>
-          <div class="demo-field"><label data-i18n="demo.fldRpe">RPE durante il test (0-10)</label><input id="demoRpe" type="number" min="0" max="10" placeholder="5"/></div>
-          <div class="demo-field"><label data-i18n="demo.fldSts">STS 30s (ripetizioni)</label><input id="demoSts" type="number" min="0" max="50" placeholder="14"/></div>
-          <div class="demo-field full"><label data-i18n="demo.fldSymp">Sintomi durante il test</label><select id="demoSymp"><option value="NO" data-i18n="demo.sympNo">NO</option><option value="dispneaL" data-i18n="demo.sympDispL">Dispnea lieve</option><option value="dispneaM" data-i18n="demo.sympDispM">Dispnea moderata</option><option value="dolore" data-i18n="demo.sympPain">Dolore toracico</option><option value="vertigini" data-i18n="demo.sympDizzy">Vertigini</option></select></div>
-        </div>
-        <div class="demo-bar-wrap" style="margin-top:16px">
-          <div class="demo-bar-label"><span data-i18n="demo.previewAerobic">Anteprima capacit&agrave; aerobica</span><b id="demoMwtScoreLbl">— / 100</b></div>
-          <div class="demo-bar"><div id="demoMwtBar" style="width:0%"></div></div>
-        </div>
-        <div class="demo-actions">
-          <button class="demo-btn demo-btn-ghost" id="demoBack2" data-i18n="demo.back">&larr; Indietro</button>
-          <button class="demo-btn demo-btn-primary" id="demoNext2" data-i18n="demo.seeResult">Vedi risultato &rarr;</button>
-        </div>
-      </div>
-      <!-- STEP 3 -->
-      <div class="demo-step" id="demoStep3" style="display:none">
-        <div class="demo-step-title" data-i18n="demo.s3Title">Il tuo risultato</div>
-        <div class="demo-step-sub" data-i18n="demo.s3Sub">Profilo fitness calcolato dai dati che hai inserito.</div>
-        <div class="demo-result">
-          <div class="demo-profile-box" id="demoProfBox">
-            <div class="demo-profile-name" id="demoProfName">—</div>
-            <div class="demo-profile-score"><span id="demoProfScore">0</span><small>/100</small></div>
-            <div class="demo-profile-bar"><div id="demoProfBar" style="width:0%;background:#10b981"></div></div>
-          </div>
-          <div class="demo-comp">
-            <div class="demo-bar-wrap">
-              <div class="demo-bar-label"><span>&#127939; <span data-i18n="demo.compAerobic">Capacit&agrave; aerobica (6MWT)</span></span><b id="demoBar1Lbl">0/100</b></div>
-              <div class="demo-bar"><div id="demoBar1" style="width:0%"></div></div>
-            </div>
-            <div class="demo-bar-wrap">
-              <div class="demo-bar-label"><span>&#128170; <span data-i18n="demo.compStrength">Forza arti inferiori (STS)</span></span><b id="demoBar2Lbl">0/100</b></div>
-              <div class="demo-bar"><div id="demoBar2" style="width:0%"></div></div>
-            </div>
-            <div class="demo-bar-wrap">
-              <div class="demo-bar-label"><span>&#128207; <span data-i18n="demo.compBody">Composizione corporea (FM%)</span></span><b id="demoBar3Lbl">0/100</b></div>
-              <div class="demo-bar"><div id="demoBar3" style="width:0%"></div></div>
-            </div>
-          </div>
-          <div class="demo-mini-row">
-            <div class="demo-mini">
-              <div class="demo-mini-title" data-i18n="demo.miniProgram">Programma 4 settimane</div>
-              <div class="demo-mini-val" id="demoProgVal">—</div>
-            </div>
-            <div class="demo-mini">
-              <div class="demo-mini-title" data-i18n="demo.miniNutri">Nutrizione</div>
-              <div class="demo-mini-val" id="demoNutriVal">—</div>
-            </div>
-          </div>
-          <div class="demo-paywall">
-            <h4 data-i18n="demo.pwTitle">Esporta il PDF professionale per il tuo cliente</h4>
-            <p><span data-i18n="demo.pwBody1">Non perdere questo risultato. Salva il profilo di</span> <b id="demoPwName">Sara Rossi</b> <span data-i18n="demo.pwBody2">nel tuo account</span></p>
-            <a href="/?action=register" class="pw-btn" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')" data-i18n="demo.pwCta">Crea account gratis &rarr;</a>
-            <div class="pw-note" data-i18n="demo.pwNote">Nessuna carta di credito &middot; 15 giorni gratis &middot; I tuoi dati ti aspettano</div>
-          </div>
-        </div>
-        <div class="demo-actions">
-          <button class="demo-btn demo-btn-ghost" id="demoBack3" data-i18n="demo.back">&larr; Indietro</button>
-          <button class="demo-btn demo-btn-ghost" id="demoRestart" data-i18n="demo.restart">&#8635; Ricomincia</button>
-        </div>
+      <p class="refs" data-i18n="num.refs">Test e calcoli basati su <b>ACSM</b> · <b>NSCA</b> · <b>ERS/ATS 2014</b> (6MWT) · <b>Rikli &amp; Jones</b> (sit-to-stand) · <b>ISSN 2017</b> (nutrizione) · <b>Schoenfeld</b> (volume e recuperi)</p>
+      <div class="early">
+        <span class="eyebrow" data-i18n="early.eyebrow">Programma Primi PT</span>
+        <p data-i18n="early.text"><b>Inizia adesso e cresci con noi.</b> Supporto diretto dal nostro team e le tue richieste nelle prossime versioni.</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ PRICING (CRO: Pro Annuale = PIU' POPOLARE) ═══ -->
-<section class="section pricing-section" id="pricing">
-  <div class="container">
-    <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="pricing.badge">Prezzi</div>
-      <h2 data-i18n="pricing.title">Trasparente.<br/>Senza sorprese in fattura.</h2>
-      <p data-i18n="pricing.desc">Quattro piani, nessun costo nascosto. Paghi quello che vedi, disdici quando vuoi.</p>
-    </div>
-    <div class="pricing-grid">
-      <!-- Trial -->
-      <div class="price-card animate">
-        <div class="price-name" data-i18n="price.trialName">Trial</div>
-        <div class="price-amount">
-          <span class="number">0</span>
-          <span class="currency">&#8364;</span>
-        </div>
-        <div class="price-desc" data-i18n="price.trialDesc">15 giorni gratis per provare tutto. Nessuna carta richiesta.</div>
-        <div class="price-features">
-          <div class="price-feature yes" data-i18n="price.trial.f1"><span class="icon">&#10003;</span> Clienti illimitati</div>
-          <div class="price-feature yes" data-i18n="price.trial.f2"><span class="icon">&#10003;</span> Valutazione 20 min</div>
-          <div class="price-feature yes" data-i18n="price.trial.f3"><span class="icon">&#10003;</span> Calendario appuntamenti</div>
-          <div class="price-feature yes" data-i18n="price.trial.f4"><span class="icon">&#10003;</span> Cloud sync</div>
-          <div class="price-feature yes" data-i18n="price.trial.f5"><span class="icon">&#10003;</span> Export PDF</div>
-          <div class="price-feature yes" data-i18n="price.trial.f6"><span class="icon">&#10003;</span> Backup &amp; export JSON</div>
-        </div>
-        <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.trialCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis</a>
-      </div>
-      <!-- Pro Mensile -->
-      <div class="price-card animate delay-1">
-        <div class="price-name" data-i18n="price.proMName">Pro Mensile</div>
-        <div class="price-amount">
-          <span class="currency">&#8364;</span>
-          <span class="number">9,99</span>
-          <span class="period" data-i18n="price.perMonth">/mese</span>
-        </div>
-        <div class="price-desc" data-i18n="price.proMDesc">Tutto incluso per gestire il tuo business da PT. Disdici quando vuoi.</div>
-        <div class="price-features">
-          <div class="price-feature yes" data-i18n="price.pro.f1"><span class="icon" style="color:var(--green)">&#10003;</span> Clienti illimitati</div>
-          <div class="price-feature yes" data-i18n="price.pro.f2"><span class="icon" style="color:var(--green)">&#10003;</span> Valutazione completa</div>
-          <div class="price-feature yes" data-i18n="price.pro.f3"><span class="icon" style="color:var(--green)">&#10003;</span> Calendario + promemoria email</div>
-          <div class="price-feature yes" data-i18n="price.pro.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
-          <div class="price-feature yes" data-i18n="price.pro.f5"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
-          <div class="price-feature yes" data-i18n="price.pro.f6"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
-          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> Backup &amp; export JSON</div>
-        </div>
-        <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.proMCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Mensile &#8594;</a>
-        <div class="price-divider"></div>
-        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px" data-i18n="price.competitorTitle">I competitor costano di piu:</div>
-        <div class="price-competitor"><span class="name">Mindflex</span><span class="amount">&#8364;49/m</span></div>
-        <div class="price-competitor"><span class="name">Trainerize</span><span class="amount">&#8364;35/m</span></div>
-        <div class="price-competitor"><span class="name">PT Distinction</span><span class="amount">&#8364;99/m</span></div>
-      </div>
-      <!-- Pro Annuale — CRO: PIÙ POPOLARE -->
-      <div class="price-card popular animate delay-2">
-        <div style="position:absolute;top:16px;right:16px;background:var(--green);color:#fff;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:800;letter-spacing:.5px" data-i18n="price.save20">Risparmia 20%</div>
-        <div class="price-name" data-i18n="price.proYName">Pro Annuale</div>
-        <div class="price-amount">
-          <span class="currency">&#8364;</span>
-          <span class="number">7,99</span>
-          <span class="period" data-i18n="price.perMonth">/mese</span>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px" data-i18n="price.proYYear">95,88&#8364;/anno &mdash; 2 mesi gratis</div>
-        <div class="price-desc" data-i18n="price.proYDesc">Lo stesso piano Pro con 2 mesi gratis. Perfetto per chi vuole risparmiare.</div>
-        <div class="price-features">
-          <div class="price-feature yes" data-i18n="price.pro.f1"><span class="icon" style="color:var(--green)">&#10003;</span> Clienti illimitati</div>
-          <div class="price-feature yes" data-i18n="price.pro.f2"><span class="icon" style="color:var(--green)">&#10003;</span> Valutazione completa</div>
-          <div class="price-feature yes" data-i18n="price.pro.f3"><span class="icon" style="color:var(--green)">&#10003;</span> Calendario + promemoria email</div>
-          <div class="price-feature yes" data-i18n="price.pro.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Cloud sync multi-dispositivo</div>
-          <div class="price-feature yes" data-i18n="price.pro.f5"><span class="icon" style="color:var(--green)">&#10003;</span> Export PDF schede</div>
-          <div class="price-feature yes" data-i18n="price.pro.f6"><span class="icon" style="color:var(--green)">&#10003;</span> Supporto email</div>
-          <div class="price-feature yes" data-i18n="price.pro.f7"><span class="icon" style="color:var(--green)">&#10003;</span> Backup &amp; export JSON</div>
-        </div>
-        <a href="/?action=register" class="btn btn-primary" style="width:100%" data-i18n="price.proYCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Pro Annuale &#8594;</a>
-      </div>
-      <!-- Team -->
-      <div class="price-card animate delay-3">
-        <div class="price-name" data-i18n="price.teamName">Team</div>
-        <div class="price-amount">
-          <span class="currency">&#8364;</span>
-          <span class="number">19,99</span>
-          <span class="period" data-i18n="price.perMonth">/mese</span>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:6px" data-i18n="price.teamYearAlt">oppure 15,99&#8364;/mese con piano annuale (191,88&#8364;/anno)</div>
-        <div class="price-desc" data-i18n="price.teamDesc">Per studi con pi&ugrave; Personal Trainer. Fino a 3 PT sullo stesso piano.</div>
-        <div class="price-features">
-          <div class="price-feature yes" data-i18n="price.team.f1"><span class="icon" style="color:var(--green)">&#10003;</span> <strong>Tutto di Pro</strong></div>
-          <div class="price-feature yes" data-i18n="price.team.f2"><span class="icon" style="color:var(--green)">&#10003;</span> Fino a 3 PT nel team</div>
-          <div class="price-feature yes" data-i18n="price.team.f3"><span class="icon" style="color:var(--green)">&#10003;</span> Ogni PT ha i propri clienti isolati</div>
-          <div class="price-feature yes" data-i18n="price.team.f4"><span class="icon" style="color:var(--green)">&#10003;</span> Dati separati e sicuri</div>
-        </div>
-        <a href="/?action=register" class="btn btn-ghost" style="width:100%" data-i18n="price.teamCta" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Scegli Team &#8594;</a>
-        <div style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5" data-i18n="price.teamNote">Dopo il pagamento, invia le email dei tuoi PT a ptboard.info@gmail.com</div>
+  <section class="alt" id="faq">
+    <div class="wrap">
+      <div class="head"><span class="eyebrow" data-i18n="faq.eyebrow">Domande frequenti</span><h2 data-i18n="faq.title">Domande? Risposte.</h2></div>
+      <div class="faq">
+        <details><summary data-i18n="faq.q1">Il cliente deve installare un'app?</summary><p data-i18n="faq.a1">No. Riceve un link e lo apre dal telefono. Se vuole può aggiungerlo alla schermata home.</p></details>
+        <details><summary data-i18n="faq.q2">Posso usare le mie schede?</summary><p data-i18n="faq.a2">Sì. Le scrivi nell'editor, le importi da file o parti da un modello. Il generatore automatico è un aiuto, non un obbligo.</p></details>
+        <details><summary data-i18n="faq.q3">I dati dei clienti sono al sicuro?</summary><p data-i18n="faq.a3">Sono salvati su Google Firebase e li vedi solo tu. Nei modelli condivisi non finisce nessun dato del cliente.</p></details>
+        <details><summary data-i18n="faq.q4">Funziona su tablet e computer?</summary><p data-i18n="faq.a4">Sì, nel browser di qualsiasi dispositivo. Puoi installarla come app sul telefono.</p></details>
+        <details><summary data-i18n="faq.q5">Posso disdire?</summary><p data-i18n="faq.a5">Quando vuoi. Usi il piano fino alla fine del periodo pagato e puoi esportare tutti i dati.</p></details>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ═══ PROOF / BUILDER'S STORY ═══ -->
-<section class="section" id="testimonials" style="background:linear-gradient(180deg,var(--bg),rgba(16,185,129,.02),var(--bg))">
-  <div class="container">
-    <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="proof.badge">La storia dietro PT Board</div>
-      <h2 data-i18n="proof.title">Strumenti solidi,<br/>senza fronzoli.</h2>
-      <p style="font-size:15px;color:var(--muted);max-width:640px;margin:0 auto" data-i18n="proof.intro">Strumenti basati su evidenza scientifica e sviluppo continuo basato sull'uso reale.</p>
+  <section>
+    <div class="wrap final">
+      <h2 data-i18n="final.title">Il tuo prossimo cliente inizia qui.</h2>
+      <p class="lead" data-i18n="final.lead">Crea la sua scheda oggi. Domani la apre in palestra.</p>
+      <a class="btn btn-primary" href="/?login=1" data-i18n="cta.start2">Inizia gratis</a>
+      <p class="note" data-i18n="cta.note2">15 giorni gratis. Nessuna carta di credito.</p>
     </div>
-    <div class="testimonial-grid">
-      <div class="testimonial-card animate" style="grid-column:span 2">
-        <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t1Title">Rigore scientifico</h4>
-        <div class="testimonial-text" data-i18n="proof.t1Text">Test e formule tratti dalla letteratura scientifica: 6MWT (ERS/ATS 2014), STS (Rikli &amp; Jones), BIA con PhA ed ECW/TBW, nutrizione secondo position stand ISSN 2017.</div>
-        <div class="proof-refs-grid">
-          <div class="proof-ref-area">
-            <div class="proof-ref-area-title" data-i18n="proof.refs.a1Title">Capacit&agrave; aerobica</div>
-            <div class="proof-ref-area-text" data-i18n="proof.refs.a1Text">6MWT — ERS-ATS 2014. Stima VO2max con equazione Cahalin. Valori norma per et&agrave; e sesso.</div>
-          </div>
-          <div class="proof-ref-area">
-            <div class="proof-ref-area-title" data-i18n="proof.refs.a2Title">Forza &amp; funzionalit&agrave;</div>
-            <div class="proof-ref-area-text" data-i18n="proof.refs.a2Text">STS 30s — Rikli &amp; Jones. TUG, handgrip, push-up. Score pesato multi-dominio.</div>
-          </div>
-          <div class="proof-ref-area">
-            <div class="proof-ref-area-title" data-i18n="proof.refs.a3Title">Composizione corporea</div>
-            <div class="proof-ref-area-text" data-i18n="proof.refs.a3Text">FM% con Deurenberg. BIA: PhA, ECW/TBW, BCM. BMI con cut-off WHO.</div>
-          </div>
-          <div class="proof-ref-area">
-            <div class="proof-ref-area-title" data-i18n="proof.refs.a4Title">Nutrizione</div>
-            <div class="proof-ref-area-text" data-i18n="proof.refs.a4Text">BMR Mifflin-St Jeor. Macro secondo ISSN Position Stand 2017. Schoenfeld 2021 per l&rsquo;ipertrofia.</div>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial-card animate delay-1">
-        <h4 style="font-size:17px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="proof.t2Title">Sviluppo continuo</h4>
-        <div class="testimonial-text" data-i18n="proof.t2Text">Aggiornamenti settimanali basati sull'uso reale. Segnalazioni e richieste si inviano a ptboard.info@gmail.com o tramite la chat in-app.</div>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
+</main>
 
-<!-- ═══ USE CASES ═══ -->
-<section class="section" id="usecases" style="background:linear-gradient(180deg,var(--bg),rgba(59,130,246,.02),var(--bg))">
-  <div class="container">
-    <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="testi.badge">Casi d'uso</div>
-      <h2 data-i18n="testi.title">Per ogni tipo di<br/>Personal Trainer</h2>
-    </div>
-    <div class="usecase-grid">
-      <div class="testimonial-card animate" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
-        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t1Name">PT Freelance</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t1Text">Gestisci tutto dal telefono. Valutazione guidata in 20 minuti, programma automatico, promemoria email ai clienti. Funziona offline: la sincronizzazione avviene appena torni online.</div>
-        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t1Tag">Da 9,99&euro;/mese</div>
-      </div>
-      <div class="testimonial-card animate delay-1" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
-        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t2Name">PT in palestra</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t2Text">Mostra ai clienti i loro progressi con dati reali. Report PDF con il tuo logo, schede allenamento condivisibili su WhatsApp, calendario sedute integrato.</div>
-        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t2Tag">Professionale</div>
-      </div>
-      <div class="testimonial-card animate delay-2" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px">
-        <div style="font-size:18px;font-weight:800;color:var(--strong);margin-bottom:8px" data-i18n="testi.t3Name">Studio con pi&ugrave; trainer</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:18px" data-i18n="testi.t3Text">Ogni trainer gestisce i propri clienti in modo indipendente. Dati isolati e sicuri. Dashboard personale. Tutto su un'unica piattaforma.</div>
-        <div style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.25)" data-i18n="testi.t3Tag">Piano Team</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ FAQ ═══ -->
-<section class="section" id="faq">
-  <div class="container">
-    <div class="features-header animate">
-      <div class="badge" style="margin-bottom:16px" data-i18n="faq.badge">FAQ</div>
-      <h2 data-i18n="faq.title">Domande frequenti</h2>
-    </div>
-    <div class="faq-list">
-      <div class="faq-item open">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q3">Posso disdire quando voglio?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a3">S&igrave;, nessun vincolo. Paghi mese per mese tramite carta di credito (gestito da Stripe). Se disdici, continui a usare il piano fino alla fine del periodo pagato. I tuoi dati restano accessibili.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q2">I dati dei miei clienti sono al sicuro?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a2">Assolutamente. I dati sono salvati su Firebase (infrastruttura Google) con crittografia in transito e a riposo. Inoltre, una copia locale viene mantenuta sul tuo dispositivo per l'accesso offline. Solo tu puoi accedere ai tuoi dati. Puoi eliminare il tuo account e tutti i dati in qualsiasi momento dalla sezione Parametri.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q4">Cosa include la valutazione da 20 minuti?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a4">Un wizard di fino a 9 step che copre: anagrafica e contatti, parametri clinici e anamnesi, antropometria e composizione corporea (BIA), stile di vita e obiettivi, test funzionali (6MWT, STS 30s, TUG, Single Leg Balance), profilo fitness automatico con score e programma personalizzato. Puoi scegliere tra 3 modalit&agrave;: Base (~10 min), Completa (~20 min) o Solo Anagrafica (~3 min).</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q1">Devo installare qualcosa?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a1">No. PT Board funziona direttamente dal browser. Puoi anche installarlo come app sul telefono (PWA): su iPhone vai su Safari &#8594; Condividi &#8594; Aggiungi alla Home. Su Android il banner appare automaticamente.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q5">Funziona anche su iPad / tablet?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a5">Si. PT Board e completamente responsivo e funziona su qualsiasi dispositivo: smartphone, tablet, laptop e desktop. L'interfaccia si adatta automaticamente.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q6">In cosa e diverso da Trainerize o PT Distinction?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a6">PT Board e focalizzato sulla valutazione funzionale scientifica (6MWT, STS, BIA, classificazione pesata). I competitor sono piu orientati al workout tracking generico. In piu, PT Board costa 9,99 euro/mese contro 35-99 euro/mese dei competitor. E no, non siamo inferiori: siamo specializzati.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')"><span data-i18n="faq.q7">Posso inviare le schede ai miei clienti?</span> <span class="arrow">&#9660;</span></button>
-        <div class="faq-a" data-i18n="faq.a7">Si. Puoi generare un PDF professionale della scheda allenamento e condividerlo via WhatsApp o email. Il PDF include il tuo logo e il nome del tuo studio.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ CTA FINALE (CRO: micro-copy aggiornato) ═══ -->
-<section class="section cta-section">
-  <div class="container">
-    <div class="cta-box animate">
-      <h2 data-i18n="ctaFinal.title">Il software che volevi.<br/>Prima che qualcun altro te lo vendesse a 99 euro.</h2>
-      <p data-i18n="ctaFinal.desc">15 giorni gratis. Nessuna carta. Cancelli quando vuoi.</p>
-      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-        <a href="/?action=register" class="btn btn-primary btn-lg" data-i18n="ctaFinal.primary" onclick="if(typeof fbq==='function')fbq('track','Lead');sessionStorage.setItem('entered','1')">Inizia gratis ora &#8594;</a>
-        <a href="#pricing" class="btn btn-ghost btn-lg" data-i18n="ctaFinal.secondary">Vedi i piani</a>
-      </div>
-      <div style="margin-top:16px;font-size:13px;color:var(--dim)" data-i18n="ctaFinal.note">Nessuna carta di credito richiesta &middot; Setup in 2 minuti &middot; Disdici quando vuoi</div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ FOOTER ═══ -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand"><span>PT</span> Board</div>
-        <p class="footer-desc" data-i18n="footer.desc">Il software all-in-one per Personal Trainer. Valuta, programma e monitora i tuoi clienti come un professionista.</p>
-      </div>
-      <div class="footer-col">
-        <h4 data-i18n="footer.product">Prodotto</h4>
-        <a href="#features" data-i18n="footer.features">Funzionalita</a>
-        <a href="#wizard" data-i18n="footer.wizard">Valutazione 20 min</a>
-        <a href="#pricing" data-i18n="footer.pricing">Prezzi</a>
-        <a href="#faq" data-i18n="footer.faq">FAQ</a>
-      </div>
-      <div class="footer-col">
-        <h4 data-i18n="footer.resources">Risorse</h4>
-        <a href="/?login=1" data-i18n="footer.appLink">Accedi all'app</a>
-        <a href="#faq" data-i18n="footer.helpCenter">Centro assistenza</a>
-        <a href="mailto:ptboard.info@gmail.com" data-i18n="footer.contact">Contattaci</a>
-      </div>
-      <div class="footer-col">
-        <h4 data-i18n="footer.legal">Legale</h4>
-        <a href="/privacy.html" data-i18n="footer.privacy">Privacy Policy</a>
-        <a href="/terms.html" data-i18n="footer.terms">Termini di servizio</a>
-        <a href="/privacy.html" data-i18n="footer.cookie">Cookie Policy</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span data-i18n="footer.copyright">&copy; 2026 PT Board. Tutti i diritti riservati.</span>
-    </div>
+<footer>
+  <div class="wrap">
+    <span>© 2026 PT Board · personaltrainerboard.com · ptboard.info@gmail.com</span>
+    <nav>
+      <a href="/blog/" data-i18n="foot.blog">Blog</a>
+      <a href="/privacy.html" data-i18n="foot.privacy">Privacy</a>
+      <a href="/terms.html" data-i18n="foot.terms">Termini</a>
+      <a href="/?login=1" data-i18n="foot.login">Accedi</a>
+    </nav>
   </div>
 </footer>
 
 <script src="/landing-i18n.js"></script>
-<script src="/landing-demo.js"></script>
 <script>
-// Navbar scroll effect
-var navbar=document.getElementById('navbar');
-window.addEventListener('scroll',function(){
-  if(window.scrollY>50)navbar.classList.add('scrolled');
-  else navbar.classList.remove('scrolled');
-});
-// Scroll animations
-var observer=new IntersectionObserver(function(entries){
-  entries.forEach(function(entry){
-    if(entry.isIntersecting){
-      entry.target.classList.add('in-view');
-    }
-  });
-},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.animate').forEach(function(el){observer.observe(el)});
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(function(a){
-  a.addEventListener('click',function(e){
-    var target=document.querySelector(this.getAttribute('href'));
-    if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'});}
-  });
-});
+// Bordo della barra quando si scorre.
+(function(){var nb=document.getElementById('navbar');if(!nb)return;function f(){nb.classList.toggle('scrolled',window.scrollY>8);}window.addEventListener('scroll',f,{passive:true});f();})();
 </script>
 <script type="text/javascript">
 window.$crisp=[];window.CRISP_WEBSITE_ID="e4598847-03d4-4a5e-b605-b159213c01dd";
