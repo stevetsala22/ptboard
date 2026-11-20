@@ -470,6 +470,32 @@ function findExerciseByName(exercises,nome){
   return (exercises||[]).find(function(e){return ['it','en','fr'].some(function(l){const v=(e.nome&&e.nome[l])||(typeof e.nome==='string'?e.nome:'');return v&&v.toLowerCase()===n;});})||null;
 }
 // Struttura consigliata dal generatore in base all'obiettivo primario.
+// Serie, ripetizioni e recupero (s) per obiettivo e tipo di esercizio: unica fonte per
+// generatore di schede (exParamsFor) e programma (generaProgramma). range e pct = testo del programma.
+const PARAM_OBIETTIVO={
+  'Forza':          {compound:[4,5,180], big:[3,8,120],  small:[3,10,75], core:[3,12,45], range:'4-6',   pct:80},
+  'Aumentare massa':{compound:[4,8,120], big:[3,10,90],  small:[3,12,60], core:[3,12,45], range:'8-12',  pct:70},
+  'Tonificare':     {compound:[3,12,90], big:[3,12,75],  small:[3,15,60], core:[3,15,40], range:'10-15', pct:65},
+  'Perdere peso':   {compound:[3,12,75], big:[3,12,60],  small:[3,15,45], core:[3,15,30], range:'12-15', pct:65},
+  'Resistenza':     {compound:[3,15,60], big:[3,15,45],  small:[2,20,45], core:[3,20,30], range:'15-20', pct:55},
+  'Performance':    {compound:[4,5,150], big:[3,8,90],   small:[3,10,60], core:[3,12,45], range:'3-6',   pct:80},
+  'Riabilitazione': {compound:[2,12,90], big:[2,12,75],  small:[2,15,60], core:[2,10,45], range:'10-15', pct:50},
+  'Salute':         {compound:[3,10,90], big:[3,12,75],  small:[2,12,60], core:[2,12,45], range:'10-12', pct:60}
+};
+function paramObiettivo(ob){return PARAM_OBIETTIVO[ob==='Benessere'?'Salute':ob]||PARAM_OBIETTIVO['Salute'];}
+// Ripetizioni sempre su valori da palestra (niente 13, 17...).
+const RIP_STANDARD=[5,6,8,10,12,15,20];
+function ripStandard(r){var best=RIP_STANDARD[0];RIP_STANDARD.forEach(function(v){if(Math.abs(v-r)<Math.abs(best-r))best=v;});return best;}
+// Famiglia di un esercizio (nome senza attrezzo): evita due varianti dello stesso esercizio nella stessa scheda.
+const PAROLE_ATTREZZO=['macchina','manubri','manubrio','bilanciere','cavo','cavi','al','elastico','elastici','kettlebell','kb','smith','multipower','landmine','isolaterale','a','dischi','monobraccio','unilaterale','con','alla','ai','orizzontale','machine','dumbbell','barbell','cable','band'];
+// Famiglie note (IT/EN): varianti diverse dello stesso movimento contano come uno.
+const FAMIGLIE_ESERCIZI=[['hip thrust','hip thrust'],['ponte glutei','hip thrust'],['glute bridge','hip thrust'],['leg curl','leg curl'],['leg extension','leg extension'],['leg press','leg press'],['bulgar','split squat'],['split squat','split squat'],['affond','affondo'],['lunge','affondo'],['stacco rumeno','stacco rumeno'],['romanian','stacco rumeno'],['rdl','stacco rumeno'],['lat machine','lat'],['pulldown','lat'],['rematore','rematore'],[' row','rematore'],['trazion','trazioni'],['pull-up','trazioni'],['chin-up','trazioni'],['push-up','push-up'],['piegamenti','push-up'],['alzate laterali','alzate laterali'],['lateral raise','alzate laterali'],['calf','calf'],['polpacci','calf'],['crunch','crunch'],['plank','plank']];
+function famigliaEsercizio(ex){
+  var full=' '+String(nomeChiave(ex)||'').toLowerCase()+' '+String((ex&&ex.nome&&ex.nome.it)||'').toLowerCase();
+  for(var i=0;i<FAMIGLIE_ESERCIZI.length;i++){if(full.indexOf(FAMIGLIE_ESERCIZI[i][0])!==-1)return FAMIGLIE_ESERCIZI[i][1];}
+  var n=String(nomeChiave(ex)||'').toLowerCase().replace(/[^a-zàèéìòù0-9 -]/g,' ').split(/\s+/).filter(function(w){return w&&PAROLE_ATTREZZO.indexOf(w)===-1;});
+  return n.slice(0,2).join(' ');
+}
 function strutturaConsigliata(ob){return ['Perdere peso','Tonificare','Resistenza','Salute','Benessere'].indexOf(ob)!==-1?'circuito':'classica';}
 // ── Durata stimata: calcolo UNICO usato da generatore, scheda, editor e PDF ──
 // Per seduta (una sezione = un giorno), non la somma di tutti i giorni.
@@ -485,7 +511,7 @@ function nomeChiave(ex){
   if(typeof n==='string') return n.toLowerCase();
   return String(ex.kw||n.it||'').toLowerCase();
 }
-const COMPOUND_KEYWORDS=['panca','squat','stacco','military','leg press','hip thrust','rematore bilanciere','deadlift','bench press','overhead press','front squat','back squat'];
+const COMPOUND_KEYWORDS=['panca','squat','stacco','military','leg press','hip thrust','rematore bilanciere','deadlift','bench press','overhead press','front squat','back squat','push press','trazion','pull-up','chin-up','shoulder press','lento avanti','trap bar','thruster'];
 function classificaEsercizio(ex){
   if(!ex) return 'big';
   const n=nomeChiave(ex);
@@ -1395,7 +1421,7 @@ const LANGS={
     inLabel:'in',pointsLabel:'punti',advancedFrom:'Avanzato da',advancedTo:'a',
     assessmentHistory:'Storico Valutazioni',assessmentNum:'Valutazione',
     // Programma settimana
-    weekAdapt:'Adattamento',weekProgress:'Progressione',weekPeak:'Picco',weekDeload:'Deload',
+    weekAdapt:'Adattamento',weekProgress:'Progressione',weekPeak:'Picco',weekCheck:'Verifica',gpWeek4NoteA:'Consolidamento: stessa scheda, ripeti i test per misurare i progressi.',progW4A:'W4 — VERIFICA · Stessa scheda e stessi carichi della settimana prima · Ripeti i test per misurare i progressi · {note}',weekDeload:'Deload',
     lblWeek:'Settimana',
     // Generazione scheda
     generateWorkout:'⚡ Genera scheda allenamento',
@@ -1547,15 +1573,15 @@ const LANGS={
     gpCardioBPesoW1:'Camminata veloce {min} min ({zona}), RPE {rpe1}',
     gpCardioBPesoW2:'Intervalli: 3 min corsa / 2 min cammino x {n} cicli ({zona})',
     gpCardioBPesoW3:'Corsa leggera continua {min} min ({zona}), RPE {rpe1}',
-    gpCardioBPesoW4:'LISS {min} min ({zona}) + 2x3 min HIIT leggero',
+    gpCardioBPesoW4:'Camminata veloce o LISS {min} min ({zona}), intensità ridotta (settimana di scarico)',
     gpCardioBOtherW1:'Camminata veloce/cyclette {min} min ({zona}), RPE {rpe1}',
     gpCardioBOtherW2:'Intervalli: 3 min intenso / 2 min recupero x {n} cicli ({zona})',
     gpCardioBOtherW3:'Cardio moderato {min} min ({zona})',
-    gpCardioBOtherW4:'Cardio variato {min} min ({zona}) + 5 min HIIT',
+    gpCardioBOtherW4:'Cardio leggero {min} min ({zona}) (settimana di scarico)',
     gpCardioCPesoW1:'LISS 30 min ({zona}) + 10 min HIIT 30/30',
     gpCardioCPesoW2:'Intervalli: 4 min corsa / 1 min sprint x 6 cicli',
     gpCardioCPesoW3:'HIIT 20 min (30s on / 15s off) + 15 min LISS',
-    gpCardioCPesoW4:'Corsa continua 35 min + 10 min intervalli in salita',
+    gpCardioCPesoW4:'Corsa leggera 25-30 min ({zona}), senza intervalli (settimana di scarico)',
     gpCardioCMassaW1:'LISS 15 min post-allenamento ({zona}, non interferire con ipertrofia)',
     gpCardioCMassaW2:'Camminata veloce 20 min nei giorni di riposo ({zona})',
     gpCardioCMassaW3:'Cyclette 15 min bassa intensita come recupero attivo ({zona})',
@@ -1563,7 +1589,7 @@ const LANGS={
     gpCardioCOtherW1:'LISS 30 min ({zona}) + 10 min HIIT',
     gpCardioCOtherW2:'Intervalli: 4 min alta / 2 min bassa x 5 cicli ({zona})',
     gpCardioCOtherW3:'Corsa o bike 35 min continua ({zona}), RPE {rpe1}-{rpe2}',
-    gpCardioCOtherW4:'Variato: 20 min corsa + 15 min bike + 10 min HIIT ({zona})',
+    gpCardioCOtherW4:'Cardio leggero 25-30 min ({zona}), senza HIIT (settimana di scarico)',
     // generaProgramma — Forza descriptions (placeholders: {s}/{r}/{rec})
     gpForzaAW1:'Esercizi da seduto: leg extension, push-up muro ({s}x{r}). Recupero {rec}s',
     gpForzaAW2:'Squat assistito (sedia) + alzate laterali 1kg ({s}x{r}). Recupero {rec}s',
@@ -1593,7 +1619,7 @@ const LANGS={
     gpCardioCPlusW1:'Settimana di base aerobica: LISS 30-40 min ({zona}) RPE 5-6. Nessun HIIT questa settimana — costruire la base prima di intensificare (ACSM).',
     gpCardioCPlusW2:'Intervalli piramidali 30/60/90/60/30s alta intensita + Tabata finale 4 min ({zona})',
     gpCardioCPlusW3:'HIIT polarizzato: 80% basso + 20% alto ({zona}). {min} min settimanali. Aggiungere LISS lungo 45 min',
-    gpCardioCPlusW4:'Deload attivo: 50% volume. 1 HIIT + 2 LISS supercompensazione ({zona})',
+    gpCardioCPlusW4:'Scarico attivo: metà del volume, solo LISS ({zona})',
     gpForzaCPlusW1:'Compound heavy ondulati: squat/panca/stacco {s}x{r} @ RPE 7-8. Rec {rec}s. Forza + ipertrofia + potenza',
     gpForzaCPlusW2:'Progressione carico +2.5-5 kg compound. {s}x{r}, rec {rec}s + AMRAP finale ultima serie',
     gpForzaCPlusW3:'Picco intensita: {s}x{r} @ RPE 8-9, cluster sets sui compound. Rec {rec}s. Monitorare CNS',
@@ -1612,9 +1638,9 @@ const LANGS={
     gpPrecOver60:'Over 60: includere esercizi equilibrio 2x/settimana (single leg stand, tandem walk).',
     // generaProgramma — Settimane notes
     gpWeek1Note:'Settimana di adattamento. Registrare RPE e carichi.',
-    gpWeek2Note:'Aumentare volume o intensita del 10% rispetto a sett. 1.',
-    gpWeek3Note:'Picco di volume. Monitorare recupero e sonno.',
-    gpWeek4Note:'Deload o rivalutazione. Ridurre volume 20-30% se affaticamento.',
+    gpWeek2Note:'Applicare la progressione: prima più ripetizioni, poi più carico. Una cosa alla volta.',
+    gpWeek3Note:'Settimana più impegnativa. Monitorare recupero e sonno.',
+    gpWeek4Note:'Scarico: meno volume con la stessa tecnica, poi rivalutazione con i test.',
     // generaProgramma — Nome/Desc
     gpDefSalute:'Salute',
     gpNomeFmt:'Programma {ob} — {pr}',
@@ -1971,7 +1997,7 @@ const LANGS={
     wFinish:'✓ Inizia ad usare PT Board',
     toastAskEmail:'📧 Notificare {nome} via email?',toastEmailSent:'Email inviata a {email}',toastEmailErr:'Errore invio email',toastUndone:'Azione annullata',toastNoSesso:'Sesso non specificato — scheda generata con parametri neutri',planActivated:'{plan} attivato!',libUpdated:'Libreria aggiornata: {n} nuovi esercizi aggiunti',shareBtn:'🔗 Condividi con cliente',shareCopyLink:'Copia link',shareCopyMsg:'Copia messaggio',shareOpen:'Apri anteprima',shareDeactivate:'Disattiva link',shareClientLog:'Sedute dal cliente',shareNoLog:'Nessuna seduta registrata dal cliente. Condividi la scheda per iniziare.',shareMsgTemplate:'Ciao {nome}! 💪 Ecco la tua scheda personale su PT Board: {link}\nSalvala nella home del telefono per aprirla con un tap. — {pt}',shareActive:'Link attivo',shareInactive:'Link disattivato',shareLinkLabel:'Link scheda',accDeleted:'Account eliminato',accDeleteErr:"Per sicurezza, esci e rientra prima di eliminare l'account",requiredFields:'Campi da correggere',
     admTitle:'👑 Pannello Admin',invBtn:'🎁 Invita un collega',freeBanner:'Piano gratuito: {n} di 3 clienti. Passa a Pro per clienti illimitati.',freeUpgrade:'Passa a Pro',freeLimitToast:'Con il piano gratuito puoi avere fino a 3 clienti. Passa a Pro per aggiungerne altri.',freeLockedTitle:'Cliente non incluso nel piano gratuito',freeLockedDesc:'Il piano gratuito comprende i primi 3 clienti. I dati di {nome} sono al sicuro: passa a Pro per lavorarci di nuovo.',invTitle:'Invita un collega',invDesc:'Quando un collega si abbona con il tuo link, ricevete entrambi un mese gratis.',invCopy:'Copia',invCopied:'Copiato',invWhatsapp:'Invia su WhatsApp',invShareText:'Uso PT Board per le schede dei miei clienti: le ricevono sul telefono con timer e immagini degli esercizi. Con questo link hai un mese gratis:',admTrendTitle:'Andamento · ultimi 7 giorni',admTrendNew:'Nuovi iscritti',admTrendActive:'Attivi',admTrendConv:'Iscritti che pagano',admTrendRef:'Arrivati da un invito',admInvitedBy:'invitato da',admReward:'Premia +1 mese a entrambi',admRewarded:'premiato',admRewardDone:'Premio assegnato: +1 mese a entrambi',admPlanUpdated:'✓ Piano aggiornato',admPlanError:'❌ Errore nel salvataggio: {msg}',admNoUsers:'Nessun utente ancora',admStatTotal:'Totale',admStatTrial:'Trial attivi',admStatProTeam:'Pro/Team',admStatExpired:'Scaduti',admColEmail:'Email',admColName:'Nome',admColPlan:'Piano',admColDays:'Giorni rimasti',admColJoined:'Iscritto',admColChangePlan:'Cambia piano',admPlanBlocked:'🚫 Bloccato',admMonthly:'Mensile',admYearly:'Annuale',admExpired:'Scaduto',admDaySuffix:'g',admFeedbackTitle:'📋 Feedback eliminazioni',admNoFeedback:'Nessun feedback di eliminazione',admFbReason:'Motivo',admFbDetail:'Dettaglio',admFbDays:'Giorni usati',admFbDate:'Data eliminazione',admBackupTitle:'📥 Backup dati',tipSuperset:'Superset: 2 esercizi uno dopo l’altro senza pausa, poi recupero. Fa risparmiare tempo e aumenta l’intensità.',tipCircuito:'Circuito: più stazioni in sequenza per un certo numero di giri. Ideale per lavorare tutto il corpo con un ritmo costante.',tipEmom:'EMOM (ogni minuto): a ogni minuto parte una stazione, il tempo che resta è recupero. Tiene l’intensità sotto controllo e la tecnica pulita.',tipAmrap:'AMRAP: più giri possibili in un tempo fisso, al proprio ritmo. Ottimo per vedere i progressi: il cliente conta i giri ogni settimana.',tipHyrox:'Hyrox: stazioni in sequenza senza pause programmate, si segna il tempo totale. Stile gara, per resistenza e lavoro funzionale.',tipFinisher:'Finisher: breve blocco finale ad alta intensità (es. slitta, farmer’s walk) per chiudere la seduta.',tipUnita:'Unità della dose: Rip (ripetizioni), Tempo (secondi o minuti), m (metri, es. slitta o vogatore), cal (calorie su bike, vogatore, ski erg).',tipLato:'Per lato: la dose vale per ogni lato o gamba (es. 8 per gamba). Nella durata stimata conta il doppio.',tipCarico:'Carico: scrivi un numero (diventa kg) o un testo libero, es. “slitta + 20 kg” o “2 × 12 kg”.',tipNota:'Nota per il cliente (max 80 caratteri), es. “fermo 1\" in alto”. La vede nel PDF e nel suo link.',tipBlkNota:'Nota del blocco: un consiglio per tutto il blocco, es. “ritmo costante”. Compare sotto la spiegazione.',tipRisc:'Riscaldamento del giorno, con i minuti: compare prima della parte principale nel PDF e nel link del cliente.',tipDefat:'Defaticamento del giorno, con i minuti: compare alla fine nel PDF e nel link del cliente.',tipRegole:'Regole da seguire in ogni seduta (fatica, schiena, impatto…). Compaiono in cima alla scheda, anche per il cliente.',tipProgr:'Come cambia la scheda nelle settimane (giri, ripetizioni, carico). Compare in cima alla scheda, anche per il cliente.',admNewsTitle:'📣 Email novità a tutti i PT',admNewsHelp:'Crea prima il modello in Brevo, poi scrivi qui il suo numero (ID). Chi l’ha già ricevuta non la riceve di nuovo.',admNewsTplPh:'ID modello Brevo',admNewsBtn:'Invia a tutti',admNewsConfirm:'Inviare l’email (modello {tpl}) a {n} PT?',admNewsProgress:'Invio in corso… {i}/{n}',admNewsDone:'Fatto: {ok} inviate, {ko} non riuscite',admNewsNoTpl:'Scrivi l’ID del modello Brevo',admNewsNone:'Tutti i PT hanno già ricevuto questa email',admBackupLoading:'⏳ Backup in corso...',admBackupDone:'✓ Backup completato: {n} utenti',admBackupError:'❌ Errore backup: {msg}',admBackupDesc:'Scarica tutti gli utenti e i loro dati (appdata) in formato JSON.',
-    progRpeTarget:'RPE target',progZonaFC:'Zona FC',progRazionale:'Razionale scientifico',progSplit:'Split',progDurata:'Durata',progFrequenza:'Frequenza',progIntensita:'Intensità',progModulatori:'Modulatori',progSerieExtra:'+1 serie sui compound ({s}×{r})',progSerieInv:'Serie invariate',progNoteForza:'Forza — metodo lineare. +{p}%/sett (modulato su {n} sed/sett). Deload W4: -30%.',progNoteIpert:'Ipertrofia — doppia progressione. +{p}% carico{extra}. {n} sed/sett → recupero {rec}.',progNoteIpertSerie:' + +1 serie in W3',progRecAmpio:'ampio, incrementi maggiori',progRecRidotto:'ridotto, incrementi conservativi',progNoteMetab:'Metabolico — +{p}% carico o -5s recupero. Con {n} sedute: volume {vol}.',progVolElevato:'elevato, priorità recupero',progVolModerato:'moderato, spazio per progressione',progNoteResist:'Resistenza — +{p}% carico o +1 rep ogni sett. {n} sed/sett.',progNoteSalute:'Salute generale — +{p}% a settimane alterne. Adattare al feedback RPE.',progW1:'W1 — Scheda {split} · {s}×{r} · Carico: {c}% 1RM percepito · Rec: {rec}s · Focus tecnica e registrazione carichi.',progW2:'W2 — Stessa scheda · Carico +{p}% su tutti i compound · Serie/rep invariate · RPE target: {rpe1}-{rpe2}. ({n} sed/sett → tasso progressione calibrato)',progW3:'W3 — Stessa scheda · {label} · Carico +{p}% ulteriore · Picco volume.',progW4:'W4 — DELOAD · {s}×{r} · Carico -25% · Rec +20s · {note}',progWarnForza:'Per risultati ottimali di forza si consigliano almeno 3-4 sedute/settimana.',progWarnIpert:'Per risultati ottimali di ipertrofia si consigliano almeno 3-4 sedute/settimana.',progWarnDeficit:'Per un deficit efficace si consigliano almeno 3 sedute/settimana.',
+    progRpeTarget:'RPE target',progZonaFC:'Zona FC',progRazionale:'Razionale scientifico',progSplit:'Split',progDurata:'Durata',progFrequenza:'Frequenza',progIntensita:'Intensità',progModulatori:'Modulatori',progSerieExtra:'+1 serie sui compound ({s}×{r})',progSerieInv:'Serie invariate',progNoteForza:'Forza — progressione lineare a piccoli passi: +2,5 kg sugli esercizi della parte alta, +5 kg su gambe e stacco quando tutte le serie riescono con tecnica pulita (RPE ≤ 8).',progNoteIpert:'Ipertrofia — doppia progressione nel range {r}{extra}: quando tutte le serie arrivano al limite alto, aumenta il carico e riparti dal limite basso.',progNoteIpertSerie:' · +1 serie nelle settimane di picco',progRecAmpio:'ampio, incrementi maggiori',progRecRidotto:'ridotto, incrementi conservativi',progNoteMetab:'Metabolico — prima aumenta le ripetizioni fino a {r}, poi il carico. Recuperi brevi e costanti.',progVolElevato:'elevato, priorità recupero',progVolModerato:'moderato, spazio per progressione',progNoteResist:'Resistenza — +1-2 ripetizioni a settimana fino a {r}, poi aumenta il carico.',progNoteSalute:'Salute — aumenta il carico solo quando lo sforzo scende sotto RPE {rpe}. Priorità alla regolarità.',progW1:'W1 — Scheda {split} · fondamentali {s}×{r} · Carico: lascia {rir} ripetizioni di riserva (RPE {rpe1}) · Rec: {rec}s · Impara la tecnica e annota i carichi.',progW2:'W2 — Stessa scheda · Doppia progressione: quando completi tutte le serie al limite alto ({r}), aumenta il carico (+2,5 kg parte alta, +5 kg gambe) · RPE {rpe1}-{rpe2}.',progW3:'W3 — Stessa scheda · {label} · Continua la progressione · RPE fino a {rpe2}.',progW4:'W4 — SCARICO · {s}×{r} · Stesso carico, una serie in meno · RPE {rpeD} · {note}',progWarnForza:'Per risultati ottimali di forza si consigliano almeno 3-4 sedute/settimana.',progWarnIpert:'Per risultati ottimali di ipertrofia si consigliano almeno 3-4 sedute/settimana.',progWarnDeficit:'Per un deficit efficace si consigliano almeno 3 sedute/settimana.',
     offTrackBelow:'Progresso sotto le attese',offTrackAbove:'Progresso sopra le attese',offTrackLine1:'Osservato: {obs} kg/sett · Atteso: {exp} kg/sett ({pct}% del target).',offTrackLow:'Considera aggiustamento kcal o aumento volume allenamento.',offTrackHigh:'Verifica ritenzione idrica o monitora composizione corporea.',
     normFumoNoneL:'Non fumatore',normFumoExL:'Ex fumatore',normFumoLightL:'Fumatore leggero (<10/die)',normFumoModL:'Fumatore moderato (10-20/die)',normFumoHeavyL:'Fumatore pesante (>20/die)',normFumoNoneCons:'Nessun impatto da fumo su VO2max e FC. Capacità aerobica non limitata da fattori tabagici.',normFumoExCons:'Benefici progressivi dopo cessazione: FC normalizzata in 2-12 settimane, VO2max +10-15% in 3-9 mesi, funzione polmonare migliorata in 1-9 mesi (AHA). Allenamento aerobico accelera il recupero. Progressione normale del programma.',normFumoLightCons:'Impatto: VO2max ridotto ~5-8%, FC a riposo +5-10 bpm (↑ attivazione simpatica), COHb 3-5% → ridotta capacità di trasporto O2. Soglia anaerobica anticipata. Adattamento: ridurre intensità aerobica attesa del 10%, allungare fasi di riscaldamento, monitorare SpO2. Motivare alla cessazione.',normFumoModCons:'Impatto significativo: VO2max ridotto ~10-15%, FC riposo +10-15 bpm, COHb 5-8%. Ridotta clearance mucociliare, maggiore dispnea da sforzo. Adattamento: FC target calcolata -10%, evitare esercizio intenso in ambienti freddi, pause più frequenti, monitorare SpO2 e sintomi. Forte raccomandazione cessazione — invio centro antifumo.',normFumoHeavyCons:'⚠️ Impatto severo: VO2max ridotto 15-25%, FC riposo +15-20 bpm, COHb >8%. Rischio eventi cardiaci aumentato durante esercizio. Adattamento: SOLO attività leggera (camminata, cyclette bassa intensità), RPE ≤4, monitoraggio PA/FC costante, evitare sforzi massimali. Clearance cardiologica consigliata. Cessazione fumo è la priorità clinica n.1.',normSmokeDefault:'Stato fumo registrato.',
     normAlcolNoneL:'Astemio',normAlcolOccL:'Bevitore occasionale (1-2/settimana)',normAlcolModL:'Bevitore moderato (3-7/settimana)',normAlcolHighL:'Consumo elevato (>7/settimana)',normAlcolNoneCons:'Nessun impatto da alcol su recupero e metabolismo. Ottimale per performance e composizione corporea.',normAlcolOccCons:'Impatto minimo se ≤2 unità/occasione. Evitare alcol nelle 24h post-allenamento intenso (riduce sintesi proteica muscolare del 24%, Parr 2014). Preferire giornate di riposo. Idratazione extra.',normAlcolModCons:'Impatto: riduzione sintesi proteica muscolare fino a 37% post-esercizio (Parr 2014), ↓ testosterone 6-10%, disturbo sonno REM → recupero compromesso, ~7 kcal/g (calorie vuote). Adattamento: pianificare allenamenti lontano da consumo, aumentare proteine +20%, non bere nelle 4h post-workout, conteggiare kcal da alcol nel bilancio. Obiettivo: ridurre a occasionale.',normAlcolHighCons:'⚠️ Impatto severo: ↓ sintesi proteica muscolare fino a 50%, ↓ testosterone 15-20%, ↓ GH notturno, steatosi epatica → metabolismo lipidico compromesso, disidratazione cronica, ↑ cortisolo. Recupero muscolare gravemente compromesso (Lakicevic 2019). Adattamento: ridurre intensità attesa, focus su volume basso, idratazione prioritaria. Forte raccomandazione riduzione/cessazione — invio a supporto se necessario.',normAlcolDefault:'Consumo alcol registrato.',
@@ -2245,7 +2271,7 @@ const LANGS={
     inLabel:'in',pointsLabel:'points',advancedFrom:'Advanced from',advancedTo:'to',
     assessmentHistory:'Assessment History',assessmentNum:'Assessment',
     // Programma settimana
-    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Peak',weekDeload:'Deload',
+    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Peak',weekCheck:'Check-in',gpWeek4NoteA:'Consolidation: same plan, repeat the tests to measure progress.',progW4A:'W4 — CHECK-IN · Same plan and same loads as the week before · Repeat the tests to measure progress · {note}',weekDeload:'Deload',
     lblWeek:'Week',
     // Generazione scheda
     generateWorkout:'⚡ Generate training plan',
@@ -2397,15 +2423,15 @@ const LANGS={
     gpCardioBPesoW1:'Brisk walk {min} min ({zona}), RPE {rpe1}',
     gpCardioBPesoW2:'Intervals: 3 min run / 2 min walk x {n} cycles ({zona})',
     gpCardioBPesoW3:'Light continuous run {min} min ({zona}), RPE {rpe1}',
-    gpCardioBPesoW4:'LISS {min} min ({zona}) + 2x3 min light HIIT',
+    gpCardioBPesoW4:'Brisk walk or LISS {min} min ({zona}), reduced intensity (deload week)',
     gpCardioBOtherW1:'Brisk walk/cycling {min} min ({zona}), RPE {rpe1}',
     gpCardioBOtherW2:'Intervals: 3 min intense / 2 min recovery x {n} cycles ({zona})',
     gpCardioBOtherW3:'Moderate cardio {min} min ({zona})',
-    gpCardioBOtherW4:'Mixed cardio {min} min ({zona}) + 5 min HIIT',
+    gpCardioBOtherW4:'Light cardio {min} min ({zona}) (deload week)',
     gpCardioCPesoW1:'LISS 30 min ({zona}) + 10 min HIIT 30/30',
     gpCardioCPesoW2:'Intervals: 4 min run / 1 min sprint x 6 cycles',
     gpCardioCPesoW3:'HIIT 20 min (30s on / 15s off) + 15 min LISS',
-    gpCardioCPesoW4:'Continuous run 35 min + 10 min hill intervals',
+    gpCardioCPesoW4:'Easy run 25-30 min ({zona}), no intervals (deload week)',
     gpCardioCMassaW1:'LISS 15 min post-workout ({zona}, do not interfere with hypertrophy)',
     gpCardioCMassaW2:'Brisk walk 20 min on rest days ({zona})',
     gpCardioCMassaW3:'Cycling 15 min low intensity as active recovery ({zona})',
@@ -2413,7 +2439,7 @@ const LANGS={
     gpCardioCOtherW1:'LISS 30 min ({zona}) + 10 min HIIT',
     gpCardioCOtherW2:'Intervals: 4 min high / 2 min low x 5 cycles ({zona})',
     gpCardioCOtherW3:'Continuous run or bike 35 min ({zona}), RPE {rpe1}-{rpe2}',
-    gpCardioCOtherW4:'Mixed: 20 min run + 15 min bike + 10 min HIIT ({zona})',
+    gpCardioCOtherW4:'Light cardio 25-30 min ({zona}), no HIIT (deload week)',
     // generaProgramma — Forza descriptions
     gpForzaAW1:'Seated exercises: leg extension, wall push-ups ({s}x{r}). Rest {rec}s',
     gpForzaAW2:'Assisted squat (chair) + 1kg lateral raises ({s}x{r}). Rest {rec}s',
@@ -2443,7 +2469,7 @@ const LANGS={
     gpCardioCPlusW1:'Aerobic base week: LISS 30-40 min ({zona}) RPE 5-6. No HIIT this week — build the base before intensifying (ACSM).',
     gpCardioCPlusW2:'Pyramid intervals 30/60/90/60/30s high intensity + final Tabata 4 min ({zona})',
     gpCardioCPlusW3:'Polarized HIIT: 80% easy + 20% hard ({zona}). {min} weekly min. Add long LISS 45 min',
-    gpCardioCPlusW4:'Active deload: 50% volume. 1 HIIT + 2 LISS for supercompensation ({zona})',
+    gpCardioCPlusW4:'Active deload: half the volume, LISS only ({zona})',
     gpForzaCPlusW1:'Heavy undulating compound: squat/bench/deadlift {s}x{r} @ RPE 7-8. Rec {rec}s. Strength + hypertrophy + power',
     gpForzaCPlusW2:'Load progression +2.5-5 kg on main lifts. {s}x{r}, rec {rec}s + final set AMRAP',
     gpForzaCPlusW3:'Intensity peak: {s}x{r} @ RPE 8-9, cluster sets on compounds. Rec {rec}s. Monitor CNS',
@@ -2462,9 +2488,9 @@ const LANGS={
     gpPrecOver60:'Over 60: include balance exercises 2x/week (single leg stand, tandem walk).',
     // generaProgramma — Settimane notes
     gpWeek1Note:'Adaptation week. Record RPE and loads.',
-    gpWeek2Note:'Increase volume or intensity by 10% vs week 1.',
-    gpWeek3Note:'Volume peak. Monitor recovery and sleep.',
-    gpWeek4Note:'Deload or reassessment. Reduce volume 20-30% if fatigued.',
+    gpWeek2Note:'Apply the progression: first more reps, then more load. One thing at a time.',
+    gpWeek3Note:'Hardest week. Monitor recovery and sleep.',
+    gpWeek4Note:'Deload: less volume with the same technique, then reassess with the tests.',
     // generaProgramma — Nome/Desc
     gpDefSalute:'Health',
     gpNomeFmt:'{ob} Program — {pr}',
@@ -2821,7 +2847,7 @@ const LANGS={
     wFinish:'✓ Start using PT Board',
     toastAskEmail:'📧 Notify {nome} via email?',toastEmailSent:'Email sent to {email}',toastEmailErr:'Error sending email',toastUndone:'Action cancelled',toastNoSesso:'Sex not specified — workout generated with neutral parameters',planActivated:'{plan} activated!',libUpdated:'Library updated: {n} new exercises added',shareBtn:'🔗 Share with client',shareCopyLink:'Copy link',shareCopyMsg:'Copy message',shareOpen:'Open preview',shareDeactivate:'Deactivate link',shareClientLog:'Client sessions',shareNoLog:'No sessions recorded by the client. Share the workout to get started.',shareMsgTemplate:'Hi {nome}! 💪 Here is your personal workout on PT Board: {link}\nSave it to your phone home screen to open with one tap. — {pt}',shareActive:'Link active',shareInactive:'Link deactivated',shareLinkLabel:'Workout link',accDeleted:'Account deleted',accDeleteErr:'For security, sign out and sign back in before deleting your account',requiredFields:'Fields to correct',
     admTitle:'👑 Admin Panel',invBtn:'🎁 Invite a colleague',freeBanner:'Free plan: {n} of 3 clients. Upgrade to Pro for unlimited clients.',freeUpgrade:'Upgrade to Pro',freeLimitToast:'The free plan includes up to 3 clients. Upgrade to Pro to add more.',freeLockedTitle:'Client not included in the free plan',freeLockedDesc:'The free plan includes your first 3 clients. {nome}’s data is safe: upgrade to Pro to work on it again.',invTitle:'Invite a colleague',invDesc:'When a colleague subscribes with your link, you both get one month free.',invCopy:'Copy',invCopied:'Copied',invWhatsapp:'Send on WhatsApp',invShareText:'I use PT Board for my clients’ plans: they get them on their phone with timers and exercise images. With this link you get one month free:',admTrendTitle:'Trend · last 7 days',admTrendNew:'New sign-ups',admTrendActive:'Active',admTrendConv:'Paying users',admTrendRef:'Came from an invite',admInvitedBy:'invited by',admReward:'Reward +1 month to both',admRewarded:'rewarded',admRewardDone:'Reward applied: +1 month to both',admPlanUpdated:'✓ Plan updated',admPlanError:'❌ Save error: {msg}',admNoUsers:'No users yet',admStatTotal:'Total',admStatTrial:'Active trials',admStatProTeam:'Pro/Team',admStatExpired:'Expired',admColEmail:'Email',admColName:'Name',admColPlan:'Plan',admColDays:'Days left',admColJoined:'Joined',admColChangePlan:'Change plan',admPlanBlocked:'🚫 Blocked',admMonthly:'Monthly',admYearly:'Yearly',admExpired:'Expired',admDaySuffix:'d',admFeedbackTitle:'📋 Deletion feedback',admNoFeedback:'No deletion feedback',admFbReason:'Reason',admFbDetail:'Detail',admFbDays:'Days used',admFbDate:'Deletion date',admBackupTitle:'📥 Data backup',tipSuperset:'Superset: 2 exercises back to back with no rest, then recover. Saves time and raises intensity.',tipCircuito:'Circuit: several stations in sequence for a number of rounds. Great for full-body work at a steady pace.',tipEmom:'EMOM (every minute on the minute): a station starts each minute, the time left is rest. Keeps intensity in check and technique clean.',tipAmrap:'AMRAP: as many rounds as possible in a fixed time, at your own pace. Great for tracking progress: the client counts rounds each week.',tipHyrox:'Hyrox: stations in sequence with no planned rest, record the total time. Race style, for endurance and functional work.',tipFinisher:'Finisher: short high-intensity final block (e.g. sled, farmer’s walk) to close the session.',tipUnita:'Dose unit: Reps, Time (seconds or minutes), m (metres, e.g. sled or rower), cal (calories on bike, rower, ski erg).',tipLato:'Per side: the dose is for each side or leg (e.g. 8 per leg). It counts double in the estimated duration.',tipCarico:'Load: type a number (becomes kg) or free text, e.g. “sled + 20 kg” or “2 × 12 kg”.',tipNota:'Note for the client (max 80 characters), e.g. “1\" pause at the top”. Shown in the PDF and in their link.',tipBlkNota:'Block note: a tip for the whole block, e.g. “steady pace”. Shown under the description.',tipRisc:'Warm-up for the day, with minutes: shown before the main part in the PDF and the client link.',tipDefat:'Cool-down for the day, with minutes: shown at the end in the PDF and the client link.',tipRegole:'Rules for every session (effort, back, impact…). Shown at the top of the plan, also to the client.',tipProgr:'How the plan changes over the weeks (rounds, reps, load). Shown at the top of the plan, also to the client.',admNewsTitle:'📣 News email to all PTs',admNewsHelp:'First create the template in Brevo, then type its number (ID) here. Anyone who already received it won’t get it again.',admNewsTplPh:'Brevo template ID',admNewsBtn:'Send to all',admNewsConfirm:'Send the email (template {tpl}) to {n} PTs?',admNewsProgress:'Sending… {i}/{n}',admNewsDone:'Done: {ok} sent, {ko} failed',admNewsNoTpl:'Type the Brevo template ID',admNewsNone:'All PTs already received this email',admBackupLoading:'⏳ Backup in progress...',admBackupDone:'✓ Backup complete: {n} users',admBackupError:'❌ Backup error: {msg}',admBackupDesc:'Download all users and their data (appdata) in JSON format.',
-    progRpeTarget:'RPE target',progZonaFC:'HR Zone',progRazionale:'Scientific rationale',progSplit:'Split',progDurata:'Duration',progFrequenza:'Frequency',progIntensita:'Intensity',progModulatori:'Modulators',progSerieExtra:'+1 set on compounds ({s}×{r})',progSerieInv:'Sets unchanged',progNoteForza:'Strength — linear method. +{p}%/week (modulated on {n} sessions/week). Deload W4: -30%.',progNoteIpert:'Hypertrophy — double progression. +{p}% load{extra}. {n} sessions/week → recovery {rec}.',progNoteIpertSerie:' + +1 set in W3',progRecAmpio:'ample, larger increments',progRecRidotto:'reduced, conservative increments',progNoteMetab:'Metabolic — +{p}% load or -5s rest. With {n} sessions: volume {vol}.',progVolElevato:'high, prioritise recovery',progVolModerato:'moderate, room for progression',progNoteResist:'Endurance — +{p}% load or +1 rep each week. {n} sessions/week.',progNoteSalute:'General health — +{p}% on alternate weeks. Adjust to RPE feedback.',progW1:'W1 — {split} plan · {s}×{r} · Load: {c}% perceived 1RM · Rest: {rec}s · Focus on technique and recording loads.',progW2:'W2 — Same plan · Load +{p}% on all compounds · Sets/reps unchanged · RPE target: {rpe1}-{rpe2}. ({n} sessions/week → progression rate calibrated)',progW3:'W3 — Same plan · {label} · Load +{p}% further · Volume peak.',progW4:'W4 — DELOAD · {s}×{r} · Load -25% · Rest +20s · {note}',progWarnForza:'For optimal strength results at least 3–4 sessions/week are recommended.',progWarnIpert:'For optimal hypertrophy results at least 3–4 sessions/week are recommended.',progWarnDeficit:'For an effective caloric deficit at least 3 sessions/week are recommended.',
+    progRpeTarget:'RPE target',progZonaFC:'HR Zone',progRazionale:'Scientific rationale',progSplit:'Split',progDurata:'Duration',progFrequenza:'Frequency',progIntensita:'Intensity',progModulatori:'Modulators',progSerieExtra:'+1 set on compounds ({s}×{r})',progSerieInv:'Sets unchanged',progNoteForza:'Strength — small linear steps: +2.5 kg on upper-body lifts, +5 kg on legs and deadlift when every set is completed with clean technique (RPE ≤ 8).',progNoteIpert:'Hypertrophy — double progression in the {r} range{extra}: when every set reaches the top of the range, add load and restart from the bottom.',progNoteIpertSerie:' · +1 set in the peak weeks',progRecAmpio:'ample, larger increments',progRecRidotto:'reduced, conservative increments',progNoteMetab:'Metabolic — first add reps up to {r}, then load. Short, consistent rests.',progVolElevato:'high, prioritise recovery',progVolModerato:'moderate, room for progression',progNoteResist:'Endurance — +1-2 reps per week up to {r}, then add load.',progNoteSalute:'Health — add load only when effort drops below RPE {rpe}. Consistency comes first.',progW1:'W1 — {split} plan · main lifts {s}×{r} · Load: leave {rir} reps in reserve (RPE {rpe1}) · Rest: {rec}s · Learn the technique and record loads.',progW2:'W2 — Same plan · Double progression: when you complete every set at the top of the range ({r}), add load (+2.5 kg upper body, +5 kg legs) · RPE {rpe1}-{rpe2}.',progW3:'W3 — Same plan · {label} · Keep progressing · RPE up to {rpe2}.',progW4:'W4 — DELOAD · {s}×{r} · Same load, one set fewer · RPE {rpeD} · {note}',progWarnForza:'For optimal strength results at least 3–4 sessions/week are recommended.',progWarnIpert:'For optimal hypertrophy results at least 3–4 sessions/week are recommended.',progWarnDeficit:'For an effective caloric deficit at least 3 sessions/week are recommended.',
     offTrackBelow:'Progress below expectations',offTrackAbove:'Progress above expectations',offTrackLine1:'Observed: {obs} kg/week · Expected: {exp} kg/week ({pct}% of target).',offTrackLow:'Consider adjusting kcal or increasing training volume.',offTrackHigh:'Check for water retention or monitor body composition.',
     normFumoNoneL:'Non-smoker',normFumoExL:'Ex-smoker',normFumoLightL:'Light smoker (<10/day)',normFumoModL:'Moderate smoker (10-20/day)',normFumoHeavyL:'Heavy smoker (>20/day)',normFumoNoneCons:'No smoking impact on VO2max and HR. Aerobic capacity not limited by tobacco factors.',normFumoExCons:'Progressive benefits after cessation: HR normalised in 2-12 weeks, VO2max +10-15% in 3-9 months, lung function improved in 1-9 months (AHA). Aerobic training accelerates recovery. Normal programme progression.',normFumoLightCons:'Impact: VO2max reduced ~5-8%, resting HR +5-10 bpm (↑ sympathetic activation), COHb 3-5% → reduced O2 transport capacity. Anaerobic threshold earlier. Adaptation: reduce expected aerobic intensity by 10%, extend warm-up phases, monitor SpO2. Motivate towards cessation.',normFumoModCons:'Significant impact: VO2max reduced ~10-15%, resting HR +10-15 bpm, COHb 5-8%. Reduced mucociliary clearance, greater exertional dyspnoea. Adaptation: calculated target HR -10%, avoid intense exercise in cold environments, more frequent breaks, monitor SpO2 and symptoms. Strong cessation recommendation — referral to smoking cessation centre.',normFumoHeavyCons:'⚠️ Severe impact: VO2max reduced 15-25%, resting HR +15-20 bpm, COHb >8%. Increased risk of cardiac events during exercise. Adaptation: ONLY light activity (walking, low-intensity cycling), RPE ≤4, constant BP/HR monitoring, avoid maximal efforts. Cardiology clearance advised. Smoking cessation is clinical priority #1.',normSmokeDefault:'Smoking status recorded.',
     normAlcolNoneL:'Non-drinker',normAlcolOccL:'Occasional drinker (1-2/week)',normAlcolModL:'Moderate drinker (3-7/week)',normAlcolHighL:'High consumption (>7/week)',normAlcolNoneCons:'No alcohol impact on recovery and metabolism. Optimal for performance and body composition.',normAlcolOccCons:'Minimal impact if ≤2 units/occasion. Avoid alcohol within 24h after intense training (reduces muscle protein synthesis by 24%, Parr 2014). Prefer rest days. Extra hydration.',normAlcolModCons:'Impact: reduction in muscle protein synthesis up to 37% post-exercise (Parr 2014), ↓ testosterone 6-10%, REM sleep disruption → compromised recovery, ~7 kcal/g (empty calories). Adaptation: schedule training away from consumption, increase protein +20%, no drinking within 4h post-workout, count alcohol kcal in balance. Goal: reduce to occasional.',normAlcolHighCons:'⚠️ Severe impact: ↓ muscle protein synthesis up to 50%, ↓ testosterone 15-20%, ↓ nocturnal GH, hepatic steatosis → compromised lipid metabolism, chronic dehydration, ↑ cortisol. Muscle recovery severely compromised (Lakicevic 2019). Adaptation: reduce expected intensity, focus on low volume, hydration priority. Strong reduction/cessation recommendation — referral to support if needed.',normAlcolDefault:'Alcohol consumption recorded.',
@@ -3095,7 +3121,7 @@ const LANGS={
     inLabel:'en',pointsLabel:'points',advancedFrom:'Avancé de',advancedTo:'à',
     assessmentHistory:'Historique des Évaluations',assessmentNum:'Évaluation',
     // Programma settimana
-    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Pic',weekDeload:'Décharge',
+    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Pic',weekCheck:'Bilan',gpWeek4NoteA:'Consolidation : même plan, refaire les tests pour mesurer les progrès.',progW4A:'W4 — BILAN · Même plan et mêmes charges que la semaine précédente · Refaire les tests pour mesurer les progrès · {note}',weekDeload:'Décharge',
     lblWeek:'Semaine',
     // Generazione scheda
     generateWorkout:"⚡ Générer fiche d'entraînement",
@@ -3247,15 +3273,15 @@ const LANGS={
     gpCardioBPesoW1:'Marche rapide {min} min ({zona}), RPE {rpe1}',
     gpCardioBPesoW2:'Intervalles : 3 min course / 2 min marche x {n} cycles ({zona})',
     gpCardioBPesoW3:'Course légère continue {min} min ({zona}), RPE {rpe1}',
-    gpCardioBPesoW4:'LISS {min} min ({zona}) + 2x3 min HIIT léger',
+    gpCardioBPesoW4:'Marche rapide ou LISS {min} min ({zona}), intensité réduite (semaine de décharge)',
     gpCardioBOtherW1:'Marche rapide/vélo {min} min ({zona}), RPE {rpe1}',
     gpCardioBOtherW2:'Intervalles : 3 min intense / 2 min récupération x {n} cycles ({zona})',
     gpCardioBOtherW3:'Cardio modéré {min} min ({zona})',
-    gpCardioBOtherW4:'Cardio varié {min} min ({zona}) + 5 min HIIT',
+    gpCardioBOtherW4:'Cardio léger {min} min ({zona}) (semaine de décharge)',
     gpCardioCPesoW1:'LISS 30 min ({zona}) + 10 min HIIT 30/30',
     gpCardioCPesoW2:'Intervalles : 4 min course / 1 min sprint x 6 cycles',
     gpCardioCPesoW3:'HIIT 20 min (30s on / 15s off) + 15 min LISS',
-    gpCardioCPesoW4:'Course continue 35 min + 10 min intervalles en montée',
+    gpCardioCPesoW4:'Course facile 25-30 min ({zona}), sans intervalles (semaine de décharge)',
     gpCardioCMassaW1:"LISS 15 min post-entraînement ({zona}, ne pas interférer avec l'hypertrophie)",
     gpCardioCMassaW2:'Marche rapide 20 min les jours de repos ({zona})',
     gpCardioCMassaW3:'Vélo 15 min basse intensité comme récupération active ({zona})',
@@ -3263,7 +3289,7 @@ const LANGS={
     gpCardioCOtherW1:'LISS 30 min ({zona}) + 10 min HIIT',
     gpCardioCOtherW2:'Intervalles : 4 min haute / 2 min basse x 5 cycles ({zona})',
     gpCardioCOtherW3:'Course ou vélo 35 min continu ({zona}), RPE {rpe1}-{rpe2}',
-    gpCardioCOtherW4:'Varié : 20 min course + 15 min vélo + 10 min HIIT ({zona})',
+    gpCardioCOtherW4:'Cardio léger 25-30 min ({zona}), sans HIIT (semaine de décharge)',
     // generaProgramma — Forza descriptions
     gpForzaAW1:'Exercices assis : leg extension, pompes au mur ({s}x{r}). Récupération {rec}s',
     gpForzaAW2:'Squat assisté (chaise) + élévations latérales 1kg ({s}x{r}). Récupération {rec}s',
@@ -3293,7 +3319,7 @@ const LANGS={
     gpCardioCPlusW1:'Semaine de base aérobie : LISS 30-40 min ({zona}) RPE 5-6. Pas de HIIT cette semaine — construire la base avant d\'intensifier (ACSM).',
     gpCardioCPlusW2:'Intervalles pyramidaux 30/60/90/60/30s haute intensité + Tabata final 4 min ({zona})',
     gpCardioCPlusW3:'HIIT polarisé : 80% bas + 20% haut ({zona}). {min} min hebdomadaires. Ajouter LISS long 45 min',
-    gpCardioCPlusW4:'Deload actif : 50% volume. 1 HIIT + 2 LISS pour surcompensation ({zona})',
+    gpCardioCPlusW4:'Décharge active : moitié du volume, LISS uniquement ({zona})',
     gpForzaCPlusW1:'Compound lourds ondulés : squat/bench/deadlift {s}x{r} @ RPE 7-8. Rec {rec}s. Force + hypertrophie + puissance',
     gpForzaCPlusW2:'Progression charge +2.5-5 kg compounds. {s}x{r}, rec {rec}s + AMRAP dernière série',
     gpForzaCPlusW3:'Pic intensité : {s}x{r} @ RPE 8-9, cluster sets sur compounds. Rec {rec}s. Surveiller SNC',
@@ -3312,9 +3338,9 @@ const LANGS={
     gpPrecOver60:'Plus de 60 ans : inclure exercices équilibre 2x/semaine (single leg stand, tandem walk).',
     // generaProgramma — Settimane notes
     gpWeek1Note:"Semaine d'adaptation. Enregistrer RPE et charges.",
-    gpWeek2Note:"Augmenter volume ou intensité de 10% par rapport à la sem. 1.",
-    gpWeek3Note:'Pic de volume. Surveiller la récupération et le sommeil.',
-    gpWeek4Note:"Deload ou réévaluation. Réduire volume 20-30% si fatigue.",
+    gpWeek2Note:'Appliquer la progression : d’abord plus de répétitions, puis plus de charge. Une chose à la fois.',
+    gpWeek3Note:'Semaine la plus exigeante. Surveiller la récupération et le sommeil.',
+    gpWeek4Note:'Décharge : moins de volume avec la même technique, puis réévaluation avec les tests.',
     // generaProgramma — Nome/Desc
     gpDefSalute:'Santé',
     gpNomeFmt:'Programme {ob} — {pr}',
@@ -3671,7 +3697,7 @@ const LANGS={
     wFinish:'✓ Commencer à utiliser PT Board',
     toastAskEmail:'📧 Notifier {nome} par email ?',toastEmailSent:'Email envoyé à {email}',toastEmailErr:"Erreur d'envoi de l'email",toastUndone:'Action annulée',toastNoSesso:'Sexe non spécifié — séance générée avec des paramètres neutres',planActivated:'{plan} activé !',libUpdated:'Bibliothèque mise à jour : {n} nouveaux exercices ajoutés',shareBtn:'🔗 Partager avec le client',shareCopyLink:'Copier le lien',shareCopyMsg:'Copier le message',shareOpen:'Aperçu',shareDeactivate:'Désactiver le lien',shareClientLog:'Séances du client',shareNoLog:'Aucune séance enregistrée par le client. Partagez la fiche pour commencer.',shareMsgTemplate:'Bonjour {nome} ! 💪 Voici votre programme personnel sur PT Board : {link}\nAjoutez-le à l\'écran d\'accueil de votre téléphone. — {pt}',shareActive:'Lien actif',shareInactive:'Lien désactivé',shareLinkLabel:'Lien programme',accDeleted:'Compte supprimé',accDeleteErr:'Pour des raisons de sécurité, déconnectez-vous et reconnectez-vous avant de supprimer votre compte',requiredFields:'Champs à corriger',
     admTitle:'👑 Panneau Admin',invBtn:'🎁 Inviter un collègue',freeBanner:'Formule gratuite : {n} clients sur 3. Passez à Pro pour des clients illimités.',freeUpgrade:'Passer à Pro',freeLimitToast:'La formule gratuite comprend jusqu’à 3 clients. Passez à Pro pour en ajouter.',freeLockedTitle:'Client non inclus dans la formule gratuite',freeLockedDesc:'La formule gratuite comprend vos 3 premiers clients. Les données de {nome} sont en sécurité : passez à Pro pour y travailler à nouveau.',invTitle:'Inviter un collègue',invDesc:'Quand un collègue s’abonne avec votre lien, vous recevez tous les deux un mois gratuit.',invCopy:'Copier',invCopied:'Copié',invWhatsapp:'Envoyer sur WhatsApp',invShareText:'J’utilise PT Board pour les programmes de mes clients : ils les reçoivent sur leur téléphone avec minuteurs et images des exercices. Avec ce lien tu as un mois gratuit :',admTrendTitle:'Tendance · 7 derniers jours',admTrendNew:'Nouveaux inscrits',admTrendActive:'Actifs',admTrendConv:'Inscrits payants',admTrendRef:'Venus par invitation',admInvitedBy:'invité par',admReward:'Récompenser +1 mois aux deux',admRewarded:'récompensé',admRewardDone:'Récompense appliquée : +1 mois aux deux',admPlanUpdated:'✓ Plan mis à jour',admPlanError:'❌ Erreur de sauvegarde : {msg}',admNoUsers:'Aucun utilisateur encore',admStatTotal:'Total',admStatTrial:'Essais actifs',admStatProTeam:'Pro/Équipe',admStatExpired:'Expirés',admColEmail:'Email',admColName:'Nom',admColPlan:'Plan',admColDays:'Jours restants',admColJoined:'Inscrit',admColChangePlan:'Changer de plan',admPlanBlocked:'🚫 Bloqué',admMonthly:'Mensuel',admYearly:'Annuel',admExpired:'Expiré',admDaySuffix:'j',admFeedbackTitle:'📋 Retours de suppression',admNoFeedback:'Aucun retour de suppression',admFbReason:'Motif',admFbDetail:'Détail',admFbDays:'Jours utilisés',admFbDate:'Date de suppression',admBackupTitle:'📥 Sauvegarde des données',tipSuperset:'Superset : 2 exercices enchaînés sans pause, puis récupération. Fait gagner du temps et augmente l’intensité.',tipCircuito:'Circuit : plusieurs stations à la suite pendant un nombre de tours. Idéal pour travailler tout le corps à rythme régulier.',tipEmom:'EMOM (chaque minute) : une station démarre chaque minute, le temps restant sert à récupérer. Garde l’intensité sous contrôle et la technique propre.',tipAmrap:'AMRAP : le plus de tours possible en un temps fixe, à son rythme. Parfait pour voir les progrès : le client compte ses tours chaque semaine.',tipHyrox:'Hyrox : stations à la suite sans pause prévue, on note le temps total. Style compétition, pour l’endurance et le fonctionnel.',tipFinisher:'Finisher : court bloc final à haute intensité (ex. traîneau, farmer’s walk) pour finir la séance.',tipUnita:'Unité : Rép (répétitions), Temps (secondes ou minutes), m (mètres, ex. traîneau ou rameur), cal (calories sur vélo, rameur, ski erg).',tipLato:'Par côté : la dose vaut pour chaque côté ou jambe (ex. 8 par jambe). Compte double dans la durée estimée.',tipCarico:'Charge : écris un nombre (devient kg) ou un texte libre, ex. « traîneau + 20 kg » ou « 2 × 12 kg ».',tipNota:'Note pour le client (80 caractères max), ex. « pause 1\" en haut ». Visible dans le PDF et dans son lien.',tipBlkNota:'Note du bloc : un conseil pour tout le bloc, ex. « rythme régulier ». Affichée sous la description.',tipRisc:'Échauffement du jour, avec les minutes : affiché avant la partie principale dans le PDF et le lien du client.',tipDefat:'Retour au calme du jour, avec les minutes : affiché à la fin dans le PDF et le lien du client.',tipRegole:'Règles pour chaque séance (effort, dos, impact…). Affichées en haut de la fiche, aussi pour le client.',tipProgr:'Comment la fiche évolue au fil des semaines (tours, répétitions, charge). Affichée en haut de la fiche, aussi pour le client.',admNewsTitle:'📣 E-mail nouveautés à tous les PT',admNewsHelp:'Crée d’abord le modèle dans Brevo, puis écris ici son numéro (ID). Ceux qui l’ont déjà reçu ne le recevront pas à nouveau.',admNewsTplPh:'ID du modèle Brevo',admNewsBtn:'Envoyer à tous',admNewsConfirm:'Envoyer l’e-mail (modèle {tpl}) à {n} PT ?',admNewsProgress:'Envoi en cours… {i}/{n}',admNewsDone:'Terminé : {ok} envoyés, {ko} échecs',admNewsNoTpl:'Écris l’ID du modèle Brevo',admNewsNone:'Tous les PT ont déjà reçu cet e-mail',admBackupLoading:'⏳ Sauvegarde en cours...',admBackupDone:'✓ Sauvegarde terminée : {n} utilisateurs',admBackupError:'❌ Erreur de sauvegarde : {msg}',admBackupDesc:'Téléchargez tous les utilisateurs et leurs données (appdata) au format JSON.',
-    progRpeTarget:'RPE cible',progZonaFC:'Zone FC',progRazionale:'Raisonnement scientifique',progSplit:'Split',progDurata:'Durée',progFrequenza:'Fréquence',progIntensita:'Intensité',progModulatori:'Modulateurs',progSerieExtra:'+1 série sur les composés ({s}×{r})',progSerieInv:'Séries inchangées',progNoteForza:'Force — méthode linéaire. +{p}%/sem (modulé sur {n} séances/sem). Décharge W4: -30%.',progNoteIpert:'Hypertrophie — double progression. +{p}% charge{extra}. {n} séances/sem → récupération {rec}.',progNoteIpertSerie:' + +1 série en W3',progRecAmpio:'ample, incréments plus grands',progRecRidotto:'réduite, incréments conservateurs',progNoteMetab:'Métabolique — +{p}% charge ou -5s récupération. Avec {n} séances : volume {vol}.',progVolElevato:'élevé, priorité à la récupération',progVolModerato:'modéré, marge pour la progression',progNoteResist:'Endurance — +{p}% charge ou +1 rép chaque semaine. {n} séances/sem.',progNoteSalute:'Santé générale — +{p}% en semaines alternées. Adapter selon RPE.',progW1:'W1 — Plan {split} · {s}×{r} · Charge : {c}% 1RM perçu · Repos : {rec}s · Focus technique et enregistrement charges.',progW2:'W2 — Même plan · Charge +{p}% sur tous les composés · Séries/rép inchangées · RPE cible : {rpe1}-{rpe2}. ({n} séances/sem → taux de progression calibré)',progW3:'W3 — Même plan · {label} · Charge +{p}% supplémentaire · Pic de volume.',progW4:'W4 — DÉCHARGE · {s}×{r} · Charge -25% · Repos +20s · {note}',progWarnForza:'Pour des résultats optimaux en force, au moins 3–4 séances/semaine sont recommandées.',progWarnIpert:'Pour des résultats optimaux en hypertrophie, au moins 3–4 séances/semaine sont recommandées.',progWarnDeficit:'Pour un déficit calorique efficace, au moins 3 séances/semaine sont recommandées.',
+    progRpeTarget:'RPE cible',progZonaFC:'Zone FC',progRazionale:'Raisonnement scientifique',progSplit:'Split',progDurata:'Durée',progFrequenza:'Fréquence',progIntensita:'Intensité',progModulatori:'Modulateurs',progSerieExtra:'+1 série sur les composés ({s}×{r})',progSerieInv:'Séries inchangées',progNoteForza:'Force — progression linéaire par petits pas : +2,5 kg sur le haut du corps, +5 kg sur jambes et soulevé de terre quand toutes les séries sont réussies avec une technique propre (RPE ≤ 8).',progNoteIpert:'Hypertrophie — double progression dans la fourchette {r}{extra} : quand toutes les séries atteignent le haut de la fourchette, augmenter la charge et repartir du bas.',progNoteIpertSerie:' · +1 série pendant les semaines de pic',progRecAmpio:'ample, incréments plus grands',progRecRidotto:'réduite, incréments conservateurs',progNoteMetab:'Métabolique — d’abord plus de répétitions jusqu’à {r}, puis la charge. Récupérations courtes et constantes.',progVolElevato:'élevé, priorité à la récupération',progVolModerato:'modéré, marge pour la progression',progNoteResist:'Endurance — +1-2 répétitions par semaine jusqu’à {r}, puis augmenter la charge.',progNoteSalute:'Santé — augmenter la charge seulement quand l’effort descend sous RPE {rpe}. La régularité d’abord.',progW1:'W1 — Plan {split} · exercices de base {s}×{r} · Charge : garder {rir} répétitions en réserve (RPE {rpe1}) · Repos : {rec}s · Apprendre la technique et noter les charges.',progW2:'W2 — Même plan · Double progression : quand toutes les séries atteignent le haut de la fourchette ({r}), augmenter la charge (+2,5 kg haut du corps, +5 kg jambes) · RPE {rpe1}-{rpe2}.',progW3:'W3 — Même plan · {label} · Continuer la progression · RPE jusqu’à {rpe2}.',progW4:'W4 — DÉCHARGE · {s}×{r} · Même charge, une série de moins · RPE {rpeD} · {note}',progWarnForza:'Pour des résultats optimaux en force, au moins 3–4 séances/semaine sont recommandées.',progWarnIpert:'Pour des résultats optimaux en hypertrophie, au moins 3–4 séances/semaine sont recommandées.',progWarnDeficit:'Pour un déficit calorique efficace, au moins 3 séances/semaine sont recommandées.',
     offTrackBelow:'Progrès en dessous des attentes',offTrackAbove:'Progrès au-dessus des attentes',offTrackLine1:"Observé : {obs} kg/sem · Attendu : {exp} kg/sem ({pct}% de l'objectif).",offTrackLow:"Envisager un ajustement kcal ou une augmentation du volume d'entraînement.",offTrackHigh:'Vérifier la rétention d\'eau ou surveiller la composition corporelle.',
     normFumoNoneL:'Non-fumeur',normFumoExL:'Ex-fumeur',normFumoLightL:'Fumeur léger (<10/jour)',normFumoModL:'Fumeur modéré (10-20/jour)',normFumoHeavyL:'Fumeur intense (>20/jour)',normFumoNoneCons:"Aucun impact du tabac sur le VO2max et la FC. Capacité aérobie non limitée par des facteurs tabagiques.",normFumoExCons:"Bénéfices progressifs après l'arrêt : FC normalisée en 2-12 semaines, VO2max +10-15% en 3-9 mois, fonction pulmonaire améliorée en 1-9 mois (AHA). L'entraînement aérobie accélère la récupération. Progression normale du programme.",normFumoLightCons:"Impact : VO2max réduit ~5-8%, FC au repos +5-10 bpm (↑ activation sympathique), COHb 3-5% → capacité de transport O2 réduite. Seuil anaérobie anticipé. Adaptation : réduire l'intensité aérobie attendue de 10%, prolonger les phases d'échauffement, surveiller SpO2. Encourager l'arrêt.",normFumoModCons:"Impact significatif : VO2max réduit ~10-15%, FC repos +10-15 bpm, COHb 5-8%. Clairance mucociliaire réduite, plus grande dyspnée à l'effort. Adaptation : FC cible calculée -10%, éviter l'exercice intense dans les environnements froids, pauses plus fréquentes, surveiller SpO2 et symptômes. Forte recommandation d'arrêt — orientation vers centre antitabac.",normFumoHeavyCons:"⚠️ Impact sévère : VO2max réduit 15-25%, FC repos +15-20 bpm, COHb >8%. Risque accru d'événements cardiaques pendant l'exercice. Adaptation : SEULEMENT activité légère (marche, vélo basse intensité), RPE ≤4, surveillance TA/FC constante, éviter les efforts maximaux. Bilan cardiologique conseillé. L'arrêt du tabac est la priorité clinique n°1.",normSmokeDefault:'État tabagique enregistré.',
     normAlcolNoneL:'Abstème',normAlcolOccL:'Buveur occasionnel (1-2/semaine)',normAlcolModL:'Buveur modéré (3-7/semaine)',normAlcolHighL:'Consommation élevée (>7/semaine)',normAlcolNoneCons:"Aucun impact de l'alcool sur la récupération et le métabolisme. Optimal pour les performances et la composition corporelle.",normAlcolOccCons:"Impact minimal si ≤2 unités/occasion. Éviter l'alcool dans les 24h post-entraînement intense (réduit la synthèse protéique musculaire de 24%, Parr 2014). Préférer les jours de repos. Hydratation supplémentaire.",normAlcolModCons:"Impact : réduction de la synthèse protéique musculaire jusqu'à 37% post-exercice (Parr 2014), ↓ testostérone 6-10%, perturbation du sommeil REM → récupération compromise, ~7 kcal/g (calories vides). Adaptation : planifier les entraînements loin de la consommation, augmenter les protéines +20%, ne pas boire dans les 4h post-workout, comptabiliser les kcal d'alcool dans le bilan. Objectif : réduire à occasionnel.",normAlcolHighCons:"⚠️ Impact sévère : ↓ synthèse protéique musculaire jusqu'à 50%, ↓ testostérone 15-20%, ↓ GH nocturne, stéatose hépatique → métabolisme lipidique compromis, déshydratation chronique, ↑ cortisol. Récupération musculaire gravement compromise (Lakicevic 2019). Adaptation : réduire l'intensité attendue, focus sur faible volume, hydratation prioritaire. Forte recommandation de réduction/arrêt — orientation vers soutien si nécessaire.",normAlcolDefault:"Consommation d'alcool enregistrée.",
@@ -11625,7 +11651,10 @@ var generaSchedaAuto = function(params, esercizi) {
   if (noDeadlift) esclusiNomi = esclusiNomi.concat(['stacco','deadlift','romanian','hip hinge','good morning','back extension']);
 
   // ── LIBRERIA COMPATIBILE: filtra per livello, equip, patologie ──
+  // Stretching e mobilita' non sono esercizi di forza: mai negli slot della scheda.
+  function isMobilita(ex) { return ex.cat === 'Mobilita' || ex.cat === 'Mobilità' || /scivolamenti al muro|wall slide|scapular/.test(nomeChiave(ex)); }
   var libCompat = esercizi.filter(function(ex) {
+    if (isMobilita(ex)) return false;
     if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
     var eq = ex.equip || 'any';
     if (equipAmmessi.indexOf(eq) === -1) return false;
@@ -11652,112 +11681,41 @@ var generaSchedaAuto = function(params, esercizi) {
   }
   // Stessa classificazione usata dal calcolo della durata (classificaEsercizio, script globale).
   function classifyExercise(ex) { return classificaEsercizio(ex); }
-  // Tabella base serie × rip × rec per (categoria, profilo)
-  // (valori dalla spec: ranges medi)
-  var exParams = {
-    compound: {
-      A:   {serie:3, rip:12, rec:120},
-      B:   {serie:3, rip:10, rec:150},
-      C:   {serie:4, rip:8,  rec:180},
-      'C+':{serie:5, rip:5,  rec:240}
-    },
-    big: {
-      A:   {serie:2, rip:15, rec:90},
-      B:   {serie:3, rip:12, rec:90},
-      C:   {serie:4, rip:10, rec:75},
-      'C+':{serie:4, rip:8,  rec:90}
-    },
-    small: {
-      A:   {serie:2, rip:15, rec:60},
-      B:   {serie:3, rip:12, rec:60},
-      C:   {serie:3, rip:12, rec:60},
-      'C+':{serie:3, rip:10, rec:60}
-    },
-    core: {
-      A:   {serie:2, rip:10, rec:45},
-      B:   {serie:3, rip:12, rec:40},
-      C:   {serie:3, rip:15, rec:35},
-      'C+':{serie:4, rip:15, rec:30}
-    }
-  };
-  // Parametri finali per categoria, con modificatori obiettivo e età
+  // Parametri per (obiettivo, tipo di esercizio) da PARAM_OBIETTIVO (script globale), poi
+  // profilo, attivita', durata e solo alla fine eta' e patologie: i limiti di sicurezza
+  // non possono essere annullati dagli aggiustamenti per durata.
   function exParamsFor(category) {
-    var tbl = exParams[category] || exParams.big;
-    var b = tbl[profilo] || tbl.B;
-    var serie = b.serie, rip = b.rip, rec = b.rec;
-    // Modificatori obiettivo (NSCA Tab 17.6)
-    if (obiettivo === 'Forza') {
-      if (category === 'compound') {
-        serie = Math.min(serie + 1, 6);
-        rip = Math.max(1, rip - 4);
-        rec = Math.max(rec, 180);
-      } else {
-        rip = Math.max(3, rip - 2);
-        rec = Math.max(rec, 120);
-      }
-    } else if (obiettivo === 'Aumentare massa') {
-      // Ipertrofia: 6-12 rep, 60-90s (Schoenfeld 2010)
+    var po = paramObiettivo(obiettivo);
+    var b = po[category] || po.big;
+    var serie = b[0], rip = b[1], rec = b[2];
+    var isCore = category === 'core';
+    // Profilo
+    if (profilo === 'A') {
+      serie = Math.min(serie, category === 'compound' ? 3 : 2);
+      if (!isCore) { rip = Math.max(rip, (obiettivo === 'Forza' || obiettivo === 'Performance') ? 8 : 10); rec = Math.max(rec, 60); }
+    } else if (profilo === 'B') {
+      serie = Math.min(serie, 4);
+      if (attivita === 'Sedentaria' || attivita === 'Poco attiva') { serie = Math.min(serie, 3); if (!isCore) rip = Math.max(rip, 8); }
+    } else if (profilo === 'C+' && category === 'compound') {
       serie = Math.min(serie + 1, 5);
-      rip = Math.min(Math.max(rip, 8), 12);
-      rec = Math.max(rec, 75);
-    } else if (obiettivo === 'Tonificare') {
-      // Tonificazione: volume moderato 10-15 rep, rec 60-90s (ACSM 2009, range ipertrofia/resistenza)
-      rip = Math.min(Math.max(rip, 10), 15);
-      rec = Math.min(Math.max(rec, 60), 90);
-    } else if (obiettivo === 'Perdere peso') {
-      // Circuiti metabolici: rep alte, recupero breve (ACSM)
-      serie = Math.max(2, serie - 1);
-      rip = rip + 4;
-      rec = Math.max(30, rec - 30);
-    } else if (obiettivo === 'Resistenza') {
-      // Resistenza muscolare: >15 rep, rec <60s (NSCA)
-      serie = Math.max(2, serie - 1);
-      rip = rip + 6;
-      rec = Math.min(rec, 60);
-    } else if (obiettivo === 'Performance') {
-      // Potenza: 3-6 rep esplosivi, recupero completo (NSCA)
-      if (category === 'compound') {
-        rip = Math.max(3, rip - 3);
-        rec = Math.max(rec, 180);
-      }
     }
-    // Modificatori attività (sedentari conservativi)
-    if (profilo === 'B' && (attivita === 'Sedentaria' || attivita === 'Poco attiva')) {
-      if (category === 'compound') { serie = Math.min(serie, 3); rip = Math.max(rip, 12); }
-      if (category === 'big') { serie = Math.min(serie, 3); rip = Math.max(rip, 12); }
-      if (category === 'small') rip = Math.max(rip, 12);
-    }
-    // Modificatori età (ACSM older adults guidelines)
-    if (category !== 'core') {
-      if (eta > 60) { rec += 30; rip = Math.max(rip, 10); }
-      if (eta > 70) { rec += 30; rip = Math.max(6, rip - 2); serie = Math.min(serie, 3); }
+    // Durata della seduta
+    if (durataSeduta <= 30) { serie = Math.max(2, serie - 1); rec = (obiettivo === 'Forza' && category === 'compound') ? Math.min(rec, 150) : Math.max(30, rec - 15); }
+    else if (durataSeduta <= 45 && category !== 'compound') { serie = Math.min(serie, 3); }
+    else if (durataSeduta >= 90 && category === 'compound') { serie = Math.min(serie + 1, 5); }
+    // Eta' (ACSM, adulti anziani): ripetizioni moderate, recuperi piu' ampi, poche serie
+    if (!isCore) {
+      if (eta > 60) { rip = Math.max(rip, obiettivo === 'Forza' ? 8 : 10); rec += 15; }
+      if (eta > 70) { serie = Math.min(serie, 3); rec = Math.min(Math.max(rec, 90), 150); }
       if (eta > 75) { serie = Math.min(serie, 2); }
     }
-    // Scala per durata seduta
-    if (durataSeduta <= 45) {
-      serie = Math.max(2, serie - 1);
-      rec = Math.max(30, rec - 20);
-    } else if (durataSeduta >= 60 && category === 'compound') {
-      serie = Math.min(serie + 1, 6);
-      rec += 30;
-    }
-    if (durataSeduta >= 90 && category === 'compound') rec += 30;
-    if (durataSeduta >= 90 && category === 'big') rec += 15;
-    // Tonificare: resta in 10-15 rep / 60-90s anche dopo le scale per durata ed eta'
-    // (le regole per patologia qui sotto hanno comunque la precedenza).
-    if (obiettivo === 'Tonificare' && category !== 'core') {
-      rip = Math.min(Math.max(rip, 10), 15);
-      rec = Math.min(Math.max(rec, 60), 90);
-      serie = Math.min(serie, 4);
-    }
-    // Patologie: ipertensione → recuperi più lunghi (ACSM)
-    if (patologie.includes('ipertensione')) rec = Math.max(rec, 90);
-    // Cardiopatia → recuperi conservativi
+    // Patologie (precedenza su tutto)
+    if (patologie.includes('ipertensione')) { rec = Math.max(rec, 90); if (!isCore) rip = Math.max(rip, 10); }
     if (patologie.includes('cardiopatia') || patologie.includes('scompenso')) {
-      rec = Math.max(rec, 120);
-      serie = Math.min(serie, 3);
-      rip = Math.max(rip, 12);
+      rec = Math.max(rec, 120); serie = Math.min(serie, 3); rip = Math.max(rip, 12);
     }
+    serie = Math.max(2, Math.min(serie, 5));
+    rip = ripStandard(rip);
     return {serie: serie, rip: rip, rec: rec};
   }
   // Valori rappresentativi (categoria big) per il config della scheda (usati nei badge UI)
@@ -11793,9 +11751,11 @@ var generaSchedaAuto = function(params, esercizi) {
     var ps = filters.primarySplit || null;
 
     function psCheck(ex) {
-      // core and cardio exercises are always allowed (finishers, warm-up)
       if (!ps) return true;
-      if (ex.primarySplit === 'core' || ex.primarySplit === 'cardio') return true;
+      // Il core entra solo negli slot di core (prima un "Shoulder tap" poteva finire nello slot spalle);
+      // il cardio mai negli slot di forza.
+      if (ex.primarySplit === 'cardio') return false;
+      if (ex.primarySplit === 'core') return ps === 'core' || (filters.primary || []).indexOf('core') !== -1;
       return ex.primarySplit === ps;
     }
 
@@ -11813,14 +11773,15 @@ var generaSchedaAuto = function(params, esercizi) {
     }
 
     var c = [];
+    var famUsate = used.map(function(id) { var u = esercizi.find(function(x) { return x.id === id; }); return u ? famigliaEsercizio(u) : null; });
     // Pass 1: full filter with compound preference
     if (filters.preferCompound) {
       c = tryFilter(filters, true);
       // Female + glutei: prefer hip thrust / ponte glutei
-      if (c.length > 1 && (sesso === 'F' || sesso === 'Donna') && filters.primary && filters.primary.indexOf('glutei') !== -1) {
+      if (c.length > 1 && (sesso === 'F' || sesso === 'Donna') && filters.primary && filters.primary[0] === 'glutei') {
         var htPref = c.filter(function(ex) {
           var nm = nomeChiave(ex);
-          return nm.indexOf('hip thrust') !== -1 || nm.indexOf('ponte glutei') !== -1;
+          return (nm.indexOf('hip thrust') !== -1 || nm.indexOf('ponte glutei') !== -1) && famUsate.indexOf(famigliaEsercizio(ex)) === -1;
         });
         if (htPref.length) c = htPref;
       }
@@ -11861,6 +11822,7 @@ var generaSchedaAuto = function(params, esercizi) {
     if (!c.length) {
       c = esercizi.filter(function(ex) {
         if (used.indexOf(ex.id) !== -1) return false;
+        if (isMobilita(ex)) return false;
         if (!psCheck(ex)) return false;
         if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
         var nmLow = nomeChiave(ex);
@@ -11872,6 +11834,21 @@ var generaSchedaAuto = function(params, esercizi) {
     if (obiettivo !== 'Performance' && profilo !== 'C+') {
       var cNonPlyo = c.filter(function(ex) { return !isPlyometric(ex); });
       if (cNonPlyo.length) c = cNonPlyo;
+    }
+    // Niente due varianti dello stesso esercizio (es. Hip Thrust + Hip Thrust Macchina)
+    var cNuove = c.filter(function(ex) { return famUsate.indexOf(famigliaEsercizio(ex)) === -1; });
+    if (cNuove.length) c = cNuove;
+    // Profili allenati: preferisci esercizi del loro livello (niente push-up al muro a un avanzato)
+    if (profilo === 'C' || profilo === 'C+') {
+      var cLiv = c.filter(function(ex) { return ex.livello && ex.livello !== 'base'; });
+      if (cLiv.length) c = cLiv;
+    }
+    // Forza / Performance / Massa: sui fondamentali servono esercizi caricabili (non goblet, elastici, kettlebell, cavo per le gambe)
+    if ((obiettivo === 'Forza' || obiettivo === 'Performance' || obiettivo === 'Aumentare massa') && filters.preferCompound) {
+      var leggeri = ['goblet','kettlebell','kb ','elastic','band','landmine','muro','wall','corpo libero','bodyweight'];
+      if (ps === 'legs') leggeri = leggeri.concat(['cavo','cable','sissy','pattinatore','skater','cosacco','cossack','spagnolo','spanish']);
+      var cCar = c.filter(function(ex) { var n = nomeChiave(ex) + ' ' + String((ex.nome && ex.nome.it) || '').toLowerCase(); return ex.equip === 'gym' && !leggeri.some(function(k) { return n.indexOf(k) !== -1; }); });
+      if (cCar.length) c = cCar;
     }
     if (!c.length) return null;
     var chosen = c[Math.floor(Math.random() * c.length)];
@@ -11891,6 +11868,9 @@ var generaSchedaAuto = function(params, esercizi) {
   else if (obiettivo === 'Resistenza') cardioBaseMin += 10;
   // Cap cardio: mai più di ~1/3 della seduta, min 5
   cardioBaseMin = Math.max(5, Math.min(cardioBaseMin, Math.floor(durataSeduta / 3)));
+  // Sedute corte: il tempo va alla forza
+  if (durataSeduta <= 30) cardioBaseMin = 5;
+  else if (durataSeduta <= 45) cardioBaseMin = Math.min(cardioBaseMin, 10);
   // Riscaldamento fisso
   var warmupMin = 5;
   // Tempo residuo per la parte forza (in secondi)
@@ -11960,21 +11940,16 @@ var generaSchedaAuto = function(params, esercizi) {
     var isFemale = sesso === 'F' || sesso === 'Donna';
     var slots = [];
     if (dayName === 'Full Body') {
-      slots.push({primary:['quadricipiti','femorali','glutei'], move:['legs'], primarySplit:'legs', label:SL.legsComp, preferCompound:true});
+      // Copertura degli schemi base in ogni seduta: squat, tirata, spinta, cerniera d'anca, spalle, core.
+      slots.push({primary:['quadricipiti'], move:['legs'], primarySplit:'legs', label:SL.legsComp, preferCompound:true});
       slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.back, preferCompound:true});
+      slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chest, preferCompound:true});
+      slots.push({primary:['femorali','glutei'], move:['legs'], primarySplit:'legs', label:SL.hamsGlutes, preferCompound:true});
       slots.push({primary:['spalle'], primarySplit:'push', label:SL.shoulders});
       slots.push({primary:['core'], move:['core'], primarySplit:'core', label:SL.core});
-      if (isFemale) {
-        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesComp, preferCompound:true});
-        if (durataSeduta >= 90) slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chest});
-      } else {
-        slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chest, preferCompound:true});
-      }
       if (profilo !== 'A' && obiettivo !== 'Forza') {
-        slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesIso});
-        if (!isFemale && (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance')) {
-          slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestAcc});
-        }
+        if (isFemale) slots.push({primary:['glutei'], primarySplit:'legs', label:SL.glutesIso});
+        else if (obiettivo === 'Aumentare massa' || obiettivo === 'Resistenza' || obiettivo === 'Performance') slots.push({primary:['dorso'], move:['pull'], primarySplit:'pull', label:SL.backAcc});
       }
     } else if (dayName === 'Upper A') {
       if (isFemale) {
@@ -12063,7 +12038,7 @@ var generaSchedaAuto = function(params, esercizi) {
         slots.push({primary:['glutei','femorali'], move:['legs'], primarySplit:'legs', label:SL.glutesExtra});
       } else if (dayName === 'Full Body') {
         if (isFemale) { slots.push({primary:['glutei'], primarySplit:'legs', label:SL.glutesExtra}); }
-        else { slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestExtra}); }
+        else { slots.push({primary:['petto'], move:['push'], primarySplit:'push', label:SL.chestAcc}); }
       }
     }
     // Durata <= 30 min: togli isolamento piccoli
@@ -12081,11 +12056,14 @@ var generaSchedaAuto = function(params, esercizi) {
   // ── PART 2: Over 60 livello restrizione ──
   // Over 60: forza livello base + escludi esplosivi
   if (eta >= 60) {
-    livelliPermessi = ['base'];
+    // Profili allenati possono restare sul livello intermedio; gli altri solo base.
+    livelliPermessi = (profilo === 'C' || profilo === 'C+') ? ['base', 'intermedio'] : ['base'];
     // Aggiungi esplosivi alla lista esclusi
     esclusiNomi = esclusiNomi.concat(['jump squat', 'box jump', 'burpee', 'jump', 'esplosivo', 'plyometric']);
-    // Ricomputa libCompat con livello ristretto
+    // Ricomputa libCompat con livello ristretto (stesse esclusioni di prima: mobilita' e id per patologia)
     libCompat = esercizi.filter(function(ex) {
+      if (isMobilita(ex)) return false;
+      if (esclusiIds.indexOf(ex.id) !== -1) return false;
       if (ex.livello && livelliPermessi.indexOf(ex.livello) === -1) return false;
       var eq = ex.equip || 'any';
       if (equipAmmessi.indexOf(eq) === -1) return false;
@@ -12201,19 +12179,18 @@ var generaSchedaAuto = function(params, esercizi) {
     // Helper: indici degli esercizi "protetti" (1 per movimento principale push/pull/legs/core).
     // Per FullBody/Upper-Lower/PPL: mantieni almeno 1 esercizio per movimento essenziale.
     function protectedIndices() {
-      if (splitDayName !== 'Full Body') {
-        // Per altri split (Upper, Lower, Push, Pull, Legs), la copertura è già garantita
-        // dal template stesso. Restituiamo solo il primo compound se presente.
-        var idx = -1;
-        for (var k = 0; k < schedaEsercizi.length; k++) {
-          if (isCardioEntry(schedaEsercizi[k])) continue;
-          if (schedaEsercizi[k].category === 'compound') { idx = k; break; }
-        }
-        return idx >= 0 ? [idx] : [];
-      }
-      // FULL BODY: proteggi 1 push, 1 pull, 1 legs (preferibilmente compound), 1 core
+      // splitDayName = codice del giorno (fullbody/upper/lower/push/pull/legs), non il nome tradotto.
+      // Per ogni giorno si proteggono gli schemi essenziali (preferendo i fondamentali);
+      // 'hinge' = femorali/glutei (cerniera d'anca).
+      var WANTED = durataSeduta <= 30 ? {fullbody:['legs','pull','push'], upper:['push','pull'], lower:['legs'], legs:['legs'], push:['push'], pull:['pull']} : {fullbody:['legs','pull','push','core','hinge'], upper:['push','pull'], lower:['legs','hinge'], legs:['legs','hinge'], push:['push'], pull:['pull']};
       var protectedSet = {};
-      var wanted = ['legs','pull','push','core'];
+      var wanted = WANTED[splitDayName] || [];
+      if (!wanted.length) {
+        for (var k0 = 0; k0 < schedaEsercizi.length; k0++) {
+          if (!isCardioEntry(schedaEsercizi[k0]) && schedaEsercizi[k0].category === 'compound') return [k0];
+        }
+        return [];
+      }
       wanted.forEach(function(moveTarget) {
         // Cerca il "migliore" esercizio per quel movimento, preferendo compound
         var bestIdx = -1;
@@ -12222,7 +12199,10 @@ var generaSchedaAuto = function(params, esercizi) {
           if (isCardioEntry(schedaEsercizi[k])) continue;
           if (isTestExtra(schedaEsercizi[k])) continue; // test extras non sono "essenziali" della Full Body
           var mv = getMove(schedaEsercizi[k]);
-          if (mv !== moveTarget) continue;
+          if (moveTarget === 'hinge') {
+            var exH = lookup(schedaEsercizi[k].eId);
+            if (!exH || (exH.primary !== 'femorali' && exH.primary !== 'glutei')) continue;
+          } else if (mv !== moveTarget) continue;
           var cat = schedaEsercizi[k].category;
           var rank = cat === 'compound' ? 0 : cat === 'big' ? 1 : cat === 'small' ? 2 : 3;
           if (rank < bestRank) { bestRank = rank; bestIdx = k; }
@@ -12239,7 +12219,8 @@ var generaSchedaAuto = function(params, esercizi) {
     var scaled = false;
 
     // ===== FASE 1: rimozione classica (small → big → core), MA proteggi gli "essenziali Full Body"
-    var trimOrder = ['small','big','core'];
+    // Per ultimi i fondamentali non protetti (es. un secondo hip thrust o un lento avanti in una seduta corta).
+    var trimOrder = ['small','big','core','compound'];
     function rebuildProtected() {
       var p = protectedIndices();
       var set = {};
@@ -12309,6 +12290,23 @@ var generaSchedaAuto = function(params, esercizi) {
       scaleIter++;
     }
 
+    // ===== FASE 2b: se ancora oltre il budget, togli 1 serie ai fondamentali con piu' di 3 serie
+    var scaleComp = 0;
+    while (total > budgetSec && scaleComp < 20) {
+      var cIdx = -1;
+      for (var ci = schedaEsercizi.length - 1; ci >= 0; ci--) {
+        var ce = schedaEsercizi[ci];
+        if (isCardioEntry(ce) || ce.category !== 'compound') continue;
+        if ((+ce.serie || 0) > (durataSeduta <= 45 ? 2 : 3) && (cIdx === -1 || +ce.serie > +schedaEsercizi[cIdx].serie)) cIdx = ci;
+      }
+      if (cIdx === -1) break;
+      schedaEsercizi[cIdx].serie = +schedaEsercizi[cIdx].serie - 1;
+      times[cIdx] = recalcTime(schedaEsercizi[cIdx]);
+      total = times.reduce(function(a, b) { return a + b; }, 0);
+      scaled = true;
+      scaleComp++;
+    }
+
     // ===== FASE 3: warning se ancora sopra il budget (>15%)
     var overBudget = total > budgetSec * 1.15;
 
@@ -12330,16 +12328,18 @@ var generaSchedaAuto = function(params, esercizi) {
     });
   }
 
-  // ── Anti-volume: max 2 heavy compound (rec >= 180s) per session ──
+  // ── Anti-volume: max 3 fondamentali pesanti (rec >= 180s) per seduta ──
+  // Oltre il terzo l'esercizio resta (la copertura degli schemi conta) ma con i parametri da accessorio.
   function applyVolumeRules(dayArr) {
-    var MAX_HEAVY = 2;
+    var MAX_HEAVY = 3;
     var heavyCount = 0;
-    return dayArr.filter(function(e) {
+    var pb = exParamsFor('big');
+    return dayArr.map(function(e) {
       if (e.category === 'compound' && +e.rec >= 180) {
         heavyCount++;
-        if (heavyCount > MAX_HEAVY) { volumeWasTrimmed = true; return false; }
+        if (heavyCount > MAX_HEAVY) { volumeWasTrimmed = true; return Object.assign({}, e, {serie: pb.serie, reps: pb.rip, rec: pb.rec}); }
       }
-      return true;
+      return e;
     });
   }
 
@@ -12503,7 +12503,7 @@ var generaSchedaAuto = function(params, esercizi) {
     schedaEsercizi = applyVolumeRules(schedaEsercizi);
     // Trim per tempo: rimuove prima small, poi big, poi core, MAI compound.
     // Per Full Body, protegge 1 push + 1 pull + 1 legs + 1 core (copertura minima).
-    var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY, day1.name);
+    var trimFB = trimPerTempo(schedaEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY, day1.splitCode);
     schedaEsercizi = trimFB.esercizi;
     if (trimFB.trimmed || trimFB.scaled) volumeWasTrimmed = true;
     var fbOverBudget = trimFB.overBudget;
@@ -12594,7 +12594,7 @@ var generaSchedaAuto = function(params, esercizi) {
       // Anti-volume: max 2 heavy compound per giorno
       dayEsercizi = applyVolumeRules(dayEsercizi);
       // Trim per tempo del singolo giorno
-      var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY, day.name);
+      var trimDay = trimPerTempo(dayEsercizi, tempoDisponibileSec, MIN_SLOTS_PER_DAY, day.splitCode);
       dayEsercizi = trimDay.esercizi;
       if (trimDay.trimmed || trimDay.scaled) volumeWasTrimmed = true;
       if (trimDay.overBudget) volumeWasTrimmed = true;
@@ -12733,11 +12733,15 @@ var applicaModulatori = function(ctx) {
 // faseMap: ogni settimana → indice nella tabella fasi base [Adatt,Prog,Picco,Deload]
 var chooseDurata = function(profilo, obiettivo, eta, T) {
   var faseLabels = [T.weekAdapt, T.weekProgress, T.weekPeak, T.weekDeload];
-  if (profilo === 'A' || obiettivo === 'Riabilitazione' || eta > 70) {
+  if (profilo === 'A') {
+    // Principianti: 2 settimane di adattamento (tendini e articolazioni si adattano piu' lentamente dei muscoli)
+    return { nSettimane: 4, faseMap: [0,0,1,3], faseLabels: faseLabels, razionaleDurata: T.gpRazDur4w };
+  }
+  if (obiettivo === 'Riabilitazione' || eta > 70) {
     return { nSettimane: 4, faseMap: [0,1,2,3], faseLabels: faseLabels, razionaleDurata: T.gpRazDur4w };
   }
   if ((profilo === 'C+' || profilo === 'C') && (obiettivo === 'Aumentare massa' || obiettivo === 'Forza')) {
-    return { nSettimane: 8, faseMap: [0,1,1,2,2,2,2,3], faseLabels: faseLabels, razionaleDurata: T.gpRazDur8w };
+    return { nSettimane: 8, faseMap: [0,1,1,3,1,1,2,3], faseLabels: faseLabels, razionaleDurata: T.gpRazDur8w };
   }
   return { nSettimane: 6, faseMap: [0,1,1,2,2,3], faseLabels: faseLabels, razionaleDurata: T.gpRazDur6w };
 };
@@ -12973,25 +12977,22 @@ var generaProgramma = function(params) {
   if (obiettivo === 'Forza') { minForza = Math.round(minForza * 1.3); }
   // ── INTENSITÀ ──
   var rpeMin, rpeMax, recSec, serieBase, ripBase;
-  if (profilo === 'A') { rpeMin = 2; rpeMax = 4; recSec = 90; serieBase = 2; ripBase = 10; }
-  else if (profilo === 'B') { rpeMin = 4; rpeMax = 6; recSec = 60; serieBase = 3; ripBase = 12; }
-  else if (profilo === 'C+') { rpeMin = 6; rpeMax = 9; recSec = 45; serieBase = 5; ripBase = 8; }
-  else { rpeMin = 5; rpeMax = 8; recSec = 45; serieBase = 4; ripBase = 10; }
-  // ── MODIFICATORI OBIETTIVO per intensita (solo B/C/C+ — Profilo A protetto) ──
-  var ripRange = '' + ripBase;
-  if (profilo === 'C+') {
-    // C+ mantiene volume/intensita atletica; adatta solo ripRange agli obiettivi
-    ripRange = '6-10';
-    if (obiettivo === 'Perdere peso') { ripBase = 10; ripRange = '8-12'; recSec = 40; }
-    else if (obiettivo === 'Aumentare massa') { ripBase = 8; ripRange = '6-10'; recSec = 60; }
-    else if (obiettivo === 'Tonificare') { ripBase = 12; ripRange = '10-15'; recSec = 60; }
-    else if (obiettivo === 'Forza') { ripBase = 4; ripRange = '3-6'; recSec = 150; }
-  } else if (profilo !== 'A') {
-    if (obiettivo === 'Perdere peso') { ripBase = 12; recSec = 45; ripRange = profilo === 'B' ? '12-15' : '10-15'; }
-    else if (obiettivo === 'Aumentare massa') { ripBase = 10; recSec = 60; ripRange = '8-12'; }
-    else if (obiettivo === 'Tonificare') { ripBase = 12; recSec = 60; ripRange = '10-15'; }
-    else if (obiettivo === 'Forza') { ripBase = profilo === 'B' ? 6 : 5; recSec = profilo === 'B' ? 90 : 120; ripRange = profilo === 'B' ? '6-8' : '3-6'; }
-  }
+  // RPE (scala 1-10): per i principianti sforzo moderato (ACSM: 5-6), non "molto leggero".
+  if (profilo === 'A') { rpeMin = 4; rpeMax = 6; }
+  else if (profilo === 'B') { rpeMin = 5; rpeMax = 7; }
+  else if (profilo === 'C+') { rpeMin = 7; rpeMax = 9; }
+  else { rpeMin = 6; rpeMax = 8; }
+  // Serie, ripetizioni e recupero dei fondamentali: stessa tabella della scheda (PARAM_OBIETTIVO),
+  // cosi' programma e scheda dicono la stessa cosa.
+  var _po = paramObiettivo(obiettivo);
+  serieBase = _po.compound[0]; ripBase = _po.compound[1]; recSec = _po.compound[2];
+  var ripRange = _po.range;
+  var caricoPct = _po.pct;
+  if (profilo === 'A') {
+    serieBase = Math.min(serieBase, 3); recSec = Math.max(recSec, 60);
+    if (obiettivo === 'Forza' || obiettivo === 'Performance') { ripRange = '8-10'; caricoPct = 70; }
+  } else if (profilo === 'B') { serieBase = Math.min(serieBase, 4); }
+  else if (profilo === 'C+') { serieBase = Math.min(serieBase + 1, 5); }
   // ── ZONA FC CARDIO ──
   var zonaFC;
   if (profilo === 'A') zonaFC = '55-65% FC max';
@@ -13000,7 +13001,7 @@ var generaProgramma = function(params) {
   else zonaFC = '65-75% FC max';
   // Ridurre zona FC per massa (cardio non deve interferire con ipertrofia)
   if (obiettivo === 'Aumentare massa') zonaFC = profilo === 'A' ? '50-60% FC max' : '55-65% FC max';
-  if (eta > 65) { rpeMax = Math.min(rpeMax, 6); recSec += 15; }
+  if (eta > 65) { rpeMax = Math.min(rpeMax, 7); recSec += 15; }
   // ── TIPO CARDIO per profilo e obiettivo ──
   var cardioDesc = [];
   if (profilo === 'A') {
@@ -13011,7 +13012,10 @@ var generaProgramma = function(params) {
       T.gpCardioAW4.replace('{min}',Math.round(minCardio/sedute + 8)).replace('{zona}',zonaFC)
     ];
   } else if (profilo === 'B') {
-    if (obiettivo === 'Perdere peso') {
+    if (obiettivo === 'Aumentare massa') {
+      // Massa: cardio leggero e continuo, niente intervalli (non deve interferire con l'ipertrofia)
+      cardioDesc = [T.gpCardioCMassaW1.replace('{zona}',zonaFC), T.gpCardioCMassaW2.replace('{zona}',zonaFC), T.gpCardioCMassaW3.replace('{zona}',zonaFC), T.gpCardioCMassaW4.replace('{zona}',zonaFC)];
+    } else if (obiettivo === 'Perdere peso') {
       cardioDesc = [
         T.gpCardioBPesoW1.replace('{min}',Math.round(minCardio/sedute)).replace('{zona}',zonaFC).replace('{rpe1}',rpeMin),
         T.gpCardioBPesoW2.replace('{n}',Math.round(minCardio/sedute/5)).replace('{zona}',zonaFC),
@@ -13122,37 +13126,32 @@ var generaProgramma = function(params) {
   // Regola il tasso di progressione in base a quante sedute/sett ha il cliente.
   // Con poche sedute il recupero è maggiore → si può aumentare di più per seduta.
   // Con tante sedute il volume è già alto → incrementi più piccoli per evitare overreaching.
+  // Progressione: doppia progressione / piccoli passi di carico guidati dalla prestazione,
+  // non percentuali fisse a settimana. Settimana 4: scarico (meno serie, stesso carico) per B/C/C+,
+  // verifica con i test per i principianti (non hanno bisogno di scarico dopo 3 settimane).
   var sed_ = seduteDisponibili || sedute;
-  var caricoStart, caricoIncr, serieDeload, noteProgr;
-  // Tasso incremento carico: 1-2 sed→+7%, 3 sed→+5%, 4-5 sed→+4%, 6+ sed→+3%
-  var tassoCarico = sed_ <= 2 ? 7 : sed_ === 3 ? 5 : sed_ <= 5 ? 4 : 3;
-  // Serie in W3: con 1-3 sed aggiungi 1 serie compound; con 4+ già alto volume, niente serie extra
-  var serieExtraW3 = sed_ <= 3 ? 1 : 0;
+  var serieExtraW3 = (sed_ <= 3 && profilo !== 'A' && serieBase < 5) ? 1 : 0;
   var serieW3label = serieExtraW3 > 0 ? T.progSerieExtra.replace('{s}',serieBase+1).replace('{r}',ripRange) : T.progSerieInv;
+  var serieDeload = Math.max(2, serieBase - 1);
+  var conScarico = profilo !== 'A' && obiettivo !== 'Riabilitazione';
+  var noteProgr;
+  if(obiettivo==='Forza'||obiettivo==='Performance') noteProgr=T.progNoteForza;
+  else if(obiettivo==='Aumentare massa'||obiettivo==='Tonificare') noteProgr=T.progNoteIpert.replace('{r}',ripRange).replace('{extra}',serieExtraW3?T.progNoteIpertSerie:'');
+  else if(obiettivo==='Perdere peso') noteProgr=T.progNoteMetab.replace('{r}',ripRange.split('-').pop());
+  else if(obiettivo==='Resistenza') noteProgr=T.progNoteResist.replace('{r}',ripRange.split('-').pop());
+  else noteProgr=T.progNoteSalute.replace('{rpe}',rpeMax-1);
 
-  if(obiettivo==='Forza'){
-    caricoStart=75; serieDeload=Math.max(1,serieBase-2);
-    noteProgr=T.progNoteForza.replace('{p}',tassoCarico).replace('{n}',sed_);
-  }else if(obiettivo==='Aumentare massa'){
-    caricoStart=65; serieDeload=Math.max(2,serieBase-1);
-    noteProgr=T.progNoteIpert.replace('{p}',tassoCarico).replace('{extra}',serieExtraW3?T.progNoteIpertSerie:'').replace('{n}',sed_).replace('{rec}',sed_<=3?T.progRecAmpio:T.progRecRidotto);
-  }else if(obiettivo==='Perdere peso'){
-    caricoStart=60; serieDeload=Math.max(2,serieBase-1);
-    noteProgr=T.progNoteMetab.replace('{p}',tassoCarico).replace('{n}',sed_).replace('{vol}',sed_>=4?T.progVolElevato:T.progVolModerato);
-  }else if(obiettivo==='Resistenza'||obiettivo==='Performance'){
-    caricoStart=55; serieDeload=Math.max(2,serieBase-1);
-    noteProgr=T.progNoteResist.replace('{p}',tassoCarico).replace('{n}',sed_);
-  }else{
-    caricoStart=60; serieDeload=Math.max(2,serieBase-1);
-    noteProgr=T.progNoteSalute.replace('{p}',tassoCarico);
-  }
-  caricoIncr = tassoCarico;
-
+  // Adattamento: principiante serie ridotte e sforzo moderato; forma media una serie in meno;
+  // allenati serie piene, solo per ritrovare i carichi.
+  var serieAdatt = profilo === 'A' ? Math.min(serieBase, 2) : profilo === 'B' ? Math.max(2, serieBase - 1) : serieBase;
+  var rpeAdatt = profilo === 'A' ? 5 : profilo === 'B' ? 6 : 7;
   forzaDesc = [
-    T.progW1.replace('{split}',splitLabel).replace('{s}',serieBase).replace('{r}',ripRange).replace('{c}',caricoStart).replace('{rec}',recSec),
-    T.progW2.replace('{p}',caricoIncr).replace('{rpe1}',rpeMin+1).replace('{rpe2}',rpeMax).replace('{n}',sed_),
-    T.progW3.replace('{label}',serieW3label).replace('{p}',caricoIncr),
-    T.progW4.replace('{s}',serieDeload).replace('{r}',ripRange).replace('{note}',noteProgr)
+    T.progW1.replace('{split}',splitLabel).replace('{s}',serieAdatt).replace('{r}',ripRange).replace('{rir}',10-rpeAdatt).replace('{rpe1}',rpeAdatt).replace('{rec}',recSec),
+    T.progW2.replace('{r}',ripRange).replace('{rpe1}',rpeMin+1).replace('{rpe2}',rpeMax),
+    T.progW3.replace('{label}',serieW3label).replace('{rpe2}',rpeMax),
+    conScarico
+      ? T.progW4.replace('{s}',serieDeload).replace('{r}',ripRange).replace('{rpeD}',Math.max(rpeMin-1,4)).replace('{note}',noteProgr)
+      : T.progW4A.replace('{note}',noteProgr)
   ];
 
   // ── PART 8: Avviso sedute insufficienti ──
@@ -13287,13 +13286,16 @@ var generaProgramma = function(params) {
     var _durMesi=+obiettivoStrutturato.durataProgrammaMesi;
     var _durSett=Math.max(6,Math.round(_durMesi*4.33));
     var _faseMap=[];
-    for(var _i=0;_i<_durSett;_i++){var _pct=_i/_durSett;if(_pct<0.2)_faseMap.push(0);else if(_pct<0.6)_faseMap.push(1);else if(_pct<0.85)_faseMap.push(2);else _faseMap.push(3);}
+    // Blocchi di 4 settimane ripetuti: adattamento, poi progressione, progressione, picco, scarico.
+    var _adatt=profilo==='A'?2:1;
+    for(var _i=0;_i<_durSett;_i++){_faseMap.push(_i<_adatt?0:[1,1,2,3][(_i-_adatt)%4]);}
     durataInfo={nSettimane:_durSett,faseMap:_faseMap,faseLabels:durataInfo.faseLabels,razionaleDurata:'Durata calibrata sull\'obiettivo strutturato: '+_durMesi+' mesi ('+_durSett+' settimane). '+durataInfo.razionaleDurata};
   }
   var nSettimane = durataInfo.nSettimane;
   var faseMap = durataInfo.faseMap;
-  var faseLabels = durataInfo.faseLabels;
-  var gpWeekNotes = [T.gpWeek1Note, T.gpWeek2Note, T.gpWeek3Note, T.gpWeek4Note];
+  var faseLabels = durataInfo.faseLabels.slice();
+  var gpWeekNotes = [T.gpWeek1Note, T.gpWeek2Note, T.gpWeek3Note, conScarico ? T.gpWeek4Note : T.gpWeek4NoteA];
+  if (!conScarico) faseLabels[3] = T.weekCheck;
   var settimane = [];
   // Dedup focus notes mantenendo l'ordine di inserimento
   var focusNotesUniq = [];
@@ -13308,7 +13310,8 @@ var generaProgramma = function(params) {
   for (var w = 0; w < nSettimane; w++) {
     var faseIdx = faseMap[w];
     var baseNote = gpWeekNotes[faseIdx];
-    var weekForza = forzaDesc[faseIdx] || forzaDesc[forzaDesc.length - 1];
+    // Il testo della fase vale per piu' settimane: niente "W2 —" fisso (il numero lo mostra la UI).
+    var weekForza = (forzaDesc[faseIdx] || forzaDesc[forzaDesc.length - 1]).replace(/^W\d\s*—\s*/, '');
     // Aggiungi le note forza extra (lower body, upper body, grip) alla descrizione forza
     if (forzaNoteExtraUniq.length > 0) {
       weekForza = weekForza + ' — ' + forzaNoteExtraUniq.join(' · ');
@@ -13757,7 +13760,7 @@ function WizardValutazione({onSave,onClose,initialData,trainerProfile,lang}){
     var weekColors=['#3b82f6','#06b6d4','#8b5cf6','#10b981'];
     var weeksHtml=prog.settimane.map(function(w,i){
       var col=weekColors[i%4];
-      var badge=weekBadges[i%4];
+      var badge=w.fase||weekBadges[i%4];
       return '<div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid '+col+';border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="font-size:22px;font-weight:900;color:'+col+';line-height:1">'+T.wizPdfWeek+' '+w.num+'</div><div style="background:'+col+'18;color:'+col+';font-size:9px;font-weight:800;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.8px">'+badge+'</div></div><div style="margin-bottom:6px;font-size:12px;line-height:1.5"><strong style="color:#3b82f6;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfCardio+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.cardio)+'</div></div><div style="margin-bottom:8px;font-size:12px;line-height:1.5"><strong style="color:#10b981;text-transform:uppercase;font-size:9px;letter-spacing:1px">'+T.pdfForza+'</strong><div style="color:#0f172a;margin-top:2px">'+esc(w.forza)+'</div></div><div style="background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;font-size:11px;color:#92400e;border-radius:0 6px 6px 0">💡 '+esc(w.note)+'</div></div>';
     }).join('');
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${T.valutazione} ${esc(d.nome)} ${esc(d.cognome)}</title>
