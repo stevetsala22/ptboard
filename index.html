@@ -496,6 +496,9 @@ function famigliaEsercizio(ex){
   var n=String(nomeChiave(ex)||'').toLowerCase().replace(/[^a-zàèéìòù0-9 -]/g,' ').split(/\s+/).filter(function(w){return w&&PAROLE_ATTREZZO.indexOf(w)===-1;});
   return n.slice(0,2).join(' ');
 }
+// Nomi EN/FR corretti dopo il rilascio: id -> vecchio nome. Le librerie salvate dai PT con il
+// nome vecchio vengono aggiornate al login (solo se il nome non e' stato cambiato a mano).
+const NOMI_TRADOTTI_VECCHI={E79:{en:'Dumbbell Romanian Deadlift',fr:'Soulevé de terre roumain haltères'}};
 function strutturaConsigliata(ob){return ['Perdere peso','Tonificare','Resistenza','Salute','Benessere'].indexOf(ob)!==-1?'circuito':'classica';}
 // ── Durata stimata: calcolo UNICO usato da generatore, scheda, editor e PDF ──
 // Per seduta (una sezione = un giorno), non la somma di tutti i giorni.
@@ -4595,7 +4598,7 @@ const INIT_EXERCISES=[
   {id:'E77',nome:{it:'Squat Sumo',en:'Sumo Squat',fr:'Squat sumo'},cat:'Forza',muscoli:'Quadricipiti, Glutei, Adduttori',desc:'Squat con base larga e punte ruotate esterne — enfasi adduttori e glutei',livello:'intermedio',equip:'any',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   {id:'E78',nome:{it:'Leg Extension',en:'Leg Extension',fr:'Extension des jambes'},cat:'Forza',muscoli:'Quadricipiti',desc:'Estensione ginocchio alla macchina — isolamento quadricipiti',livello:'base',equip:'gym',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   // ── FORZA PALESTRA — FEMORALI ──
-  {id:'E79',nome:{it:'Mezzi Rumeni Manubri',en:'Dumbbell Romanian Deadlift',fr:'Soulevé de terre roumain haltères'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Versione corta dello stacco rumeno con manubri — femorali',livello:'intermedio',equip:'home',primary:'femorali',move:'legs',primarySplit:'legs'},
+  {id:'E79',nome:{it:'Mezzi Rumeni Manubri',en:'Dumbbell Half Romanian Deadlift',fr:'Demi soulevé de terre roumain haltères'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Versione corta dello stacco rumeno con manubri — femorali',livello:'intermedio',equip:'home',primary:'femorali',move:'legs',primarySplit:'legs'},
   // ── FORZA PALESTRA — GLUTEI ──
   {id:'E80',nome:{it:'Slanci Glutei al Cavo',en:'Cable Glute Kickback',fr:'Extension hanche poulie'},cat:'Forza',muscoli:'Glutei',desc:'Estensione posteriore dell\'anca al cavo basso — isolamento gluteo',livello:'base',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
   {id:'E81',nome:{it:'Slanci Glutei con Disco',en:'Standing Hip Extension (Plate)',fr:'Extension hanche avec disque'},cat:'Forza',muscoli:'Glutei',desc:'Hip extension in quadrupedia con disco sopra il ginocchio',livello:'base',equip:'home',primary:'glutei',move:'legs',primarySplit:'legs'},
@@ -10890,6 +10893,11 @@ function AppInner({user,profile,setProfile,trialLeft,gratuito}){
             if(nmNew.it === def.kw && def.nome && def.nome.it && def.nome.it !== nmNew.it){ nmNew.it = def.nome.it; needsPatch = true; }
             if(patched.kw === undefined){ patched.kw = def.kw; needsPatch = true; }
             patched.nome = nmNew;
+          }
+          // Traduzioni corrette dopo: se il nome salvato e' ancora quello vecchio, metti il nuovo.
+          var vecchi = NOMI_TRADOTTI_VECCHI[e.id];
+          if(vecchi && patched.nome && typeof patched.nome==='object'){
+            ['en','fr'].forEach(function(l){ if(vecchi[l] && patched.nome[l] === vecchi[l] && def.nome && def.nome[l]){ patched.nome = Object.assign({}, patched.nome); patched.nome[l] = def.nome[l]; needsPatch = true; } });
           }
           if(def.nome && def.nome.en && patched.nome && typeof patched.nome==='object' && patched.nome.fr === def.nome.en && def.nome.fr && def.nome.fr !== def.nome.en){
             patched.nome = Object.assign({}, patched.nome, {fr: def.nome.fr}); needsPatch = true;
