@@ -15,8 +15,8 @@
   // id esercizio PT Board -> id RepDB (solo corrispondenze fedeli, verificate una per una).
   var MAP={
     E01:'squat', E02:'box-squat', E03:'goblet-squat', E04:'leg-press', E05:'bulgarian-split-squat', E07:'glute-bridge',
-    E08:'hip-thrust', E09:'lunge', E10:'step-ups', E11:'romanian-deadlift', E12:'bodyweight-good-morning', E13:'good-morning',
-    E14:'leg-curl', E15:'nordic-hamstring-curl', E16:'push-up', E17:'wall-push-ups', E18:'knee-push-ups', E19:'db-bench-press',
+    E08:'hip-thrust', E09:'lunge', E10:'step-ups', E11:'dumbbell-romanian-deadlift', E12:'bodyweight-good-morning', E13:'good-morning',
+    E14:'leg-curl', E15:'nordic-hamstring-curl', E16:'push-up', E18:'knee-push-ups', E19:'db-bench-press',
     E20:'bench-press', E21:'db-fly', E22:'dips', E23:'single-arm-db-row', E24:'lat-pulldown', E25:'pull-up',
     E26:'seated-cable-row', E28:'barbell-row', E29:'dumbbell-shoulder-press', E30:'lateral-raise', E31:'face-pull', E32:'arnold-press',
     E33:'db-shrug', E34:'bicep-curl', E35:'barbell-curl', E36:'hammer-curl', E37:'concentration-curl', E38:'skull-crusher',
@@ -87,7 +87,7 @@
     'pec-deck':2, 'pigeon-stretch':1, 'pike-push-ups':2, 'pistol-squat':2, 'plank':1,
     'plate-loaded-glute-drive':2, 'plate-loaded-lateral-raise':2, 'plate-loaded-shrug':2, 'plyo-push-up':2, 'preacher-curl':2,
     'pull-up':2, 'push-press':2, 'push-up':2, 'renegade-row':2, 'reverse-crunches':2,
-    'reverse-curl':2, 'reverse-lunge':2, 'romanian-deadlift':2, 'rowing-machine':2, 'running':1,
+    'reverse-curl':2, 'reverse-lunge':2, 'rowing-machine':2, 'running':1,
     'russian-twist':2, 'sandbag-carry':1, 'scapular-pull-ups':2, 'seated-cable-row':2, 'seated-calf-raise':2,
     'seated-leg-curl':2, 'side-lunge':2, 'side-plank':1, 'single-arm-db-row':2, 'single-leg-calf-raise':2,
     'single-leg-glute-bridge':2, 'single-leg-romanian-deadlift':2, 'ski-erg':2, 'skull-crusher':2, 'sled-push':1,
@@ -97,7 +97,7 @@
     'suitcase-carry':1, 'sumo-deadlift':2, 'sumo-squat':2, 'superman':2, 'supine-spinal-twist':1,
     'svend-press':2, 't-bar-row':2, 'thruster':2, 'treadmill-running':1,
     'tricep-kickback':2, 'tricep-pushdown':2, 'upright-row':2, 'v-ups':2, 'walking':1,
-    'walking-lunge':2, 'wall-ball':1, 'wall-push-ups':2, 'wall-sit':1, 'wide-grip-seated-cable-row':2,
+    'walking-lunge':2, 'wall-ball':1, 'wall-sit':1, 'wide-grip-seated-cable-row':2,
     'worlds-greatest-stretch':2,
   };
   var CREDIT={text:'Exercise data by RepDB (repdb.co)',url:'https://repdb.co'};
