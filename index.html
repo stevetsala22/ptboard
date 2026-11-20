@@ -496,6 +496,9 @@ function famigliaEsercizio(ex){
   var n=String(nomeChiave(ex)||'').toLowerCase().replace(/[^a-zàèéìòù0-9 -]/g,' ').split(/\s+/).filter(function(w){return w&&PAROLE_ATTREZZO.indexOf(w)===-1;});
   return n.slice(0,2).join(' ');
 }
+// Nomi EN/FR corretti dopo il rilascio: id -> vecchio nome. Le librerie salvate dai PT con il
+// nome vecchio vengono aggiornate al login (solo se il nome non e' stato cambiato a mano).
+const NOMI_TRADOTTI_VECCHI={E79:{en:'Dumbbell Romanian Deadlift',fr:'Soulevé de terre roumain haltères'}};
 function strutturaConsigliata(ob){return ['Perdere peso','Tonificare','Resistenza','Salute','Benessere'].indexOf(ob)!==-1?'circuito':'classica';}
 // ── Durata stimata: calcolo UNICO usato da generatore, scheda, editor e PDF ──
 // Per seduta (una sezione = un giorno), non la somma di tutti i giorni.
@@ -4595,7 +4598,7 @@ const INIT_EXERCISES=[
   {id:'E77',nome:{it:'Squat Sumo',en:'Sumo Squat',fr:'Squat sumo'},cat:'Forza',muscoli:'Quadricipiti, Glutei, Adduttori',desc:'Squat con base larga e punte ruotate esterne — enfasi adduttori e glutei',livello:'intermedio',equip:'any',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   {id:'E78',nome:{it:'Leg Extension',en:'Leg Extension',fr:'Extension des jambes'},cat:'Forza',muscoli:'Quadricipiti',desc:'Estensione ginocchio alla macchina — isolamento quadricipiti',livello:'base',equip:'gym',primary:'quadricipiti',move:'legs',primarySplit:'legs'},
   // ── FORZA PALESTRA — FEMORALI ──
-  {id:'E79',nome:{it:'Mezzi Rumeni Manubri',en:'Dumbbell Romanian Deadlift',fr:'Soulevé de terre roumain haltères'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Versione corta dello stacco rumeno con manubri — femorali',livello:'intermedio',equip:'home',primary:'femorali',move:'legs',primarySplit:'legs'},
+  {id:'E79',nome:{it:'Mezzi Rumeni Manubri',en:'Dumbbell Half Romanian Deadlift',fr:'Demi soulevé de terre roumain haltères'},cat:'Forza',muscoli:'Femorali, Glutei',desc:'Versione corta dello stacco rumeno con manubri — femorali',livello:'intermedio',equip:'home',primary:'femorali',move:'legs',primarySplit:'legs'},
   // ── FORZA PALESTRA — GLUTEI ──
   {id:'E80',nome:{it:'Slanci Glutei al Cavo',en:'Cable Glute Kickback',fr:'Extension hanche poulie'},cat:'Forza',muscoli:'Glutei',desc:'Estensione posteriore dell\'anca al cavo basso — isolamento gluteo',livello:'base',equip:'gym',primary:'glutei',move:'legs',primarySplit:'legs'},
   {id:'E81',nome:{it:'Slanci Glutei con Disco',en:'Standing Hip Extension (Plate)',fr:'Extension hanche avec disque'},cat:'Forza',muscoli:'Glutei',desc:'Hip extension in quadrupedia con disco sopra il ginocchio',livello:'base',equip:'home',primary:'glutei',move:'legs',primarySplit:'legs'},
@@ -5208,10 +5211,30 @@ function CaricoNota({ex,T,onPatch}){
 }
 
 // ── Animazioni "Come si esegue" (anim-esercizi.js) ──
-function hasAnim(ex){return typeof PTAnim!=='undefined'&&!!ex&&PTAnim.has(ex);}
+// Le immagini seguono l'id dell'esercizio di libreria. Se il PT (o la palestra) ha rinominato
+// quell'esercizio in un altro (es. E14 "Leg Curl" diventato "Romanian Deadlift"), l'immagine
+// non corrisponde piu': in quel caso niente immagine.
+function nomeRinominato(ex){
+  if(!ex||!ex.id||!ex.nome) return false;
+  var def=INIT_EXERCISES.find(function(d){return d.id===ex.id;});
+  if(!def||!def.nome) return false;
+  var mio=normTesto(typeof ex.nome==='string'?ex.nome:(ex.nome.it||''));
+  if(!mio) return false;
+  var nomiDi=function(d){return [d.nome&&d.nome.it,d.nome&&d.nome.en,d.nome&&d.nome.fr,d.kw].filter(Boolean).map(normTesto);};
+  if(nomiDi(def).indexOf(mio)!==-1) return false;
+  // Rinominato solo se il nome ora e' quello di UN ALTRO esercizio di libreria
+  // (cosi' vecchie varianti dello stesso nome non perdono l'immagine).
+  return INIT_EXERCISES.some(function(d){return d.id!==ex.id&&nomiDi(d).indexOf(mio)!==-1;});
+}
+function animSpec(ex){
+  if(typeof PTAnim==='undefined'||!ex) return null;
+  if(!ex.anim&&nomeRinominato(ex)) return null;
+  return PTAnim.specFor(ex);
+}
+function hasAnim(ex){var s=animSpec(ex);return !!(s&&PTAnim.FRAMES[s]);}
 function AnimEsercizio({ex,label}){
   const ref=useRef(null);
-  const spec=(typeof PTAnim!=='undefined'&&ex)?PTAnim.specFor(ex):null;
+  const spec=animSpec(ex);
   useEffect(function(){
     if(!spec||!ref.current) return;
     const h=PTAnim.mount(ref.current,spec,{label:label||''});
@@ -5251,7 +5274,7 @@ function AnimModal({ex,T,onClose}){
         </div>
         <AnimEsercizio ex={ex} label={nome}/>
         <div style={{display:'flex',justifyContent:'space-between',gap:8,flexWrap:'wrap',fontSize:11,color:C.muted,marginTop:8}}>
-          <span>{(typeof PTAnim!=='undefined'&&PTAnim.FRAMES[PTAnim.specFor(ex)]===1)?((T&&T.animLegendOne)||'Posizione di riferimento.'):((T&&T.animLegend)||'Posizione di partenza e di arrivo.')}</span>
+          <span>{(typeof PTAnim!=='undefined'&&PTAnim.FRAMES[animSpec(ex)]===1)?((T&&T.animLegendOne)||'Posizione di riferimento.'):((T&&T.animLegend)||'Posizione di partenza e di arrivo.')}</span>
           {/* Attribuzione richiesta dalla licenza RepDB (testo esatto, non tradotto). */}
           {typeof PTAnim!=='undefined'&&PTAnim.CREDIT&&<a href={PTAnim.CREDIT.url} target="_blank" rel="noopener nofollow" style={{color:C.muted}}>{PTAnim.CREDIT.text}</a>}
         </div>
@@ -5711,7 +5734,7 @@ function bloccoSharePatch(scheda,ex,labels){
   return out;
 }
 // Animazione per il link cliente: solo se esiste (Firestore non accetta undefined).
-function animSharePatch(libEx){var a=(typeof PTAnim!=='undefined'&&libEx)?PTAnim.specFor(libEx):null;return a?{anim:a}:{};}
+function animSharePatch(libEx){var a=animSpec(libEx);return a?{anim:a}:{};}
 function buildSchedaAttuale(p,exercises,lang){
   var scheda=(p.schede&&p.schede.length)?p.schede[p.schede.length-1]:null;
   if(!scheda) return null;
@@ -10890,6 +10913,11 @@ function AppInner({user,profile,setProfile,trialLeft,gratuito}){
             if(nmNew.it === def.kw && def.nome && def.nome.it && def.nome.it !== nmNew.it){ nmNew.it = def.nome.it; needsPatch = true; }
             if(patched.kw === undefined){ patched.kw = def.kw; needsPatch = true; }
             patched.nome = nmNew;
+          }
+          // Traduzioni corrette dopo: se il nome salvato e' ancora quello vecchio, metti il nuovo.
+          var vecchi = NOMI_TRADOTTI_VECCHI[e.id];
+          if(vecchi && patched.nome && typeof patched.nome==='object'){
+            ['en','fr'].forEach(function(l){ if(vecchi[l] && patched.nome[l] === vecchi[l] && def.nome && def.nome[l]){ patched.nome = Object.assign({}, patched.nome); patched.nome[l] = def.nome[l]; needsPatch = true; } });
           }
           if(def.nome && def.nome.en && patched.nome && typeof patched.nome==='object' && patched.nome.fr === def.nome.en && def.nome.fr && def.nome.fr !== def.nome.en){
             patched.nome = Object.assign({}, patched.nome, {fr: def.nome.fr}); needsPatch = true;
