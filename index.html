@@ -5211,10 +5211,30 @@ function CaricoNota({ex,T,onPatch}){
 }
 
 // ── Animazioni "Come si esegue" (anim-esercizi.js) ──
-function hasAnim(ex){return typeof PTAnim!=='undefined'&&!!ex&&PTAnim.has(ex);}
+// Le immagini seguono l'id dell'esercizio di libreria. Se il PT (o la palestra) ha rinominato
+// quell'esercizio in un altro (es. E14 "Leg Curl" diventato "Romanian Deadlift"), l'immagine
+// non corrisponde piu': in quel caso niente immagine.
+function nomeRinominato(ex){
+  if(!ex||!ex.id||!ex.nome) return false;
+  var def=INIT_EXERCISES.find(function(d){return d.id===ex.id;});
+  if(!def||!def.nome) return false;
+  var mio=normTesto(typeof ex.nome==='string'?ex.nome:(ex.nome.it||''));
+  if(!mio) return false;
+  var nomiDi=function(d){return [d.nome&&d.nome.it,d.nome&&d.nome.en,d.nome&&d.nome.fr,d.kw].filter(Boolean).map(normTesto);};
+  if(nomiDi(def).indexOf(mio)!==-1) return false;
+  // Rinominato solo se il nome ora e' quello di UN ALTRO esercizio di libreria
+  // (cosi' vecchie varianti dello stesso nome non perdono l'immagine).
+  return INIT_EXERCISES.some(function(d){return d.id!==ex.id&&nomiDi(d).indexOf(mio)!==-1;});
+}
+function animSpec(ex){
+  if(typeof PTAnim==='undefined'||!ex) return null;
+  if(!ex.anim&&nomeRinominato(ex)) return null;
+  return PTAnim.specFor(ex);
+}
+function hasAnim(ex){var s=animSpec(ex);return !!(s&&PTAnim.FRAMES[s]);}
 function AnimEsercizio({ex,label}){
   const ref=useRef(null);
-  const spec=(typeof PTAnim!=='undefined'&&ex)?PTAnim.specFor(ex):null;
+  const spec=animSpec(ex);
   useEffect(function(){
     if(!spec||!ref.current) return;
     const h=PTAnim.mount(ref.current,spec,{label:label||''});
@@ -5254,7 +5274,7 @@ function AnimModal({ex,T,onClose}){
         </div>
         <AnimEsercizio ex={ex} label={nome}/>
         <div style={{display:'flex',justifyContent:'space-between',gap:8,flexWrap:'wrap',fontSize:11,color:C.muted,marginTop:8}}>
-          <span>{(typeof PTAnim!=='undefined'&&PTAnim.FRAMES[PTAnim.specFor(ex)]===1)?((T&&T.animLegendOne)||'Posizione di riferimento.'):((T&&T.animLegend)||'Posizione di partenza e di arrivo.')}</span>
+          <span>{(typeof PTAnim!=='undefined'&&PTAnim.FRAMES[animSpec(ex)]===1)?((T&&T.animLegendOne)||'Posizione di riferimento.'):((T&&T.animLegend)||'Posizione di partenza e di arrivo.')}</span>
           {/* Attribuzione richiesta dalla licenza RepDB (testo esatto, non tradotto). */}
           {typeof PTAnim!=='undefined'&&PTAnim.CREDIT&&<a href={PTAnim.CREDIT.url} target="_blank" rel="noopener nofollow" style={{color:C.muted}}>{PTAnim.CREDIT.text}</a>}
         </div>
@@ -5714,7 +5734,7 @@ function bloccoSharePatch(scheda,ex,labels){
   return out;
 }
 // Animazione per il link cliente: solo se esiste (Firestore non accetta undefined).
-function animSharePatch(libEx){var a=(typeof PTAnim!=='undefined'&&libEx)?PTAnim.specFor(libEx):null;return a?{anim:a}:{};}
+function animSharePatch(libEx){var a=animSpec(libEx);return a?{anim:a}:{};}
 function buildSchedaAttuale(p,exercises,lang){
   var scheda=(p.schede&&p.schede.length)?p.schede[p.schede.length-1]:null;
   if(!scheda) return null;
