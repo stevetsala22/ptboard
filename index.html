@@ -6126,6 +6126,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
       'footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}'+
       'footer .center{flex:1;text-align:center;color:#64748b}'+
       'footer .center b{color:#3b82f6;font-weight:700}'+
+      '@media screen and (max-width:640px){.pg{padding:18px 12px}.hdr{flex-wrap:wrap}.kpi-row{grid-template-columns:repeat(2,1fr)!important}.kpi-val{font-size:15px}.ex-table,table{font-size:11px}.ex-table th,.ex-table td{padding-left:4px!important;padding-right:4px!important}.note-cell{min-width:70px}}'+
       '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}'+
       '</style></head><body>'+
       '<div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid '+(_gymAccent||'#3b82f6')+'">'+
@@ -6151,7 +6152,7 @@ function PatientDetail({patient,exercises,T,onBack,onEdit,onDelete,onUpdate,onUp
          Attrezzatura, info per-scheda sempre coerenti. Aggiunto numero
          totale esercizi come kpi utile a colpo d'occhio. */
       '<div class="kpi-row">'+
-      '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||'Full Body')+'</div><div class="kpi-lbl">Split</div></div>'+
+      '<div class="kpi split"><div class="kpi-val">'+esc(scheda.config?.tipo||scheda.split||(function(){var _n=(scheda.esercizi||[]).reduce(function(a,x){if(x.sezione&&a.indexOf(x.sezione)===-1)a.push(x.sezione);return a;},[]).length;return _n>1?(T.sumGiorni||'{n} giorni').replace('{n}',_n):'Full Body';})())+'</div><div class="kpi-lbl">Split</div></div>'+
       '<div class="kpi sets"><div class="kpi-val">~'+stimaDurataMin(scheda,exercises)+' min</div><div class="kpi-lbl">'+esc(T.pdfAseduta||'A seduta')+'</div></div>'+
       '<div class="kpi rest"><div class="kpi-val">'+numEx+'</div><div class="kpi-lbl">'+esc(T.schedaEsercizi||'Esercizi')+'</div></div>'+
       '<div class="kpi equip"><div class="kpi-val">'+esc(equipLabel)+'</div><div class="kpi-lbl">'+(T.exEquip)+'</div></div>'+
@@ -6270,6 +6271,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#0f1
 footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}
 footer .center{flex:1;text-align:center;color:#64748b}
 footer .center b{color:#3b82f6;font-weight:700}
+@media screen and (max-width:640px){.pg{padding:18px 12px}.hdr{flex-wrap:wrap}.kpi-row{grid-template-columns:repeat(2,1fr)!important}.kpi-val{font-size:15px}.ex-table,table{font-size:11px}.ex-table th,.ex-table td{padding-left:4px!important;padding-right:4px!important}.note-cell{min-width:70px}}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}
 </style></head><body>
 <div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div>
@@ -13837,6 +13839,7 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:#0f1
 footer{display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8;flex-wrap:wrap;gap:8px}
 footer .center{flex:1;text-align:center;color:#64748b}
 footer .center b{color:#3b82f6;font-weight:700}
+@media screen and (max-width:640px){.pg{padding:18px 12px}.hdr{flex-wrap:wrap}.kpi-row{grid-template-columns:repeat(2,1fr)!important}.kpi-val{font-size:15px}.ex-table,table{font-size:11px}.ex-table th,.ex-table td{padding-left:4px!important;padding-right:4px!important}.note-cell{min-width:70px}}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.no-print{display:none!important}.pg{padding:18mm 20mm}@page{margin:0}}
 </style></head>
 <body><div class="no-print" style="position:sticky;top:0;background:#1e293b;padding:12px 16px;display:flex;gap:10px;justify-content:center;z-index:99;border-bottom:2px solid #3b82f6;"><button onclick="window.close()" style="background:#334155;color:#fff;border:1px solid #475569;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfBackToApp}</button><button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:11px 22px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700;">${T.pdfPrint}</button></div>
