@@ -116,6 +116,7 @@ try{
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="/anim-esercizi.js"></script>
+<script src="/schede-pronte.js"></script>
 <script>
 firebase.initializeApp({
   apiKey:"AIzaSyC2cyMakGET5yBCCVgrnn6H_3Skn7g39hc",
@@ -1424,7 +1425,7 @@ const LANGS={
     inLabel:'in',pointsLabel:'punti',advancedFrom:'Avanzato da',advancedTo:'a',
     assessmentHistory:'Storico Valutazioni',assessmentNum:'Valutazione',
     // Programma settimana
-    weekAdapt:'Adattamento',weekProgress:'Progressione',weekPeak:'Picco',weekCheck:'Verifica',gpWeek4NoteA:'Consolidamento: stessa scheda, ripeti i test per misurare i progressi.',progW4A:'W4 — VERIFICA · Stessa scheda e stessi carichi della settimana prima · Ripeti i test per misurare i progressi · {note}',weekDeload:'Deload',
+    weekAdapt:'Adattamento',weekProgress:'Progressione',weekPeak:'Picco',spMenu:'Schede pronte',spTip:'Schede pronte da preparatore (solo admin)',spIntro:'Schede scritte a mano, pronte da assegnare ai tuoi clienti o da scaricare come file da importare.',spAssign:'Assegna a clienti',spDownload:'Scarica file',spPreview:'Anteprima',spHide:'Chiudi anteprima',spEmpty:'Nessuna scheda pronta.',spExercises:'{n} esercizi',weekCheck:'Verifica',gpWeek4NoteA:'Consolidamento: stessa scheda, ripeti i test per misurare i progressi.',progW4A:'W4 — VERIFICA · Stessa scheda e stessi carichi della settimana prima · Ripeti i test per misurare i progressi · {note}',weekDeload:'Deload',
     lblWeek:'Settimana',
     // Generazione scheda
     generateWorkout:'⚡ Genera scheda allenamento',
@@ -2274,7 +2275,7 @@ const LANGS={
     inLabel:'in',pointsLabel:'points',advancedFrom:'Advanced from',advancedTo:'to',
     assessmentHistory:'Assessment History',assessmentNum:'Assessment',
     // Programma settimana
-    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Peak',weekCheck:'Check-in',gpWeek4NoteA:'Consolidation: same plan, repeat the tests to measure progress.',progW4A:'W4 — CHECK-IN · Same plan and same loads as the week before · Repeat the tests to measure progress · {note}',weekDeload:'Deload',
+    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Peak',spMenu:'Ready-made plans',spTip:'Ready-made plans by a coach (admin only)',spIntro:'Hand-written plans, ready to assign to your clients or to download as an import file.',spAssign:'Assign to clients',spDownload:'Download file',spPreview:'Preview',spHide:'Hide preview',spEmpty:'No ready-made plans.',spExercises:'{n} exercises',weekCheck:'Check-in',gpWeek4NoteA:'Consolidation: same plan, repeat the tests to measure progress.',progW4A:'W4 — CHECK-IN · Same plan and same loads as the week before · Repeat the tests to measure progress · {note}',weekDeload:'Deload',
     lblWeek:'Week',
     // Generazione scheda
     generateWorkout:'⚡ Generate training plan',
@@ -3124,7 +3125,7 @@ const LANGS={
     inLabel:'en',pointsLabel:'points',advancedFrom:'Avancé de',advancedTo:'à',
     assessmentHistory:'Historique des Évaluations',assessmentNum:'Évaluation',
     // Programma settimana
-    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Pic',weekCheck:'Bilan',gpWeek4NoteA:'Consolidation : même plan, refaire les tests pour mesurer les progrès.',progW4A:'W4 — BILAN · Même plan et mêmes charges que la semaine précédente · Refaire les tests pour mesurer les progrès · {note}',weekDeload:'Décharge',
+    weekAdapt:'Adaptation',weekProgress:'Progression',weekPeak:'Pic',spMenu:'Programmes prêts',spTip:'Programmes prêts d’un coach (admin uniquement)',spIntro:'Programmes écrits à la main, prêts à attribuer à vos clients ou à télécharger comme fichier à importer.',spAssign:'Attribuer à des clients',spDownload:'Télécharger le fichier',spPreview:'Aperçu',spHide:'Fermer l’aperçu',spEmpty:'Aucun programme prêt.',spExercises:'{n} exercices',weekCheck:'Bilan',gpWeek4NoteA:'Consolidation : même plan, refaire les tests pour mesurer les progrès.',progW4A:'W4 — BILAN · Même plan et mêmes charges que la semaine précédente · Refaire les tests pour mesurer les progrès · {note}',weekDeload:'Décharge',
     lblWeek:'Semaine',
     // Generazione scheda
     generateWorkout:"⚡ Générer fiche d'entraînement",
@@ -7863,6 +7864,76 @@ const SCHEDA_TIPI={
 };
 
 // Scelta dei clienti a cui dare una copia della scheda (copie indipendenti).
+// ── Schede pronte (solo admin): schede scritte a mano in schede-pronte.js (window.SCHEDE_PRONTE),
+// nel formato di "Importa scheda". Anteprima, assegna ai clienti (copia indipendente), scarica il file.
+function SchedePronte({T,exercises,clients,onAssign}){
+  const _T=T||LANGS.it.t;
+  const lang=getLang();
+  const [aperta,setAperta]=useState(null);
+  const [daAssegnare,setDaAssegnare]=useState(null);
+  const pronte=React.useMemo(function(){
+    const lista=(typeof window!=='undefined'&&Array.isArray(window.SCHEDE_PRONTE))?window.SCHEDE_PRONTE:[];
+    return lista.map(function(x){var s=null;try{s=importaScheda(JSON.parse(JSON.stringify(x.dati)),exercises||[]).scheda;s.nome=x.titolo;}catch(e){}return {x:x,s:s};}).filter(function(r){return r.s;});
+  },[exercises]);
+  const categorie=[];pronte.forEach(function(r){if(categorie.indexOf(r.x.categoria)===-1)categorie.push(r.x.categoria);});
+  function scarica(x){
+    try{const blob=new Blob([JSON.stringify(x.dati,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=x.id+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);}catch(e){}
+  }
+  const nomeEs=function(e){var lib=(exercises||[]).find(function(x){return x.id===e.eId;});return (lib&&exName(lib,lang))||e.nomeCustom||'';};
+  const btn={border:'1px solid '+C.border2,background:C.card,color:C.text,borderRadius:9,padding:'8px 12px',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
+  return(
+    <div style={{maxWidth:900,margin:'0 auto',padding:'8px 4px 40px'}}>
+      <div style={{fontSize:22,fontWeight:900,color:C.strong,marginBottom:4}}>{'\u{1F4DA} '}{_T.spMenu||'Schede pronte'}</div>
+      <div style={{fontSize:13,color:C.muted,marginBottom:18,lineHeight:1.5}}>{_T.spIntro}</div>
+      {!pronte.length&&<div style={{padding:24,border:'1px dashed '+C.border2,borderRadius:12,color:C.muted,textAlign:'center'}}>{_T.spEmpty||'Nessuna scheda pronta.'}</div>}
+      {categorie.map(function(cat){return(
+        <div key={cat} style={{marginBottom:22}}>
+          <div style={{fontSize:12,fontWeight:800,letterSpacing:1,textTransform:'uppercase',color:C.muted,marginBottom:8}}>{cat}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {pronte.filter(function(r){return r.x.categoria===cat;}).map(function(r){
+            const x=r.x,s=r.s,isOpen=aperta===x.id;
+            const giorni=durateSedute(s,exercises||[]);
+            return(
+              <div key={x.id} style={{background:C.card,border:'1px solid '+C.border2,borderRadius:14,padding:16}}>
+                <div style={{fontSize:16,fontWeight:800,color:C.strong}}>{x.titolo}</div>
+                <div style={{fontSize:13,color:C.muted,marginTop:4,lineHeight:1.5}}>{x.desc}</div>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:10}}>
+                  <span style={{fontSize:12,fontWeight:700,color:C.blue,background:C.blue+'14',borderRadius:999,padding:'3px 10px'}}>{(_T.sumGiorni||'{n} giorni').replace('{n}',giorni.length||1)}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:C.green,background:C.green+'14',borderRadius:999,padding:'3px 10px'}}>{'~'+stimaDurataMin(s,exercises||[])+' min'}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:C.muted,background:C.border2,borderRadius:999,padding:'3px 10px'}}>{(_T.spExercises||'{n} esercizi').replace('{n}',(s.esercizi||[]).length)}</span>
+                </div>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}>
+                  <button type="button" style={Object.assign({},btn,{background:C.blue,color:'#fff',border:'none'})} onClick={function(){setDaAssegnare(s);}}>{_T.spAssign||'Assegna a clienti'}</button>
+                  <button type="button" style={btn} onClick={function(){setAperta(isOpen?null:x.id);}}>{isOpen?(_T.spHide||'Chiudi anteprima'):(_T.spPreview||'Anteprima')}</button>
+                  <button type="button" style={btn} onClick={function(){scarica(x);}}>{_T.spDownload||'Scarica file'}</button>
+                </div>
+                {isOpen&&<div style={{marginTop:14,display:'flex',flexDirection:'column',gap:12}}>
+                  {(giorni.length?giorni:[{nome:'',min:stimaDurataMin(s,exercises||[])}]).map(function(g){
+                    const es=(s.esercizi||[]).filter(function(e){return (e.sezione||'')===(g.nome||'');});
+                    return(<div key={g.nome||'_'}>
+                      <div style={{fontSize:13,fontWeight:800,color:C.strong,marginBottom:6}}>{(g.nome||s.nome)+' · ~'+g.min+' min'}</div>
+                      {es.map(function(e,i){return(<div key={i} style={{display:'flex',justifyContent:'space-between',gap:10,fontSize:13,padding:'5px 0',borderBottom:'1px solid '+C.border2}}>
+                        <span style={{color:C.text}}>{nomeEs(e)}{e.blocco?<span style={{marginLeft:6,fontSize:11,fontWeight:700,color:C.muted}}>{nomeTipoBlocco((s.blocchi&&s.blocchi[e.blocco]&&s.blocchi[e.blocco].tipo)||'superset',_T)}</span>:null}</span>
+                        <span style={{color:C.muted,whiteSpace:'nowrap'}}>{(e.serie||'')+' × '+fmtDose(e,_T)}</span>
+                      </div>);})}
+                    </div>);
+                  })}
+                </div>}
+              </div>);
+          })}
+          </div>
+        </div>);})}
+      {daAssegnare&&<AssegnaSchedaModal T={_T} scheda={daAssegnare} clients={clients||[]} currentId={null}
+        onClose={function(){setDaAssegnare(null);}}
+        onConfirm={async function(ids){
+          const sch=daAssegnare;setDaAssegnare(null);
+          if(typeof onAssign!=='function') return;
+          const n=await onAssign(sch,ids);
+          if(n>0) showToast((n===1?(_T.schedaAssigned1||'Scheda assegnata a 1 cliente'):(_T.schedaAssignedN||'Scheda assegnata a {n} clienti').replace('{n}',n)),'success',2500);
+        }}/>}
+    </div>
+  );
+}
 function AssegnaSchedaModal({T,scheda,clients,currentId,onConfirm,onClose}){
   const _T=T||LANGS.it.t;
   const [q,setQ]=useState('');
@@ -11084,7 +11155,8 @@ function AppInner({user,profile,setProfile,trialLeft,gratuito}){
         {id:'invite',icon:'🔗',l:T.inviteLabel||'App per il cliente',tip:T.inviteTip||'Crea un link per dare l\'app al cliente'},
         isGymOwner(trainerProfile)?{id:'gymTeam',icon:'🧑‍🏫',l:T.gymTeam||'Team',tip:T.gymTeamTip||'Gestione PT della palestra'}:null,
         isGymOwner(trainerProfile)?{id:'gymBranding',icon:'🎨',l:T.gymBranding||'Branding',tip:T.gymBrandingTip||'Logo e tema'}:null,
-        isGymOwner(trainerProfile)?{id:'gymBilling',icon:'💳',l:T.gymBilling||'Abbonamento',tip:T.gymBillingTip||'Piano Palestra (in arrivo)'}:null
+        isGymOwner(trainerProfile)?{id:'gymBilling',icon:'💳',l:T.gymBilling||'Abbonamento',tip:T.gymBillingTip||'Piano Palestra (in arrivo)'}:null,
+        isAdminUser?{id:'schedePronte',icon:'📚',l:T.spMenu||'Schede pronte',tip:T.spTip||'Schede pronte (solo admin)'}:null
       ].filter(Boolean))
     : [
         {id:'home',icon:'🏠',l:'Home',tip:'Torna alla home'},
@@ -11093,7 +11165,8 @@ function AppInner({user,profile,setProfile,trialLeft,gratuito}){
         {id:'calendar',icon:'📅',l:T.calendar,tip:'Prenota e gestisci appuntamenti'},
         {id:'exercises',icon:'🏋',l:T.exercises,tip:'Libreria esercizi'},
         {id:'invite',icon:'🔗',l:'App per il cliente',tip:'Crea un link per dare l\'app al cliente'},
-      ];
+        isAdminUser?{id:'schedePronte',icon:'📚',l:T.spMenu||'Schede pronte',tip:T.spTip||'Schede pronte (solo admin)'}:null
+      ].filter(Boolean);
 
   return(
     <div style={S.app}>
@@ -11455,6 +11528,7 @@ function AppInner({user,profile,setProfile,trialLeft,gratuito}){
           {page==='detail'&&selected&&!(gratuito&&!isGym&&patients.findIndex(function(x){return x.id===selected.id;})>=CLIENTI_GRATIS)&&<PatientDetail patient={selected} exercises={effectiveExercises} T={T} onBack={()=>{setPage('patients');setSelectedId(null)}} onEdit={()=>{setEditingPatient({...selected});setIsNew(false);setPage('form')}} onDelete={()=>{showConfirmToast(T.confirmDeletePatient.replace('{nome}',selected.nome+' '+selected.cognome),()=>{removeClient(selectedId);setPage('patients');});}} onUpdate={p=>updateClient(p.id,p)} onUpgrade={()=>setShowPiani(true)} onValuta={()=>{setReevalPatient(selected);setShowValutazione(true);}} trainerProfile={trainerProfile} bookings={bookings} onAddBooking={(b)=>{setBookings(bs=>[...bs,b]);}} onCompleteBooking={(bookingId)=>{setBookings(bs=>bs.map(b=>b.id===bookingId?{...b,completed:true}:b));}} onDeleteBooking={(bookingId)=>{setBookings(bs=>bs.filter(b=>b.id!==bookingId));}} openSchedaOnMount={openSchedaOnMount} onOpenSchedaConsumed={()=>setOpenSchedaOnMount(null)} onAddExercise={addLibraryExercise} clients={effectiveClients} onAssignScheda={assignSchedaToClients} templates={allTemplates} onSaveTemplate={saveTemplate} onDeleteTemplate={deleteTemplate}/>}
           {page==='form'&&editingPatient&&<PatientForm initial={editingPatient} onSave={handleSave} onCancel={()=>setPage(isNew?'patients':'detail')} isNew={isNew} lang={lang}/>}
           {page==='calendar'&&!isGym&&<CalendarView patients={patients} bookings={bookings} setBookings={setBookings} T={T} trainerProfile={trainerProfile}/>}
+          {page==='schedePronte'&&isAdminUser&&<SchedePronte T={T} exercises={effectiveExercises} clients={effectiveClients} onAssign={assignSchedaToClients}/>}
           {page==='exercises'&&<ExercisesPage exercises={effectiveExercises} setExercises={setExercises} T={T} isGym={isGym} onAddGymEx={addGymExercise} onUpdateGymEx={updateGymExercise} onRemoveGymEx={removeGymExercise} gymExercises={gymExercises}/>}
           {page==='gymTeam'&&isGym&&isGymOwner(trainerProfile)&&<GymTeamPage T={T} gymId={gymId} gymDoc={trainerProfile&&trainerProfile._gymDoc} ownerUid={trainerProfile.uid||user.uid} refreshGymDoc={async function(){try{const g=await fbDb.collection('gyms').doc(gymId).get();if(g.exists){const d=g.data();setProfile(function(prev){return prev?Object.assign({},prev,{_gymDoc:d}):prev;});}}catch(e){console.warn('[gym] refresh gymDoc',e);}}}/>}
           {page==='gymBranding'&&isGym&&isGymOwner(trainerProfile)&&<GymBrandingPage T={T} gymId={gymId} gymDoc={trainerProfile&&trainerProfile._gymDoc} refreshGymDoc={async function(){try{const g=await fbDb.collection('gyms').doc(gymId).get();if(g.exists){const d=g.data();setProfile(function(prev){return prev?Object.assign({},prev,{_gymDoc:d}):prev;});}}catch(e){console.warn('[gym] refresh gymDoc',e);}}}/>}
