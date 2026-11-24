@@ -2150,5 +2150,235 @@ window.SCHEDE_PRONTE=[
     ]
    }
   }
+ },
+ {
+  "id": "condizione-lavoro-pesante",
+  "categoria": "Condizione generale",
+  "titolo": "Condizione generale · lavoro fisico pesante",
+  "desc": "Uomo giovane con lavoro manuale pesante (es. edilizia), ripresa dopo un mese di stop. 3 sedute: forza a fatica 7/10, tecnica di sollevamento (trap bar, farmer walk), schiena e spalle protette; versione con fastidio dietro al ginocchio e ai femorali (tenute al posto del leg curl, scivolamenti del nervo).",
+  "dati": {
+   "ptboard": "scheda",
+   "v": 1,
+   "scheda": {
+    "nome": "Condizione generale · lavoro fisico pesante · A/B/C",
+    "note": "3 sedute a settimana da circa 60', giorni non consecutivi. Lavoro manuale pesante (edilizia): la palestra deve rendere il corpo più resistente, non stancarlo di più. Se la giornata in cantiere è stata molto dura, togli una serie per esercizio. Ripresa dopo 1 mese di stop. Ginocchia: fastidio dietro al ginocchio e ai femorali dopo essere stato seduto a lungo. Da seduto si alza ogni 30-45 minuti. Se il dolore dura più di qualche settimana, compare gonfiore dietro al ginocchio o al polpaccio, formicolii o perdita di forza, serve una visita (medico o fisioterapista).",
+    "regole": "Fatica 7/10: devi poter fare ancora 2-3 ripetizioni. Mai a cedimento.\nSchiena neutra in tutti i sollevamenti: è la stessa tecnica che protegge la schiena al lavoro.\nSalita controllata, discesa lenta in 2-3 secondi.\nDolore (non fatica) a schiena, spalle o ginocchia: fermati e avvisa il PT.\nDietro al ginocchio e femorali: niente stretching forte dei femorali; va bene un fastidio fino a 2-3/10 che non aumenta il giorno dopo.",
+    "progressione": "Settimana 1: carichi leggeri, ritrova la tecnica.\nFemorali: settimane 1-2 ponte glutei in tenuta; dalla 3, se il dolore è sparito, leg curl leggero 3×12 al posto del ponte.\nSettimane 2-5: quando fai il massimo delle ripetizioni in tutte le serie, aumenta il carico (+2,5 kg sopra, +5 kg gambe).\nSettimana 6: una serie in meno per esercizio, poi si rivaluta e si cambia la scheda.",
+    "parti": {
+     "Giorno A": {
+      "risc": {
+       "testo": "5' cyclette. Scivolamenti del nervo da seduto (stendi il ginocchio alzando la testa, piegalo abbassandola) 10 per gamba, mobilità di anche e torace, 10 ponti glutei, 2 serie leggere di squat.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "Allungamento dolce di flessori dell'anca, dorsali e polpacci (niente stretching forte dei femorali). 30 secondi per posizione.",
+       "min": 5
+      }
+     },
+     "Giorno B": {
+      "risc": {
+       "testo": "5' vogatore leggero. Scivolamenti del nervo da seduto 10 per gamba, hip hinge con bastone 10, rotazioni toraciche a quattro zampe 8 per lato, 2 serie leggere di stacco.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "Allungamento lombari (posizione del bambino), glutei e pettorali. 30 secondi per posizione.",
+       "min": 5
+      }
+     },
+     "Giorno C": {
+      "risc": {
+       "testo": "5' cyclette. Scivolamenti del nervo da seduto 10 per gamba, aperture con elastico 15, mobilità delle spalle, 10 squat a corpo libero.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "Allungamento quadricipiti, pettorali e spalle. 30 secondi per posizione.",
+       "min": 5
+      }
+     }
+    },
+    "esercizi": [
+     {
+      "eId": "E01",
+      "nome": "Squat",
+      "serie": 3,
+      "reps": 8,
+      "rec": 120,
+      "sezione": "Giorno A",
+      "nota": "Bilanciere, profondità comoda"
+     },
+     {
+      "eId": "E24",
+      "nome": "Lat Machine",
+      "serie": 3,
+      "reps": 10,
+      "rec": 90,
+      "sezione": "Giorno A",
+      "nota": "Fino al petto"
+     },
+     {
+      "eId": "E19",
+      "nome": "Panca Manubri",
+      "serie": 3,
+      "reps": 10,
+      "rec": 90,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E07",
+      "nome": "Ponte Glutei",
+      "serie": 3,
+      "reps": 30,
+      "repsMode": "time",
+      "rec": 45,
+      "sezione": "Giorno A",
+      "nota": "Tenuta in alto: femorali senza allungarli. Dalla settimana 3 leg curl leggero"
+     },
+     {
+      "eId": "E31",
+      "nome": "Face Pull",
+      "serie": 3,
+      "reps": 15,
+      "rec": 45,
+      "sezione": "Giorno A",
+      "nota": "Spalle sane per il lavoro con le braccia in alto"
+     },
+     {
+      "eId": "E52",
+      "nome": "Plank Laterale",
+      "serie": 3,
+      "reps": 30,
+      "rec": 45,
+      "sezione": "Giorno A",
+      "repsMode": "time",
+      "perLato": true
+     },
+     {
+      "eId": "E55",
+      "nome": "Cyclette",
+      "serie": 1,
+      "reps": 600,
+      "rec": 0,
+      "sezione": "Giorno A",
+      "nota": "10' ritmo moderato",
+      "repsMode": "time"
+     },
+     {
+      "eId": "E117",
+      "nome": "Stacco con trap bar",
+      "serie": 3,
+      "reps": 6,
+      "rec": 120,
+      "sezione": "Giorno B",
+      "nota": "La tecnica giusta per sollevare: schiena neutra, spinta con le gambe"
+     },
+     {
+      "eId": "E110",
+      "nome": "Affondo all'indietro",
+      "serie": 3,
+      "reps": 8,
+      "rec": 90,
+      "sezione": "Giorno B",
+      "nota": "Manubri lungo i fianchi",
+      "perLato": true
+     },
+     {
+      "eId": "E23",
+      "nome": "Rematore Manubrio",
+      "serie": 3,
+      "reps": 10,
+      "rec": 60,
+      "sezione": "Giorno B",
+      "perLato": true
+     },
+     {
+      "eId": "E29",
+      "nome": "Press Spalle Manubri",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E49",
+      "nome": "Pallof Press",
+      "serie": 3,
+      "reps": 10,
+      "rec": 45,
+      "sezione": "Giorno B",
+      "perLato": true
+     },
+     {
+      "eId": "E197",
+      "nome": "Farmers Walk",
+      "serie": 3,
+      "reps": 30,
+      "rec": 60,
+      "sezione": "Giorno B",
+      "nota": "Pesante, spalle basse, busto dritto",
+      "repsMode": "dist"
+     },
+     {
+      "eId": "E04",
+      "nome": "Leg Press",
+      "serie": 3,
+      "reps": 12,
+      "rec": 90,
+      "sezione": "Giorno C"
+     },
+     {
+      "eId": "E08",
+      "nome": "Hip Thrust",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno C"
+     },
+     {
+      "eId": "E148",
+      "nome": "Trazioni Assistite",
+      "serie": 3,
+      "reps": 8,
+      "rec": 90,
+      "sezione": "Giorno C"
+     },
+     {
+      "eId": "E16",
+      "nome": "Push-up",
+      "serie": 3,
+      "reps": 10,
+      "rec": 60,
+      "sezione": "Giorno C",
+      "nota": "Corpo in linea"
+     },
+     {
+      "eId": "E74",
+      "nome": "Rear Delt Machine",
+      "serie": 2,
+      "reps": 15,
+      "rec": 45,
+      "sezione": "Giorno C"
+     },
+     {
+      "eId": "E45",
+      "nome": "Dead Bug",
+      "serie": 3,
+      "reps": 8,
+      "rec": 45,
+      "sezione": "Giorno C",
+      "perLato": true
+     },
+     {
+      "eId": "E57",
+      "nome": "Vogatore",
+      "serie": 1,
+      "reps": 480,
+      "rec": 0,
+      "sezione": "Giorno C",
+      "nota": "8': 1' forte / 1' facile",
+      "repsMode": "time"
+     }
+    ]
+   }
+  }
  }
 ];
