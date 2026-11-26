@@ -52,6 +52,7 @@ anonima in `share.html` (link `/s/xxx`). Hosting GitHub Pages dal repo
 - `sitemap.xml`, `robots.txt`, `CNAME`, `.nojekyll` — hosting/SEO.
 - `og-image.jpg` — anteprima social di `landing.html` (1200×630). `dashboard.jpg`, `mobile.jpg` — vecchie anteprime, da tenere.
 - `PTBoard_Guida_Rapida_PT.pdf` — guida scaricabile, linkata da `index.html`.
+- **Tutorial in app** (Parametri → 📖 Tutorial, `TutorialModal`): testi in `TUTORIAL_TESTI` {it,en,fr} (8 passi: benvenuto, valutazione, schede, link cliente, modelli, calendario, palestra/app, pronto), HTML generato da `tutorialSteps(lang)` con i colori del tema `C`. Aggiornarlo quando cambia una funzione principale; niente funzioni "in arrivo".
 - `PTBoard_v8…v13.html`, `PTBoard_v8 (5-7).html`, `PTBoard_Tutorial.html`, `files.zip` — snapshot legacy, NON referenziati dall'app in esecuzione. Clutter nel repo (vedi §Da verificare).
 
 ### Mappa `index.html` (range di righe approssimativi)
