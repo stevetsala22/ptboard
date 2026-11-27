@@ -3,6 +3,329 @@
  * del menu admin: anteprima, assegna a clienti, scarica file. Aggiungi qui nuove schede. */
 window.SCHEDE_PRONTE=[
  {
+  "id": "standard-ragazza",
+  "categoria": "Standard",
+  "titolo": "Standard ragazza · Full Body A/B",
+  "desc": "Scheda base per ragazze che iniziano o ripartono: 3 sedute alternando A e B, glutei e gambe in evidenza (hip thrust, stacco rumeno, affondi) più parte alta e core, 10' di cardio a fine seduta.",
+  "dati": {
+   "ptboard": "scheda",
+   "v": 1,
+   "scheda": {
+    "nome": "Standard ragazza · Full Body A/B",
+    "note": "3 sedute a settimana alternando A e B (settimana 1: A-B-A, settimana 2: B-A-B), giorni non consecutivi. Circa 55-60 minuti. Scheda standard per chi parte o riparte: va adattata a obiettivi, dolori o limiti del cliente.",
+    "regole": "Fatica 7/10: devi poter fare ancora 2-3 ripetizioni.\nTecnica prima del carico: se la forma peggiora, togli peso.\nSalita controllata, discesa lenta in 2-3 secondi.\nDolore (non fatica): fermati e avvisa il PT.",
+    "progressione": "Settimane 1-2: carichi leggeri, impara la tecnica.\nSettimane 3-7: quando fai il massimo delle ripetizioni in tutte le serie, aumenta il carico (+1-2 kg sopra, +2,5-5 kg gambe).\nSettimana 8: una serie in meno per esercizio, poi si cambia scheda.",
+    "parti": {
+     "Giorno A": {
+      "risc": {
+       "testo": "5' ellittica o cyclette leggero. Mobilità di anche, spalle e torace, 10 ponti glutei, 2 serie leggere del primo esercizio.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "5' camminata lenta e allungamento di gambe, glutei, petto e dorsali.",
+       "min": 5
+      }
+     },
+     "Giorno B": {
+      "risc": {
+       "testo": "5' ellittica o cyclette leggero. Mobilità di anche e spalle, 10 squat a corpo libero, 2 serie leggere del primo esercizio.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "5' camminata lenta e allungamento di femorali, flessori dell'anca e spalle.",
+       "min": 5
+      }
+     }
+    },
+    "esercizi": [
+     {
+      "eId": "E08",
+      "nome": "Hip Thrust",
+      "serie": 3,
+      "reps": 10,
+      "rec": 90,
+      "sezione": "Giorno A",
+      "nota": "Pausa 1 secondo in alto"
+     },
+     {
+      "eId": "E04",
+      "nome": "Leg Press",
+      "serie": 3,
+      "reps": 12,
+      "rec": 90,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E24",
+      "nome": "Lat Machine",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno A",
+      "nota": "Fino al petto"
+     },
+     {
+      "eId": "E66",
+      "nome": "Chest Press Macchina",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E83",
+      "nome": "Abduttori Macchina",
+      "serie": 3,
+      "reps": 15,
+      "rec": 45,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E44",
+      "nome": "Plank",
+      "serie": 3,
+      "reps": 30,
+      "rec": 45,
+      "sezione": "Giorno A",
+      "repsMode": "time"
+     },
+     {
+      "eId": "E87",
+      "nome": "Tapis Roulant",
+      "serie": 1,
+      "reps": 600,
+      "rec": 0,
+      "sezione": "Giorno A",
+      "nota": "10' camminata in salita",
+      "repsMode": "time"
+     },
+     {
+      "eId": "E11",
+      "nome": "Stacco rumeno",
+      "serie": 3,
+      "reps": 10,
+      "rec": 90,
+      "sezione": "Giorno B",
+      "nota": "Con manubri, schiena neutra"
+     },
+     {
+      "eId": "E110",
+      "nome": "Affondo all'indietro",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno B",
+      "nota": "Manubri lungo i fianchi",
+      "perLato": true
+     },
+     {
+      "eId": "E26",
+      "nome": "Pulley Basso",
+      "serie": 3,
+      "reps": 12,
+      "rec": 60,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E29",
+      "nome": "Press Spalle Manubri",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E14",
+      "nome": "Leg Curl",
+      "serie": 3,
+      "reps": 12,
+      "rec": 60,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E45",
+      "nome": "Dead Bug",
+      "serie": 3,
+      "reps": 8,
+      "rec": 45,
+      "sezione": "Giorno B",
+      "perLato": true
+     },
+     {
+      "eId": "E55",
+      "nome": "Cyclette",
+      "serie": 1,
+      "reps": 600,
+      "rec": 0,
+      "sezione": "Giorno B",
+      "nota": "10' ritmo moderato",
+      "repsMode": "time"
+     }
+    ]
+   }
+  }
+ },
+ {
+  "id": "standard-ragazzo",
+  "categoria": "Standard",
+  "titolo": "Standard ragazzo · Full Body A/B",
+  "desc": "Scheda base per ragazzi che iniziano o ripartono: 3 sedute alternando A e B, fondamentali (squat, panca, stacco rumeno, lat machine) più braccia, spalle e core, cardio breve a fine seduta.",
+  "dati": {
+   "ptboard": "scheda",
+   "v": 1,
+   "scheda": {
+    "nome": "Standard ragazzo · Full Body A/B",
+    "note": "3 sedute a settimana alternando A e B (settimana 1: A-B-A, settimana 2: B-A-B), giorni non consecutivi. Circa 55-60 minuti. Scheda standard per chi parte o riparte: va adattata a obiettivi, dolori o limiti del cliente.",
+    "regole": "Fatica 7/10: devi poter fare ancora 2-3 ripetizioni.\nTecnica prima del carico: se la forma peggiora, togli peso.\nSalita controllata, discesa lenta in 2-3 secondi.\nDolore (non fatica): fermati e avvisa il PT.",
+    "progressione": "Settimane 1-2: carichi leggeri, impara la tecnica.\nSettimane 3-7: quando fai il massimo delle ripetizioni in tutte le serie, aumenta il carico (+1-2 kg sopra, +2,5-5 kg gambe).\nSettimana 8: una serie in meno per esercizio, poi si cambia scheda.",
+    "parti": {
+     "Giorno A": {
+      "risc": {
+       "testo": "5' cyclette o vogatore leggero. Mobilità di anche, spalle e torace, 10 ponti glutei, 2 serie leggere del primo esercizio.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "5' camminata lenta e allungamento di gambe, glutei, petto e dorsali.",
+       "min": 5
+      }
+     },
+     "Giorno B": {
+      "risc": {
+       "testo": "5' cyclette o vogatore leggero. Mobilità di anche e spalle, 10 squat a corpo libero, 2 serie leggere del primo esercizio.",
+       "min": 8
+      },
+      "defat": {
+       "testo": "5' camminata lenta e allungamento di femorali, flessori dell'anca e spalle.",
+       "min": 5
+      }
+     }
+    },
+    "esercizi": [
+     {
+      "eId": "E01",
+      "nome": "Squat",
+      "serie": 3,
+      "reps": 8,
+      "rec": 120,
+      "sezione": "Giorno A",
+      "nota": "Bilanciere, profondità comoda"
+     },
+     {
+      "eId": "E20",
+      "nome": "Panca Bilanciere",
+      "serie": 3,
+      "reps": 8,
+      "rec": 120,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E24",
+      "nome": "Lat Machine",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno A",
+      "nota": "Fino al petto"
+     },
+     {
+      "eId": "E14",
+      "nome": "Leg Curl",
+      "serie": 3,
+      "reps": 12,
+      "rec": 60,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E30",
+      "nome": "Alzate Laterali",
+      "serie": 3,
+      "reps": 12,
+      "rec": 45,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E34",
+      "nome": "Curl Manubri",
+      "serie": 2,
+      "reps": 12,
+      "rec": 45,
+      "sezione": "Giorno A"
+     },
+     {
+      "eId": "E44",
+      "nome": "Plank",
+      "serie": 3,
+      "reps": 30,
+      "rec": 45,
+      "sezione": "Giorno A",
+      "repsMode": "time"
+     },
+     {
+      "eId": "E11",
+      "nome": "Stacco rumeno",
+      "serie": 3,
+      "reps": 8,
+      "rec": 90,
+      "sezione": "Giorno B",
+      "nota": "Schiena neutra"
+     },
+     {
+      "eId": "E04",
+      "nome": "Leg Press",
+      "serie": 3,
+      "reps": 10,
+      "rec": 90,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E67",
+      "nome": "Panca Inclinata Manubri",
+      "serie": 3,
+      "reps": 10,
+      "rec": 75,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E23",
+      "nome": "Rematore Manubrio",
+      "serie": 3,
+      "reps": 10,
+      "rec": 60,
+      "sezione": "Giorno B",
+      "perLato": true
+     },
+     {
+      "eId": "E39",
+      "nome": "Pushdown Cavo",
+      "serie": 2,
+      "reps": 12,
+      "rec": 45,
+      "sezione": "Giorno B"
+     },
+     {
+      "eId": "E49",
+      "nome": "Pallof Press",
+      "serie": 3,
+      "reps": 10,
+      "rec": 45,
+      "sezione": "Giorno B",
+      "perLato": true
+     },
+     {
+      "eId": "E57",
+      "nome": "Vogatore",
+      "serie": 1,
+      "reps": 480,
+      "rec": 0,
+      "sezione": "Giorno B",
+      "nota": "8' ritmo moderato",
+      "repsMode": "time"
+     }
+    ]
+   }
+  }
+ },
+ {
   "id": "dimagrimento-fb-abc",
   "categoria": "Dimagrimento",
   "titolo": "Dimagrimento · Full Body A/B/C",
